@@ -1,0 +1,15 @@
+# pre-commit hooks for this repository — https://pre-commit.com
+# Enable locally once with: pre-commit install
+#
+# Runs PHP-CS-Fixer in dry-run mode over the staged PHP files so a style
+# violation fails the commit rather than the CI run. Requires `composer install`
+# to have been run; skip ad hoc with `SKIP=php-cs-fixer git commit ...`.
+repos:
+  - repo: local
+    hooks:
+      - id: php-cs-fixer
+        name: php-cs-fixer (dry run)
+        entry: vendor/bin/php-cs-fixer fix --dry-run --diff --config=.php-cs-fixer.dist.php
+        language: system
+        files: ^(src/.*\.php|tests/.*\.php|bin/json-api-client-codegen)$
+        pass_filenames: true

@@ -1,0 +1,10 @@
+parameters:
+    level: 9
+    paths:
+        - src
+        - tests
+        - bin/json-api-client-codegen
+    excludePaths:
+        - tests/fixtures
+    tmpDir: .phpstan.cache
+    treatPhpDocTypesAsCertain: false

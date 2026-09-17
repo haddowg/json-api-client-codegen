@@ -1,0 +1,27 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+use haddowg\JsonApiCodegen\Console\Usage;
+
+$loaded = false;
+
+// Standalone checkout first, then the layout used when this package sits in a consumer's vendor/.
+foreach ([__DIR__ . '/../vendor/autoload.php', __DIR__ . '/../../../autoload.php'] as $autoload) {
+    if (\is_file($autoload)) {
+        require_once $autoload;
+        $loaded = true;
+        break;
+    }
+}
+
+if ($loaded === false) {
+    \fwrite(\STDERR, 'Composer autoloader not found. Run `composer install` first.' . \PHP_EOL);
+
+    exit(1);
+}
+
+\fwrite(\STDOUT, Usage::text());
+
+exit(0);

@@ -1,0 +1,65 @@
+{
+    "name": "haddowg/json-api-client-codegen",
+    "description": "Generates a typed PHP JSON:API client from an OpenAPI 3.1 document.",
+    "type": "library",
+    "keywords": [
+        "json-api",
+        "jsonapi",
+        "openapi",
+        "codegen",
+        "code-generation",
+        "client",
+        "api",
+        "rest"
+    ],
+    "homepage": "https://github.com/haddowg/json-api-client-codegen",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Gregory Haddow",
+            "homepage": "https://github.com/haddowg"
+        }
+    ],
+    "require": {
+        "php": "^8.3",
+        "ext-json": "*"
+    },
+    "require-dev": {
+        "friendsofphp/php-cs-fixer": "^3.64",
+        "phpstan/phpstan": "^2.0",
+        "phpunit/phpunit": "^12.0"
+    },
+    "bin": [
+        "bin/json-api-client-codegen"
+    ],
+    "autoload": {
+        "psr-4": {
+            "haddowg\\JsonApiCodegen\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "haddowg\\JsonApiCodegen\\Tests\\": "tests/"
+        }
+    },
+    "config": {
+        "sort-packages": true,
+        "preferred-install": "dist"
+    },
+    "scripts": {
+        "test": "phpunit",
+        "test-coverage": "phpunit --coverage-clover coverage.xml",
+        "phpstan": "phpstan analyse --memory-limit=1G",
+        "cs-check": "php-cs-fixer fix --dry-run --diff",
+        "cs-fix": "php-cs-fixer fix"
+    },
+    "scripts-descriptions": {
+        "test": "Run the PHPUnit test suite",
+        "test-coverage": "Run the test suite and emit a Clover coverage report",
+        "phpstan": "Run PHPStan static analysis",
+        "cs-check": "Check code style without modifying files",
+        "cs-fix": "Apply code style fixes"
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}

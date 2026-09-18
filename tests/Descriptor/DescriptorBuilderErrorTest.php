@@ -121,7 +121,7 @@ final class DescriptorBuilderErrorTest extends TestCase
             'paths' => [
                 '/albums' => [
                     'get' => [
-                        'parameters' => [['name' => 'page[token]']],
+                        'parameters' => [['name' => 'page[token]'], ['name' => 'page[window]']],
                         'responses' => [
                             '200' => ['content' => ['application/vnd.api+json' => ['schema' => ['$ref' => '#/components/schemas/AlbumsCollection']]]],
                         ],
@@ -131,7 +131,7 @@ final class DescriptorBuilderErrorTest extends TestCase
         ]);
 
         $this->expectException(SpecException::class);
-        $this->expectExceptionMessage('expected paths./albums.get.parameters to declare page parameters matching a known paginator, got page[token]');
+        $this->expectExceptionMessage('expected paths./albums.get.parameters to declare page members matching a known paginator, got token, window');
 
         DescriptorBuilder::build($document);
     }

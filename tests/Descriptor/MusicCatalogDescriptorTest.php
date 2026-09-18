@@ -234,9 +234,15 @@ final class MusicCatalogDescriptorTest extends TestCase
 
     public function testPaginatorIsReadPerTypeAndNotAssumed(): void
     {
-        self::assertSame(PaginatorKind::Page, $this->resource('albums')->paginator);
-        self::assertSame(PaginatorKind::None, $this->resource('charts')->paginator);
-        self::assertSame(PaginatorKind::None, $this->resource('countries')->paginator);
+        $albums = $this->resource('albums')->paginator;
+
+        self::assertSame(PaginatorKind::Page, $albums->kind);
+        self::assertSame(['number', 'size'], $albums->parameters);
+        self::assertTrue($albums->paginated());
+
+        self::assertSame(PaginatorKind::None, $this->resource('charts')->paginator->kind);
+        self::assertSame([], $this->resource('charts')->paginator->parameters);
+        self::assertFalse($this->resource('countries')->paginator->paginated());
     }
 
     public function testNoRelationDivergesFromItsRelatedTypesPaginator(): void
@@ -349,7 +355,7 @@ final class MusicCatalogDescriptorTest extends TestCase
 
         self::assertSame([], $users->operations);
         self::assertSame([], $users->attributes);
-        self::assertSame(PaginatorKind::None, $users->paginator);
+        self::assertSame(PaginatorKind::None, $users->paginator->kind);
     }
 
     private function resource(string $type): ResourceDescriptor

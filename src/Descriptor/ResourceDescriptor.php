@@ -26,7 +26,7 @@ final class ResourceDescriptor
         public readonly array $attributes,
         public readonly array $relations,
         public readonly array $operations,
-        public readonly PaginatorKind $paginator,
+        public readonly PaginatorDescriptor $paginator,
         public readonly ClientIdPolicy $clientId,
         public readonly ?CountableDescriptor $countable,
         public readonly array $includable,

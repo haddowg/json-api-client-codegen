@@ -1,0 +1,1681 @@
+{
+    "contract": null,
+    "atomic": {
+        "path": "/operations",
+        "mediaType": "application/vnd.api+json; ext=\"https://jsonapi.org/ext/atomic\""
+    },
+    "enums": {
+        "AlbumStatus": {
+            "name": "AlbumStatus",
+            "description": "| Value | Description |\n| --- | --- |\n| `upcoming` | Announced but not yet on sale. |\n| `released` | Released and available to stream or buy. |\n| `withdrawn` | Withdrawn from the catalogue (back-catalogue or rights lapsed). |",
+            "cases": [
+                {
+                    "value": "upcoming",
+                    "name": "Upcoming",
+                    "description": "Announced but not yet on sale."
+                },
+                {
+                    "value": "released",
+                    "name": "Released",
+                    "description": "Released and available to stream or buy."
+                },
+                {
+                    "value": "withdrawn",
+                    "name": "Withdrawn",
+                    "description": "Withdrawn from the catalogue (back-catalogue or rights lapsed)."
+                }
+            ]
+        }
+    },
+    "resources": {
+        "albums": {
+            "type": "albums",
+            "paginator": "page",
+            "clientId": "forbidden",
+            "countable": {
+                "tokens": [
+                    "tracks"
+                ],
+                "profile": "https://haddowg.github.io/json-api/profiles/countable/"
+            },
+            "attributes": {
+                "artwork": {
+                    "format": "string",
+                    "enum": null
+                },
+                "availableFrom": {
+                    "format": "date",
+                    "enum": null
+                },
+                "availableUntil": {
+                    "format": "date",
+                    "enum": null
+                },
+                "averageRating": {
+                    "format": "number",
+                    "enum": null
+                },
+                "explicit": {
+                    "format": "boolean",
+                    "enum": null
+                },
+                "releaseInfo": {
+                    "format": "object",
+                    "enum": null
+                },
+                "releasedAt": {
+                    "format": "date-time",
+                    "enum": null
+                },
+                "status": {
+                    "format": "string",
+                    "enum": "AlbumStatus"
+                },
+                "title": {
+                    "format": "string",
+                    "enum": null
+                }
+            },
+            "relations": {
+                "artist": {
+                    "cardinality": "one",
+                    "types": [
+                        "artists"
+                    ],
+                    "related": true,
+                    "relationship": true,
+                    "mutations": [
+                        "set"
+                    ],
+                    "paginator": null,
+                    "countable": null,
+                    "pivot": false,
+                    "pivotFields": []
+                },
+                "tracks": {
+                    "cardinality": "many",
+                    "types": [
+                        "tracks"
+                    ],
+                    "related": true,
+                    "relationship": true,
+                    "mutations": [
+                        "add",
+                        "remove",
+                        "replace"
+                    ],
+                    "paginator": null,
+                    "countable": {
+                        "tokens": [
+                            "_self_",
+                            "playlists"
+                        ],
+                        "profile": "https://haddowg.github.io/json-api/profiles/countable/"
+                    },
+                    "pivot": false,
+                    "pivotFields": []
+                }
+            },
+            "operations": {
+                "create": {
+                    "path": "/albums",
+                    "method": "POST",
+                    "errorStatuses": [
+                        400,
+                        401,
+                        403,
+                        404,
+                        406,
+                        409,
+                        415,
+                        422,
+                        500
+                    ]
+                },
+                "delete": {
+                    "path": "/albums/{id}",
+                    "method": "DELETE",
+                    "errorStatuses": [
+                        400,
+                        401,
+                        403,
+                        404,
+                        406,
+                        500
+                    ]
+                },
+                "fetchMany": {
+                    "path": "/albums",
+                    "method": "GET",
+                    "errorStatuses": [
+                        400,
+                        401,
+                        403,
+                        406,
+                        500
+                    ]
+                },
+                "fetchOne": {
+                    "path": "/albums/{id}",
+                    "method": "GET",
+                    "errorStatuses": [
+                        400,
+                        401,
+                        403,
+                        404,
+                        406,
+                        500
+                    ]
+                },
+                "fetchRelated": {
+                    "path": "/albums/{id}/{rel}",
+                    "method": "GET",
+                    "errorStatuses": [
+                        400,
+                        401,
+                        403,
+                        404,
+                        406,
+                        500
+                    ]
+                },
+                "fetchRelationship": {
+                    "path": "/albums/{id}/relationships/{rel}",
+                    "method": "GET",
+                    "errorStatuses": [
+                        400,
+                        401,
+                        403,
+                        404,
+                        406,
+                        500
+                    ]
+                },
+                "update": {
+                    "path": "/albums/{id}",
+                    "method": "PATCH",
+                    "errorStatuses": [
+                        400,
+                        401,
+                        403,
+                        404,
+                        406,
+                        409,
+                        415,
+                        422,
+                        500
+                    ]
+                }
+            },
+            "includable": [
+                "artist",
+                "artist.albums",
+                "tracks",
+                "tracks.album",
+                "tracks.playlists"
+            ],
+            "sortable": [
+                "title",
+                "-title",
+                "releasedAt",
+                "-releasedAt",
+                "status",
+                "-status"
+            ],
+            "filterable": {
+                "artist.name": {
+                    "schema": null
+                },
+                "q": {
+                    "schema": null
+                },
+                "rating": {
+                    "schema": {
+                        "types": [
+                            "object"
+                        ],
+                        "format": null,
+                        "enum": [],
+                        "required": [],
+                        "properties": {
+                            "max": {
+                                "types": [
+                                    "number"
+                                ],
+                                "format": null,
+                                "enum": [],
+                                "required": [],
+                                "properties": [],
+                                "items": null
+                            },
+                            "min": {
+                                "types": [
+                                    "number"
+                                ],
+                                "format": null,
+                                "enum": [],
+                                "required": [],
+                                "properties": [],
+                                "items": null
+                            }
+                        },
+                        "items": null
+                    }
+                },
+                "releasedAt": {
+                    "schema": {
+                        "types": [
+                            "object"
+                        ],
+                        "format": null,
+                        "enum": [],
+                        "required": [],
+                        "properties": {
+                            "max": {
+                                "types": [
+                                    "string"
+                                ],
+                                "format": "date-time",
+                                "enum": [],
+                                "required": [],
+                                "properties": [],
+                                "items": null
+                            },
+                            "min": {
+                                "types": [
+                                    "string"
+                                ],
+                                "format": "date-time",
+                                "enum": [],
+                                "required": [],
+                                "properties": [],
+                                "items": null
+                            }
+                        },
+                        "items": null
+                    }
+                },
+                "title": {
+                    "schema": null
+                },
+                "tracks": {
+                    "schema": null
+                }
+            },
+            "actions": {
+                "artwork": {
+                    "scope": "resource",
+                    "path": "/albums/{id}/-actions/artwork",
+                    "method": "POST",
+                    "input": "raw",
+                    "inputType": null,
+                    "contentType": "application/octet-stream",
+                    "output": "none",
+                    "outputType": null,
+                    "outputCardinality": null,
+                    "errorStatuses": [
+                        400,
+                        401,
+                        403,
+                        404,
+                        406,
+                        422,
+                        500
+                    ]
+                },
+                "reissue": {
+                    "scope": "resource",
+                    "path": "/albums/{id}/-actions/reissue",
+                    "method": "POST",
+                    "input": "document",
+                    "inputType": "albums",
+                    "contentType": null,
+                    "output": "document",
+                    "outputType": "albums",
+                    "outputCardinality": "one",
+                    "errorStatuses": [
+                        400,
+                        401,
+                        403,
+                        404,
+                        406,
+                        415,
+                        422,
+                        500
+                    ]
+                },
+                "summary": {
+                    "scope": "collection",
+                    "path": "/albums/-actions/summary",
+                    "method": "POST",
+                    "input": "none",
+                    "inputType": null,
+                    "contentType": null,
+                    "output": "meta",
+                    "outputType": null,
+                    "outputCardinality": null,
+                    "errorStatuses": [
+                        400,
+                        401,
+                        403,
+                        404,
+                        406,
+                        415,
+                        422,
+                        500
+                    ]
+                }
+            }
+        },
+        "artists": {
+            "type": "artists",
+            "paginator": "page",
+            "clientId": "forbidden",
+            "countable": null,
+            "attributes": {
+                "bio": {
+                    "format": "string",
+                    "enum": null
+                },
+                "createdAt": {
+                    "format": "date-time",
+                    "enum": null
+                },
+                "name": {
+                    "format": "string",
+                    "enum": null
+                },
+                "slug": {
+                    "format": "string",
+                    "enum": null
+                },
+                "trackCount": {
+                    "format": "integer",
+                    "enum": null
+                },
+                "website": {
+                    "format": "uri",
+                    "enum": null
+                }
+            },
+            "relations": {
+                "albums": {
+                    "cardinality": "many",
+                    "types": [
+                        "albums"
+                    ],
+                    "related": true,
+                    "relationship": true,
+                    "mutations": [
+                        "add",
+                        "remove",
+                        "replace"
+                    ],
+                    "paginator": null,
+                    "countable": {
+                        "tokens": [
+                            "tracks"
+                        ],
+                        "profile": "https://haddowg.github.io/json-api/profiles/countable/"
+                    },
+                    "pivot": false,
+                    "pivotFields": []
+                }
+            },
+            "operations": {
+                "create": {
+                    "path": "/artists",
+                    "method": "POST",
+                    "errorStatuses": [
+                        400,
+                        401,
+                        403,
+                        404,
+                        406,
+                        409,
+                        415,
+                        422,
+                        500
+                    ]
+                },
+                "delete": {
+                    "path": "/artists/{id}",
+                    "method": "DELETE",
+                    "errorStatuses": [
+                        400,
+                        401,
+                        403,
+                        404,
+                        406,
+                        500
+                    ]
+                },
+                "fetchMany": {
+                    "path": "/artists",
+                    "method": "GET",
+                    "errorStatuses": [
+                        400,
+                        403,
+                        406,
+                        500
+                    ]
+                },
+                "fetchOne": {
+                    "path": "/artists/{id}",
+                    "method": "GET",
+                    "errorStatuses": [
+                        400,
+                        403,
+                        404,
+                        406,
+                        500
+                    ]
+                },
+                "fetchRelated": {
+                    "path": "/artists/{id}/{rel}",
+                    "method": "GET",
+                    "errorStatuses": [
+                        400,
+                        403,
+                        404,
+                        406,
+                        500
+                    ]
+                },
+                "fetchRelationship": {
+                    "path": "/artists/{id}/relationships/{rel}",
+                    "method": "GET",
+                    "errorStatuses": [
+                        400,
+                        403,
+                        404,
+                        406,
+                        500
+                    ]
+                },
+                "update": {
+                    "path": "/artists/{id}",
+                    "method": "PATCH",
+                    "errorStatuses": [
+                        400,
+                        401,
+                        403,
+                        404,
+                        406,
+                        409,
+                        415,
+                        422,
+                        500
+                    ]
+                }
+            },
+            "includable": [
+                "albums",
+                "albums.artist",
+                "albums.tracks"
+            ],
+            "sortable": [
+                "name",
+                "-name",
+                "slug",
+                "-slug",
+                "createdAt",
+                "-createdAt"
+            ],
+            "filterable": {
+                "q": {
+                    "schema": null
+                },
+                "slug": {
+                    "schema": null
+                }
+            },
+            "actions": []
+        },
+        "charts": {
+            "type": "charts",
+            "paginator": "none",
+            "clientId": "forbidden",
+            "countable": null,
+            "attributes": [],
+            "relations": [],
+            "operations": {
+                "fetchMany": {
+                    "path": "/charts",
+                    "method": "GET",
+                    "errorStatuses": [
+                        400,
+                        401,
+                        403,
+                        406,
+                        500
+                    ]
+                },
+                "fetchOne": {
+                    "path": "/charts/{id}",
+                    "method": "GET",
+                    "errorStatuses": [
+                        400,
+                        401,
+                        403,
+                        404,
+                        406,
+                        500
+                    ]
+                }
+            },
+            "includable": [],
+            "sortable": [],
+            "filterable": [],
+            "actions": []
+        },
+        "countries": {
+            "type": "countries",
+            "paginator": "none",
+            "clientId": "forbidden",
+            "countable": null,
+            "attributes": [],
+            "relations": [],
+            "operations": {
+                "fetchMany": {
+                    "path": "/countries",
+                    "method": "GET",
+                    "errorStatuses": [
+                        400,
+                        401,
+                        403,
+                        406,
+                        500
+                    ]
+                },
+                "fetchOne": {
+                    "path": "/countries/{id}",
+                    "method": "GET",
+                    "errorStatuses": [
+                        400,
+                        401,
+                        403,
+                        404,
+                        406,
+                        500
+                    ]
+                }
+            },
+            "includable": [],
+            "sortable": [],
+            "filterable": [],
+            "actions": []
+        },
+        "devices": {
+            "type": "devices",
+            "paginator": "page",
+            "clientId": "forbidden",
+            "countable": null,
+            "attributes": {
+                "label": {
+                    "format": "string",
+                    "enum": null
+                }
+            },
+            "relations": [],
+            "operations": {
+                "create": {
+                    "path": "/devices",
+                    "method": "POST",
+                    "errorStatuses": [
+                        400,
+                        401,
+                        403,
+                        404,
+                        406,
+                        409,
+                        415,
+                        422,
+                        500
+                    ]
+                },
+                "delete": {
+                    "path": "/devices/{id}",
+                    "method": "DELETE",
+                    "errorStatuses": [
+                        400,
+                        401,
+                        403,
+                        404,
+                        406,
+                        500
+                    ]
+                },
+                "fetchMany": {
+                    "path": "/devices",
+                    "method": "GET",
+                    "errorStatuses": [
+                        400,
+                        401,
+                        403,
+                        406,
+                        500
+                    ]
+                },
+                "fetchOne": {
+                    "path": "/devices/{id}",
+                    "method": "GET",
+                    "errorStatuses": [
+                        400,
+                        401,
+                        403,
+                        404,
+                        406,
+                        500
+                    ]
+                },
+                "update": {
+                    "path": "/devices/{id}",
+                    "method": "PATCH",
+                    "errorStatuses": [
+                        400,
+                        401,
+                        403,
+                        404,
+                        406,
+                        409,
+                        415,
+                        422,
+                        500
+                    ]
+                }
+            },
+            "includable": [],
+            "sortable": [],
+            "filterable": [],
+            "actions": []
+        },
+        "favorites": {
+            "type": "favorites",
+            "paginator": "page",
+            "clientId": "forbidden",
+            "countable": null,
+            "attributes": {
+                "favoritedAt": {
+                    "format": "date-time",
+                    "enum": null
+                }
+            },
+            "relations": {
+                "favoritable": {
+                    "cardinality": "one",
+                    "types": [
+                        "tracks",
+                        "albums",
+                        "artists"
+                    ],
+                    "related": true,
+                    "relationship": true,
+                    "mutations": [
+                        "set"
+                    ],
+                    "paginator": null,
+                    "countable": null,
+                    "pivot": false,
+                    "pivotFields": []
+                },
+                "user": {
+                    "cardinality": "one",
+                    "types": [
+                        "users"
+                    ],
+                    "related": true,
+                    "relationship": true,
+                    "mutations": [
+                        "set"
+                    ],
+                    "paginator": null,
+                    "countable": null,
+                    "pivot": false,
+                    "pivotFields": []
+                }
+            },
+            "operations": {
+                "create": {
+                    "path": "/favorites",
+                    "method": "POST",
+                    "errorStatuses": [
+                        400,
+                        401,
+                        403,
+                        404,
+                        406,
+                        409,
+                        415,
+                        422,
+                        500
+                    ]
+                },
+                "delete": {
+                    "path": "/favorites/{id}",
+                    "method": "DELETE",
+                    "errorStatuses": [
+                        400,
+                        401,
+                        403,
+                        404,
+                        406,
+                        500
+                    ]
+                },
+                "fetchMany": {
+                    "path": "/favorites",
+                    "method": "GET",
+                    "errorStatuses": [
+                        400,
+                        401,
+                        403,
+                        406,
+                        500
+                    ]
+                },
+                "fetchOne": {
+                    "path": "/favorites/{id}",
+                    "method": "GET",
+                    "errorStatuses": [
+                        400,
+                        401,
+                        403,
+                        404,
+                        406,
+                        500
+                    ]
+                },
+                "fetchRelated": {
+                    "path": "/favorites/{id}/{rel}",
+                    "method": "GET",
+                    "errorStatuses": [
+                        400,
+                        401,
+                        403,
+                        404,
+                        406,
+                        500
+                    ]
+                },
+                "fetchRelationship": {
+                    "path": "/favorites/{id}/relationships/{rel}",
+                    "method": "GET",
+                    "errorStatuses": [
+                        400,
+                        401,
+                        403,
+                        404,
+                        406,
+                        500
+                    ]
+                },
+                "update": {
+                    "path": "/favorites/{id}",
+                    "method": "PATCH",
+                    "errorStatuses": [
+                        400,
+                        401,
+                        403,
+                        404,
+                        406,
+                        409,
+                        415,
+                        422,
+                        500
+                    ]
+                }
+            },
+            "includable": [],
+            "sortable": [],
+            "filterable": [],
+            "actions": []
+        },
+        "genres": {
+            "type": "genres",
+            "paginator": "page",
+            "clientId": "required",
+            "countable": null,
+            "attributes": {
+                "name": {
+                    "format": "string",
+                    "enum": null
+                }
+            },
+            "relations": [],
+            "operations": {
+                "create": {
+                    "path": "/genres",
+                    "method": "POST",
+                    "errorStatuses": [
+                        400,
+                        401,
+                        403,
+                        404,
+                        406,
+                        409,
+                        415,
+                        422,
+                        500
+                    ]
+                },
+                "delete": {
+                    "path": "/genres/{id}",
+                    "method": "DELETE",
+                    "errorStatuses": [
+                        400,
+                        401,
+                        403,
+                        404,
+                        406,
+                        500
+                    ]
+                },
+                "fetchMany": {
+                    "path": "/genres",
+                    "method": "GET",
+                    "errorStatuses": [
+                        400,
+                        401,
+                        403,
+                        406,
+                        500
+                    ]
+                },
+                "fetchOne": {
+                    "path": "/genres/{id}",
+                    "method": "GET",
+                    "errorStatuses": [
+                        400,
+                        401,
+                        403,
+                        404,
+                        406,
+                        500
+                    ]
+                },
+                "update": {
+                    "path": "/genres/{id}",
+                    "method": "PATCH",
+                    "errorStatuses": [
+                        400,
+                        401,
+                        403,
+                        404,
+                        406,
+                        409,
+                        415,
+                        422,
+                        500
+                    ]
+                }
+            },
+            "includable": [],
+            "sortable": [],
+            "filterable": [],
+            "actions": []
+        },
+        "libraries": {
+            "type": "libraries",
+            "paginator": "page",
+            "clientId": "forbidden",
+            "countable": null,
+            "attributes": [],
+            "relations": {
+                "items": {
+                    "cardinality": "many",
+                    "types": [
+                        "tracks",
+                        "albums",
+                        "artists"
+                    ],
+                    "related": true,
+                    "relationship": true,
+                    "mutations": [
+                        "add",
+                        "remove",
+                        "replace"
+                    ],
+                    "paginator": null,
+                    "countable": null,
+                    "pivot": false,
+                    "pivotFields": []
+                },
+                "owner": {
+                    "cardinality": "one",
+                    "types": [
+                        "users"
+                    ],
+                    "related": true,
+                    "relationship": true,
+                    "mutations": [
+                        "set"
+                    ],
+                    "paginator": null,
+                    "countable": null,
+                    "pivot": false,
+                    "pivotFields": []
+                }
+            },
+            "operations": {
+                "create": {
+                    "path": "/libraries",
+                    "method": "POST",
+                    "errorStatuses": [
+                        400,
+                        401,
+                        403,
+                        404,
+                        406,
+                        409,
+                        415,
+                        422,
+                        500
+                    ]
+                },
+                "delete": {
+                    "path": "/libraries/{id}",
+                    "method": "DELETE",
+                    "errorStatuses": [
+                        400,
+                        401,
+                        403,
+                        404,
+                        406,
+                        500
+                    ]
+                },
+                "fetchMany": {
+                    "path": "/libraries",
+                    "method": "GET",
+                    "errorStatuses": [
+                        400,
+                        401,
+                        403,
+                        406,
+                        500
+                    ]
+                },
+                "fetchOne": {
+                    "path": "/libraries/{id}",
+                    "method": "GET",
+                    "errorStatuses": [
+                        400,
+                        401,
+                        403,
+                        404,
+                        406,
+                        500
+                    ]
+                },
+                "fetchRelated": {
+                    "path": "/libraries/{id}/{rel}",
+                    "method": "GET",
+                    "errorStatuses": [
+                        400,
+                        401,
+                        403,
+                        404,
+                        406,
+                        500
+                    ]
+                },
+                "fetchRelationship": {
+                    "path": "/libraries/{id}/relationships/{rel}",
+                    "method": "GET",
+                    "errorStatuses": [
+                        400,
+                        401,
+                        403,
+                        404,
+                        406,
+                        500
+                    ]
+                },
+                "update": {
+                    "path": "/libraries/{id}",
+                    "method": "PATCH",
+                    "errorStatuses": [
+                        400,
+                        401,
+                        403,
+                        404,
+                        406,
+                        409,
+                        415,
+                        422,
+                        500
+                    ]
+                }
+            },
+            "includable": [
+                "items"
+            ],
+            "sortable": [],
+            "filterable": [],
+            "actions": []
+        },
+        "playlists": {
+            "type": "playlists",
+            "paginator": "page",
+            "clientId": "forbidden",
+            "countable": {
+                "tokens": [
+                    "tracks"
+                ],
+                "profile": "https://haddowg.github.io/json-api/profiles/countable/"
+            },
+            "attributes": {
+                "externalId": {
+                    "format": "uuid",
+                    "enum": null
+                },
+                "public": {
+                    "format": "boolean",
+                    "enum": null
+                },
+                "slug": {
+                    "format": "string",
+                    "enum": null
+                },
+                "title": {
+                    "format": "string",
+                    "enum": null
+                }
+            },
+            "relations": {
+                "orderedTracks": {
+                    "cardinality": "many",
+                    "types": [
+                        "tracks"
+                    ],
+                    "related": true,
+                    "relationship": true,
+                    "mutations": [
+                        "add",
+                        "remove",
+                        "replace"
+                    ],
+                    "paginator": null,
+                    "countable": {
+                        "tokens": [
+                            "playlists"
+                        ],
+                        "profile": "https://haddowg.github.io/json-api/profiles/countable/"
+                    },
+                    "pivot": true,
+                    "pivotFields": {
+                        "addedAt": {
+                            "format": "date-time",
+                            "enum": null,
+                            "readOnly": true,
+                            "required": false
+                        },
+                        "position": {
+                            "format": "integer",
+                            "enum": null,
+                            "readOnly": false,
+                            "required": true
+                        },
+                        "weight": {
+                            "format": "integer",
+                            "enum": null,
+                            "readOnly": false,
+                            "required": false
+                        }
+                    }
+                },
+                "owner": {
+                    "cardinality": "one",
+                    "types": [
+                        "users"
+                    ],
+                    "related": true,
+                    "relationship": true,
+                    "mutations": [
+                        "set"
+                    ],
+                    "paginator": null,
+                    "countable": null,
+                    "pivot": false,
+                    "pivotFields": []
+                },
+                "publicOwner": {
+                    "cardinality": "one",
+                    "types": [
+                        "public-profiles"
+                    ],
+                    "related": true,
+                    "relationship": true,
+                    "mutations": [
+                        "set"
+                    ],
+                    "paginator": null,
+                    "countable": null,
+                    "pivot": false,
+                    "pivotFields": []
+                },
+                "tracks": {
+                    "cardinality": "many",
+                    "types": [
+                        "tracks"
+                    ],
+                    "related": true,
+                    "relationship": true,
+                    "mutations": [
+                        "add",
+                        "remove",
+                        "replace"
+                    ],
+                    "paginator": null,
+                    "countable": {
+                        "tokens": [
+                            "_self_",
+                            "playlists"
+                        ],
+                        "profile": "https://haddowg.github.io/json-api/profiles/countable/"
+                    },
+                    "pivot": false,
+                    "pivotFields": []
+                }
+            },
+            "operations": {
+                "create": {
+                    "path": "/playlists",
+                    "method": "POST",
+                    "errorStatuses": [
+                        400,
+                        401,
+                        403,
+                        404,
+                        406,
+                        409,
+                        415,
+                        422,
+                        500
+                    ]
+                },
+                "delete": {
+                    "path": "/playlists/{id}",
+                    "method": "DELETE",
+                    "errorStatuses": [
+                        400,
+                        401,
+                        403,
+                        404,
+                        406,
+                        500
+                    ]
+                },
+                "fetchMany": {
+                    "path": "/playlists",
+                    "method": "GET",
+                    "errorStatuses": [
+                        400,
+                        401,
+                        403,
+                        406,
+                        500
+                    ]
+                },
+                "fetchOne": {
+                    "path": "/playlists/{id}",
+                    "method": "GET",
+                    "errorStatuses": [
+                        400,
+                        401,
+                        403,
+                        404,
+                        406,
+                        500
+                    ]
+                },
+                "fetchRelated": {
+                    "path": "/playlists/{id}/{rel}",
+                    "method": "GET",
+                    "errorStatuses": [
+                        400,
+                        401,
+                        403,
+                        404,
+                        406,
+                        500
+                    ]
+                },
+                "fetchRelationship": {
+                    "path": "/playlists/{id}/relationships/{rel}",
+                    "method": "GET",
+                    "errorStatuses": [
+                        400,
+                        401,
+                        403,
+                        404,
+                        406,
+                        500
+                    ]
+                },
+                "update": {
+                    "path": "/playlists/{id}",
+                    "method": "PATCH",
+                    "errorStatuses": [
+                        400,
+                        401,
+                        403,
+                        404,
+                        406,
+                        409,
+                        415,
+                        422,
+                        500
+                    ]
+                }
+            },
+            "includable": [
+                "publicOwner",
+                "tracks",
+                "tracks.album",
+                "tracks.playlists",
+                "orderedTracks",
+                "orderedTracks.album",
+                "orderedTracks.playlists"
+            ],
+            "sortable": [],
+            "filterable": [],
+            "actions": []
+        },
+        "products": {
+            "type": "products",
+            "paginator": "page",
+            "clientId": "forbidden",
+            "countable": null,
+            "attributes": {
+                "name": {
+                    "format": "string",
+                    "enum": null
+                }
+            },
+            "relations": {
+                "parent": {
+                    "cardinality": "one",
+                    "types": [
+                        "products"
+                    ],
+                    "related": true,
+                    "relationship": true,
+                    "mutations": [
+                        "set"
+                    ],
+                    "paginator": null,
+                    "countable": null,
+                    "pivot": false,
+                    "pivotFields": []
+                }
+            },
+            "operations": {
+                "create": {
+                    "path": "/products",
+                    "method": "POST",
+                    "errorStatuses": [
+                        400,
+                        401,
+                        403,
+                        404,
+                        406,
+                        409,
+                        415,
+                        422,
+                        500
+                    ]
+                },
+                "delete": {
+                    "path": "/products/{id}",
+                    "method": "DELETE",
+                    "errorStatuses": [
+                        400,
+                        401,
+                        403,
+                        404,
+                        406,
+                        500
+                    ]
+                },
+                "fetchMany": {
+                    "path": "/products",
+                    "method": "GET",
+                    "errorStatuses": [
+                        400,
+                        401,
+                        403,
+                        406,
+                        500
+                    ]
+                },
+                "fetchOne": {
+                    "path": "/products/{id}",
+                    "method": "GET",
+                    "errorStatuses": [
+                        400,
+                        401,
+                        403,
+                        404,
+                        406,
+                        500
+                    ]
+                },
+                "fetchRelated": {
+                    "path": "/products/{id}/{rel}",
+                    "method": "GET",
+                    "errorStatuses": [
+                        400,
+                        401,
+                        403,
+                        404,
+                        406,
+                        500
+                    ]
+                },
+                "fetchRelationship": {
+                    "path": "/products/{id}/relationships/{rel}",
+                    "method": "GET",
+                    "errorStatuses": [
+                        400,
+                        401,
+                        403,
+                        404,
+                        406,
+                        500
+                    ]
+                },
+                "update": {
+                    "path": "/products/{id}",
+                    "method": "PATCH",
+                    "errorStatuses": [
+                        400,
+                        401,
+                        403,
+                        404,
+                        406,
+                        409,
+                        415,
+                        422,
+                        500
+                    ]
+                }
+            },
+            "includable": [
+                "parent"
+            ],
+            "sortable": [],
+            "filterable": [],
+            "actions": []
+        },
+        "public-profiles": {
+            "type": "public-profiles",
+            "paginator": "page",
+            "clientId": "forbidden",
+            "countable": null,
+            "attributes": {
+                "displayName": {
+                    "format": "string",
+                    "enum": null
+                }
+            },
+            "relations": [],
+            "operations": {
+                "fetchMany": {
+                    "path": "/public-profiles",
+                    "method": "GET",
+                    "errorStatuses": [
+                        400,
+                        401,
+                        403,
+                        406,
+                        500
+                    ]
+                },
+                "fetchOne": {
+                    "path": "/public-profiles/{id}",
+                    "method": "GET",
+                    "errorStatuses": [
+                        400,
+                        401,
+                        403,
+                        404,
+                        406,
+                        500
+                    ]
+                }
+            },
+            "includable": [],
+            "sortable": [
+                "displayName",
+                "-displayName"
+            ],
+            "filterable": [],
+            "actions": []
+        },
+        "tracks": {
+            "type": "tracks",
+            "paginator": "page",
+            "clientId": "forbidden",
+            "countable": {
+                "tokens": [
+                    "playlists"
+                ],
+                "profile": "https://haddowg.github.io/json-api/profiles/countable/"
+            },
+            "attributes": {
+                "displayTitle": {
+                    "format": "string",
+                    "enum": null
+                },
+                "durationSeconds": {
+                    "format": "integer",
+                    "enum": null
+                },
+                "explicit": {
+                    "format": "boolean",
+                    "enum": null
+                },
+                "genres": {
+                    "format": "array",
+                    "enum": null
+                },
+                "previewOffset": {
+                    "format": "time",
+                    "enum": null
+                },
+                "title": {
+                    "format": "string",
+                    "enum": null
+                },
+                "trackNumber": {
+                    "format": "integer",
+                    "enum": null
+                }
+            },
+            "relations": {
+                "album": {
+                    "cardinality": "one",
+                    "types": [
+                        "albums"
+                    ],
+                    "related": true,
+                    "relationship": true,
+                    "mutations": [
+                        "set"
+                    ],
+                    "paginator": null,
+                    "countable": null,
+                    "pivot": false,
+                    "pivotFields": []
+                },
+                "playlists": {
+                    "cardinality": "many",
+                    "types": [
+                        "playlists"
+                    ],
+                    "related": true,
+                    "relationship": true,
+                    "mutations": [
+                        "add",
+                        "remove"
+                    ],
+                    "paginator": null,
+                    "countable": {
+                        "tokens": [
+                            "_self_",
+                            "tracks"
+                        ],
+                        "profile": "https://haddowg.github.io/json-api/profiles/countable/"
+                    },
+                    "pivot": false,
+                    "pivotFields": []
+                }
+            },
+            "operations": {
+                "create": {
+                    "path": "/tracks",
+                    "method": "POST",
+                    "errorStatuses": [
+                        400,
+                        401,
+                        403,
+                        404,
+                        406,
+                        409,
+                        415,
+                        422,
+                        500
+                    ]
+                },
+                "delete": {
+                    "path": "/tracks/{id}",
+                    "method": "DELETE",
+                    "errorStatuses": [
+                        400,
+                        401,
+                        403,
+                        404,
+                        406,
+                        500
+                    ]
+                },
+                "fetchMany": {
+                    "path": "/tracks",
+                    "method": "GET",
+                    "errorStatuses": [
+                        400,
+                        401,
+                        403,
+                        406,
+                        500
+                    ]
+                },
+                "fetchOne": {
+                    "path": "/tracks/{id}",
+                    "method": "GET",
+                    "errorStatuses": [
+                        400,
+                        401,
+                        403,
+                        404,
+                        406,
+                        500
+                    ]
+                },
+                "fetchRelated": {
+                    "path": "/tracks/{id}/{rel}",
+                    "method": "GET",
+                    "errorStatuses": [
+                        400,
+                        401,
+                        403,
+                        404,
+                        406,
+                        500
+                    ]
+                },
+                "fetchRelationship": {
+                    "path": "/tracks/{id}/relationships/{rel}",
+                    "method": "GET",
+                    "errorStatuses": [
+                        400,
+                        401,
+                        403,
+                        404,
+                        406,
+                        500
+                    ]
+                },
+                "update": {
+                    "path": "/tracks/{id}",
+                    "method": "PATCH",
+                    "errorStatuses": [
+                        400,
+                        401,
+                        403,
+                        404,
+                        406,
+                        409,
+                        415,
+                        422,
+                        500
+                    ]
+                }
+            },
+            "includable": [
+                "album",
+                "album.artist",
+                "album.tracks",
+                "playlists",
+                "playlists.publicOwner",
+                "playlists.tracks",
+                "playlists.orderedTracks"
+            ],
+            "sortable": [
+                "title",
+                "-title",
+                "trackNumber",
+                "-trackNumber"
+            ],
+            "filterable": {
+                "explicit": {
+                    "schema": {
+                        "types": [
+                            "boolean"
+                        ],
+                        "format": null,
+                        "enum": [],
+                        "required": [],
+                        "properties": [],
+                        "items": null
+                    }
+                },
+                "genres": {
+                    "schema": null
+                },
+                "q": {
+                    "schema": null
+                },
+                "title": {
+                    "schema": null
+                }
+            },
+            "actions": []
+        },
+        "users": {
+            "type": "users",
+            "paginator": "none",
+            "clientId": "forbidden",
+            "countable": null,
+            "attributes": [],
+            "relations": [],
+            "operations": [],
+            "includable": [],
+            "sortable": [],
+            "filterable": [],
+            "actions": []
+        }
+    }
+}

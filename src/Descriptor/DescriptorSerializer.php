@@ -58,7 +58,7 @@ final class DescriptorSerializer
     {
         return [
             'type' => $resource->type,
-            'paginator' => $resource->paginator->value,
+            'paginator' => self::paginator($resource->paginator),
             'clientId' => $resource->clientId->value,
             'countable' => self::countable($resource->countable),
             'attributes' => \array_map(static fn(AttributeDescriptor $attribute): array => [
@@ -87,7 +87,7 @@ final class DescriptorSerializer
             'related' => self::operation($relation->relatedRead),
             'relationship' => self::operation($relation->relationshipRead),
             'mutations' => \array_map(self::operation(...), $relation->mutations),
-            'paginator' => $relation->paginator?->value,
+            'paginator' => $relation->paginator === null ? null : self::paginator($relation->paginator),
             'countable' => self::countable($relation->countable),
             'pivot' => $relation->pivot,
             'pivotFields' => \array_map(static fn(PivotFieldDescriptor $field): array => [
@@ -116,6 +116,12 @@ final class DescriptorSerializer
             'outputCardinality' => $action->outputCardinality?->value,
             'errorStatuses' => $action->errorStatuses,
         ];
+    }
+
+    /** @return array<string, mixed> */
+    private static function paginator(PaginatorDescriptor $paginator): array
+    {
+        return ['kind' => $paginator->kind->value, 'parameters' => $paginator->parameters];
     }
 
     /** @return ($operation is null ? null : array<string, mixed>) */

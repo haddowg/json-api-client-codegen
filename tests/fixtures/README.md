@@ -14,3 +14,12 @@ This is the canonical codegen input. Golden-file tests generate from it and diff
 expected output, so treat both files as frozen: regenerating them changes every golden file at
 once and makes the diff unreadable. Replace them only when the emitted document structure
 itself changes, and say so in the commit.
+
+## Known drift
+
+The document declares pagination as flattened `page[number]` / `page[size]` query parameters.
+The projector now emits the whole family as one `page` object parameter (`style: deepObject`)
+instead, so this fixture is behind on that structure. The reader handles both forms, and
+`tests/Descriptor/PaginatorDetectionTest.php` pins the current one against hand-built documents
+rather than leaving it to a fixture that cannot exercise it. Do not "simplify" the reader to one
+form until the fixture is regenerated.

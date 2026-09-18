@@ -37,7 +37,7 @@ final class RelationDescriptor
         public readonly ?OperationDescriptor $relationshipRead,
         public readonly array $mutations,
         public readonly ?CountableDescriptor $countable,
-        public readonly ?PaginatorKind $paginator,
+        public readonly ?PaginatorDescriptor $paginator,
     ) {}
 
     /** False when the related-resources read is suppressed (`withoutRelatedEndpoint()`). */

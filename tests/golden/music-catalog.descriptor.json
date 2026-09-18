@@ -30,7 +30,13 @@
     "resources": {
         "albums": {
             "type": "albums",
-            "paginator": "page",
+            "paginator": {
+                "kind": "page",
+                "parameters": [
+                    "number",
+                    "size"
+                ]
+            },
             "clientId": "forbidden",
             "countable": {
                 "tokens": [
@@ -518,7 +524,13 @@
         },
         "artists": {
             "type": "artists",
-            "paginator": "page",
+            "paginator": {
+                "kind": "page",
+                "parameters": [
+                    "number",
+                    "size"
+                ]
+            },
             "clientId": "forbidden",
             "countable": null,
             "attributes": {
@@ -757,7 +769,10 @@
         },
         "charts": {
             "type": "charts",
-            "paginator": "none",
+            "paginator": {
+                "kind": "none",
+                "parameters": []
+            },
             "clientId": "forbidden",
             "countable": null,
             "attributes": [],
@@ -794,7 +809,10 @@
         },
         "countries": {
             "type": "countries",
-            "paginator": "none",
+            "paginator": {
+                "kind": "none",
+                "parameters": []
+            },
             "clientId": "forbidden",
             "countable": null,
             "attributes": [],
@@ -831,7 +849,13 @@
         },
         "devices": {
             "type": "devices",
-            "paginator": "page",
+            "paginator": {
+                "kind": "page",
+                "parameters": [
+                    "number",
+                    "size"
+                ]
+            },
             "clientId": "forbidden",
             "countable": null,
             "attributes": {
@@ -917,7 +941,13 @@
         },
         "favorites": {
             "type": "favorites",
-            "paginator": "page",
+            "paginator": {
+                "kind": "page",
+                "parameters": [
+                    "number",
+                    "size"
+                ]
+            },
             "clientId": "forbidden",
             "countable": null,
             "attributes": {
@@ -1132,7 +1162,13 @@
         },
         "genres": {
             "type": "genres",
-            "paginator": "page",
+            "paginator": {
+                "kind": "page",
+                "parameters": [
+                    "number",
+                    "size"
+                ]
+            },
             "clientId": "required",
             "countable": null,
             "attributes": {
@@ -1218,7 +1254,13 @@
         },
         "libraries": {
             "type": "libraries",
-            "paginator": "page",
+            "paginator": {
+                "kind": "page",
+                "parameters": [
+                    "number",
+                    "size"
+                ]
+            },
             "clientId": "forbidden",
             "countable": null,
             "attributes": [],
@@ -1458,7 +1500,13 @@
         },
         "playlists": {
             "type": "playlists",
-            "paginator": "page",
+            "paginator": {
+                "kind": "page",
+                "parameters": [
+                    "number",
+                    "size"
+                ]
+            },
             "clientId": "forbidden",
             "countable": {
                 "tokens": [
@@ -1900,7 +1948,13 @@
         },
         "products": {
             "type": "products",
-            "paginator": "page",
+            "paginator": {
+                "kind": "page",
+                "parameters": [
+                    "number",
+                    "size"
+                ]
+            },
             "clientId": "forbidden",
             "countable": null,
             "attributes": {
@@ -2064,7 +2118,13 @@
         },
         "public-profiles": {
             "type": "public-profiles",
-            "paginator": "page",
+            "paginator": {
+                "kind": "page",
+                "parameters": [
+                    "number",
+                    "size"
+                ]
+            },
             "clientId": "forbidden",
             "countable": null,
             "attributes": {
@@ -2111,7 +2171,13 @@
         },
         "tracks": {
             "type": "tracks",
-            "paginator": "page",
+            "paginator": {
+                "kind": "page",
+                "parameters": [
+                    "number",
+                    "size"
+                ]
+            },
             "clientId": "forbidden",
             "countable": {
                 "tokens": [
@@ -2439,7 +2505,10 @@
         },
         "users": {
             "type": "users",
-            "paginator": "none",
+            "paginator": {
+                "kind": "none",
+                "parameters": []
+            },
             "clientId": "forbidden",
             "countable": null,
             "attributes": [],

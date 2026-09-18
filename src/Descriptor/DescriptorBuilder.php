@@ -40,7 +40,7 @@ final class DescriptorBuilder
     /** @var array<string, string> JSON:API type => collection path */
     private array $collectionPaths = [];
 
-    /** @var array<string, PaginatorKind> JSON:API type => its collection's paginator */
+    /** @var array<string, PaginatorDescriptor> JSON:API type => its collection's pagination */
     private array $typePaginators = [];
 
     private function __construct(private readonly SpecDocument $document) {}
@@ -128,8 +128,8 @@ final class DescriptorBuilder
                 $this->collectionPaths[$type] = $path;
             }
             $this->typePaginators[$type] = $path === null
-                ? PaginatorKind::None
-                : $this->paginatorKind($this->document->pathItem($path)?->find('get'));
+                ? PaginatorDescriptor::none()
+                : $this->paginator($this->document->pathItem($path)?->find('get'));
         }
     }
 
@@ -143,7 +143,7 @@ final class DescriptorBuilder
             $this->attributes($schema),
             $this->relations($schema, $collection),
             $collection === null ? [] : $this->operations($collection),
-            $this->typePaginators[$type] ?? PaginatorKind::None,
+            $this->typePaginators[$type] ?? PaginatorDescriptor::none(),
             $this->clientIdPolicy($collection),
             $this->countable($list),
             $this->tokenEnum($list, 'include'),
@@ -438,78 +438,117 @@ final class DescriptorBuilder
     }
 
     /**
-     * A relation's own paginator, carried only when its related endpoint paginates differently
-     * from the related type's collection. Null means the two agree, and the related type's kind
-     * applies.
+     * A relation's own pagination, carried only when its related endpoint paginates differently
+     * from the related type's collection. Null means the two agree, and the related type's
+     * applies. The member keys are compared too, not just the kind — a strategy that matches but
+     * renames its page key is still a different thing to put on the wire.
      *
      * @param list<string> $types
      */
-    private function relationPaginator(Cardinality $cardinality, array $types, ?Node $relatedGet, ?Node $relationshipGet): ?PaginatorKind
+    private function relationPaginator(Cardinality $cardinality, array $types, ?Node $relatedGet, ?Node $relationshipGet): ?PaginatorDescriptor
     {
         if ($cardinality === Cardinality::One) {
             return null;
         }
 
-        $kind = $this->paginatorKind($relatedGet);
-        if ($kind === PaginatorKind::None) {
-            $kind = $this->paginatorKind($relationshipGet);
+        $paginator = $this->paginator($relatedGet);
+        if (!$paginator->paginated()) {
+            $paginator = $this->paginator($relationshipGet);
         }
 
         $relatedType = $types[0] ?? null;
-        $typeKind = $relatedType === null ? PaginatorKind::None : ($this->typePaginators[$relatedType] ?? PaginatorKind::None);
+        $typePaginator = $relatedType === null
+            ? PaginatorDescriptor::none()
+            : ($this->typePaginators[$relatedType] ?? PaginatorDescriptor::none());
 
-        return $kind !== PaginatorKind::None && $kind !== $typeKind ? $kind : null;
+        return $paginator->paginated() && !$paginator->matches($typePaginator) ? $paginator : null;
     }
 
     /**
-     * The paginator an operation advertises, read from its `page[…]` parameter names. Page
-     * parameters that match no known kind are a drift this codegen would otherwise turn into a
-     * silently unpaginated client, so they error.
+     * The pagination an operation advertises, read from the `page[…]` members it accepts.
+     *
+     * Two wire forms carry those members and both are read. The current projector emits a single
+     * `page` object parameter (`style: deepObject`) whose schema declares the members; older
+     * documents — the committed fixture among them — flatten the same members into one parameter
+     * each (`page[number]`). Normalising to member keys means the kinds below are written once.
+     *
+     * `number` + `size` is page, `offset` + `limit` is offset, either cursor bound is cursor
+     * (navigation is link-driven, so one is enough). A lone member is fixed-page: the server
+     * fixes the size and advertises only the selector, which is the one shape that cannot be
+     * recognised by name, since every key is server-configurable.
      */
-    private function paginatorKind(?Node $operation): PaginatorKind
+    private function paginator(?Node $operation): PaginatorDescriptor
     {
         if ($operation === null) {
-            return PaginatorKind::None;
+            return PaginatorDescriptor::none();
         }
 
-        $names = $this->queryParameterNames($operation);
-        $has = static fn(string $name): bool => \in_array($name, $names, true);
-
-        if ($has('page[number]') && $has('page[size]')) {
-            return PaginatorKind::Page;
-        }
-        if ($has('page[offset]') && $has('page[limit]')) {
-            return PaginatorKind::Offset;
-        }
-        // Cursor navigation is link-driven, so either bound is enough to name the kind.
-        if ($has('page[after]') || $has('page[before]')) {
-            return PaginatorKind::Cursor;
+        $members = $this->pageMembers($operation);
+        if ($members === []) {
+            return PaginatorDescriptor::none();
         }
 
-        foreach ($names as $name) {
-            if (\str_starts_with($name, 'page[')) {
-                throw SpecException::malformed(
-                    $operation->pointer() . '.parameters',
-                    'to declare page parameters matching a known paginator, got ' . \implode(', ', $names),
-                );
-            }
-        }
+        $has = static fn(string $member): bool => \in_array($member, $members, true);
+        $kind = match (true) {
+            $has('number') && $has('size') => PaginatorKind::Page,
+            $has('offset') && $has('limit') => PaginatorKind::Offset,
+            $has('after') || $has('before') => PaginatorKind::Cursor,
+            \count($members) === 1 => PaginatorKind::Fixed,
+            default => throw SpecException::malformed(
+                $operation->pointer() . '.parameters',
+                'to declare page members matching a known paginator, got ' . \implode(', ', $members),
+            ),
+        };
 
-        return PaginatorKind::None;
+        return new PaginatorDescriptor($kind, $members);
     }
 
-    /** @return list<string> */
-    private function queryParameterNames(Node $operation): array
+    /**
+     * The `page[…]` member keys an operation accepts, sorted, from either wire form.
+     *
+     * A `oneOf` on the page schema is a client-selectable strategy menu. It is a real server
+     * configuration this codegen has not been taught to project onto a generated surface, so it
+     * errors by name rather than being read as one arbitrary arm of the menu.
+     *
+     * @return list<string>
+     */
+    private function pageMembers(Node $operation): array
     {
-        $names = [];
+        $members = [];
+
         foreach ($operation->find('parameters')?->items() ?? [] as $parameter) {
             $name = $parameter->find('name')?->string();
-            if ($name !== null) {
-                $names[] = $name;
+            if ($name === null) {
+                continue;
+            }
+
+            if ($name === 'page') {
+                $schema = $parameter->find('schema');
+                if ($schema === null) {
+                    continue;
+                }
+                if ($schema->find('oneOf') !== null) {
+                    throw SpecException::malformed(
+                        $schema->pointer() . '.oneOf',
+                        'to declare one pagination strategy; a selectable strategy menu is not yet generated',
+                    );
+                }
+                foreach (\array_keys($schema->find('properties')?->members() ?? []) as $member) {
+                    $members[] = (string) $member;
+                }
+
+                continue;
+            }
+
+            if (\str_starts_with($name, 'page[') && \str_ends_with($name, ']')) {
+                $members[] = \substr($name, \strlen('page['), -1);
             }
         }
 
-        return $names;
+        $members = \array_values(\array_unique($members));
+        \sort($members, \SORT_STRING);
+
+        return $members;
     }
 
     /**

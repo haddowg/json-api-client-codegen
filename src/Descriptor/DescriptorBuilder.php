@@ -218,11 +218,19 @@ final class DescriptorBuilder
 
     /**
      * The whole value schema, for the values a format hint cannot describe on its own: an
-     * object's members and an array's item type. Null for a scalar, where the hint says it all.
+     * object's members, an array's item type, and any composed schema — a `oneOf` union has no
+     * format at all, and its branches are the only description of it there is.
      */
     private function compositeSchema(Node $schema, string $format): ?ValueSchema
     {
-        return \in_array($format, ['object', 'array'], true) ? $this->valueSchema($schema) : null;
+        $target = $this->document->dereference($schema);
+        $composed = $target->find('oneOf') !== null
+            || $target->find('anyOf') !== null
+            || $target->find('allOf') !== null;
+
+        return $composed || \in_array($format, ['object', 'array'], true)
+            ? $this->valueSchema($schema)
+            : null;
     }
 
     /**
@@ -240,9 +248,25 @@ final class DescriptorBuilder
         return $type->isString() ? [$type->string()] : $type->strings();
     }
 
+    /**
+     * Whether a schema admits null — declared among its own types, or by a composition branch
+     * that is `{"type": "null"}`, which is how a nullable union spells it.
+     */
     private function admitsNull(Node $schema): bool
     {
-        return \in_array('null', $this->declaredTypes($schema), true);
+        if (\in_array('null', $this->declaredTypes($schema), true)) {
+            return true;
+        }
+
+        foreach (['oneOf', 'anyOf'] as $keyword) {
+            foreach ($schema->find($keyword)?->items() ?? [] as $branch) {
+                if (\in_array('null', $this->declaredTypes($branch), true)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     /** The first declared JSON type with `null` dropped, or null when the schema declares none. */
@@ -645,7 +669,26 @@ final class DescriptorBuilder
             $items === null ? null : $this->valueSchema($items),
             $required,
             $schema->find('enum')?->strings() ?? [],
+            $this->branches($schema, 'oneOf'),
+            $this->branches($schema, 'anyOf'),
+            $this->branches($schema, 'allOf'),
+            $schema->path('discriminator', 'propertyName')?->string(),
         );
+    }
+
+    /**
+     * One composition keyword's branches, in document order.
+     *
+     * @return list<ValueSchema>
+     */
+    private function branches(Node $schema, string $keyword): array
+    {
+        $out = [];
+        foreach ($schema->find($keyword)?->items() ?? [] as $branch) {
+            $out[] = $this->valueSchema($branch);
+        }
+
+        return $out;
     }
 
     /**

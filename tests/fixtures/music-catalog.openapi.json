@@ -226,22 +226,26 @@
                         "explode": false
                     },
                     {
-                        "name": "page[number]",
+                        "name": "page",
                         "in": "query",
-                        "description": "The page number to retrieve.",
+                        "description": "Pagination parameters, e.g. `page[number]=2&page[size]=10`.",
                         "schema": {
-                            "type": "integer",
-                            "minimum": 1
-                        }
-                    },
-                    {
-                        "name": "page[size]",
-                        "in": "query",
-                        "description": "The number of resources per page.",
-                        "schema": {
-                            "type": "integer",
-                            "minimum": 1
-                        }
+                            "type": "object",
+                            "properties": {
+                                "number": {
+                                    "type": "integer",
+                                    "description": "The page number to retrieve.",
+                                    "minimum": 1
+                                },
+                                "size": {
+                                    "type": "integer",
+                                    "description": "The number of resources per page.",
+                                    "minimum": 1
+                                }
+                            }
+                        },
+                        "style": "deepObject",
+                        "explode": true
                     },
                     {
                         "name": "withCount",
@@ -259,6 +263,9 @@
                         "style": "form",
                         "explode": false,
                         "x-profile": "https://haddowg.github.io/json-api/profiles/countable/"
+                    },
+                    {
+                        "$ref": "#/components/parameters/relatedQuery"
                     }
                 ],
                 "responses": {
@@ -588,6 +595,9 @@
                         },
                         "style": "form",
                         "explode": false
+                    },
+                    {
+                        "$ref": "#/components/parameters/relatedQuery"
                     }
                 ],
                 "responses": {
@@ -1502,22 +1512,26 @@
                         "explode": false
                     },
                     {
-                        "name": "page[number]",
+                        "name": "page",
                         "in": "query",
-                        "description": "The page number to retrieve.",
+                        "description": "Pagination parameters, e.g. `page[number]=2&page[size]=10`.",
                         "schema": {
-                            "type": "integer",
-                            "minimum": 1
-                        }
-                    },
-                    {
-                        "name": "page[size]",
-                        "in": "query",
-                        "description": "The number of resources per page.",
-                        "schema": {
-                            "type": "integer",
-                            "minimum": 1
-                        }
+                            "type": "object",
+                            "properties": {
+                                "number": {
+                                    "type": "integer",
+                                    "description": "The page number to retrieve.",
+                                    "minimum": 1
+                                },
+                                "size": {
+                                    "type": "integer",
+                                    "description": "The number of resources per page.",
+                                    "minimum": 1
+                                }
+                            }
+                        },
+                        "style": "deepObject",
+                        "explode": true
                     },
                     {
                         "name": "withCount",
@@ -1688,22 +1702,26 @@
                         "explode": false
                     },
                     {
-                        "name": "page[number]",
+                        "name": "page",
                         "in": "query",
-                        "description": "The page number to retrieve.",
+                        "description": "Pagination parameters, e.g. `page[number]=2&page[size]=10`.",
                         "schema": {
-                            "type": "integer",
-                            "minimum": 1
-                        }
-                    },
-                    {
-                        "name": "page[size]",
-                        "in": "query",
-                        "description": "The number of resources per page.",
-                        "schema": {
-                            "type": "integer",
-                            "minimum": 1
-                        }
+                            "type": "object",
+                            "properties": {
+                                "number": {
+                                    "type": "integer",
+                                    "description": "The page number to retrieve.",
+                                    "minimum": 1
+                                },
+                                "size": {
+                                    "type": "integer",
+                                    "description": "The number of resources per page.",
+                                    "minimum": 1
+                                }
+                            }
+                        },
+                        "style": "deepObject",
+                        "explode": true
                     },
                     {
                         "name": "withCount",
@@ -2628,22 +2646,29 @@
                         "explode": false
                     },
                     {
-                        "name": "page[number]",
+                        "name": "page",
                         "in": "query",
-                        "description": "The page number to retrieve.",
+                        "description": "Pagination parameters, e.g. `page[number]=2&page[size]=10`.",
                         "schema": {
-                            "type": "integer",
-                            "minimum": 1
-                        }
+                            "type": "object",
+                            "properties": {
+                                "number": {
+                                    "type": "integer",
+                                    "description": "The page number to retrieve.",
+                                    "minimum": 1
+                                },
+                                "size": {
+                                    "type": "integer",
+                                    "description": "The number of resources per page.",
+                                    "minimum": 1
+                                }
+                            }
+                        },
+                        "style": "deepObject",
+                        "explode": true
                     },
                     {
-                        "name": "page[size]",
-                        "in": "query",
-                        "description": "The number of resources per page.",
-                        "schema": {
-                            "type": "integer",
-                            "minimum": 1
-                        }
+                        "$ref": "#/components/parameters/relatedQuery"
                     }
                 ],
                 "responses": {
@@ -2939,6 +2964,9 @@
                         },
                         "style": "form",
                         "explode": false
+                    },
+                    {
+                        "$ref": "#/components/parameters/relatedQuery"
                     }
                 ],
                 "responses": {
@@ -3418,22 +3446,26 @@
                         "explode": false
                     },
                     {
-                        "name": "page[number]",
+                        "name": "page",
                         "in": "query",
-                        "description": "The page number to retrieve.",
+                        "description": "Pagination parameters, e.g. `page[number]=2&page[size]=10`.",
                         "schema": {
-                            "type": "integer",
-                            "minimum": 1
-                        }
-                    },
-                    {
-                        "name": "page[size]",
-                        "in": "query",
-                        "description": "The number of resources per page.",
-                        "schema": {
-                            "type": "integer",
-                            "minimum": 1
-                        }
+                            "type": "object",
+                            "properties": {
+                                "number": {
+                                    "type": "integer",
+                                    "description": "The page number to retrieve.",
+                                    "minimum": 1
+                                },
+                                "size": {
+                                    "type": "integer",
+                                    "description": "The number of resources per page.",
+                                    "minimum": 1
+                                }
+                            }
+                        },
+                        "style": "deepObject",
+                        "explode": true
                     },
                     {
                         "name": "withCount",
@@ -3622,22 +3654,26 @@
                         "explode": false
                     },
                     {
-                        "name": "page[number]",
+                        "name": "page",
                         "in": "query",
-                        "description": "The page number to retrieve.",
+                        "description": "Pagination parameters, e.g. `page[number]=2&page[size]=10`.",
                         "schema": {
-                            "type": "integer",
-                            "minimum": 1
-                        }
-                    },
-                    {
-                        "name": "page[size]",
-                        "in": "query",
-                        "description": "The number of resources per page.",
-                        "schema": {
-                            "type": "integer",
-                            "minimum": 1
-                        }
+                            "type": "object",
+                            "properties": {
+                                "number": {
+                                    "type": "integer",
+                                    "description": "The page number to retrieve.",
+                                    "minimum": 1
+                                },
+                                "size": {
+                                    "type": "integer",
+                                    "description": "The number of resources per page.",
+                                    "minimum": 1
+                                }
+                            }
+                        },
+                        "style": "deepObject",
+                        "explode": true
                     }
                 ],
                 "responses": {
@@ -4065,6 +4101,449 @@
                 }
             }
         },
+        "/catalog-exports": {
+            "get": {
+                "tags": [
+                    "Catalog Exports"
+                ],
+                "summary": "List catalog-exports",
+                "description": "Returns a paginated collection of `catalog-exports` resources.",
+                "operationId": "fetchCollection.catalog-exports",
+                "parameters": [
+                    {
+                        "name": "fields[catalog-exports]",
+                        "in": "query",
+                        "description": "A comma-separated list of `catalog-exports` fields to return (sparse fieldsets). Allowed members: `format`, `status`.",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string",
+                                "enum": [
+                                    "format",
+                                    "status"
+                                ]
+                            }
+                        },
+                        "style": "form",
+                        "explode": false
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Pagination parameters, e.g. `page[number]=2&page[size]=10`.",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "number": {
+                                    "type": "integer",
+                                    "description": "The page number to retrieve.",
+                                    "minimum": 1
+                                },
+                                "size": {
+                                    "type": "integer",
+                                    "description": "The number of resources per page.",
+                                    "minimum": 1
+                                }
+                            }
+                        },
+                        "style": "deepObject",
+                        "explode": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "A collection of catalog-exports resources.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/CatalogExportsCollection"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request — the request was malformed (e.g. an invalid query parameter).",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDocument"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden — the request is not authorised.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDocument"
+                                }
+                            }
+                        }
+                    },
+                    "406": {
+                        "description": "Not Acceptable — the `Accept` header could not be satisfied.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDocument"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDocument"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized — authentication is required and was missing or invalid.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDocument"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Catalog Exports"
+                ],
+                "summary": "Create a catalog-exports",
+                "description": "Creates a new `catalog-exports` resource from the supplied attributes and relationships.",
+                "operationId": "create.catalog-exports",
+                "requestBody": {
+                    "content": {
+                        "application/vnd.api+json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CatalogExportsCreateRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "202": {
+                        "description": "The request was accepted for asynchronous processing.",
+                        "headers": {
+                            "Content-Location": {
+                                "description": "The URL of the job resource to poll for completion.",
+                                "schema": {
+                                    "type": "string",
+                                    "format": "uri-reference"
+                                }
+                            },
+                            "Retry-After": {
+                                "description": "The number of seconds to wait before polling the job resource.",
+                                "schema": {
+                                    "type": "integer"
+                                }
+                            }
+                        },
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ExportJobsDocument"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request — the request was malformed (e.g. an invalid query parameter).",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDocument"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden — the request is not authorised.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDocument"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found — the resource does not exist.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDocument"
+                                }
+                            }
+                        }
+                    },
+                    "406": {
+                        "description": "Not Acceptable — the `Accept` header could not be satisfied.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDocument"
+                                }
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict — the request conflicts with the resource state (e.g. a type or id mismatch).",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDocument"
+                                }
+                            }
+                        }
+                    },
+                    "415": {
+                        "description": "Unsupported Media Type — the `Content-Type` header is not `application/vnd.api+json`.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDocument"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity — the document failed validation.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDocument"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDocument"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized — authentication is required and was missing or invalid.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDocument"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/catalog-exports/{id}": {
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "description": "The `catalog-exports` resource identifier.",
+                    "required": true,
+                    "schema": {
+                        "type": "string"
+                    }
+                }
+            ],
+            "get": {
+                "tags": [
+                    "Catalog Exports"
+                ],
+                "summary": "Fetch a catalog-exports",
+                "description": "Returns a single `catalog-exports` resource by its `id`.",
+                "operationId": "fetchOne.catalog-exports",
+                "parameters": [
+                    {
+                        "name": "fields[catalog-exports]",
+                        "in": "query",
+                        "description": "A comma-separated list of `catalog-exports` fields to return (sparse fieldsets). Allowed members: `format`, `status`.",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string",
+                                "enum": [
+                                    "format",
+                                    "status"
+                                ]
+                            }
+                        },
+                        "style": "form",
+                        "explode": false
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The requested catalog-exports resource.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/CatalogExportsDocument"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request — the request was malformed (e.g. an invalid query parameter).",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDocument"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden — the request is not authorised.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDocument"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found — the resource does not exist.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDocument"
+                                }
+                            }
+                        }
+                    },
+                    "406": {
+                        "description": "Not Acceptable — the `Accept` header could not be satisfied.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDocument"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDocument"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized — authentication is required and was missing or invalid.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDocument"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Catalog Exports"
+                ],
+                "summary": "Delete a catalog-exports",
+                "description": "Deletes the `catalog-exports` resource identified by its `id`.",
+                "operationId": "delete.catalog-exports",
+                "responses": {
+                    "204": {
+                        "description": "The resource was deleted."
+                    },
+                    "200": {
+                        "description": "The resource was deleted; a meta-only document is returned.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/MetaDocument"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request — the request was malformed (e.g. an invalid query parameter).",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDocument"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden — the request is not authorised.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDocument"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found — the resource does not exist.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDocument"
+                                }
+                            }
+                        }
+                    },
+                    "406": {
+                        "description": "Not Acceptable — the `Accept` header could not be satisfied.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDocument"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDocument"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized — authentication is required and was missing or invalid.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDocument"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/devices": {
             "get": {
                 "tags": [
@@ -4091,22 +4570,26 @@
                         "explode": false
                     },
                     {
-                        "name": "page[number]",
+                        "name": "page",
                         "in": "query",
-                        "description": "The page number to retrieve.",
+                        "description": "Pagination parameters, e.g. `page[number]=2&page[size]=10`.",
                         "schema": {
-                            "type": "integer",
-                            "minimum": 1
-                        }
-                    },
-                    {
-                        "name": "page[size]",
-                        "in": "query",
-                        "description": "The number of resources per page.",
-                        "schema": {
-                            "type": "integer",
-                            "minimum": 1
-                        }
+                            "type": "object",
+                            "properties": {
+                                "number": {
+                                    "type": "integer",
+                                    "description": "The page number to retrieve.",
+                                    "minimum": 1
+                                },
+                                "size": {
+                                    "type": "integer",
+                                    "description": "The number of resources per page.",
+                                    "minimum": 1
+                                }
+                            }
+                        },
+                        "style": "deepObject",
+                        "explode": true
                     }
                 ],
                 "responses": {
@@ -4607,6 +5090,241 @@
                 }
             }
         },
+        "/export-jobs": {
+            "get": {
+                "tags": [
+                    "Export Jobs"
+                ],
+                "summary": "List export-jobs",
+                "description": "Returns a paginated collection of `export-jobs` resources.",
+                "operationId": "fetchCollection.export-jobs",
+                "parameters": [
+                    {
+                        "name": "fields[export-jobs]",
+                        "in": "query",
+                        "description": "A comma-separated list of `export-jobs` fields to return (sparse fieldsets). Allowed members: `state`.",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string",
+                                "enum": [
+                                    "state"
+                                ]
+                            }
+                        },
+                        "style": "form",
+                        "explode": false
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Pagination parameters, e.g. `page[number]=2&page[size]=10`.",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "number": {
+                                    "type": "integer",
+                                    "description": "The page number to retrieve.",
+                                    "minimum": 1
+                                },
+                                "size": {
+                                    "type": "integer",
+                                    "description": "The number of resources per page.",
+                                    "minimum": 1
+                                }
+                            }
+                        },
+                        "style": "deepObject",
+                        "explode": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "A collection of export-jobs resources.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ExportJobsCollection"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request — the request was malformed (e.g. an invalid query parameter).",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDocument"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden — the request is not authorised.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDocument"
+                                }
+                            }
+                        }
+                    },
+                    "406": {
+                        "description": "Not Acceptable — the `Accept` header could not be satisfied.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDocument"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDocument"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized — authentication is required and was missing or invalid.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDocument"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/export-jobs/{id}": {
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "description": "The `export-jobs` resource identifier.",
+                    "required": true,
+                    "schema": {
+                        "type": "string"
+                    }
+                }
+            ],
+            "get": {
+                "tags": [
+                    "Export Jobs"
+                ],
+                "summary": "Fetch a export-jobs",
+                "description": "Returns a single `export-jobs` resource by its `id`.",
+                "operationId": "fetchOne.export-jobs",
+                "parameters": [
+                    {
+                        "name": "fields[export-jobs]",
+                        "in": "query",
+                        "description": "A comma-separated list of `export-jobs` fields to return (sparse fieldsets). Allowed members: `state`.",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string",
+                                "enum": [
+                                    "state"
+                                ]
+                            }
+                        },
+                        "style": "form",
+                        "explode": false
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The requested export-jobs resource.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ExportJobsDocument"
+                                }
+                            }
+                        }
+                    },
+                    "303": {
+                        "description": "The asynchronous operation is complete; follow Location to the produced resource.",
+                        "headers": {
+                            "Location": {
+                                "description": "The URL of the produced resource.",
+                                "schema": {
+                                    "type": "string",
+                                    "format": "uri-reference"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request — the request was malformed (e.g. an invalid query parameter).",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDocument"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden — the request is not authorised.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDocument"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found — the resource does not exist.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDocument"
+                                }
+                            }
+                        }
+                    },
+                    "406": {
+                        "description": "Not Acceptable — the `Accept` header could not be satisfied.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDocument"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDocument"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized — authentication is required and was missing or invalid.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDocument"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/favorites": {
             "get": {
                 "tags": [
@@ -4635,22 +5353,29 @@
                         "explode": false
                     },
                     {
-                        "name": "page[number]",
+                        "name": "page",
                         "in": "query",
-                        "description": "The page number to retrieve.",
+                        "description": "Pagination parameters, e.g. `page[number]=2&page[size]=10`.",
                         "schema": {
-                            "type": "integer",
-                            "minimum": 1
-                        }
+                            "type": "object",
+                            "properties": {
+                                "number": {
+                                    "type": "integer",
+                                    "description": "The page number to retrieve.",
+                                    "minimum": 1
+                                },
+                                "size": {
+                                    "type": "integer",
+                                    "description": "The number of resources per page.",
+                                    "minimum": 1
+                                }
+                            }
+                        },
+                        "style": "deepObject",
+                        "explode": true
                     },
                     {
-                        "name": "page[size]",
-                        "in": "query",
-                        "description": "The number of resources per page.",
-                        "schema": {
-                            "type": "integer",
-                            "minimum": 1
-                        }
+                        "$ref": "#/components/parameters/relatedQuery"
                     }
                 ],
                 "responses": {
@@ -4883,6 +5608,9 @@
                         },
                         "style": "form",
                         "explode": false
+                    },
+                    {
+                        "$ref": "#/components/parameters/relatedQuery"
                     }
                 ],
                 "responses": {
@@ -5864,22 +6592,26 @@
                         "explode": false
                     },
                     {
-                        "name": "page[number]",
+                        "name": "page",
                         "in": "query",
-                        "description": "The page number to retrieve.",
+                        "description": "Pagination parameters, e.g. `page[number]=2&page[size]=10`.",
                         "schema": {
-                            "type": "integer",
-                            "minimum": 1
-                        }
-                    },
-                    {
-                        "name": "page[size]",
-                        "in": "query",
-                        "description": "The number of resources per page.",
-                        "schema": {
-                            "type": "integer",
-                            "minimum": 1
-                        }
+                            "type": "object",
+                            "properties": {
+                                "number": {
+                                    "type": "integer",
+                                    "description": "The page number to retrieve.",
+                                    "minimum": 1
+                                },
+                                "size": {
+                                    "type": "integer",
+                                    "description": "The number of resources per page.",
+                                    "minimum": 1
+                                }
+                            }
+                        },
+                        "style": "deepObject",
+                        "explode": true
                     }
                 ],
                 "responses": {
@@ -6495,22 +7227,29 @@
                         "explode": false
                     },
                     {
-                        "name": "page[number]",
+                        "name": "page",
                         "in": "query",
-                        "description": "The page number to retrieve.",
+                        "description": "Pagination parameters, e.g. `page[number]=2&page[size]=10`.",
                         "schema": {
-                            "type": "integer",
-                            "minimum": 1
-                        }
+                            "type": "object",
+                            "properties": {
+                                "number": {
+                                    "type": "integer",
+                                    "description": "The page number to retrieve.",
+                                    "minimum": 1
+                                },
+                                "size": {
+                                    "type": "integer",
+                                    "description": "The number of resources per page.",
+                                    "minimum": 1
+                                }
+                            }
+                        },
+                        "style": "deepObject",
+                        "explode": true
                     },
                     {
-                        "name": "page[size]",
-                        "in": "query",
-                        "description": "The number of resources per page.",
-                        "schema": {
-                            "type": "integer",
-                            "minimum": 1
-                        }
+                        "$ref": "#/components/parameters/relatedQuery"
                     }
                 ],
                 "responses": {
@@ -6830,6 +7569,9 @@
                         },
                         "style": "form",
                         "explode": false
+                    },
+                    {
+                        "$ref": "#/components/parameters/relatedQuery"
                     }
                 ],
                 "responses": {
@@ -7498,22 +8240,26 @@
                         "explode": false
                     },
                     {
-                        "name": "page[number]",
+                        "name": "page",
                         "in": "query",
-                        "description": "The page number to retrieve.",
+                        "description": "Pagination parameters, e.g. `page[number]=2&page[size]=10`.",
                         "schema": {
-                            "type": "integer",
-                            "minimum": 1
-                        }
-                    },
-                    {
-                        "name": "page[size]",
-                        "in": "query",
-                        "description": "The number of resources per page.",
-                        "schema": {
-                            "type": "integer",
-                            "minimum": 1
-                        }
+                            "type": "object",
+                            "properties": {
+                                "number": {
+                                    "type": "integer",
+                                    "description": "The page number to retrieve.",
+                                    "minimum": 1
+                                },
+                                "size": {
+                                    "type": "integer",
+                                    "description": "The number of resources per page.",
+                                    "minimum": 1
+                                }
+                            }
+                        },
+                        "style": "deepObject",
+                        "explode": true
                     }
                 ],
                 "responses": {
@@ -8164,22 +8910,26 @@
                         "explode": false
                     },
                     {
-                        "name": "page[number]",
+                        "name": "page",
                         "in": "query",
-                        "description": "The page number to retrieve.",
+                        "description": "Pagination parameters, e.g. `page[number]=2&page[size]=10`.",
                         "schema": {
-                            "type": "integer",
-                            "minimum": 1
-                        }
-                    },
-                    {
-                        "name": "page[size]",
-                        "in": "query",
-                        "description": "The number of resources per page.",
-                        "schema": {
-                            "type": "integer",
-                            "minimum": 1
-                        }
+                            "type": "object",
+                            "properties": {
+                                "number": {
+                                    "type": "integer",
+                                    "description": "The page number to retrieve.",
+                                    "minimum": 1
+                                },
+                                "size": {
+                                    "type": "integer",
+                                    "description": "The number of resources per page.",
+                                    "minimum": 1
+                                }
+                            }
+                        },
+                        "style": "deepObject",
+                        "explode": true
                     },
                     {
                         "name": "withCount",
@@ -8197,6 +8947,9 @@
                         "style": "form",
                         "explode": false,
                         "x-profile": "https://haddowg.github.io/json-api/profiles/countable/"
+                    },
+                    {
+                        "$ref": "#/components/parameters/relatedQuery"
                     }
                 ],
                 "responses": {
@@ -8523,6 +9276,9 @@
                         },
                         "style": "form",
                         "explode": false
+                    },
+                    {
+                        "$ref": "#/components/parameters/relatedQuery"
                     }
                 ],
                 "responses": {
@@ -9656,22 +10412,26 @@
                         "explode": false
                     },
                     {
-                        "name": "page[number]",
+                        "name": "page",
                         "in": "query",
-                        "description": "The page number to retrieve.",
+                        "description": "Pagination parameters, e.g. `page[number]=2&page[size]=10`.",
                         "schema": {
-                            "type": "integer",
-                            "minimum": 1
-                        }
-                    },
-                    {
-                        "name": "page[size]",
-                        "in": "query",
-                        "description": "The number of resources per page.",
-                        "schema": {
-                            "type": "integer",
-                            "minimum": 1
-                        }
+                            "type": "object",
+                            "properties": {
+                                "number": {
+                                    "type": "integer",
+                                    "description": "The page number to retrieve.",
+                                    "minimum": 1
+                                },
+                                "size": {
+                                    "type": "integer",
+                                    "description": "The number of resources per page.",
+                                    "minimum": 1
+                                }
+                            }
+                        },
+                        "style": "deepObject",
+                        "explode": true
                     },
                     {
                         "name": "withCount",
@@ -9833,22 +10593,26 @@
                         "explode": false
                     },
                     {
-                        "name": "page[number]",
+                        "name": "page",
                         "in": "query",
-                        "description": "The page number to retrieve.",
+                        "description": "Pagination parameters, e.g. `page[number]=2&page[size]=10`.",
                         "schema": {
-                            "type": "integer",
-                            "minimum": 1
-                        }
-                    },
-                    {
-                        "name": "page[size]",
-                        "in": "query",
-                        "description": "The number of resources per page.",
-                        "schema": {
-                            "type": "integer",
-                            "minimum": 1
-                        }
+                            "type": "object",
+                            "properties": {
+                                "number": {
+                                    "type": "integer",
+                                    "description": "The page number to retrieve.",
+                                    "minimum": 1
+                                },
+                                "size": {
+                                    "type": "integer",
+                                    "description": "The number of resources per page.",
+                                    "minimum": 1
+                                }
+                            }
+                        },
+                        "style": "deepObject",
+                        "explode": true
                     },
                     {
                         "name": "withCount",
@@ -10535,22 +11299,26 @@
                         "explode": false
                     },
                     {
-                        "name": "page[number]",
+                        "name": "page",
                         "in": "query",
-                        "description": "The page number to retrieve.",
+                        "description": "Pagination parameters, e.g. `page[number]=2&page[size]=10`.",
                         "schema": {
-                            "type": "integer",
-                            "minimum": 1
-                        }
-                    },
-                    {
-                        "name": "page[size]",
-                        "in": "query",
-                        "description": "The number of resources per page.",
-                        "schema": {
-                            "type": "integer",
-                            "minimum": 1
-                        }
+                            "type": "object",
+                            "properties": {
+                                "number": {
+                                    "type": "integer",
+                                    "description": "The page number to retrieve.",
+                                    "minimum": 1
+                                },
+                                "size": {
+                                    "type": "integer",
+                                    "description": "The number of resources per page.",
+                                    "minimum": 1
+                                }
+                            }
+                        },
+                        "style": "deepObject",
+                        "explode": true
                     },
                     {
                         "name": "withCount",
@@ -10729,22 +11497,26 @@
                         "explode": false
                     },
                     {
-                        "name": "page[number]",
+                        "name": "page",
                         "in": "query",
-                        "description": "The page number to retrieve.",
+                        "description": "Pagination parameters, e.g. `page[number]=2&page[size]=10`.",
                         "schema": {
-                            "type": "integer",
-                            "minimum": 1
-                        }
-                    },
-                    {
-                        "name": "page[size]",
-                        "in": "query",
-                        "description": "The number of resources per page.",
-                        "schema": {
-                            "type": "integer",
-                            "minimum": 1
-                        }
+                            "type": "object",
+                            "properties": {
+                                "number": {
+                                    "type": "integer",
+                                    "description": "The page number to retrieve.",
+                                    "minimum": 1
+                                },
+                                "size": {
+                                    "type": "integer",
+                                    "description": "The number of resources per page.",
+                                    "minimum": 1
+                                }
+                            }
+                        },
+                        "style": "deepObject",
+                        "explode": true
                     }
                 ],
                 "responses": {
@@ -11239,22 +12011,29 @@
                         "explode": false
                     },
                     {
-                        "name": "page[number]",
+                        "name": "page",
                         "in": "query",
-                        "description": "The page number to retrieve.",
+                        "description": "Pagination parameters, e.g. `page[number]=2&page[size]=10`.",
                         "schema": {
-                            "type": "integer",
-                            "minimum": 1
-                        }
+                            "type": "object",
+                            "properties": {
+                                "number": {
+                                    "type": "integer",
+                                    "description": "The page number to retrieve.",
+                                    "minimum": 1
+                                },
+                                "size": {
+                                    "type": "integer",
+                                    "description": "The number of resources per page.",
+                                    "minimum": 1
+                                }
+                            }
+                        },
+                        "style": "deepObject",
+                        "explode": true
                     },
                     {
-                        "name": "page[size]",
-                        "in": "query",
-                        "description": "The number of resources per page.",
-                        "schema": {
-                            "type": "integer",
-                            "minimum": 1
-                        }
+                        "$ref": "#/components/parameters/relatedQuery"
                     }
                 ],
                 "responses": {
@@ -11503,6 +12282,9 @@
                         },
                         "style": "form",
                         "explode": false
+                    },
+                    {
+                        "$ref": "#/components/parameters/relatedQuery"
                     }
                 ],
                 "responses": {
@@ -12158,22 +12940,26 @@
                         "explode": false
                     },
                     {
-                        "name": "page[number]",
+                        "name": "page",
                         "in": "query",
-                        "description": "The page number to retrieve.",
+                        "description": "Pagination parameters, e.g. `page[number]=2&page[size]=10`.",
                         "schema": {
-                            "type": "integer",
-                            "minimum": 1
-                        }
-                    },
-                    {
-                        "name": "page[size]",
-                        "in": "query",
-                        "description": "The number of resources per page.",
-                        "schema": {
-                            "type": "integer",
-                            "minimum": 1
-                        }
+                            "type": "object",
+                            "properties": {
+                                "number": {
+                                    "type": "integer",
+                                    "description": "The page number to retrieve.",
+                                    "minimum": 1
+                                },
+                                "size": {
+                                    "type": "integer",
+                                    "description": "The number of resources per page.",
+                                    "minimum": 1
+                                }
+                            }
+                        },
+                        "style": "deepObject",
+                        "explode": true
                     }
                 ],
                 "responses": {
@@ -12320,6 +13106,1313 @@
                     },
                     "406": {
                         "description": "Not Acceptable — the `Accept` header could not be satisfied.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDocument"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDocument"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized — authentication is required and was missing or invalid.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDocument"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/releases": {
+            "get": {
+                "tags": [
+                    "Catalog"
+                ],
+                "summary": "List releases",
+                "description": "Returns a paginated collection of `releases` resources.",
+                "operationId": "fetchCollection.releases",
+                "parameters": [
+                    {
+                        "name": "sort",
+                        "in": "query",
+                        "description": "A comma-separated list of sort fields. Prefix a field with `-` for descending order. Allowed tokens: `catalogNumber`, `-catalogNumber`.",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string",
+                                "enum": [
+                                    "catalogNumber",
+                                    "-catalogNumber"
+                                ]
+                            }
+                        },
+                        "style": "form",
+                        "explode": false
+                    },
+                    {
+                        "name": "include",
+                        "in": "query",
+                        "description": "A comma-separated list of relationship paths to include in a compound document. Allowed paths: `album`, `album.artist`, `album.tracks`.",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string",
+                                "enum": [
+                                    "album",
+                                    "album.artist",
+                                    "album.tracks"
+                                ]
+                            }
+                        },
+                        "style": "form",
+                        "explode": false
+                    },
+                    {
+                        "name": "fields[releases]",
+                        "in": "query",
+                        "description": "A comma-separated list of `releases` fields to return (sparse fieldsets). Allowed members: `catalogNumber`, `format`, `packaging`, `availability`, `dimensions`, `album`.",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string",
+                                "enum": [
+                                    "catalogNumber",
+                                    "format",
+                                    "packaging",
+                                    "availability",
+                                    "dimensions",
+                                    "album"
+                                ]
+                            }
+                        },
+                        "style": "form",
+                        "explode": false
+                    },
+                    {
+                        "name": "fields[albums]",
+                        "in": "query",
+                        "description": "A comma-separated list of `albums` fields to return (sparse fieldsets). Allowed members: `title`, `averageRating`, `artwork`, `releasedAt`, `explicit`, `status`, `availableFrom`, `availableUntil`, `releaseInfo`, `artist`, `tracks`.",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string",
+                                "enum": [
+                                    "title",
+                                    "averageRating",
+                                    "artwork",
+                                    "releasedAt",
+                                    "explicit",
+                                    "status",
+                                    "availableFrom",
+                                    "availableUntil",
+                                    "releaseInfo",
+                                    "artist",
+                                    "tracks"
+                                ]
+                            }
+                        },
+                        "style": "form",
+                        "explode": false
+                    },
+                    {
+                        "name": "fields[artists]",
+                        "in": "query",
+                        "description": "A comma-separated list of `artists` fields to return (sparse fieldsets). Allowed members: `name`, `slug`, `website`, `bio`, `trackCount`, `createdAt`, `albums`.",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string",
+                                "enum": [
+                                    "name",
+                                    "slug",
+                                    "website",
+                                    "bio",
+                                    "trackCount",
+                                    "createdAt",
+                                    "albums"
+                                ]
+                            }
+                        },
+                        "style": "form",
+                        "explode": false
+                    },
+                    {
+                        "name": "fields[tracks]",
+                        "in": "query",
+                        "description": "A comma-separated list of `tracks` fields to return (sparse fieldsets). Allowed members: `title`, `trackNumber`, `durationSeconds`, `explicit`, `genres`, `previewOffset`, `displayTitle`, `album`, `playlists`.",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string",
+                                "enum": [
+                                    "title",
+                                    "trackNumber",
+                                    "durationSeconds",
+                                    "explicit",
+                                    "genres",
+                                    "previewOffset",
+                                    "displayTitle",
+                                    "album",
+                                    "playlists"
+                                ]
+                            }
+                        },
+                        "style": "form",
+                        "explode": false
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Pagination parameters, e.g. `page[number]=2&page[size]=10`.",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "number": {
+                                    "type": "integer",
+                                    "description": "The page number to retrieve.",
+                                    "minimum": 1
+                                },
+                                "size": {
+                                    "type": "integer",
+                                    "description": "The number of resources per page.",
+                                    "minimum": 1
+                                }
+                            }
+                        },
+                        "style": "deepObject",
+                        "explode": true
+                    },
+                    {
+                        "$ref": "#/components/parameters/relatedQuery"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "A collection of releases resources.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ReleasesCollection"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request — the request was malformed (e.g. an invalid query parameter).",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDocument"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden — the request is not authorised.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDocument"
+                                }
+                            }
+                        }
+                    },
+                    "406": {
+                        "description": "Not Acceptable — the `Accept` header could not be satisfied.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDocument"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDocument"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized — authentication is required and was missing or invalid.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDocument"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Catalog"
+                ],
+                "summary": "Create a releases",
+                "description": "Creates a new `releases` resource from the supplied attributes and relationships.",
+                "operationId": "create.releases",
+                "requestBody": {
+                    "content": {
+                        "application/vnd.api+json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ReleasesCreateRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "201": {
+                        "description": "The created releases resource.",
+                        "headers": {
+                            "Location": {
+                                "description": "The URL of the created resource.",
+                                "schema": {
+                                    "type": "string",
+                                    "format": "uri-reference"
+                                }
+                            }
+                        },
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ReleasesDocument"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request — the request was malformed (e.g. an invalid query parameter).",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDocument"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden — the request is not authorised.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDocument"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found — the resource does not exist.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDocument"
+                                }
+                            }
+                        }
+                    },
+                    "406": {
+                        "description": "Not Acceptable — the `Accept` header could not be satisfied.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDocument"
+                                }
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict — the request conflicts with the resource state (e.g. a type or id mismatch).",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDocument"
+                                }
+                            }
+                        }
+                    },
+                    "415": {
+                        "description": "Unsupported Media Type — the `Content-Type` header is not `application/vnd.api+json`.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDocument"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity — the document failed validation.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDocument"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDocument"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized — authentication is required and was missing or invalid.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDocument"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/releases/{id}": {
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "description": "The `releases` resource identifier.",
+                    "required": true,
+                    "schema": {
+                        "type": "string"
+                    }
+                }
+            ],
+            "get": {
+                "tags": [
+                    "Catalog"
+                ],
+                "summary": "Fetch a releases",
+                "description": "Returns a single `releases` resource by its `id`.",
+                "operationId": "fetchOne.releases",
+                "parameters": [
+                    {
+                        "name": "include",
+                        "in": "query",
+                        "description": "A comma-separated list of relationship paths to include in a compound document. Allowed paths: `album`, `album.artist`, `album.tracks`.",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string",
+                                "enum": [
+                                    "album",
+                                    "album.artist",
+                                    "album.tracks"
+                                ]
+                            }
+                        },
+                        "style": "form",
+                        "explode": false
+                    },
+                    {
+                        "name": "fields[releases]",
+                        "in": "query",
+                        "description": "A comma-separated list of `releases` fields to return (sparse fieldsets). Allowed members: `catalogNumber`, `format`, `packaging`, `availability`, `dimensions`, `album`.",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string",
+                                "enum": [
+                                    "catalogNumber",
+                                    "format",
+                                    "packaging",
+                                    "availability",
+                                    "dimensions",
+                                    "album"
+                                ]
+                            }
+                        },
+                        "style": "form",
+                        "explode": false
+                    },
+                    {
+                        "name": "fields[albums]",
+                        "in": "query",
+                        "description": "A comma-separated list of `albums` fields to return (sparse fieldsets). Allowed members: `title`, `averageRating`, `artwork`, `releasedAt`, `explicit`, `status`, `availableFrom`, `availableUntil`, `releaseInfo`, `artist`, `tracks`.",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string",
+                                "enum": [
+                                    "title",
+                                    "averageRating",
+                                    "artwork",
+                                    "releasedAt",
+                                    "explicit",
+                                    "status",
+                                    "availableFrom",
+                                    "availableUntil",
+                                    "releaseInfo",
+                                    "artist",
+                                    "tracks"
+                                ]
+                            }
+                        },
+                        "style": "form",
+                        "explode": false
+                    },
+                    {
+                        "name": "fields[artists]",
+                        "in": "query",
+                        "description": "A comma-separated list of `artists` fields to return (sparse fieldsets). Allowed members: `name`, `slug`, `website`, `bio`, `trackCount`, `createdAt`, `albums`.",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string",
+                                "enum": [
+                                    "name",
+                                    "slug",
+                                    "website",
+                                    "bio",
+                                    "trackCount",
+                                    "createdAt",
+                                    "albums"
+                                ]
+                            }
+                        },
+                        "style": "form",
+                        "explode": false
+                    },
+                    {
+                        "name": "fields[tracks]",
+                        "in": "query",
+                        "description": "A comma-separated list of `tracks` fields to return (sparse fieldsets). Allowed members: `title`, `trackNumber`, `durationSeconds`, `explicit`, `genres`, `previewOffset`, `displayTitle`, `album`, `playlists`.",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string",
+                                "enum": [
+                                    "title",
+                                    "trackNumber",
+                                    "durationSeconds",
+                                    "explicit",
+                                    "genres",
+                                    "previewOffset",
+                                    "displayTitle",
+                                    "album",
+                                    "playlists"
+                                ]
+                            }
+                        },
+                        "style": "form",
+                        "explode": false
+                    },
+                    {
+                        "$ref": "#/components/parameters/relatedQuery"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The requested releases resource.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ReleasesDocument"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request — the request was malformed (e.g. an invalid query parameter).",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDocument"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden — the request is not authorised.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDocument"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found — the resource does not exist.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDocument"
+                                }
+                            }
+                        }
+                    },
+                    "406": {
+                        "description": "Not Acceptable — the `Accept` header could not be satisfied.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDocument"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDocument"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized — authentication is required and was missing or invalid.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDocument"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Catalog"
+                ],
+                "summary": "Delete a releases",
+                "description": "Deletes the `releases` resource identified by its `id`.",
+                "operationId": "delete.releases",
+                "responses": {
+                    "204": {
+                        "description": "The resource was deleted."
+                    },
+                    "400": {
+                        "description": "Bad Request — the request was malformed (e.g. an invalid query parameter).",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDocument"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden — the request is not authorised.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDocument"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found — the resource does not exist.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDocument"
+                                }
+                            }
+                        }
+                    },
+                    "406": {
+                        "description": "Not Acceptable — the `Accept` header could not be satisfied.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDocument"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDocument"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized — authentication is required and was missing or invalid.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDocument"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "tags": [
+                    "Catalog"
+                ],
+                "summary": "Update a releases",
+                "description": "Updates an existing `releases` resource, applying the supplied attributes and relationships.",
+                "operationId": "update.releases",
+                "requestBody": {
+                    "content": {
+                        "application/vnd.api+json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ReleasesUpdateRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "The updated releases resource.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ReleasesDocument"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request — the request was malformed (e.g. an invalid query parameter).",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDocument"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden — the request is not authorised.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDocument"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found — the resource does not exist.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDocument"
+                                }
+                            }
+                        }
+                    },
+                    "406": {
+                        "description": "Not Acceptable — the `Accept` header could not be satisfied.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDocument"
+                                }
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict — the request conflicts with the resource state (e.g. a type or id mismatch).",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDocument"
+                                }
+                            }
+                        }
+                    },
+                    "415": {
+                        "description": "Unsupported Media Type — the `Content-Type` header is not `application/vnd.api+json`.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDocument"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity — the document failed validation.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDocument"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDocument"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized — authentication is required and was missing or invalid.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDocument"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/releases/{id}/album": {
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "description": "The `releases` resource identifier.",
+                    "required": true,
+                    "schema": {
+                        "type": "string"
+                    }
+                }
+            ],
+            "get": {
+                "tags": [
+                    "Catalog"
+                ],
+                "summary": "Fetch the related album of a releases",
+                "description": "Returns the related `album` resource of a `releases` (or `null`).",
+                "operationId": "fetchRelated.releases.album",
+                "parameters": [
+                    {
+                        "name": "filter[tracks]",
+                        "in": "query",
+                        "description": "Filter the collection by `tracks`.",
+                        "schema": {}
+                    },
+                    {
+                        "name": "filter[artist.name]",
+                        "in": "query",
+                        "description": "Filter the collection by `artist.name`.",
+                        "schema": {}
+                    },
+                    {
+                        "name": "filter[title]",
+                        "in": "query",
+                        "description": "Matches values containing the given substring.",
+                        "schema": {}
+                    },
+                    {
+                        "name": "filter[rating]",
+                        "in": "query",
+                        "description": "Matches values within the given inclusive numeric range (min/max, either optional).",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "min": {
+                                    "type": "number"
+                                },
+                                "max": {
+                                    "type": "number"
+                                }
+                            }
+                        },
+                        "style": "deepObject",
+                        "explode": true
+                    },
+                    {
+                        "name": "filter[releasedAt]",
+                        "in": "query",
+                        "description": "Matches values within the given inclusive date-time range (min/max ISO-8601, either optional).",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "min": {
+                                    "type": "string",
+                                    "format": "date-time"
+                                },
+                                "max": {
+                                    "type": "string",
+                                    "format": "date-time"
+                                }
+                            }
+                        },
+                        "style": "deepObject",
+                        "explode": true
+                    },
+                    {
+                        "name": "filter[q]",
+                        "in": "query",
+                        "description": "Case-insensitive substring search across title.",
+                        "schema": {}
+                    },
+                    {
+                        "name": "include",
+                        "in": "query",
+                        "description": "A comma-separated list of relationship paths to include in a compound document. Allowed paths: `artist`, `artist.albums`, `tracks`, `tracks.album`, `tracks.playlists`.",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string",
+                                "enum": [
+                                    "artist",
+                                    "artist.albums",
+                                    "tracks",
+                                    "tracks.album",
+                                    "tracks.playlists"
+                                ]
+                            }
+                        },
+                        "style": "form",
+                        "explode": false
+                    },
+                    {
+                        "name": "fields[albums]",
+                        "in": "query",
+                        "description": "A comma-separated list of `albums` fields to return (sparse fieldsets). Allowed members: `title`, `averageRating`, `artwork`, `releasedAt`, `explicit`, `status`, `availableFrom`, `availableUntil`, `releaseInfo`, `artist`, `tracks`.",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string",
+                                "enum": [
+                                    "title",
+                                    "averageRating",
+                                    "artwork",
+                                    "releasedAt",
+                                    "explicit",
+                                    "status",
+                                    "availableFrom",
+                                    "availableUntil",
+                                    "releaseInfo",
+                                    "artist",
+                                    "tracks"
+                                ]
+                            }
+                        },
+                        "style": "form",
+                        "explode": false
+                    },
+                    {
+                        "name": "fields[artists]",
+                        "in": "query",
+                        "description": "A comma-separated list of `artists` fields to return (sparse fieldsets). Allowed members: `name`, `slug`, `website`, `bio`, `trackCount`, `createdAt`, `albums`.",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string",
+                                "enum": [
+                                    "name",
+                                    "slug",
+                                    "website",
+                                    "bio",
+                                    "trackCount",
+                                    "createdAt",
+                                    "albums"
+                                ]
+                            }
+                        },
+                        "style": "form",
+                        "explode": false
+                    },
+                    {
+                        "name": "fields[tracks]",
+                        "in": "query",
+                        "description": "A comma-separated list of `tracks` fields to return (sparse fieldsets). Allowed members: `title`, `trackNumber`, `durationSeconds`, `explicit`, `genres`, `previewOffset`, `displayTitle`, `album`, `playlists`.",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string",
+                                "enum": [
+                                    "title",
+                                    "trackNumber",
+                                    "durationSeconds",
+                                    "explicit",
+                                    "genres",
+                                    "previewOffset",
+                                    "displayTitle",
+                                    "album",
+                                    "playlists"
+                                ]
+                            }
+                        },
+                        "style": "form",
+                        "explode": false
+                    },
+                    {
+                        "name": "fields[playlists]",
+                        "in": "query",
+                        "description": "A comma-separated list of `playlists` fields to return (sparse fieldsets). Allowed members: `title`, `slug`, `public`, `externalId`, `owner`, `publicOwner`, `tracks`, `orderedTracks`.",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string",
+                                "enum": [
+                                    "title",
+                                    "slug",
+                                    "public",
+                                    "externalId",
+                                    "owner",
+                                    "publicOwner",
+                                    "tracks",
+                                    "orderedTracks"
+                                ]
+                            }
+                        },
+                        "style": "form",
+                        "explode": false
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The related album resource (or `null`).",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ReleasesAlbumRelatedDocument"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request — the request was malformed (e.g. an invalid query parameter).",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDocument"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden — the request is not authorised.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDocument"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found — the resource does not exist.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDocument"
+                                }
+                            }
+                        }
+                    },
+                    "406": {
+                        "description": "Not Acceptable — the `Accept` header could not be satisfied.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDocument"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDocument"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized — authentication is required and was missing or invalid.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDocument"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/releases/{id}/relationships/album": {
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "description": "The `releases` resource identifier.",
+                    "required": true,
+                    "schema": {
+                        "type": "string"
+                    }
+                }
+            ],
+            "get": {
+                "tags": [
+                    "Catalog"
+                ],
+                "summary": "Fetch the album relationship of a releases",
+                "description": "Returns the `album` relationship linkage of a `releases`.",
+                "operationId": "fetchRelationship.releases.album",
+                "parameters": [
+                    {
+                        "name": "filter[tracks]",
+                        "in": "query",
+                        "description": "Filter the collection by `tracks`.",
+                        "schema": {}
+                    },
+                    {
+                        "name": "filter[artist.name]",
+                        "in": "query",
+                        "description": "Filter the collection by `artist.name`.",
+                        "schema": {}
+                    },
+                    {
+                        "name": "filter[title]",
+                        "in": "query",
+                        "description": "Matches values containing the given substring.",
+                        "schema": {}
+                    },
+                    {
+                        "name": "filter[rating]",
+                        "in": "query",
+                        "description": "Matches values within the given inclusive numeric range (min/max, either optional).",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "min": {
+                                    "type": "number"
+                                },
+                                "max": {
+                                    "type": "number"
+                                }
+                            }
+                        },
+                        "style": "deepObject",
+                        "explode": true
+                    },
+                    {
+                        "name": "filter[releasedAt]",
+                        "in": "query",
+                        "description": "Matches values within the given inclusive date-time range (min/max ISO-8601, either optional).",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "min": {
+                                    "type": "string",
+                                    "format": "date-time"
+                                },
+                                "max": {
+                                    "type": "string",
+                                    "format": "date-time"
+                                }
+                            }
+                        },
+                        "style": "deepObject",
+                        "explode": true
+                    },
+                    {
+                        "name": "filter[q]",
+                        "in": "query",
+                        "description": "Case-insensitive substring search across title.",
+                        "schema": {}
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The album relationship linkage.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ReleasesAlbumRelationshipDocument"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request — the request was malformed (e.g. an invalid query parameter).",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDocument"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden — the request is not authorised.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDocument"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found — the resource does not exist.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDocument"
+                                }
+                            }
+                        }
+                    },
+                    "406": {
+                        "description": "Not Acceptable — the `Accept` header could not be satisfied.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDocument"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDocument"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized — authentication is required and was missing or invalid.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDocument"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "tags": [
+                    "Catalog"
+                ],
+                "summary": "Replace the album relationship of a releases",
+                "description": "Fully replaces the `album` relationship of a `releases` with the supplied linkage.",
+                "operationId": "updateRelationship.releases.album",
+                "requestBody": {
+                    "content": {
+                        "application/vnd.api+json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ReleasesAlbumRelationshipDocument"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "The updated album relationship linkage.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ReleasesAlbumRelationshipDocument"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request — the request was malformed (e.g. an invalid query parameter).",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDocument"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden — the request is not authorised.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDocument"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found — the resource does not exist.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDocument"
+                                }
+                            }
+                        }
+                    },
+                    "406": {
+                        "description": "Not Acceptable — the `Accept` header could not be satisfied.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDocument"
+                                }
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict — the request conflicts with the resource state (e.g. a type or id mismatch).",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDocument"
+                                }
+                            }
+                        }
+                    },
+                    "415": {
+                        "description": "Unsupported Media Type — the `Content-Type` header is not `application/vnd.api+json`.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDocument"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity — the document failed validation.",
                         "content": {
                             "application/vnd.api+json": {
                                 "schema": {
@@ -12539,22 +14632,26 @@
                         "explode": false
                     },
                     {
-                        "name": "page[number]",
+                        "name": "page",
                         "in": "query",
-                        "description": "The page number to retrieve.",
+                        "description": "Pagination parameters, e.g. `page[number]=2&page[size]=10`.",
                         "schema": {
-                            "type": "integer",
-                            "minimum": 1
-                        }
-                    },
-                    {
-                        "name": "page[size]",
-                        "in": "query",
-                        "description": "The number of resources per page.",
-                        "schema": {
-                            "type": "integer",
-                            "minimum": 1
-                        }
+                            "type": "object",
+                            "properties": {
+                                "number": {
+                                    "type": "integer",
+                                    "description": "The page number to retrieve.",
+                                    "minimum": 1
+                                },
+                                "size": {
+                                    "type": "integer",
+                                    "description": "The number of resources per page.",
+                                    "minimum": 1
+                                }
+                            }
+                        },
+                        "style": "deepObject",
+                        "explode": true
                     },
                     {
                         "name": "withCount",
@@ -12572,6 +14669,9 @@
                         "style": "form",
                         "explode": false,
                         "x-profile": "https://haddowg.github.io/json-api/profiles/countable/"
+                    },
+                    {
+                        "$ref": "#/components/parameters/relatedQuery"
                     }
                 ],
                 "responses": {
@@ -12919,6 +15019,9 @@
                         },
                         "style": "form",
                         "explode": false
+                    },
+                    {
+                        "$ref": "#/components/parameters/relatedQuery"
                     }
                 ],
                 "responses": {
@@ -13869,22 +15972,26 @@
                         "explode": false
                     },
                     {
-                        "name": "page[number]",
+                        "name": "page",
                         "in": "query",
-                        "description": "The page number to retrieve.",
+                        "description": "Pagination parameters, e.g. `page[number]=2&page[size]=10`.",
                         "schema": {
-                            "type": "integer",
-                            "minimum": 1
-                        }
-                    },
-                    {
-                        "name": "page[size]",
-                        "in": "query",
-                        "description": "The number of resources per page.",
-                        "schema": {
-                            "type": "integer",
-                            "minimum": 1
-                        }
+                            "type": "object",
+                            "properties": {
+                                "number": {
+                                    "type": "integer",
+                                    "description": "The page number to retrieve.",
+                                    "minimum": 1
+                                },
+                                "size": {
+                                    "type": "integer",
+                                    "description": "The number of resources per page.",
+                                    "minimum": 1
+                                }
+                            }
+                        },
+                        "style": "deepObject",
+                        "explode": true
                     },
                     {
                         "name": "withCount",
@@ -14000,22 +16107,26 @@
                 "operationId": "fetchRelationship.tracks.playlists",
                 "parameters": [
                     {
-                        "name": "page[number]",
+                        "name": "page",
                         "in": "query",
-                        "description": "The page number to retrieve.",
+                        "description": "Pagination parameters, e.g. `page[number]=2&page[size]=10`.",
                         "schema": {
-                            "type": "integer",
-                            "minimum": 1
-                        }
-                    },
-                    {
-                        "name": "page[size]",
-                        "in": "query",
-                        "description": "The number of resources per page.",
-                        "schema": {
-                            "type": "integer",
-                            "minimum": 1
-                        }
+                            "type": "object",
+                            "properties": {
+                                "number": {
+                                    "type": "integer",
+                                    "description": "The page number to retrieve.",
+                                    "minimum": 1
+                                },
+                                "size": {
+                                    "type": "integer",
+                                    "description": "The number of resources per page.",
+                                    "minimum": 1
+                                }
+                            }
+                        },
+                        "style": "deepObject",
+                        "explode": true
                     },
                     {
                         "name": "withCount",
@@ -15905,6 +18016,9 @@
                                 "$ref": "#/components/schemas/ArtistsAtomicUpdate"
                             },
                             {
+                                "$ref": "#/components/schemas/CatalogExportsAtomicAdd"
+                            },
+                            {
                                 "$ref": "#/components/schemas/DevicesAtomicAdd"
                             },
                             {
@@ -15939,6 +18053,12 @@
                             },
                             {
                                 "$ref": "#/components/schemas/ProductsAtomicUpdate"
+                            },
+                            {
+                                "$ref": "#/components/schemas/ReleasesAtomicAdd"
+                            },
+                            {
+                                "$ref": "#/components/schemas/ReleasesAtomicUpdate"
                             },
                             {
                                 "$ref": "#/components/schemas/TracksAtomicAdd"
@@ -16070,10 +18190,22 @@
                                 "$ref": "#/components/schemas/ArtistsResourceIdentifier"
                             },
                             {
+                                "$ref": "#/components/schemas/CatalogExportsResource"
+                            },
+                            {
+                                "$ref": "#/components/schemas/CatalogExportsResourceIdentifier"
+                            },
+                            {
                                 "$ref": "#/components/schemas/DevicesResource"
                             },
                             {
                                 "$ref": "#/components/schemas/DevicesResourceIdentifier"
+                            },
+                            {
+                                "$ref": "#/components/schemas/ExportJobsResource"
+                            },
+                            {
+                                "$ref": "#/components/schemas/ExportJobsResourceIdentifier"
                             },
                             {
                                 "$ref": "#/components/schemas/FavoritesResource"
@@ -16110,6 +18242,12 @@
                             },
                             {
                                 "$ref": "#/components/schemas/PublicProfilesResourceIdentifier"
+                            },
+                            {
+                                "$ref": "#/components/schemas/ReleasesResource"
+                            },
+                            {
+                                "$ref": "#/components/schemas/ReleasesResourceIdentifier"
                             },
                             {
                                 "$ref": "#/components/schemas/TracksResource"
@@ -16159,6 +18297,173 @@
                 },
                 "required": [
                     "atomic:results"
+                ]
+            },
+            "CatalogExportsAtomicAdd": {
+                "type": "object",
+                "description": "The resource object an `add` operation creates.",
+                "properties": {
+                    "type": {
+                        "type": "string",
+                        "const": "catalog-exports"
+                    },
+                    "lid": {
+                        "type": "string",
+                        "description": "A local id assigned to the created resource, referenceable by later operations in the batch."
+                    },
+                    "attributes": {
+                        "$ref": "#/components/schemas/CatalogExportsCreateAttributes"
+                    },
+                    "relationships": {
+                        "type": "object"
+                    },
+                    "id": false
+                },
+                "required": [
+                    "type"
+                ]
+            },
+            "CatalogExportsAttributes": {
+                "type": "object",
+                "properties": {
+                    "format": {
+                        "type": "string",
+                        "maxLength": 16
+                    },
+                    "status": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "format",
+                    "status"
+                ]
+            },
+            "CatalogExportsCollection": {
+                "type": "object",
+                "properties": {
+                    "data": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/CatalogExportsResource"
+                        }
+                    },
+                    "links": {
+                        "$ref": "#/components/schemas/PaginationLinks"
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/Meta"
+                    },
+                    "jsonapi": {
+                        "$ref": "#/components/schemas/JsonApi"
+                    }
+                },
+                "required": [
+                    "data"
+                ]
+            },
+            "CatalogExportsCreateAttributes": {
+                "type": "object",
+                "properties": {
+                    "format": {
+                        "type": "string",
+                        "maxLength": 16
+                    }
+                },
+                "required": [
+                    "format"
+                ]
+            },
+            "CatalogExportsCreateRequest": {
+                "type": "object",
+                "properties": {
+                    "data": {
+                        "type": "object",
+                        "properties": {
+                            "type": {
+                                "type": "string",
+                                "const": "catalog-exports"
+                            },
+                            "attributes": {
+                                "$ref": "#/components/schemas/CatalogExportsCreateAttributes"
+                            },
+                            "id": false
+                        },
+                        "required": [
+                            "type"
+                        ]
+                    }
+                },
+                "required": [
+                    "data"
+                ]
+            },
+            "CatalogExportsDocument": {
+                "type": "object",
+                "properties": {
+                    "data": {
+                        "$ref": "#/components/schemas/CatalogExportsResource"
+                    },
+                    "links": {
+                        "$ref": "#/components/schemas/Links"
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/Meta"
+                    },
+                    "jsonapi": {
+                        "$ref": "#/components/schemas/JsonApi"
+                    }
+                },
+                "required": [
+                    "data"
+                ]
+            },
+            "CatalogExportsResource": {
+                "type": "object",
+                "description": "An `catalog-exports` resource object.",
+                "properties": {
+                    "type": {
+                        "type": "string",
+                        "const": "catalog-exports"
+                    },
+                    "id": {
+                        "type": "string"
+                    },
+                    "attributes": {
+                        "$ref": "#/components/schemas/CatalogExportsAttributes"
+                    },
+                    "relationships": {
+                        "type": "object"
+                    },
+                    "links": {
+                        "$ref": "#/components/schemas/Links"
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/Meta"
+                    }
+                },
+                "required": [
+                    "type",
+                    "id"
+                ]
+            },
+            "CatalogExportsResourceIdentifier": {
+                "type": "object",
+                "properties": {
+                    "type": {
+                        "type": "string",
+                        "const": "catalog-exports"
+                    },
+                    "id": {
+                        "type": "string"
+                    },
+                    "meta": {
+                        "type": "object"
+                    }
+                },
+                "required": [
+                    "type",
+                    "id"
                 ]
             },
             "ChartsCollection": {
@@ -16648,6 +18953,108 @@
                         "type": "string"
                     }
                 }
+            },
+            "ExportJobsAttributes": {
+                "type": "object",
+                "properties": {
+                    "state": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "state"
+                ]
+            },
+            "ExportJobsCollection": {
+                "type": "object",
+                "properties": {
+                    "data": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ExportJobsResource"
+                        }
+                    },
+                    "links": {
+                        "$ref": "#/components/schemas/PaginationLinks"
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/Meta"
+                    },
+                    "jsonapi": {
+                        "$ref": "#/components/schemas/JsonApi"
+                    }
+                },
+                "required": [
+                    "data"
+                ]
+            },
+            "ExportJobsDocument": {
+                "type": "object",
+                "properties": {
+                    "data": {
+                        "$ref": "#/components/schemas/ExportJobsResource"
+                    },
+                    "links": {
+                        "$ref": "#/components/schemas/Links"
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/Meta"
+                    },
+                    "jsonapi": {
+                        "$ref": "#/components/schemas/JsonApi"
+                    }
+                },
+                "required": [
+                    "data"
+                ]
+            },
+            "ExportJobsResource": {
+                "type": "object",
+                "description": "An `export-jobs` resource object.",
+                "properties": {
+                    "type": {
+                        "type": "string",
+                        "const": "export-jobs"
+                    },
+                    "id": {
+                        "type": "string"
+                    },
+                    "attributes": {
+                        "$ref": "#/components/schemas/ExportJobsAttributes"
+                    },
+                    "relationships": {
+                        "type": "object"
+                    },
+                    "links": {
+                        "$ref": "#/components/schemas/Links"
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/Meta"
+                    }
+                },
+                "required": [
+                    "type",
+                    "id"
+                ]
+            },
+            "ExportJobsResourceIdentifier": {
+                "type": "object",
+                "properties": {
+                    "type": {
+                        "type": "string",
+                        "const": "export-jobs"
+                    },
+                    "id": {
+                        "type": "string"
+                    },
+                    "meta": {
+                        "type": "object"
+                    }
+                },
+                "required": [
+                    "type",
+                    "id"
+                ]
             },
             "FavoritesAtomicAdd": {
                 "type": "object",
@@ -17396,14 +19803,22 @@
                         "type": "array",
                         "items": {
                             "type": "string",
-                            "format": "uri"
+                            "format": "uri",
+                            "enum": [
+                                "https://jsonapi.org/ext/atomic"
+                            ]
                         }
                     },
                     "profile": {
                         "type": "array",
                         "items": {
                             "type": "string",
-                            "format": "uri"
+                            "format": "uri",
+                            "enum": [
+                                "https://jsonapi.org/profiles/ethanresnick/cursor-pagination/",
+                                "https://haddowg.github.io/json-api/profiles/countable/",
+                                "https://haddowg.github.io/json-api/profiles/relationship-queries/"
+                            ]
                         }
                     },
                     "meta": {
@@ -19178,6 +21593,882 @@
                     "id"
                 ]
             },
+            "ReleasesAlbumRelatedDocument": {
+                "type": "object",
+                "properties": {
+                    "data": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/AlbumsResource"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "included": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "type": {
+                                    "type": "string"
+                                },
+                                "id": {
+                                    "type": "string"
+                                }
+                            },
+                            "required": [
+                                "type",
+                                "id"
+                            ]
+                        }
+                    },
+                    "links": {
+                        "$ref": "#/components/schemas/Links"
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/Meta"
+                    },
+                    "jsonapi": {
+                        "$ref": "#/components/schemas/JsonApi"
+                    }
+                },
+                "required": [
+                    "data"
+                ]
+            },
+            "ReleasesAlbumRelationship": {
+                "type": "object",
+                "properties": {
+                    "links": {
+                        "$ref": "#/components/schemas/Links"
+                    },
+                    "data": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/AlbumsResourceIdentifier"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/Meta"
+                    }
+                }
+            },
+            "ReleasesAlbumRelationshipDocument": {
+                "type": "object",
+                "properties": {
+                    "data": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/AlbumsResourceIdentifier"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "links": {
+                        "$ref": "#/components/schemas/Links"
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/Meta"
+                    },
+                    "jsonapi": {
+                        "$ref": "#/components/schemas/JsonApi"
+                    }
+                },
+                "required": [
+                    "data"
+                ]
+            },
+            "ReleasesAtomicAdd": {
+                "type": "object",
+                "description": "The resource object an `add` operation creates.",
+                "properties": {
+                    "type": {
+                        "type": "string",
+                        "const": "releases"
+                    },
+                    "lid": {
+                        "type": "string",
+                        "description": "A local id assigned to the created resource, referenceable by later operations in the batch."
+                    },
+                    "attributes": {
+                        "$ref": "#/components/schemas/ReleasesCreateAttributes"
+                    },
+                    "relationships": {
+                        "type": "object",
+                        "properties": {
+                            "album": {
+                                "$ref": "#/components/schemas/ReleasesAlbumRelationship"
+                            }
+                        }
+                    },
+                    "id": false
+                },
+                "required": [
+                    "type"
+                ]
+            },
+            "ReleasesAtomicUpdate": {
+                "type": "object",
+                "description": "The resource object an `update` operation writes.",
+                "properties": {
+                    "type": {
+                        "type": "string",
+                        "const": "releases"
+                    },
+                    "id": {
+                        "type": "string"
+                    },
+                    "lid": {
+                        "type": "string",
+                        "description": "The local id of a resource created earlier in the batch."
+                    },
+                    "attributes": {
+                        "$ref": "#/components/schemas/ReleasesUpdateAttributes"
+                    },
+                    "relationships": {
+                        "type": "object",
+                        "properties": {
+                            "album": {
+                                "$ref": "#/components/schemas/ReleasesAlbumRelationship"
+                            }
+                        }
+                    }
+                },
+                "required": [
+                    "type"
+                ],
+                "oneOf": [
+                    {
+                        "title": "By id",
+                        "required": [
+                            "id"
+                        ]
+                    },
+                    {
+                        "title": "By local id (lid)",
+                        "required": [
+                            "lid"
+                        ]
+                    },
+                    {
+                        "title": "Targeted by ref/href",
+                        "description": "Neither `id` nor `lid` in `data` — the operation targets the resource by its `ref` or `href`.",
+                        "properties": {
+                            "id": false,
+                            "lid": false
+                        }
+                    }
+                ]
+            },
+            "ReleasesAttributes": {
+                "type": "object",
+                "properties": {
+                    "catalogNumber": {
+                        "type": "string",
+                        "maxLength": 40
+                    },
+                    "format": {
+                        "oneOf": [
+                            {
+                                "type": "object",
+                                "properties": {
+                                    "rpm": {
+                                        "type": "integer",
+                                        "minimum": 16,
+                                        "maximum": 78
+                                    },
+                                    "coloured": {
+                                        "type": "boolean"
+                                    },
+                                    "medium": {
+                                        "type": "string",
+                                        "const": "vinyl"
+                                    }
+                                }
+                            },
+                            {
+                                "type": "object",
+                                "properties": {
+                                    "discs": {
+                                        "type": "integer",
+                                        "minimum": 1
+                                    },
+                                    "medium": {
+                                        "type": "string",
+                                        "const": "cd"
+                                    }
+                                }
+                            },
+                            {
+                                "type": "object",
+                                "properties": {
+                                    "codec": {
+                                        "type": "string",
+                                        "maxLength": 16
+                                    },
+                                    "bitrateKbps": {
+                                        "type": "integer",
+                                        "minimum": 32
+                                    },
+                                    "medium": {
+                                        "type": "string",
+                                        "const": "digital"
+                                    }
+                                }
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "discriminator": {
+                            "propertyName": "medium"
+                        }
+                    },
+                    "packaging": {
+                        "type": [
+                            "object",
+                            "null"
+                        ],
+                        "properties": {
+                            "material": {
+                                "type": "string",
+                                "maxLength": 40
+                            },
+                            "gatefold": {
+                                "type": "boolean"
+                            }
+                        }
+                    },
+                    "availability": {
+                        "type": [
+                            "object",
+                            "null"
+                        ],
+                        "additionalProperties": {},
+                        "anyOf": [
+                            {
+                                "type": "object",
+                                "properties": {
+                                    "worldwide": {
+                                        "type": "boolean",
+                                        "const": true
+                                    }
+                                },
+                                "required": [
+                                    "worldwide"
+                                ]
+                            },
+                            {
+                                "type": "object",
+                                "properties": {
+                                    "regions": {
+                                        "type": "array",
+                                        "minItems": 1,
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    }
+                                },
+                                "required": [
+                                    "regions"
+                                ]
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "dimensions": {
+                        "type": [
+                            "object",
+                            "null"
+                        ],
+                        "additionalProperties": {},
+                        "anyOf": [
+                            {
+                                "type": "null"
+                            },
+                            {
+                                "allOf": [
+                                    {
+                                        "type": "object",
+                                        "properties": {
+                                            "widthMm": {
+                                                "type": "number"
+                                            },
+                                            "heightMm": {
+                                                "type": "number"
+                                            }
+                                        },
+                                        "required": [
+                                            "widthMm",
+                                            "heightMm"
+                                        ]
+                                    },
+                                    {
+                                        "type": "object",
+                                        "properties": {
+                                            "depthMm": {
+                                                "type": "number"
+                                            }
+                                        }
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                },
+                "required": [
+                    "catalogNumber",
+                    "format",
+                    "packaging",
+                    "availability",
+                    "dimensions"
+                ]
+            },
+            "ReleasesCollection": {
+                "type": "object",
+                "properties": {
+                    "data": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ReleasesResource"
+                        }
+                    },
+                    "included": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "type": {
+                                    "type": "string"
+                                },
+                                "id": {
+                                    "type": "string"
+                                }
+                            },
+                            "required": [
+                                "type",
+                                "id"
+                            ]
+                        }
+                    },
+                    "links": {
+                        "$ref": "#/components/schemas/PaginationLinks"
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/Meta"
+                    },
+                    "jsonapi": {
+                        "$ref": "#/components/schemas/JsonApi"
+                    }
+                },
+                "required": [
+                    "data"
+                ]
+            },
+            "ReleasesCreateAttributes": {
+                "type": "object",
+                "properties": {
+                    "catalogNumber": {
+                        "type": "string",
+                        "maxLength": 40
+                    },
+                    "format": {
+                        "oneOf": [
+                            {
+                                "type": "object",
+                                "properties": {
+                                    "rpm": {
+                                        "type": "integer",
+                                        "minimum": 16,
+                                        "maximum": 78
+                                    },
+                                    "coloured": {
+                                        "type": "boolean"
+                                    },
+                                    "medium": {
+                                        "type": "string",
+                                        "const": "vinyl"
+                                    }
+                                },
+                                "required": [
+                                    "rpm",
+                                    "medium"
+                                ]
+                            },
+                            {
+                                "type": "object",
+                                "properties": {
+                                    "discs": {
+                                        "type": "integer",
+                                        "minimum": 1
+                                    },
+                                    "medium": {
+                                        "type": "string",
+                                        "const": "cd"
+                                    }
+                                },
+                                "required": [
+                                    "discs",
+                                    "medium"
+                                ]
+                            },
+                            {
+                                "type": "object",
+                                "properties": {
+                                    "codec": {
+                                        "type": "string",
+                                        "maxLength": 16
+                                    },
+                                    "bitrateKbps": {
+                                        "type": "integer",
+                                        "minimum": 32
+                                    },
+                                    "medium": {
+                                        "type": "string",
+                                        "const": "digital"
+                                    }
+                                },
+                                "required": [
+                                    "codec",
+                                    "medium"
+                                ]
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "discriminator": {
+                            "propertyName": "medium"
+                        }
+                    },
+                    "packaging": {
+                        "type": [
+                            "object",
+                            "null"
+                        ],
+                        "properties": {
+                            "material": {
+                                "type": "string",
+                                "maxLength": 40
+                            },
+                            "gatefold": {
+                                "type": "boolean"
+                            }
+                        },
+                        "required": [
+                            "material"
+                        ]
+                    },
+                    "availability": {
+                        "type": [
+                            "object",
+                            "null"
+                        ],
+                        "additionalProperties": {},
+                        "anyOf": [
+                            {
+                                "type": "object",
+                                "properties": {
+                                    "worldwide": {
+                                        "type": "boolean",
+                                        "const": true
+                                    }
+                                },
+                                "required": [
+                                    "worldwide"
+                                ]
+                            },
+                            {
+                                "type": "object",
+                                "properties": {
+                                    "regions": {
+                                        "type": "array",
+                                        "minItems": 1,
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    }
+                                },
+                                "required": [
+                                    "regions"
+                                ]
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "dimensions": {
+                        "type": [
+                            "object",
+                            "null"
+                        ],
+                        "additionalProperties": {},
+                        "anyOf": [
+                            {
+                                "type": "null"
+                            },
+                            {
+                                "allOf": [
+                                    {
+                                        "type": "object",
+                                        "properties": {
+                                            "widthMm": {
+                                                "type": "number"
+                                            },
+                                            "heightMm": {
+                                                "type": "number"
+                                            }
+                                        },
+                                        "required": [
+                                            "widthMm",
+                                            "heightMm"
+                                        ]
+                                    },
+                                    {
+                                        "type": "object",
+                                        "properties": {
+                                            "depthMm": {
+                                                "type": "number"
+                                            }
+                                        }
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                },
+                "required": [
+                    "catalogNumber"
+                ]
+            },
+            "ReleasesCreateRequest": {
+                "type": "object",
+                "properties": {
+                    "data": {
+                        "type": "object",
+                        "properties": {
+                            "type": {
+                                "type": "string",
+                                "const": "releases"
+                            },
+                            "attributes": {
+                                "$ref": "#/components/schemas/ReleasesCreateAttributes"
+                            },
+                            "id": false,
+                            "relationships": {
+                                "type": "object",
+                                "properties": {
+                                    "album": {
+                                        "$ref": "#/components/schemas/ReleasesAlbumRelationship"
+                                    }
+                                }
+                            }
+                        },
+                        "required": [
+                            "type"
+                        ]
+                    }
+                },
+                "required": [
+                    "data"
+                ]
+            },
+            "ReleasesDocument": {
+                "type": "object",
+                "properties": {
+                    "data": {
+                        "$ref": "#/components/schemas/ReleasesResource"
+                    },
+                    "included": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "type": {
+                                    "type": "string"
+                                },
+                                "id": {
+                                    "type": "string"
+                                }
+                            },
+                            "required": [
+                                "type",
+                                "id"
+                            ]
+                        }
+                    },
+                    "links": {
+                        "$ref": "#/components/schemas/Links"
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/Meta"
+                    },
+                    "jsonapi": {
+                        "$ref": "#/components/schemas/JsonApi"
+                    }
+                },
+                "required": [
+                    "data"
+                ]
+            },
+            "ReleasesResource": {
+                "type": "object",
+                "description": "An `releases` resource object.",
+                "properties": {
+                    "type": {
+                        "type": "string",
+                        "const": "releases"
+                    },
+                    "id": {
+                        "type": "string"
+                    },
+                    "attributes": {
+                        "$ref": "#/components/schemas/ReleasesAttributes"
+                    },
+                    "relationships": {
+                        "type": "object",
+                        "properties": {
+                            "album": {
+                                "$ref": "#/components/schemas/ReleasesAlbumRelationship"
+                            }
+                        }
+                    },
+                    "links": {
+                        "$ref": "#/components/schemas/Links"
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/Meta"
+                    }
+                },
+                "required": [
+                    "type",
+                    "id"
+                ]
+            },
+            "ReleasesResourceIdentifier": {
+                "type": "object",
+                "properties": {
+                    "type": {
+                        "type": "string",
+                        "const": "releases"
+                    },
+                    "id": {
+                        "type": "string"
+                    },
+                    "meta": {
+                        "type": "object"
+                    }
+                },
+                "required": [
+                    "type",
+                    "id"
+                ]
+            },
+            "ReleasesUpdateAttributes": {
+                "type": "object",
+                "properties": {
+                    "catalogNumber": {
+                        "type": "string",
+                        "maxLength": 40
+                    },
+                    "format": {
+                        "oneOf": [
+                            {
+                                "type": "object",
+                                "properties": {
+                                    "rpm": {
+                                        "type": "integer",
+                                        "minimum": 16,
+                                        "maximum": 78
+                                    },
+                                    "coloured": {
+                                        "type": "boolean"
+                                    },
+                                    "medium": {
+                                        "type": "string",
+                                        "const": "vinyl"
+                                    }
+                                }
+                            },
+                            {
+                                "type": "object",
+                                "properties": {
+                                    "discs": {
+                                        "type": "integer",
+                                        "minimum": 1
+                                    },
+                                    "medium": {
+                                        "type": "string",
+                                        "const": "cd"
+                                    }
+                                }
+                            },
+                            {
+                                "type": "object",
+                                "properties": {
+                                    "codec": {
+                                        "type": "string",
+                                        "maxLength": 16
+                                    },
+                                    "bitrateKbps": {
+                                        "type": "integer",
+                                        "minimum": 32
+                                    },
+                                    "medium": {
+                                        "type": "string",
+                                        "const": "digital"
+                                    }
+                                }
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "discriminator": {
+                            "propertyName": "medium"
+                        }
+                    },
+                    "packaging": {
+                        "type": [
+                            "object",
+                            "null"
+                        ],
+                        "properties": {
+                            "material": {
+                                "type": "string",
+                                "maxLength": 40
+                            },
+                            "gatefold": {
+                                "type": "boolean"
+                            }
+                        }
+                    },
+                    "availability": {
+                        "type": [
+                            "object",
+                            "null"
+                        ],
+                        "additionalProperties": {},
+                        "anyOf": [
+                            {
+                                "type": "object",
+                                "properties": {
+                                    "worldwide": {
+                                        "type": "boolean",
+                                        "const": true
+                                    }
+                                },
+                                "required": [
+                                    "worldwide"
+                                ]
+                            },
+                            {
+                                "type": "object",
+                                "properties": {
+                                    "regions": {
+                                        "type": "array",
+                                        "minItems": 1,
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    }
+                                },
+                                "required": [
+                                    "regions"
+                                ]
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "dimensions": {
+                        "type": [
+                            "object",
+                            "null"
+                        ],
+                        "additionalProperties": {},
+                        "anyOf": [
+                            {
+                                "type": "null"
+                            },
+                            {
+                                "allOf": [
+                                    {
+                                        "type": "object",
+                                        "properties": {
+                                            "widthMm": {
+                                                "type": "number"
+                                            },
+                                            "heightMm": {
+                                                "type": "number"
+                                            }
+                                        },
+                                        "required": [
+                                            "widthMm",
+                                            "heightMm"
+                                        ]
+                                    },
+                                    {
+                                        "type": "object",
+                                        "properties": {
+                                            "depthMm": {
+                                                "type": "number"
+                                            }
+                                        }
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                }
+            },
+            "ReleasesUpdateRequest": {
+                "type": "object",
+                "properties": {
+                    "data": {
+                        "type": "object",
+                        "properties": {
+                            "type": {
+                                "type": "string",
+                                "const": "releases"
+                            },
+                            "id": {
+                                "type": "string"
+                            },
+                            "attributes": {
+                                "$ref": "#/components/schemas/ReleasesUpdateAttributes"
+                            },
+                            "relationships": {
+                                "type": "object",
+                                "properties": {
+                                    "album": {
+                                        "$ref": "#/components/schemas/ReleasesAlbumRelationship"
+                                    }
+                                }
+                            }
+                        },
+                        "required": [
+                            "type",
+                            "id"
+                        ]
+                    }
+                },
+                "required": [
+                    "data"
+                ]
+            },
             "TracksAlbumRelatedDocument": {
                 "type": "object",
                 "properties": {
@@ -19784,6 +23075,34 @@
                 ]
             }
         },
+        "parameters": {
+            "relatedQuery": {
+                "name": "relatedQuery",
+                "in": "query",
+                "description": "Per-relationship sort and filter applied from the primary request, addressed by relationship (include) path (the Relationship Queries profile). e.g. `relatedQuery[author][sort]=-createdAt` or `relatedQuery[comments][filter][state]=open`. Recognised only when the Relationship Queries profile is negotiated.",
+                "schema": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "object",
+                        "properties": {
+                            "sort": {
+                                "type": "string",
+                                "description": "A comma-separated list of sort fields for the addressed relationship; prefix a field with `-` for descending order."
+                            },
+                            "filter": {
+                                "type": "object",
+                                "description": "A `filter[<key>]=<value>` map applied to the addressed relationship, in the same shape as the primary `filter`.",
+                                "additionalProperties": {}
+                            }
+                        },
+                        "additionalProperties": false
+                    }
+                },
+                "style": "deepObject",
+                "explode": true,
+                "x-profile": "https://haddowg.github.io/json-api/profiles/relationship-queries/"
+            }
+        },
         "securitySchemes": {
             "bearer": {
                 "type": "http",
@@ -19811,7 +23130,13 @@
             "name": "Artists"
         },
         {
+            "name": "Catalog Exports"
+        },
+        {
             "name": "Devices"
+        },
+        {
+            "name": "Export Jobs"
         },
         {
             "name": "Favorites"

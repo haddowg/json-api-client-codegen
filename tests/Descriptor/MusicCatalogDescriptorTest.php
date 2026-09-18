@@ -50,8 +50,9 @@ final class MusicCatalogDescriptorTest extends TestCase
     public function testEveryResourceSchemaBecomesAType(): void
     {
         self::assertSame([
-            'albums', 'artists', 'charts', 'countries', 'devices', 'favorites', 'genres',
-            'libraries', 'playlists', 'products', 'public-profiles', 'tracks', 'users',
+            'albums', 'artists', 'catalog-exports', 'charts', 'countries', 'devices',
+            'export-jobs', 'favorites', 'genres', 'libraries', 'playlists', 'products',
+            'public-profiles', 'releases', 'tracks', 'users',
         ], \array_keys(Fixtures::musicCatalogDescriptor()->resources));
     }
 
@@ -96,6 +97,7 @@ final class MusicCatalogDescriptorTest extends TestCase
             'albums.averageRating', 'albums.releaseInfo',
             'artists.bio', 'artists.website',
             'playlists.externalId',
+            'releases.availability', 'releases.dimensions', 'releases.format', 'releases.packaging',
             'tracks.previewOffset',
         ], $nullable);
     }
@@ -119,6 +121,42 @@ final class MusicCatalogDescriptorTest extends TestCase
     {
         self::assertNull($this->resource('albums')->attributes['title']->schema);
         self::assertNull($this->resource('albums')->attributes['releasedAt']->schema);
+    }
+
+    public function testAComposedAttributeCarriesItsBranchesRatherThanReportingNoMembers(): void
+    {
+        // `availability` declares no members of its own — they live in its anyOf branches. Read
+        // as a plain object it looks like an empty shape, which an emitter would believe.
+        $availability = $this->resource('releases')->attributes['availability'];
+
+        self::assertSame('object', $availability->format);
+        self::assertNotNull($availability->schema);
+        self::assertTrue($availability->schema->composed());
+        self::assertSame([], $availability->schema->properties);
+        self::assertCount(3, $availability->schema->anyOf);
+        self::assertSame(['worldwide'], \array_keys($availability->schema->anyOf[0]->properties));
+        self::assertSame(['regions'], \array_keys($availability->schema->anyOf[1]->properties));
+    }
+
+    public function testADiscriminatedUnionAttributeCarriesItsBranchesAndDiscriminator(): void
+    {
+        $format = $this->resource('releases')->attributes['format'];
+
+        // A oneOf union declares no type, so the format hint has nothing to say. The branches
+        // are the only description of the value there is.
+        self::assertSame('unknown', $format->format);
+        self::assertNotNull($format->schema);
+        self::assertSame('medium', $format->schema->discriminator);
+        self::assertCount(4, $format->schema->oneOf);
+        self::assertCount(4, $format->schema->branches());
+    }
+
+    public function testNullabilityIsReadThroughAUnionBranch(): void
+    {
+        // The null arm is inside the oneOf, not in a type list, and it still makes the
+        // attribute nullable.
+        self::assertTrue($this->resource('releases')->attributes['format']->nullable);
+        self::assertTrue($this->resource('releases')->attributes['availability']->nullable);
     }
 
     public function testEnumsCarryTheirVarnamesAndDescriptions(): void

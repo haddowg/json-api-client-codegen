@@ -150,6 +150,10 @@ final class DescriptorSerializer
             'required' => $schema->required,
             'properties' => \array_map(self::valueSchema(...), $schema->properties),
             'items' => self::valueSchema($schema->items),
+            'discriminator' => $schema->discriminator,
+            'oneOf' => \array_map(self::valueSchema(...), $schema->oneOf),
+            'anyOf' => \array_map(self::valueSchema(...), $schema->anyOf),
+            'allOf' => \array_map(self::valueSchema(...), $schema->allOf),
         ];
     }
 }

@@ -138,9 +138,13 @@ final class DescriptorBuilder
         $collection = $this->collectionPaths[$type] ?? null;
         $list = $collection === null ? null : $this->document->pathItem($collection)?->find('get');
 
+        $single = $collection === null ? null : $this->document->pathItem($collection . '/{id}');
+
         return new ResourceDescriptor(
             $type,
             $this->attributes($schema),
+            $this->writeAttributes($collection === null ? null : $this->document->pathItem($collection)?->find('post')),
+            $this->writeAttributes($single?->find('patch')),
             $this->relations($schema, $collection),
             $collection === null ? [] : $this->operations($collection),
             $this->typePaginators[$type] ?? PaginatorDescriptor::none(),
@@ -181,6 +185,53 @@ final class DescriptorBuilder
                 $hint['enum'],
                 $hint['nullable'],
                 $this->compositeSchema($attribute, $hint['format']),
+            );
+        }
+        \ksort($out, \SORT_STRING);
+
+        return $out;
+    }
+
+    /**
+     * The attributes one write operation accepts, read from its request document rather than
+     * from the read attributes with a writability flag laid over them.
+     *
+     * The create and update sets diverge in the document — an attribute can be settable on
+     * create and not on update — so each is read from its own operation, and a read-only
+     * attribute is simply absent from both.
+     *
+     * @return array<string, WriteAttributeDescriptor>
+     */
+    private function writeAttributes(?Node $operation): array
+    {
+        if ($operation === null) {
+            return [];
+        }
+
+        $attributes = $this->requestBodySchema($operation)?->path('properties', 'data', 'properties', 'attributes');
+        if ($attributes === null) {
+            return [];
+        }
+
+        $attributes = $this->document->dereference($attributes);
+        $properties = $attributes->find('properties');
+        if ($properties === null) {
+            return [];
+        }
+
+        $required = $attributes->find('required')?->strings() ?? [];
+
+        $out = [];
+        foreach ($properties->members() as $key => $attribute) {
+            $name = (string) $key;
+            $hint = $this->formatHint($attribute);
+            $out[$name] = new WriteAttributeDescriptor(
+                $name,
+                $hint['format'],
+                $hint['enum'],
+                $hint['nullable'],
+                $this->compositeSchema($attribute, $hint['format']),
+                \in_array($name, $required, true),
             );
         }
         \ksort($out, \SORT_STRING);

@@ -175,7 +175,13 @@ final class DescriptorBuilder
         foreach ($properties->members() as $key => $attribute) {
             $name = (string) $key;
             $hint = $this->formatHint($attribute);
-            $out[$name] = new AttributeDescriptor($name, $hint['format'], $hint['enum']);
+            $out[$name] = new AttributeDescriptor(
+                $name,
+                $hint['format'],
+                $hint['enum'],
+                $hint['nullable'],
+                $this->compositeSchema($attribute, $hint['format']),
+            );
         }
         \ksort($out, \SORT_STRING);
 
@@ -183,13 +189,15 @@ final class DescriptorBuilder
     }
 
     /**
-     * The value's wire format and, when it is drawn from a named enum component, that
-     * component's name.
+     * The value's wire format, whether it admits null, and — when it is drawn from a named enum
+     * component — that component's name.
      *
      * The format is an explicit `format` where one is declared, else the JSON type with `null`
      * dropped, else `string` for a bare enum. `unknown` only where the schema declares neither.
+     * Nullability is tracked separately because it is what separates `?float` from `float`, and
+     * dropping `null` to find the format would otherwise lose it.
      *
-     * @return array{format: string, enum: string|null}
+     * @return array{format: string, enum: string|null, nullable: bool}
      */
     private function formatHint(Node $schema): array
     {
@@ -201,19 +209,46 @@ final class DescriptorBuilder
             ?? $this->jsonType($target)
             ?? ($isEnum ? 'string' : 'unknown');
 
-        return ['format' => $format, 'enum' => $isEnum ? $reference : null];
+        return [
+            'format' => $format,
+            'enum' => $isEnum ? $reference : null,
+            'nullable' => $this->admitsNull($schema) || $this->admitsNull($target),
+        ];
+    }
+
+    /**
+     * The whole value schema, for the values a format hint cannot describe on its own: an
+     * object's members and an array's item type. Null for a scalar, where the hint says it all.
+     */
+    private function compositeSchema(Node $schema, string $format): ?ValueSchema
+    {
+        return \in_array($format, ['object', 'array'], true) ? $this->valueSchema($schema) : null;
+    }
+
+    /**
+     * The JSON types a schema declares, `null` among them when it is nullable.
+     *
+     * @return list<string>
+     */
+    private function declaredTypes(Node $schema): array
+    {
+        $type = $schema->find('type');
+        if ($type === null) {
+            return [];
+        }
+
+        return $type->isString() ? [$type->string()] : $type->strings();
+    }
+
+    private function admitsNull(Node $schema): bool
+    {
+        return \in_array('null', $this->declaredTypes($schema), true);
     }
 
     /** The first declared JSON type with `null` dropped, or null when the schema declares none. */
     private function jsonType(Node $schema): ?string
     {
-        $type = $schema->find('type');
-        if ($type === null) {
-            return null;
-        }
-
-        $declared = $type->isString() ? [$type->string()] : $type->strings();
-        foreach ($declared as $candidate) {
+        foreach ($this->declaredTypes($schema) as $candidate) {
             if ($candidate !== 'null') {
                 return $candidate;
             }
@@ -246,8 +281,10 @@ final class DescriptorBuilder
         $cardinality = $data->find('type')?->string() === 'array' ? Cardinality::Many : Cardinality::One;
         $linkage = $this->linkage($cardinality === Cardinality::Many ? $data->get('items') : $data);
 
-        $related = $collection === null ? null : $this->document->pathItem($collection . '/{id}/' . $name);
-        $relationship = $collection === null ? null : $this->document->pathItem($collection . '/{id}/relationships/' . $name);
+        $relatedPath = $collection . '/{id}/' . $name;
+        $relationshipPath = $collection . '/{id}/relationships/' . $name;
+        $related = $collection === null ? null : $this->document->pathItem($relatedPath);
+        $relationship = $collection === null ? null : $this->document->pathItem($relationshipPath);
         $relatedGet = $related?->find('get');
         $relationshipGet = $relationship?->find('get');
 
@@ -257,9 +294,9 @@ final class DescriptorBuilder
             $linkage['types'],
             $linkage['pivot'],
             $linkage['pivotFields'],
-            $relatedGet !== null,
-            $relationshipGet !== null,
-            $this->relationVerbs($relationship, $cardinality),
+            $this->operationAt($related, 'get', $relatedPath),
+            $this->operationAt($relationship, 'get', $relationshipPath),
+            $this->relationMutations($relationship, $cardinality, $relationshipPath),
             $this->countable($relatedGet) ?? $this->countable($relationshipGet),
             $this->relationPaginator($cardinality, $linkage['types'], $relatedGet, $relationshipGet),
         );
@@ -361,6 +398,8 @@ final class DescriptorBuilder
                 $name,
                 $hint['format'],
                 $hint['enum'],
+                $hint['nullable'],
+                $this->compositeSchema($field, $hint['format']),
                 $field->find('readOnly')?->bool() === true,
                 \in_array($name, $required, true),
             );
@@ -371,27 +410,31 @@ final class DescriptorBuilder
 
     /**
      * The mutations one relationship endpoint advertises, derived from the methods it exposes.
+     * A to-many maps POST to `add`, DELETE to `remove` and PATCH to `replace`; a to-one maps
+     * PATCH to `set`. Each carries its own error statuses, which differ from the read's.
      *
-     * @return list<RelationVerb>
+     * @return array<string, OperationDescriptor>
      */
-    private function relationVerbs(?Node $pathItem, Cardinality $cardinality): array
+    private function relationMutations(?Node $pathItem, Cardinality $cardinality, string $path): array
     {
         if ($pathItem === null) {
             return [];
         }
 
-        if ($cardinality === Cardinality::One) {
-            return $pathItem->find('patch') === null ? [] : [RelationVerb::Set];
-        }
+        $candidates = $cardinality === Cardinality::One
+            ? [['patch', RelationVerb::Set]]
+            : [['post', RelationVerb::Add], ['delete', RelationVerb::Remove], ['patch', RelationVerb::Replace]];
 
-        $verbs = [];
-        foreach ([['post', RelationVerb::Add], ['delete', RelationVerb::Remove], ['patch', RelationVerb::Replace]] as [$method, $verb]) {
-            if ($pathItem->find($method) !== null) {
-                $verbs[] = $verb;
+        $out = [];
+        foreach ($candidates as [$method, $verb]) {
+            $operation = $this->operationAt($pathItem, $method, $path);
+            if ($operation !== null) {
+                $out[$verb->value] = $operation;
             }
         }
+        \ksort($out, \SORT_STRING);
 
-        return $verbs;
+        return $out;
     }
 
     /**
@@ -545,13 +588,6 @@ final class DescriptorBuilder
     {
         $schema = $this->document->dereference($schema);
 
-        $type = $schema->find('type');
-        $types = match (true) {
-            $type === null => [],
-            $type->isString() => [$type->string()],
-            default => $type->strings(),
-        };
-
         $properties = [];
         foreach ($schema->find('properties')?->members() ?? [] as $key => $property) {
             $properties[(string) $key] = $this->valueSchema($property);
@@ -564,7 +600,7 @@ final class DescriptorBuilder
         $items = $schema->find('items');
 
         return new ValueSchema(
-            $types,
+            $this->declaredTypes($schema),
             $schema->find('format')?->string(),
             $properties,
             $items === null ? null : $this->valueSchema($items),
@@ -596,9 +632,13 @@ final class DescriptorBuilder
     }
 
     /**
-     * The operations the type advertises. Related and relationship reads are one template each
-     * ({@see RelationDescriptor::$related} and `$relationship` say which relations reach them),
-     * and their error statuses are the union over the concrete relation paths.
+     * The operations the type advertises.
+     *
+     * The related and relationship reads are `{rel}` templates, for the by-name door
+     * (`_rel('tracks')`) where the relation is not known until runtime; their statuses are the
+     * union over the concrete relation paths, which is the honest answer when any of them could
+     * be the one dispatched. A generated per-relation method reads its own endpoint off
+     * {@see RelationDescriptor} instead, where the statuses are exact.
      *
      * @return array<string, OperationDescriptor>
      */
@@ -633,12 +673,20 @@ final class DescriptorBuilder
      */
     private function addOperation(array &$out, OperationKind $kind, ?Node $item, string $method, string $path): void
     {
-        $operation = $item?->find($method);
-        if ($operation === null) {
-            return;
+        $operation = $this->operationAt($item, $method, $path);
+        if ($operation !== null) {
+            $out[$kind->value] = $operation;
         }
+    }
 
-        $out[$kind->value] = new OperationDescriptor($path, \strtoupper($method), $this->errorStatuses($operation));
+    /** One method on a path item, with the error statuses it declares. Null when unadvertised. */
+    private function operationAt(?Node $item, string $method, string $path): ?OperationDescriptor
+    {
+        $operation = $item?->find($method);
+
+        return $operation === null
+            ? null
+            : new OperationDescriptor($path, \strtoupper($method), $this->errorStatuses($operation));
     }
 
     /**

@@ -63,14 +63,12 @@ final class DescriptorSerializer
             'countable' => self::countable($resource->countable),
             'attributes' => \array_map(static fn(AttributeDescriptor $attribute): array => [
                 'format' => $attribute->format,
+                'nullable' => $attribute->nullable,
                 'enum' => $attribute->enum,
+                'schema' => self::valueSchema($attribute->schema),
             ], $resource->attributes),
             'relations' => \array_map(self::relation(...), $resource->relations),
-            'operations' => \array_map(static fn(OperationDescriptor $operation): array => [
-                'path' => $operation->path,
-                'method' => $operation->method,
-                'errorStatuses' => $operation->errorStatuses,
-            ], $resource->operations),
+            'operations' => \array_map(self::operation(...), $resource->operations),
             'includable' => $resource->includable,
             'sortable' => $resource->sortable,
             'filterable' => \array_map(static fn(FilterDescriptor $filter): array => [
@@ -86,15 +84,17 @@ final class DescriptorSerializer
         return [
             'cardinality' => $relation->cardinality->value,
             'types' => $relation->types,
-            'related' => $relation->related,
-            'relationship' => $relation->relationship,
-            'mutations' => \array_map(static fn(RelationVerb $verb): string => $verb->value, $relation->mutations),
+            'related' => self::operation($relation->relatedRead),
+            'relationship' => self::operation($relation->relationshipRead),
+            'mutations' => \array_map(self::operation(...), $relation->mutations),
             'paginator' => $relation->paginator?->value,
             'countable' => self::countable($relation->countable),
             'pivot' => $relation->pivot,
             'pivotFields' => \array_map(static fn(PivotFieldDescriptor $field): array => [
                 'format' => $field->format,
+                'nullable' => $field->nullable,
                 'enum' => $field->enum,
+                'schema' => self::valueSchema($field->schema),
                 'readOnly' => $field->readOnly,
                 'required' => $field->required,
             ], $relation->pivotFields),
@@ -115,6 +115,16 @@ final class DescriptorSerializer
             'outputType' => $action->outputType,
             'outputCardinality' => $action->outputCardinality?->value,
             'errorStatuses' => $action->errorStatuses,
+        ];
+    }
+
+    /** @return ($operation is null ? null : array<string, mixed>) */
+    private static function operation(?OperationDescriptor $operation): ?array
+    {
+        return $operation === null ? null : [
+            'path' => $operation->path,
+            'method' => $operation->method,
+            'errorStatuses' => $operation->errorStatuses,
         ];
     }
 

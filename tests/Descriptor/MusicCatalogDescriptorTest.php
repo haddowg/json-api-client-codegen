@@ -65,6 +65,62 @@ final class MusicCatalogDescriptorTest extends TestCase
         self::assertSame('AlbumStatus', $albums->attributes['status']->enum);
     }
 
+    public function testNullabilitySurvivesTheFormatHint(): void
+    {
+        $albums = $this->resource('albums');
+
+        // Both are `number`; only one of them is `?float`.
+        self::assertTrue($albums->attributes['averageRating']->nullable);
+        self::assertSame('number', $albums->attributes['averageRating']->format);
+        self::assertFalse($albums->attributes['explicit']->nullable);
+
+        self::assertTrue($albums->attributes['availableFrom']->nullable);
+        self::assertSame('date', $albums->attributes['availableFrom']->format);
+        self::assertFalse($albums->attributes['releasedAt']->nullable);
+        self::assertFalse($albums->attributes['status']->nullable);
+    }
+
+    public function testEveryNullableAttributeInTheDocumentIsMarked(): void
+    {
+        $nullable = [];
+        foreach (Fixtures::musicCatalogDescriptor()->resources as $resource) {
+            foreach ($resource->attributes as $attribute) {
+                if ($attribute->nullable) {
+                    $nullable[] = $resource->type . '.' . $attribute->name;
+                }
+            }
+        }
+
+        self::assertSame([
+            'albums.artwork', 'albums.availableFrom', 'albums.availableUntil',
+            'albums.averageRating', 'albums.releaseInfo',
+            'artists.bio', 'artists.website',
+            'playlists.externalId',
+            'tracks.previewOffset',
+        ], $nullable);
+    }
+
+    public function testACompositeAttributeCarriesTheShapeItsFormatCannotExpress(): void
+    {
+        $releaseInfo = $this->resource('albums')->attributes['releaseInfo'];
+
+        self::assertSame('object', $releaseInfo->format);
+        self::assertTrue($releaseInfo->nullable);
+        self::assertNotNull($releaseInfo->schema);
+        self::assertSame(['catalogueNumber', 'label'], \array_keys($releaseInfo->schema->properties));
+        self::assertSame(['string'], $releaseInfo->schema->properties['label']->types);
+
+        $genres = $this->resource('tracks')->attributes['genres'];
+        self::assertSame('array', $genres->format);
+        self::assertSame(['string'], $genres->schema?->items?->types);
+    }
+
+    public function testAScalarAttributeCarriesNoSchemaBecauseTheFormatSaysItAll(): void
+    {
+        self::assertNull($this->resource('albums')->attributes['title']->schema);
+        self::assertNull($this->resource('albums')->attributes['releasedAt']->schema);
+    }
+
     public function testEnumsCarryTheirVarnamesAndDescriptions(): void
     {
         $enum = Fixtures::musicCatalogDescriptor()->enum('AlbumStatus');
@@ -81,7 +137,7 @@ final class MusicCatalogDescriptorTest extends TestCase
 
         self::assertNotNull($artist);
         self::assertSame(Cardinality::One, $artist->cardinality);
-        self::assertSame([RelationVerb::Set], $artist->mutations);
+        self::assertSame([RelationVerb::Set], $artist->verbs());
         self::assertFalse($artist->permits(RelationVerb::Add));
     }
 
@@ -91,8 +147,48 @@ final class MusicCatalogDescriptorTest extends TestCase
 
         // The relationship endpoint advertises POST and DELETE but no PATCH.
         self::assertNotNull($playlists);
-        self::assertSame([RelationVerb::Add, RelationVerb::Remove], $playlists->mutations);
+        self::assertSame([RelationVerb::Add, RelationVerb::Remove], $playlists->verbs());
         self::assertFalse($playlists->permits(RelationVerb::Replace));
+        self::assertNull($playlists->mutation(RelationVerb::Replace));
+    }
+
+    public function testEachRelationEndpointCarriesItsOwnErrorStatuses(): void
+    {
+        $tracks = $this->resource('albums')->relation('tracks');
+        self::assertNotNull($tracks);
+
+        $read = $tracks->relationshipRead;
+        $add = $tracks->mutation(RelationVerb::Add);
+        self::assertNotNull($read);
+        self::assertNotNull($add);
+
+        // A linkage read cannot conflict or fail validation; a linkage mutation can. Taking the
+        // union across the type would have put 409/415/422 on the read's @throws list.
+        self::assertSame([400, 401, 403, 404, 406, 500], $read->errorStatuses);
+        self::assertSame([400, 401, 403, 404, 406, 409, 415, 422, 500], $add->errorStatuses);
+        self::assertSame('POST', $add->method);
+        self::assertSame('/albums/{id}/relationships/tracks', $add->path);
+    }
+
+    public function testRelationEndpointsCarryTheirConcretePaths(): void
+    {
+        $tracks = $this->resource('albums')->relation('tracks');
+        self::assertNotNull($tracks);
+        self::assertNotNull($tracks->relatedRead);
+        self::assertNotNull($tracks->relationshipRead);
+
+        self::assertSame('/albums/{id}/tracks', $tracks->relatedRead->path);
+        self::assertSame('GET', $tracks->relatedRead->method);
+        self::assertSame('/albums/{id}/relationships/tracks', $tracks->relationshipRead->path);
+    }
+
+    public function testTheTypeLevelRelationTemplateUnionsWhatTheByNameDoorCouldHit(): void
+    {
+        $related = $this->resource('albums')->operation(OperationKind::FetchRelated);
+
+        self::assertNotNull($related);
+        self::assertSame('/albums/{id}/{rel}', $related->path);
+        self::assertSame([400, 401, 403, 404, 406, 500], $related->errorStatuses);
     }
 
     public function testAPolymorphicRelationCarriesEveryRelatedType(): void
@@ -114,6 +210,8 @@ final class MusicCatalogDescriptorTest extends TestCase
 
         self::assertTrue($ordered->pivotFields['addedAt']->readOnly);
         self::assertFalse($ordered->pivotFields['addedAt']->required);
+        self::assertFalse($ordered->pivotFields['addedAt']->nullable);
+        self::assertSame('date-time', $ordered->pivotFields['addedAt']->format);
 
         self::assertFalse($ordered->pivotFields['position']->readOnly);
         self::assertTrue($ordered->pivotFields['position']->required);
@@ -127,8 +225,8 @@ final class MusicCatalogDescriptorTest extends TestCase
     {
         $albums = $this->resource('albums')->relation('tracks');
         self::assertNotNull($albums);
-        self::assertTrue($albums->related);
-        self::assertTrue($albums->relationship);
+        self::assertTrue($albums->related());
+        self::assertTrue($albums->relationship());
 
         // `devices` declares an empty relationships object, so nothing survives to be suppressed.
         self::assertSame([], $this->resource('devices')->relations);

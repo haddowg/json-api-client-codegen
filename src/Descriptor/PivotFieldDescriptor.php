@@ -10,6 +10,9 @@ namespace haddowg\JsonApiCodegen\Descriptor;
  * `$readOnly` and `$required` come straight from the spec's own `readOnly` flag and the pivot
  * object's `required` list. They are what a generated edge builder needs: a read-only field
  * must not appear on the write surface at all, and a required one must be enforced.
+ *
+ * `$format`, `$enum`, `$nullable` and `$schema` mean what they do on {@see AttributeDescriptor}
+ * — a pivot field is an attribute that happens to live on the edge.
  */
 final class PivotFieldDescriptor
 {
@@ -17,6 +20,8 @@ final class PivotFieldDescriptor
         public readonly string $name,
         public readonly string $format,
         public readonly ?string $enum,
+        public readonly bool $nullable,
+        public readonly ?ValueSchema $schema,
         public readonly bool $readOnly,
         public readonly bool $required,
     ) {}

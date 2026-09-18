@@ -41,39 +41,88 @@
             "attributes": {
                 "artwork": {
                     "format": "string",
-                    "enum": null
+                    "nullable": true,
+                    "enum": null,
+                    "schema": null
                 },
                 "availableFrom": {
                     "format": "date",
-                    "enum": null
+                    "nullable": true,
+                    "enum": null,
+                    "schema": null
                 },
                 "availableUntil": {
                     "format": "date",
-                    "enum": null
+                    "nullable": true,
+                    "enum": null,
+                    "schema": null
                 },
                 "averageRating": {
                     "format": "number",
-                    "enum": null
+                    "nullable": true,
+                    "enum": null,
+                    "schema": null
                 },
                 "explicit": {
                     "format": "boolean",
-                    "enum": null
+                    "nullable": false,
+                    "enum": null,
+                    "schema": null
                 },
                 "releaseInfo": {
                     "format": "object",
-                    "enum": null
+                    "nullable": true,
+                    "enum": null,
+                    "schema": {
+                        "types": [
+                            "object",
+                            "null"
+                        ],
+                        "format": null,
+                        "enum": [],
+                        "required": [],
+                        "properties": {
+                            "catalogueNumber": {
+                                "types": [
+                                    "string"
+                                ],
+                                "format": null,
+                                "enum": [],
+                                "required": [],
+                                "properties": [],
+                                "items": null
+                            },
+                            "label": {
+                                "types": [
+                                    "string"
+                                ],
+                                "format": null,
+                                "enum": [],
+                                "required": [],
+                                "properties": [],
+                                "items": null
+                            }
+                        },
+                        "items": null
+                    }
                 },
                 "releasedAt": {
                     "format": "date-time",
-                    "enum": null
+                    "nullable": false,
+                    "enum": null,
+                    "schema": null
                 },
                 "status": {
                     "format": "string",
-                    "enum": "AlbumStatus"
+                    "nullable": false,
+                    "enum": "AlbumStatus",
+                    "schema": null
                 },
                 "title": {
                     "format": "string",
-                    "enum": null
+                    "nullable": false,
+                    "enum": null,
+                    "schema": null
                 }
             },
             "relations": {
@@ -82,11 +131,47 @@
                     "types": [
                         "artists"
                     ],
-                    "related": true,
-                    "relationship": true,
-                    "mutations": [
-                        "set"
-                    ],
+                    "related": {
+                        "path": "/albums/{id}/artist",
+                        "method": "GET",
+                        "errorStatuses": [
+                            400,
+                            401,
+                            403,
+                            404,
+                            406,
+                            500
+                        ]
+                    },
+                    "relationship": {
+                        "path": "/albums/{id}/relationships/artist",
+                        "method": "GET",
+                        "errorStatuses": [
+                            400,
+                            401,
+                            403,
+                            404,
+                            406,
+                            500
+                        ]
+                    },
+                    "mutations": {
+                        "set": {
+                            "path": "/albums/{id}/relationships/artist",
+                            "method": "PATCH",
+                            "errorStatuses": [
+                                400,
+                                401,
+                                403,
+                                404,
+                                406,
+                                409,
+                                415,
+                                422,
+                                500
+                            ]
+                        }
+                    },
                     "paginator": null,
                     "countable": null,
                     "pivot": false,
@@ -97,13 +182,77 @@
                     "types": [
                         "tracks"
                     ],
-                    "related": true,
-                    "relationship": true,
-                    "mutations": [
-                        "add",
-                        "remove",
-                        "replace"
-                    ],
+                    "related": {
+                        "path": "/albums/{id}/tracks",
+                        "method": "GET",
+                        "errorStatuses": [
+                            400,
+                            401,
+                            403,
+                            404,
+                            406,
+                            500
+                        ]
+                    },
+                    "relationship": {
+                        "path": "/albums/{id}/relationships/tracks",
+                        "method": "GET",
+                        "errorStatuses": [
+                            400,
+                            401,
+                            403,
+                            404,
+                            406,
+                            500
+                        ]
+                    },
+                    "mutations": {
+                        "add": {
+                            "path": "/albums/{id}/relationships/tracks",
+                            "method": "POST",
+                            "errorStatuses": [
+                                400,
+                                401,
+                                403,
+                                404,
+                                406,
+                                409,
+                                415,
+                                422,
+                                500
+                            ]
+                        },
+                        "remove": {
+                            "path": "/albums/{id}/relationships/tracks",
+                            "method": "DELETE",
+                            "errorStatuses": [
+                                400,
+                                401,
+                                403,
+                                404,
+                                406,
+                                409,
+                                415,
+                                422,
+                                500
+                            ]
+                        },
+                        "replace": {
+                            "path": "/albums/{id}/relationships/tracks",
+                            "method": "PATCH",
+                            "errorStatuses": [
+                                400,
+                                401,
+                                403,
+                                404,
+                                406,
+                                409,
+                                415,
+                                422,
+                                500
+                            ]
+                        }
+                    },
                     "paginator": null,
                     "countable": {
                         "tokens": [
@@ -375,27 +524,39 @@
             "attributes": {
                 "bio": {
                     "format": "string",
-                    "enum": null
+                    "nullable": true,
+                    "enum": null,
+                    "schema": null
                 },
                 "createdAt": {
                     "format": "date-time",
-                    "enum": null
+                    "nullable": false,
+                    "enum": null,
+                    "schema": null
                 },
                 "name": {
                     "format": "string",
-                    "enum": null
+                    "nullable": false,
+                    "enum": null,
+                    "schema": null
                 },
                 "slug": {
                     "format": "string",
-                    "enum": null
+                    "nullable": false,
+                    "enum": null,
+                    "schema": null
                 },
                 "trackCount": {
                     "format": "integer",
-                    "enum": null
+                    "nullable": false,
+                    "enum": null,
+                    "schema": null
                 },
                 "website": {
                     "format": "uri",
-                    "enum": null
+                    "nullable": true,
+                    "enum": null,
+                    "schema": null
                 }
             },
             "relations": {
@@ -404,13 +565,75 @@
                     "types": [
                         "albums"
                     ],
-                    "related": true,
-                    "relationship": true,
-                    "mutations": [
-                        "add",
-                        "remove",
-                        "replace"
-                    ],
+                    "related": {
+                        "path": "/artists/{id}/albums",
+                        "method": "GET",
+                        "errorStatuses": [
+                            400,
+                            403,
+                            404,
+                            406,
+                            500
+                        ]
+                    },
+                    "relationship": {
+                        "path": "/artists/{id}/relationships/albums",
+                        "method": "GET",
+                        "errorStatuses": [
+                            400,
+                            403,
+                            404,
+                            406,
+                            500
+                        ]
+                    },
+                    "mutations": {
+                        "add": {
+                            "path": "/artists/{id}/relationships/albums",
+                            "method": "POST",
+                            "errorStatuses": [
+                                400,
+                                401,
+                                403,
+                                404,
+                                406,
+                                409,
+                                415,
+                                422,
+                                500
+                            ]
+                        },
+                        "remove": {
+                            "path": "/artists/{id}/relationships/albums",
+                            "method": "DELETE",
+                            "errorStatuses": [
+                                400,
+                                401,
+                                403,
+                                404,
+                                406,
+                                409,
+                                415,
+                                422,
+                                500
+                            ]
+                        },
+                        "replace": {
+                            "path": "/artists/{id}/relationships/albums",
+                            "method": "PATCH",
+                            "errorStatuses": [
+                                400,
+                                401,
+                                403,
+                                404,
+                                406,
+                                409,
+                                415,
+                                422,
+                                500
+                            ]
+                        }
+                    },
                     "paginator": null,
                     "countable": {
                         "tokens": [
@@ -614,7 +837,9 @@
             "attributes": {
                 "label": {
                     "format": "string",
-                    "enum": null
+                    "nullable": false,
+                    "enum": null,
+                    "schema": null
                 }
             },
             "relations": [],
@@ -698,7 +923,9 @@
             "attributes": {
                 "favoritedAt": {
                     "format": "date-time",
-                    "enum": null
+                    "nullable": false,
+                    "enum": null,
+                    "schema": null
                 }
             },
             "relations": {
@@ -709,11 +936,47 @@
                         "albums",
                         "artists"
                     ],
-                    "related": true,
-                    "relationship": true,
-                    "mutations": [
-                        "set"
-                    ],
+                    "related": {
+                        "path": "/favorites/{id}/favoritable",
+                        "method": "GET",
+                        "errorStatuses": [
+                            400,
+                            401,
+                            403,
+                            404,
+                            406,
+                            500
+                        ]
+                    },
+                    "relationship": {
+                        "path": "/favorites/{id}/relationships/favoritable",
+                        "method": "GET",
+                        "errorStatuses": [
+                            400,
+                            401,
+                            403,
+                            404,
+                            406,
+                            500
+                        ]
+                    },
+                    "mutations": {
+                        "set": {
+                            "path": "/favorites/{id}/relationships/favoritable",
+                            "method": "PATCH",
+                            "errorStatuses": [
+                                400,
+                                401,
+                                403,
+                                404,
+                                406,
+                                409,
+                                415,
+                                422,
+                                500
+                            ]
+                        }
+                    },
                     "paginator": null,
                     "countable": null,
                     "pivot": false,
@@ -724,11 +987,47 @@
                     "types": [
                         "users"
                     ],
-                    "related": true,
-                    "relationship": true,
-                    "mutations": [
-                        "set"
-                    ],
+                    "related": {
+                        "path": "/favorites/{id}/user",
+                        "method": "GET",
+                        "errorStatuses": [
+                            400,
+                            401,
+                            403,
+                            404,
+                            406,
+                            500
+                        ]
+                    },
+                    "relationship": {
+                        "path": "/favorites/{id}/relationships/user",
+                        "method": "GET",
+                        "errorStatuses": [
+                            400,
+                            401,
+                            403,
+                            404,
+                            406,
+                            500
+                        ]
+                    },
+                    "mutations": {
+                        "set": {
+                            "path": "/favorites/{id}/relationships/user",
+                            "method": "PATCH",
+                            "errorStatuses": [
+                                400,
+                                401,
+                                403,
+                                404,
+                                406,
+                                409,
+                                415,
+                                422,
+                                500
+                            ]
+                        }
+                    },
                     "paginator": null,
                     "countable": null,
                     "pivot": false,
@@ -839,7 +1138,9 @@
             "attributes": {
                 "name": {
                     "format": "string",
-                    "enum": null
+                    "nullable": false,
+                    "enum": null,
+                    "schema": null
                 }
             },
             "relations": [],
@@ -929,13 +1230,77 @@
                         "albums",
                         "artists"
                     ],
-                    "related": true,
-                    "relationship": true,
-                    "mutations": [
-                        "add",
-                        "remove",
-                        "replace"
-                    ],
+                    "related": {
+                        "path": "/libraries/{id}/items",
+                        "method": "GET",
+                        "errorStatuses": [
+                            400,
+                            401,
+                            403,
+                            404,
+                            406,
+                            500
+                        ]
+                    },
+                    "relationship": {
+                        "path": "/libraries/{id}/relationships/items",
+                        "method": "GET",
+                        "errorStatuses": [
+                            400,
+                            401,
+                            403,
+                            404,
+                            406,
+                            500
+                        ]
+                    },
+                    "mutations": {
+                        "add": {
+                            "path": "/libraries/{id}/relationships/items",
+                            "method": "POST",
+                            "errorStatuses": [
+                                400,
+                                401,
+                                403,
+                                404,
+                                406,
+                                409,
+                                415,
+                                422,
+                                500
+                            ]
+                        },
+                        "remove": {
+                            "path": "/libraries/{id}/relationships/items",
+                            "method": "DELETE",
+                            "errorStatuses": [
+                                400,
+                                401,
+                                403,
+                                404,
+                                406,
+                                409,
+                                415,
+                                422,
+                                500
+                            ]
+                        },
+                        "replace": {
+                            "path": "/libraries/{id}/relationships/items",
+                            "method": "PATCH",
+                            "errorStatuses": [
+                                400,
+                                401,
+                                403,
+                                404,
+                                406,
+                                409,
+                                415,
+                                422,
+                                500
+                            ]
+                        }
+                    },
                     "paginator": null,
                     "countable": null,
                     "pivot": false,
@@ -946,11 +1311,47 @@
                     "types": [
                         "users"
                     ],
-                    "related": true,
-                    "relationship": true,
-                    "mutations": [
-                        "set"
-                    ],
+                    "related": {
+                        "path": "/libraries/{id}/owner",
+                        "method": "GET",
+                        "errorStatuses": [
+                            400,
+                            401,
+                            403,
+                            404,
+                            406,
+                            500
+                        ]
+                    },
+                    "relationship": {
+                        "path": "/libraries/{id}/relationships/owner",
+                        "method": "GET",
+                        "errorStatuses": [
+                            400,
+                            401,
+                            403,
+                            404,
+                            406,
+                            500
+                        ]
+                    },
+                    "mutations": {
+                        "set": {
+                            "path": "/libraries/{id}/relationships/owner",
+                            "method": "PATCH",
+                            "errorStatuses": [
+                                400,
+                                401,
+                                403,
+                                404,
+                                406,
+                                409,
+                                415,
+                                422,
+                                500
+                            ]
+                        }
+                    },
                     "paginator": null,
                     "countable": null,
                     "pivot": false,
@@ -1068,19 +1469,27 @@
             "attributes": {
                 "externalId": {
                     "format": "uuid",
-                    "enum": null
+                    "nullable": true,
+                    "enum": null,
+                    "schema": null
                 },
                 "public": {
                     "format": "boolean",
-                    "enum": null
+                    "nullable": false,
+                    "enum": null,
+                    "schema": null
                 },
                 "slug": {
                     "format": "string",
-                    "enum": null
+                    "nullable": false,
+                    "enum": null,
+                    "schema": null
                 },
                 "title": {
                     "format": "string",
-                    "enum": null
+                    "nullable": false,
+                    "enum": null,
+                    "schema": null
                 }
             },
             "relations": {
@@ -1089,13 +1498,77 @@
                     "types": [
                         "tracks"
                     ],
-                    "related": true,
-                    "relationship": true,
-                    "mutations": [
-                        "add",
-                        "remove",
-                        "replace"
-                    ],
+                    "related": {
+                        "path": "/playlists/{id}/orderedTracks",
+                        "method": "GET",
+                        "errorStatuses": [
+                            400,
+                            401,
+                            403,
+                            404,
+                            406,
+                            500
+                        ]
+                    },
+                    "relationship": {
+                        "path": "/playlists/{id}/relationships/orderedTracks",
+                        "method": "GET",
+                        "errorStatuses": [
+                            400,
+                            401,
+                            403,
+                            404,
+                            406,
+                            500
+                        ]
+                    },
+                    "mutations": {
+                        "add": {
+                            "path": "/playlists/{id}/relationships/orderedTracks",
+                            "method": "POST",
+                            "errorStatuses": [
+                                400,
+                                401,
+                                403,
+                                404,
+                                406,
+                                409,
+                                415,
+                                422,
+                                500
+                            ]
+                        },
+                        "remove": {
+                            "path": "/playlists/{id}/relationships/orderedTracks",
+                            "method": "DELETE",
+                            "errorStatuses": [
+                                400,
+                                401,
+                                403,
+                                404,
+                                406,
+                                409,
+                                415,
+                                422,
+                                500
+                            ]
+                        },
+                        "replace": {
+                            "path": "/playlists/{id}/relationships/orderedTracks",
+                            "method": "PATCH",
+                            "errorStatuses": [
+                                400,
+                                401,
+                                403,
+                                404,
+                                406,
+                                409,
+                                415,
+                                422,
+                                500
+                            ]
+                        }
+                    },
                     "paginator": null,
                     "countable": {
                         "tokens": [
@@ -1107,19 +1580,25 @@
                     "pivotFields": {
                         "addedAt": {
                             "format": "date-time",
+                            "nullable": false,
                             "enum": null,
+                            "schema": null,
                             "readOnly": true,
                             "required": false
                         },
                         "position": {
                             "format": "integer",
+                            "nullable": false,
                             "enum": null,
+                            "schema": null,
                             "readOnly": false,
                             "required": true
                         },
                         "weight": {
                             "format": "integer",
+                            "nullable": false,
                             "enum": null,
+                            "schema": null,
                             "readOnly": false,
                             "required": false
                         }
@@ -1130,11 +1609,47 @@
                     "types": [
                         "users"
                     ],
-                    "related": true,
-                    "relationship": true,
-                    "mutations": [
-                        "set"
-                    ],
+                    "related": {
+                        "path": "/playlists/{id}/owner",
+                        "method": "GET",
+                        "errorStatuses": [
+                            400,
+                            401,
+                            403,
+                            404,
+                            406,
+                            500
+                        ]
+                    },
+                    "relationship": {
+                        "path": "/playlists/{id}/relationships/owner",
+                        "method": "GET",
+                        "errorStatuses": [
+                            400,
+                            401,
+                            403,
+                            404,
+                            406,
+                            500
+                        ]
+                    },
+                    "mutations": {
+                        "set": {
+                            "path": "/playlists/{id}/relationships/owner",
+                            "method": "PATCH",
+                            "errorStatuses": [
+                                400,
+                                401,
+                                403,
+                                404,
+                                406,
+                                409,
+                                415,
+                                422,
+                                500
+                            ]
+                        }
+                    },
                     "paginator": null,
                     "countable": null,
                     "pivot": false,
@@ -1145,11 +1660,47 @@
                     "types": [
                         "public-profiles"
                     ],
-                    "related": true,
-                    "relationship": true,
-                    "mutations": [
-                        "set"
-                    ],
+                    "related": {
+                        "path": "/playlists/{id}/publicOwner",
+                        "method": "GET",
+                        "errorStatuses": [
+                            400,
+                            401,
+                            403,
+                            404,
+                            406,
+                            500
+                        ]
+                    },
+                    "relationship": {
+                        "path": "/playlists/{id}/relationships/publicOwner",
+                        "method": "GET",
+                        "errorStatuses": [
+                            400,
+                            401,
+                            403,
+                            404,
+                            406,
+                            500
+                        ]
+                    },
+                    "mutations": {
+                        "set": {
+                            "path": "/playlists/{id}/relationships/publicOwner",
+                            "method": "PATCH",
+                            "errorStatuses": [
+                                400,
+                                401,
+                                403,
+                                404,
+                                406,
+                                409,
+                                415,
+                                422,
+                                500
+                            ]
+                        }
+                    },
                     "paginator": null,
                     "countable": null,
                     "pivot": false,
@@ -1160,13 +1711,77 @@
                     "types": [
                         "tracks"
                     ],
-                    "related": true,
-                    "relationship": true,
-                    "mutations": [
-                        "add",
-                        "remove",
-                        "replace"
-                    ],
+                    "related": {
+                        "path": "/playlists/{id}/tracks",
+                        "method": "GET",
+                        "errorStatuses": [
+                            400,
+                            401,
+                            403,
+                            404,
+                            406,
+                            500
+                        ]
+                    },
+                    "relationship": {
+                        "path": "/playlists/{id}/relationships/tracks",
+                        "method": "GET",
+                        "errorStatuses": [
+                            400,
+                            401,
+                            403,
+                            404,
+                            406,
+                            500
+                        ]
+                    },
+                    "mutations": {
+                        "add": {
+                            "path": "/playlists/{id}/relationships/tracks",
+                            "method": "POST",
+                            "errorStatuses": [
+                                400,
+                                401,
+                                403,
+                                404,
+                                406,
+                                409,
+                                415,
+                                422,
+                                500
+                            ]
+                        },
+                        "remove": {
+                            "path": "/playlists/{id}/relationships/tracks",
+                            "method": "DELETE",
+                            "errorStatuses": [
+                                400,
+                                401,
+                                403,
+                                404,
+                                406,
+                                409,
+                                415,
+                                422,
+                                500
+                            ]
+                        },
+                        "replace": {
+                            "path": "/playlists/{id}/relationships/tracks",
+                            "method": "PATCH",
+                            "errorStatuses": [
+                                400,
+                                401,
+                                403,
+                                404,
+                                406,
+                                409,
+                                415,
+                                422,
+                                500
+                            ]
+                        }
+                    },
                     "paginator": null,
                     "countable": {
                         "tokens": [
@@ -1291,7 +1906,9 @@
             "attributes": {
                 "name": {
                     "format": "string",
-                    "enum": null
+                    "nullable": false,
+                    "enum": null,
+                    "schema": null
                 }
             },
             "relations": {
@@ -1300,11 +1917,47 @@
                     "types": [
                         "products"
                     ],
-                    "related": true,
-                    "relationship": true,
-                    "mutations": [
-                        "set"
-                    ],
+                    "related": {
+                        "path": "/products/{id}/parent",
+                        "method": "GET",
+                        "errorStatuses": [
+                            400,
+                            401,
+                            403,
+                            404,
+                            406,
+                            500
+                        ]
+                    },
+                    "relationship": {
+                        "path": "/products/{id}/relationships/parent",
+                        "method": "GET",
+                        "errorStatuses": [
+                            400,
+                            401,
+                            403,
+                            404,
+                            406,
+                            500
+                        ]
+                    },
+                    "mutations": {
+                        "set": {
+                            "path": "/products/{id}/relationships/parent",
+                            "method": "PATCH",
+                            "errorStatuses": [
+                                400,
+                                401,
+                                403,
+                                404,
+                                406,
+                                409,
+                                415,
+                                422,
+                                500
+                            ]
+                        }
+                    },
                     "paginator": null,
                     "countable": null,
                     "pivot": false,
@@ -1417,7 +2070,9 @@
             "attributes": {
                 "displayName": {
                     "format": "string",
-                    "enum": null
+                    "nullable": false,
+                    "enum": null,
+                    "schema": null
                 }
             },
             "relations": [],
@@ -1467,31 +2122,63 @@
             "attributes": {
                 "displayTitle": {
                     "format": "string",
-                    "enum": null
+                    "nullable": false,
+                    "enum": null,
+                    "schema": null
                 },
                 "durationSeconds": {
                     "format": "integer",
-                    "enum": null
+                    "nullable": false,
+                    "enum": null,
+                    "schema": null
                 },
                 "explicit": {
                     "format": "boolean",
-                    "enum": null
+                    "nullable": false,
+                    "enum": null,
+                    "schema": null
                 },
                 "genres": {
                     "format": "array",
-                    "enum": null
+                    "nullable": false,
+                    "enum": null,
+                    "schema": {
+                        "types": [
+                            "array"
+                        ],
+                        "format": null,
+                        "enum": [],
+                        "required": [],
+                        "properties": [],
+                        "items": {
+                            "types": [
+                                "string"
+                            ],
+                            "format": null,
+                            "enum": [],
+                            "required": [],
+                            "properties": [],
+                            "items": null
+                        }
+                    }
                 },
                 "previewOffset": {
                     "format": "time",
-                    "enum": null
+                    "nullable": true,
+                    "enum": null,
+                    "schema": null
                 },
                 "title": {
                     "format": "string",
-                    "enum": null
+                    "nullable": false,
+                    "enum": null,
+                    "schema": null
                 },
                 "trackNumber": {
                     "format": "integer",
-                    "enum": null
+                    "nullable": false,
+                    "enum": null,
+                    "schema": null
                 }
             },
             "relations": {
@@ -1500,11 +2187,47 @@
                     "types": [
                         "albums"
                     ],
-                    "related": true,
-                    "relationship": true,
-                    "mutations": [
-                        "set"
-                    ],
+                    "related": {
+                        "path": "/tracks/{id}/album",
+                        "method": "GET",
+                        "errorStatuses": [
+                            400,
+                            401,
+                            403,
+                            404,
+                            406,
+                            500
+                        ]
+                    },
+                    "relationship": {
+                        "path": "/tracks/{id}/relationships/album",
+                        "method": "GET",
+                        "errorStatuses": [
+                            400,
+                            401,
+                            403,
+                            404,
+                            406,
+                            500
+                        ]
+                    },
+                    "mutations": {
+                        "set": {
+                            "path": "/tracks/{id}/relationships/album",
+                            "method": "PATCH",
+                            "errorStatuses": [
+                                400,
+                                401,
+                                403,
+                                404,
+                                406,
+                                409,
+                                415,
+                                422,
+                                500
+                            ]
+                        }
+                    },
                     "paginator": null,
                     "countable": null,
                     "pivot": false,
@@ -1515,12 +2238,62 @@
                     "types": [
                         "playlists"
                     ],
-                    "related": true,
-                    "relationship": true,
-                    "mutations": [
-                        "add",
-                        "remove"
-                    ],
+                    "related": {
+                        "path": "/tracks/{id}/playlists",
+                        "method": "GET",
+                        "errorStatuses": [
+                            400,
+                            401,
+                            403,
+                            404,
+                            406,
+                            500
+                        ]
+                    },
+                    "relationship": {
+                        "path": "/tracks/{id}/relationships/playlists",
+                        "method": "GET",
+                        "errorStatuses": [
+                            400,
+                            401,
+                            403,
+                            404,
+                            406,
+                            500
+                        ]
+                    },
+                    "mutations": {
+                        "add": {
+                            "path": "/tracks/{id}/relationships/playlists",
+                            "method": "POST",
+                            "errorStatuses": [
+                                400,
+                                401,
+                                403,
+                                404,
+                                406,
+                                409,
+                                415,
+                                422,
+                                500
+                            ]
+                        },
+                        "remove": {
+                            "path": "/tracks/{id}/relationships/playlists",
+                            "method": "DELETE",
+                            "errorStatuses": [
+                                400,
+                                401,
+                                403,
+                                404,
+                                406,
+                                409,
+                                415,
+                                422,
+                                500
+                            ]
+                        }
+                    },
                     "paginator": null,
                     "countable": {
                         "tokens": [

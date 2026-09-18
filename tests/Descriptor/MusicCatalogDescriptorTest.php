@@ -123,6 +123,75 @@ final class MusicCatalogDescriptorTest extends TestCase
         self::assertNull($this->resource('albums')->attributes['releasedAt']->schema);
     }
 
+    public function testWriteAttributesAreReadFromTheirOwnDocuments(): void
+    {
+        $albums = $this->resource('albums');
+
+        self::assertSame(
+            ['availableFrom', 'availableUntil', 'explicit', 'releaseInfo', 'releasedAt', 'status', 'title'],
+            \array_keys($albums->createAttributes),
+        );
+        self::assertSame(\array_keys($albums->createAttributes), \array_keys($albums->updateAttributes));
+    }
+
+    public function testRequiredIsCarriedPerMemberAndPerDocument(): void
+    {
+        $albums = $this->resource('albums');
+
+        // Required on create, optional on update — the same member, two answers, which is why
+        // the two sets are read separately.
+        self::assertTrue($albums->createAttributes['title']->required);
+        self::assertFalse($albums->updateAttributes['title']->required);
+        self::assertFalse($albums->createAttributes['explicit']->required);
+    }
+
+    public function testACreateOnlyAttributeIsAbsentFromTheUpdateSet(): void
+    {
+        $artists = $this->resource('artists');
+
+        self::assertArrayHasKey('createdAt', $artists->createAttributes);
+        self::assertArrayNotHasKey('createdAt', $artists->updateAttributes);
+
+        // catalog-exports accepts one attribute on create and none at all on update.
+        $exports = $this->resource('catalog-exports');
+        self::assertSame(['format'], \array_keys($exports->createAttributes));
+        self::assertSame([], $exports->updateAttributes);
+    }
+
+    public function testAReadOnlyAttributeIsAbsentFromBothWriteSetsRatherThanMarked(): void
+    {
+        $albums = $this->resource('albums');
+
+        self::assertArrayHasKey('artwork', $albums->attributes);
+        self::assertArrayNotHasKey('artwork', $albums->createAttributes);
+        self::assertArrayNotHasKey('artwork', $albums->updateAttributes);
+        self::assertSame(['artwork', 'averageRating'], $albums->readOnlyAttributes());
+
+        self::assertSame(['trackCount'], $this->resource('artists')->readOnlyAttributes());
+        self::assertSame(['displayTitle'], $this->resource('tracks')->readOnlyAttributes());
+    }
+
+    public function testATypeWithNoWritesAcceptsNoAttributesAtAll(): void
+    {
+        $profiles = $this->resource('public-profiles');
+
+        self::assertSame([], $profiles->createAttributes);
+        self::assertSame([], $profiles->updateAttributes);
+        self::assertSame(['displayName'], $profiles->readOnlyAttributes());
+    }
+
+    public function testWriteAttributesCarryTheSameValueMembersAsReadOnes(): void
+    {
+        $status = $this->resource('albums')->createAttributes['status'];
+
+        self::assertSame('string', $status->format);
+        self::assertSame('AlbumStatus', $status->enum);
+        self::assertFalse($status->nullable);
+
+        self::assertTrue($this->resource('albums')->createAttributes['availableFrom']->nullable);
+        self::assertSame('date', $this->resource('albums')->createAttributes['availableFrom']->format);
+    }
+
     public function testAComposedAttributeCarriesItsBranchesRatherThanReportingNoMembers(): void
     {
         // `availability` declares no members of its own — they live in its anyOf branches. Read

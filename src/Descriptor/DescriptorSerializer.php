@@ -67,6 +67,8 @@ final class DescriptorSerializer
                 'enum' => $attribute->enum,
                 'schema' => self::valueSchema($attribute->schema),
             ], $resource->attributes),
+            'createAttributes' => \array_map(self::writeAttribute(...), $resource->createAttributes),
+            'updateAttributes' => \array_map(self::writeAttribute(...), $resource->updateAttributes),
             'relations' => \array_map(self::relation(...), $resource->relations),
             'operations' => \array_map(self::operation(...), $resource->operations),
             'includable' => $resource->includable,
@@ -115,6 +117,18 @@ final class DescriptorSerializer
             'outputType' => $action->outputType,
             'outputCardinality' => $action->outputCardinality?->value,
             'errorStatuses' => $action->errorStatuses,
+        ];
+    }
+
+    /** @return array<string, mixed> */
+    private static function writeAttribute(WriteAttributeDescriptor $attribute): array
+    {
+        return [
+            'format' => $attribute->format,
+            'nullable' => $attribute->nullable,
+            'enum' => $attribute->enum,
+            'required' => $attribute->required,
+            'schema' => self::valueSchema($attribute->schema),
         ];
     }
 

@@ -96,7 +96,11 @@
                                 "enum": [],
                                 "required": [],
                                 "properties": [],
-                                "items": null
+                                "items": null,
+                                "discriminator": null,
+                                "oneOf": [],
+                                "anyOf": [],
+                                "allOf": []
                             },
                             "label": {
                                 "types": [
@@ -106,10 +110,18 @@
                                 "enum": [],
                                 "required": [],
                                 "properties": [],
-                                "items": null
+                                "items": null,
+                                "discriminator": null,
+                                "oneOf": [],
+                                "anyOf": [],
+                                "allOf": []
                             }
                         },
-                        "items": null
+                        "items": null,
+                        "discriminator": null,
+                        "oneOf": [],
+                        "anyOf": [],
+                        "allOf": []
                     }
                 },
                 "releasedAt": {
@@ -401,7 +413,11 @@
                                 "enum": [],
                                 "required": [],
                                 "properties": [],
-                                "items": null
+                                "items": null,
+                                "discriminator": null,
+                                "oneOf": [],
+                                "anyOf": [],
+                                "allOf": []
                             },
                             "min": {
                                 "types": [
@@ -411,10 +427,18 @@
                                 "enum": [],
                                 "required": [],
                                 "properties": [],
-                                "items": null
+                                "items": null,
+                                "discriminator": null,
+                                "oneOf": [],
+                                "anyOf": [],
+                                "allOf": []
                             }
                         },
-                        "items": null
+                        "items": null,
+                        "discriminator": null,
+                        "oneOf": [],
+                        "anyOf": [],
+                        "allOf": []
                     }
                 },
                 "releasedAt": {
@@ -434,7 +458,11 @@
                                 "enum": [],
                                 "required": [],
                                 "properties": [],
-                                "items": null
+                                "items": null,
+                                "discriminator": null,
+                                "oneOf": [],
+                                "anyOf": [],
+                                "allOf": []
                             },
                             "min": {
                                 "types": [
@@ -444,10 +472,18 @@
                                 "enum": [],
                                 "required": [],
                                 "properties": [],
-                                "items": null
+                                "items": null,
+                                "discriminator": null,
+                                "oneOf": [],
+                                "anyOf": [],
+                                "allOf": []
                             }
                         },
-                        "items": null
+                        "items": null,
+                        "discriminator": null,
+                        "oneOf": [],
+                        "anyOf": [],
+                        "allOf": []
                     }
                 },
                 "title": {
@@ -767,6 +803,89 @@
             },
             "actions": []
         },
+        "catalog-exports": {
+            "type": "catalog-exports",
+            "paginator": {
+                "kind": "page",
+                "parameters": [
+                    "number",
+                    "size"
+                ]
+            },
+            "clientId": "forbidden",
+            "countable": null,
+            "attributes": {
+                "format": {
+                    "format": "string",
+                    "nullable": false,
+                    "enum": null,
+                    "schema": null
+                },
+                "status": {
+                    "format": "string",
+                    "nullable": false,
+                    "enum": null,
+                    "schema": null
+                }
+            },
+            "relations": [],
+            "operations": {
+                "create": {
+                    "path": "/catalog-exports",
+                    "method": "POST",
+                    "errorStatuses": [
+                        400,
+                        401,
+                        403,
+                        404,
+                        406,
+                        409,
+                        415,
+                        422,
+                        500
+                    ]
+                },
+                "delete": {
+                    "path": "/catalog-exports/{id}",
+                    "method": "DELETE",
+                    "errorStatuses": [
+                        400,
+                        401,
+                        403,
+                        404,
+                        406,
+                        500
+                    ]
+                },
+                "fetchMany": {
+                    "path": "/catalog-exports",
+                    "method": "GET",
+                    "errorStatuses": [
+                        400,
+                        401,
+                        403,
+                        406,
+                        500
+                    ]
+                },
+                "fetchOne": {
+                    "path": "/catalog-exports/{id}",
+                    "method": "GET",
+                    "errorStatuses": [
+                        400,
+                        401,
+                        403,
+                        404,
+                        406,
+                        500
+                    ]
+                }
+            },
+            "includable": [],
+            "sortable": [],
+            "filterable": [],
+            "actions": []
+        },
         "charts": {
             "type": "charts",
             "paginator": {
@@ -930,6 +1049,56 @@
                         409,
                         415,
                         422,
+                        500
+                    ]
+                }
+            },
+            "includable": [],
+            "sortable": [],
+            "filterable": [],
+            "actions": []
+        },
+        "export-jobs": {
+            "type": "export-jobs",
+            "paginator": {
+                "kind": "page",
+                "parameters": [
+                    "number",
+                    "size"
+                ]
+            },
+            "clientId": "forbidden",
+            "countable": null,
+            "attributes": {
+                "state": {
+                    "format": "string",
+                    "nullable": false,
+                    "enum": null,
+                    "schema": null
+                }
+            },
+            "relations": [],
+            "operations": {
+                "fetchMany": {
+                    "path": "/export-jobs",
+                    "method": "GET",
+                    "errorStatuses": [
+                        400,
+                        401,
+                        403,
+                        406,
+                        500
+                    ]
+                },
+                "fetchOne": {
+                    "path": "/export-jobs/{id}",
+                    "method": "GET",
+                    "errorStatuses": [
+                        400,
+                        401,
+                        403,
+                        404,
+                        406,
                         500
                     ]
                 }
@@ -2169,6 +2338,652 @@
             "filterable": [],
             "actions": []
         },
+        "releases": {
+            "type": "releases",
+            "paginator": {
+                "kind": "page",
+                "parameters": [
+                    "number",
+                    "size"
+                ]
+            },
+            "clientId": "forbidden",
+            "countable": null,
+            "attributes": {
+                "availability": {
+                    "format": "object",
+                    "nullable": true,
+                    "enum": null,
+                    "schema": {
+                        "types": [
+                            "object",
+                            "null"
+                        ],
+                        "format": null,
+                        "enum": [],
+                        "required": [],
+                        "properties": [],
+                        "items": null,
+                        "discriminator": null,
+                        "oneOf": [],
+                        "anyOf": [
+                            {
+                                "types": [
+                                    "object"
+                                ],
+                                "format": null,
+                                "enum": [],
+                                "required": [
+                                    "worldwide"
+                                ],
+                                "properties": {
+                                    "worldwide": {
+                                        "types": [
+                                            "boolean"
+                                        ],
+                                        "format": null,
+                                        "enum": [],
+                                        "required": [],
+                                        "properties": [],
+                                        "items": null,
+                                        "discriminator": null,
+                                        "oneOf": [],
+                                        "anyOf": [],
+                                        "allOf": []
+                                    }
+                                },
+                                "items": null,
+                                "discriminator": null,
+                                "oneOf": [],
+                                "anyOf": [],
+                                "allOf": []
+                            },
+                            {
+                                "types": [
+                                    "object"
+                                ],
+                                "format": null,
+                                "enum": [],
+                                "required": [
+                                    "regions"
+                                ],
+                                "properties": {
+                                    "regions": {
+                                        "types": [
+                                            "array"
+                                        ],
+                                        "format": null,
+                                        "enum": [],
+                                        "required": [],
+                                        "properties": [],
+                                        "items": {
+                                            "types": [
+                                                "string"
+                                            ],
+                                            "format": null,
+                                            "enum": [],
+                                            "required": [],
+                                            "properties": [],
+                                            "items": null,
+                                            "discriminator": null,
+                                            "oneOf": [],
+                                            "anyOf": [],
+                                            "allOf": []
+                                        },
+                                        "discriminator": null,
+                                        "oneOf": [],
+                                        "anyOf": [],
+                                        "allOf": []
+                                    }
+                                },
+                                "items": null,
+                                "discriminator": null,
+                                "oneOf": [],
+                                "anyOf": [],
+                                "allOf": []
+                            },
+                            {
+                                "types": [
+                                    "null"
+                                ],
+                                "format": null,
+                                "enum": [],
+                                "required": [],
+                                "properties": [],
+                                "items": null,
+                                "discriminator": null,
+                                "oneOf": [],
+                                "anyOf": [],
+                                "allOf": []
+                            }
+                        ],
+                        "allOf": []
+                    }
+                },
+                "catalogNumber": {
+                    "format": "string",
+                    "nullable": false,
+                    "enum": null,
+                    "schema": null
+                },
+                "dimensions": {
+                    "format": "object",
+                    "nullable": true,
+                    "enum": null,
+                    "schema": {
+                        "types": [
+                            "object",
+                            "null"
+                        ],
+                        "format": null,
+                        "enum": [],
+                        "required": [],
+                        "properties": [],
+                        "items": null,
+                        "discriminator": null,
+                        "oneOf": [],
+                        "anyOf": [
+                            {
+                                "types": [
+                                    "null"
+                                ],
+                                "format": null,
+                                "enum": [],
+                                "required": [],
+                                "properties": [],
+                                "items": null,
+                                "discriminator": null,
+                                "oneOf": [],
+                                "anyOf": [],
+                                "allOf": []
+                            },
+                            {
+                                "types": [],
+                                "format": null,
+                                "enum": [],
+                                "required": [],
+                                "properties": [],
+                                "items": null,
+                                "discriminator": null,
+                                "oneOf": [],
+                                "anyOf": [],
+                                "allOf": [
+                                    {
+                                        "types": [
+                                            "object"
+                                        ],
+                                        "format": null,
+                                        "enum": [],
+                                        "required": [
+                                            "heightMm",
+                                            "widthMm"
+                                        ],
+                                        "properties": {
+                                            "heightMm": {
+                                                "types": [
+                                                    "number"
+                                                ],
+                                                "format": null,
+                                                "enum": [],
+                                                "required": [],
+                                                "properties": [],
+                                                "items": null,
+                                                "discriminator": null,
+                                                "oneOf": [],
+                                                "anyOf": [],
+                                                "allOf": []
+                                            },
+                                            "widthMm": {
+                                                "types": [
+                                                    "number"
+                                                ],
+                                                "format": null,
+                                                "enum": [],
+                                                "required": [],
+                                                "properties": [],
+                                                "items": null,
+                                                "discriminator": null,
+                                                "oneOf": [],
+                                                "anyOf": [],
+                                                "allOf": []
+                                            }
+                                        },
+                                        "items": null,
+                                        "discriminator": null,
+                                        "oneOf": [],
+                                        "anyOf": [],
+                                        "allOf": []
+                                    },
+                                    {
+                                        "types": [
+                                            "object"
+                                        ],
+                                        "format": null,
+                                        "enum": [],
+                                        "required": [],
+                                        "properties": {
+                                            "depthMm": {
+                                                "types": [
+                                                    "number"
+                                                ],
+                                                "format": null,
+                                                "enum": [],
+                                                "required": [],
+                                                "properties": [],
+                                                "items": null,
+                                                "discriminator": null,
+                                                "oneOf": [],
+                                                "anyOf": [],
+                                                "allOf": []
+                                            }
+                                        },
+                                        "items": null,
+                                        "discriminator": null,
+                                        "oneOf": [],
+                                        "anyOf": [],
+                                        "allOf": []
+                                    }
+                                ]
+                            }
+                        ],
+                        "allOf": []
+                    }
+                },
+                "format": {
+                    "format": "unknown",
+                    "nullable": true,
+                    "enum": null,
+                    "schema": {
+                        "types": [],
+                        "format": null,
+                        "enum": [],
+                        "required": [],
+                        "properties": [],
+                        "items": null,
+                        "discriminator": "medium",
+                        "oneOf": [
+                            {
+                                "types": [
+                                    "object"
+                                ],
+                                "format": null,
+                                "enum": [],
+                                "required": [],
+                                "properties": {
+                                    "coloured": {
+                                        "types": [
+                                            "boolean"
+                                        ],
+                                        "format": null,
+                                        "enum": [],
+                                        "required": [],
+                                        "properties": [],
+                                        "items": null,
+                                        "discriminator": null,
+                                        "oneOf": [],
+                                        "anyOf": [],
+                                        "allOf": []
+                                    },
+                                    "medium": {
+                                        "types": [
+                                            "string"
+                                        ],
+                                        "format": null,
+                                        "enum": [],
+                                        "required": [],
+                                        "properties": [],
+                                        "items": null,
+                                        "discriminator": null,
+                                        "oneOf": [],
+                                        "anyOf": [],
+                                        "allOf": []
+                                    },
+                                    "rpm": {
+                                        "types": [
+                                            "integer"
+                                        ],
+                                        "format": null,
+                                        "enum": [],
+                                        "required": [],
+                                        "properties": [],
+                                        "items": null,
+                                        "discriminator": null,
+                                        "oneOf": [],
+                                        "anyOf": [],
+                                        "allOf": []
+                                    }
+                                },
+                                "items": null,
+                                "discriminator": null,
+                                "oneOf": [],
+                                "anyOf": [],
+                                "allOf": []
+                            },
+                            {
+                                "types": [
+                                    "object"
+                                ],
+                                "format": null,
+                                "enum": [],
+                                "required": [],
+                                "properties": {
+                                    "discs": {
+                                        "types": [
+                                            "integer"
+                                        ],
+                                        "format": null,
+                                        "enum": [],
+                                        "required": [],
+                                        "properties": [],
+                                        "items": null,
+                                        "discriminator": null,
+                                        "oneOf": [],
+                                        "anyOf": [],
+                                        "allOf": []
+                                    },
+                                    "medium": {
+                                        "types": [
+                                            "string"
+                                        ],
+                                        "format": null,
+                                        "enum": [],
+                                        "required": [],
+                                        "properties": [],
+                                        "items": null,
+                                        "discriminator": null,
+                                        "oneOf": [],
+                                        "anyOf": [],
+                                        "allOf": []
+                                    }
+                                },
+                                "items": null,
+                                "discriminator": null,
+                                "oneOf": [],
+                                "anyOf": [],
+                                "allOf": []
+                            },
+                            {
+                                "types": [
+                                    "object"
+                                ],
+                                "format": null,
+                                "enum": [],
+                                "required": [],
+                                "properties": {
+                                    "bitrateKbps": {
+                                        "types": [
+                                            "integer"
+                                        ],
+                                        "format": null,
+                                        "enum": [],
+                                        "required": [],
+                                        "properties": [],
+                                        "items": null,
+                                        "discriminator": null,
+                                        "oneOf": [],
+                                        "anyOf": [],
+                                        "allOf": []
+                                    },
+                                    "codec": {
+                                        "types": [
+                                            "string"
+                                        ],
+                                        "format": null,
+                                        "enum": [],
+                                        "required": [],
+                                        "properties": [],
+                                        "items": null,
+                                        "discriminator": null,
+                                        "oneOf": [],
+                                        "anyOf": [],
+                                        "allOf": []
+                                    },
+                                    "medium": {
+                                        "types": [
+                                            "string"
+                                        ],
+                                        "format": null,
+                                        "enum": [],
+                                        "required": [],
+                                        "properties": [],
+                                        "items": null,
+                                        "discriminator": null,
+                                        "oneOf": [],
+                                        "anyOf": [],
+                                        "allOf": []
+                                    }
+                                },
+                                "items": null,
+                                "discriminator": null,
+                                "oneOf": [],
+                                "anyOf": [],
+                                "allOf": []
+                            },
+                            {
+                                "types": [
+                                    "null"
+                                ],
+                                "format": null,
+                                "enum": [],
+                                "required": [],
+                                "properties": [],
+                                "items": null,
+                                "discriminator": null,
+                                "oneOf": [],
+                                "anyOf": [],
+                                "allOf": []
+                            }
+                        ],
+                        "anyOf": [],
+                        "allOf": []
+                    }
+                },
+                "packaging": {
+                    "format": "object",
+                    "nullable": true,
+                    "enum": null,
+                    "schema": {
+                        "types": [
+                            "object",
+                            "null"
+                        ],
+                        "format": null,
+                        "enum": [],
+                        "required": [],
+                        "properties": {
+                            "gatefold": {
+                                "types": [
+                                    "boolean"
+                                ],
+                                "format": null,
+                                "enum": [],
+                                "required": [],
+                                "properties": [],
+                                "items": null,
+                                "discriminator": null,
+                                "oneOf": [],
+                                "anyOf": [],
+                                "allOf": []
+                            },
+                            "material": {
+                                "types": [
+                                    "string"
+                                ],
+                                "format": null,
+                                "enum": [],
+                                "required": [],
+                                "properties": [],
+                                "items": null,
+                                "discriminator": null,
+                                "oneOf": [],
+                                "anyOf": [],
+                                "allOf": []
+                            }
+                        },
+                        "items": null,
+                        "discriminator": null,
+                        "oneOf": [],
+                        "anyOf": [],
+                        "allOf": []
+                    }
+                }
+            },
+            "relations": {
+                "album": {
+                    "cardinality": "one",
+                    "types": [
+                        "albums"
+                    ],
+                    "related": {
+                        "path": "/releases/{id}/album",
+                        "method": "GET",
+                        "errorStatuses": [
+                            400,
+                            401,
+                            403,
+                            404,
+                            406,
+                            500
+                        ]
+                    },
+                    "relationship": {
+                        "path": "/releases/{id}/relationships/album",
+                        "method": "GET",
+                        "errorStatuses": [
+                            400,
+                            401,
+                            403,
+                            404,
+                            406,
+                            500
+                        ]
+                    },
+                    "mutations": {
+                        "set": {
+                            "path": "/releases/{id}/relationships/album",
+                            "method": "PATCH",
+                            "errorStatuses": [
+                                400,
+                                401,
+                                403,
+                                404,
+                                406,
+                                409,
+                                415,
+                                422,
+                                500
+                            ]
+                        }
+                    },
+                    "paginator": null,
+                    "countable": null,
+                    "pivot": false,
+                    "pivotFields": []
+                }
+            },
+            "operations": {
+                "create": {
+                    "path": "/releases",
+                    "method": "POST",
+                    "errorStatuses": [
+                        400,
+                        401,
+                        403,
+                        404,
+                        406,
+                        409,
+                        415,
+                        422,
+                        500
+                    ]
+                },
+                "delete": {
+                    "path": "/releases/{id}",
+                    "method": "DELETE",
+                    "errorStatuses": [
+                        400,
+                        401,
+                        403,
+                        404,
+                        406,
+                        500
+                    ]
+                },
+                "fetchMany": {
+                    "path": "/releases",
+                    "method": "GET",
+                    "errorStatuses": [
+                        400,
+                        401,
+                        403,
+                        406,
+                        500
+                    ]
+                },
+                "fetchOne": {
+                    "path": "/releases/{id}",
+                    "method": "GET",
+                    "errorStatuses": [
+                        400,
+                        401,
+                        403,
+                        404,
+                        406,
+                        500
+                    ]
+                },
+                "fetchRelated": {
+                    "path": "/releases/{id}/{rel}",
+                    "method": "GET",
+                    "errorStatuses": [
+                        400,
+                        401,
+                        403,
+                        404,
+                        406,
+                        500
+                    ]
+                },
+                "fetchRelationship": {
+                    "path": "/releases/{id}/relationships/{rel}",
+                    "method": "GET",
+                    "errorStatuses": [
+                        400,
+                        401,
+                        403,
+                        404,
+                        406,
+                        500
+                    ]
+                },
+                "update": {
+                    "path": "/releases/{id}",
+                    "method": "PATCH",
+                    "errorStatuses": [
+                        400,
+                        401,
+                        403,
+                        404,
+                        406,
+                        409,
+                        415,
+                        422,
+                        500
+                    ]
+                }
+            },
+            "includable": [
+                "album",
+                "album.artist",
+                "album.tracks"
+            ],
+            "sortable": [
+                "catalogNumber",
+                "-catalogNumber"
+            ],
+            "filterable": [],
+            "actions": []
+        },
         "tracks": {
             "type": "tracks",
             "paginator": {
@@ -2224,8 +3039,16 @@
                             "enum": [],
                             "required": [],
                             "properties": [],
-                            "items": null
-                        }
+                            "items": null,
+                            "discriminator": null,
+                            "oneOf": [],
+                            "anyOf": [],
+                            "allOf": []
+                        },
+                        "discriminator": null,
+                        "oneOf": [],
+                        "anyOf": [],
+                        "allOf": []
                     }
                 },
                 "previewOffset": {
@@ -2488,7 +3311,11 @@
                         "enum": [],
                         "required": [],
                         "properties": [],
-                        "items": null
+                        "items": null,
+                        "discriminator": null,
+                        "oneOf": [],
+                        "anyOf": [],
+                        "allOf": []
                     }
                 },
                 "genres": {

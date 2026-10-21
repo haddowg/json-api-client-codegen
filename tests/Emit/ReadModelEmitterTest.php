@@ -50,14 +50,9 @@ final class ReadModelEmitterTest extends TestCase
      * contribute. They are stripped from the artefact here, leaving exactly what this emitter
      * owns: the class, its own attribute-shape aliases, and every member.
      */
-    public function testAlbumMatchesTheArtefactBesideOtherEmittersContributions(): void
+    public function testAlbumMatchesTheArtefactWithEveryEmittersContributions(): void
     {
-        $artefact = ArtefactParity::artefact('resource-albums.php');
-        $artefact = (string) \preg_replace('/^ \* @phpstan-type Album(?!ReleaseInfoShape )\w+ .*\n/m', '', $artefact);
-        $artefact = (string) \preg_replace('#\n    /\*\*(?:(?!\*/).)*\*/\n    public const (?:array|string) (?:WRITABLE|REQUIRED_ON_CREATE|FILTERS|FILTER_MEMBERS|SORT_TOKENS|FIELDS|COUNT_TOKENS|COUNTABLE_PROFILE) = [^;]*;\n#s', "\n", $artefact);
-
-        self::assertStringNotContainsString('WRITABLE', ArtefactParity::normalised($artefact, 'Album'));
-        ArtefactParity::assertSourceMatches('Album', $artefact, Generated::file('resource-albums.php'));
+        ArtefactParity::assertMatches('Album', 'resource-albums.php', Generated::file('resource-albums.php'));
     }
 
     public function testAn83TargetEmitsNoPropertyHooksOrInterfaceProperties(): void

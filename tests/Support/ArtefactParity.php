@@ -66,6 +66,10 @@ final class ArtefactParity
                 }
             } elseif ($token->is([\T_COMMENT, \T_WHITESPACE])) {
                 continue;
+            } elseif (\in_array($token->text, [']', ')'], true) && \end($out) === ',') {
+                // A trailing comma is layout, not code: a list wrapped one member per line
+                // carries one where the same list on one line does not.
+                $out[\array_key_last($out)] = $token->text;
             } else {
                 $out[] = $token->text;
             }

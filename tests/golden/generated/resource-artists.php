@@ -4,12 +4,28 @@ declare(strict_types=1);
 
 namespace haddowg\JsonApiClient\Tests\Generated\MusicCatalog;
 
+use haddowg\JsonApiClient\Collections\PaginatedCollection;
 use haddowg\JsonApiClient\Collections\ResourceCollection;
+use haddowg\JsonApiClient\Exceptions\BadRequest;
 use haddowg\JsonApiClient\Exceptions\FieldNotSelectedException;
+use haddowg\JsonApiClient\Exceptions\Forbidden;
 use haddowg\JsonApiClient\Exceptions\MalformedDocument;
 use haddowg\JsonApiClient\Exceptions\MissingRequiredMemberException;
+use haddowg\JsonApiClient\Exceptions\NotAcceptable;
 use haddowg\JsonApiClient\Exceptions\RelationNotIncludedException;
+use haddowg\JsonApiClient\Exceptions\ServerError;
+use haddowg\JsonApiClient\Exceptions\TransportException;
 use haddowg\JsonApiClient\Exceptions\UnknownAttributeException;
+use haddowg\JsonApiClient\Exceptions\UnknownFieldException;
+use haddowg\JsonApiClient\Exceptions\UnknownFilterException;
+use haddowg\JsonApiClient\Exceptions\UnknownSortException;
+use haddowg\JsonApiClient\Http\Request;
+use haddowg\JsonApiClient\Pagination\PageLinks;
+use haddowg\JsonApiClient\Pagination\PageNumber;
+use haddowg\JsonApiClient\Query\Projection;
+use haddowg\JsonApiClient\Query\Query;
+use haddowg\JsonApiClient\Query\ReadQuery;
+use haddowg\JsonApiClient\Resources\Fetcher;
 use haddowg\JsonApiClient\Resources\Relationship;
 use haddowg\JsonApiClient\Resources\ResourceContext;
 use haddowg\JsonApiClient\Resources\ResourceObject;
@@ -18,6 +34,7 @@ use haddowg\JsonApiClient\Support\Conditionable;
 use haddowg\JsonApiClient\Support\Identifier;
 use haddowg\JsonApiClient\Support\ImmutableConditionable;
 use haddowg\JsonApiClient\Support\Missing;
+use haddowg\JsonApiClient\Support\QueryConditionable;
 
 /**
  * The `albums` relation of an `artists` resource, hydrated.
@@ -38,6 +55,53 @@ interface ArtistHasAlbums
 
     /** @var ResourceCollection<Album> */
     public ResourceCollection $albums { get; }
+}
+
+/**
+ * The projection surface of `artists`: the `withX()` include methods and the checked `fields()`,
+ * shared by {@see ArtistProjection} and {@see ArtistQuery}.
+ *
+ * A trait used by final classes rather than a shared base class: `@return static<TProj&Marker>`
+ * over a `static`-returning primitive resolves at level 9 only in a final class.
+ *
+ * @template TProj of object
+ *
+ * @phpstan-require-extends Projection<TProj>
+ *
+ * @generated from the `include` and `fields` parameters of the `artists` read operations
+ */
+trait ArtistProjecting
+{
+    /**
+     * Include the `albums` relation, narrowing the projection so `$artist->albums` type-checks.
+     *
+     * @return static<TProj&ArtistHasAlbums>
+     */
+    public function withAlbums(): static
+    {
+        return $this->including('albums');
+    }
+
+    /**
+     * Sparse fieldsets, with the `artists` members checked against the descriptor. Other types'
+     * fieldsets pass through unchecked.
+     *
+     * @param array<string, list<string>> $fields
+     *
+     * @return static
+     *
+     * @throws UnknownFieldException when `fields[artists]` names a member `artists` does not have
+     */
+    public function fields(array $fields): static
+    {
+        foreach ($fields[ArtistBase::TYPE] ?? [] as $field) {
+            if (!\in_array($field, Artist::FIELDS, true)) {
+                throw UnknownFieldException::for(ArtistBase::TYPE, $field, Artist::FIELDS);
+            }
+        }
+
+        return parent::fields($fields);
+    }
 }
 
 /**
@@ -180,6 +244,10 @@ abstract class ArtistBase extends ResourceObject
  * @phpstan-type ArtistAlbumsInput list<Album|Identifier>
  * @phpstan-type ArtistCreateShape array{name: string, slug?: string, website?: string|null, bio?: string|null, createdAt?: ArtistDateInput, albums?: ArtistAlbumsInput}
  * @phpstan-type ArtistUpdateShape array{name?: string, slug?: string, website?: string|null, bio?: string|null, albums?: ArtistAlbumsInput}
+ * @phpstan-type ArtistFilterShape array{slug?: string, q?: string}
+ * @phpstan-type ArtistSortToken '-createdAt'|'-name'|'-slug'|'createdAt'|'name'|'slug'
+ * @phpstan-type ArtistIncludePath 'albums'|'albums.artist'|'albums.tracks'
+ * @phpstan-type ArtistFieldToken 'albums'|'bio'|'createdAt'|'name'|'slug'|'trackCount'|'website'
  *
  * @generated from `components.schemas.ArtistsResource`
  */
@@ -207,6 +275,36 @@ final class Artist extends ArtistBase implements ArtistHasAlbums
      * @var list<string>
      */
     public const array REQUIRED_ON_CREATE = ['name'];
+
+    /**
+     * The filters `GET /artists` accepts. The runtime guard on both array doors checks names
+     * against this, and the did-you-mean is drawn from it.
+     *
+     * @var list<string>
+     */
+    public const array FILTERS = ['slug', 'q'];
+
+    /**
+     * The signed sort tokens `GET /artists` accepts, both directions of each.
+     *
+     * @var list<string>
+     */
+    public const array SORT_TOKENS = ['name', '-name', 'slug', '-slug', 'createdAt', '-createdAt'];
+
+    /**
+     * The members `fields[artists]` may name.
+     *
+     * @var list<string>
+     */
+    public const array FIELDS = [
+        'name',
+        'slug',
+        'website',
+        'bio',
+        'trackCount',
+        'createdAt',
+        'albums',
+    ];
 
     /** @var ResourceCollection<Album> */
     public ResourceCollection $albums { get => $this->albums(); }
@@ -482,6 +580,269 @@ final class ArtistCreateBuilder
             createdAt: $this->createdAt,
             albums: $this->albums,
         );
+    }
+}
+
+/**
+ * What a response carrying `artists` should bring back: `include` and `fields`, and nothing else.
+ *
+ * A write response honours exactly these two parameters, so `sort()`, `filter()` and `page()` are
+ * not here at all. Reusable: build one and hand it to every operation that should come back the
+ * same shape.
+ *
+ * @template TProj of object
+ *
+ * @extends Projection<TProj>
+ *
+ * @generated from the `include` and `fields` parameters of `GET /artists/{id}`, `POST /artists`, `PATCH /artists/{id}`
+ */
+final class ArtistProjection extends Projection
+{
+    /** @use ArtistProjecting<TProj> */
+    use ArtistProjecting;
+
+    /**
+     * An empty projection over the unnarrowed resource.
+     *
+     * @return self<ArtistBase>
+     */
+    public static function make(): self
+    {
+        /** @var self<ArtistBase> */
+        return new self();
+    }
+
+    /**
+     * Resolve either projection form, a closure or a prebuilt projection, to the query parameters a
+     * response carries.
+     *
+     * @template T of object
+     *
+     * @param (callable(self<ArtistBase>): self<T>)|self<T>|null $projection
+     */
+    public static function resolve(callable|self|null $projection): ReadQuery
+    {
+        if ($projection === null) {
+            return new ReadQuery();
+        }
+
+        return ($projection instanceof self ? $projection : $projection(self::make()))->toReadQuery();
+    }
+}
+
+/**
+ * A read of `GET /artists`: the projection, plus everything only a read can carry.
+ *
+ * Every door the endpoint advertises is here and nothing it does not. Filters come in three doors:
+ * a `whereX()` per filter, the typed `filter()` shape, and the loose `filterRaw()`. They are
+ * separate methods because a parameter typed as the shape or any array would accept anything. Both
+ * array doors still check names at runtime.
+ *
+ * @template TProj of object
+ *
+ * @extends Query<TProj>
+ *
+ * @phpstan-import-type ArtistFilterShape from Artist
+ * @phpstan-import-type ArtistIncludePath from Artist
+ * @phpstan-import-type ArtistSortToken from Artist
+ *
+ * @generated from `GET /artists`
+ */
+final class ArtistQuery extends Query
+{
+    /** @use ArtistProjecting<TProj> */
+    use ArtistProjecting;
+    use QueryConditionable;
+
+    public function __construct(private readonly Fetcher $fetcher) {}
+
+    /**
+     * Filter by `slug`.
+     *
+     * @return static
+     */
+    public function whereSlug(string $value): static
+    {
+        return $this->filtering(['slug' => $value]);
+    }
+
+    /**
+     * Filter by `q`.
+     *
+     * @return static
+     */
+    public function whereQ(string $value): static
+    {
+        return $this->filtering(['q' => $value]);
+    }
+
+    /**
+     * The typed array door: values are checked statically, nested ones included, and names at
+     * runtime.
+     *
+     * @param ArtistFilterShape $filter
+     *
+     * @return static
+     *
+     * @throws UnknownFilterException when a name is not one this endpoint filters by
+     */
+    public function filter(array $filter): static
+    {
+        return $this->filtering(self::guardFilters($filter));
+    }
+
+    /**
+     * The loose door, for a filter map assembled at runtime. Nothing is checked statically; the
+     * names are still checked here.
+     *
+     * @param array<string, mixed> $filter
+     *
+     * @return static
+     *
+     * @throws UnknownFilterException when a name is not one this endpoint filters by
+     */
+    public function filterRaw(array $filter): static
+    {
+        return $this->filtering(self::guardFilters($filter));
+    }
+
+    /**
+     * Sort by the endpoint's own tokens, in precedence order. Argument order is precedence, so
+     * nothing is translated between the call and the wire.
+     *
+     * @param ArtistSortToken ...$tokens
+     *
+     * @return static
+     */
+    public function sort(string ...$tokens): static
+    {
+        return $this->sorting(\array_values($tokens));
+    }
+
+    /**
+     * The loose sort door, for tokens assembled at runtime, which a literal union can never accept.
+     *
+     * @param list<string> $tokens
+     *
+     * @return static
+     *
+     * @throws UnknownSortException when a token is not one this endpoint sorts by
+     */
+    public function sortRaw(array $tokens): static
+    {
+        foreach ($tokens as $token) {
+            if (!\in_array($token, Artist::SORT_TOKENS, true)) {
+                throw UnknownSortException::for($token, Artist::SORT_TOKENS);
+            }
+        }
+
+        return $this->sorting($tokens);
+    }
+
+    /**
+     * @param positive-int      $number
+     * @param positive-int|null $size
+     *
+     * @return static
+     */
+    public function page(int $number, ?int $size = null): static
+    {
+        return $this->paging($size === null ? ['number' => $number] : ['number' => $number, 'size' => $size]);
+    }
+
+    /**
+     * Run the read.
+     *
+     * @return PaginatedCollection<TProj, PageNumber>
+     *
+     * @throws BadRequest         when a query parameter is rejected
+     * @throws Forbidden          when the read is not permitted
+     * @throws NotAcceptable      when the negotiated media type cannot be satisfied
+     * @throws ServerError        when the server fails
+     * @throws TransportException when no response is received at all
+     */
+    public function get(): PaginatedCollection
+    {
+        $query = $this->toReadQuery();
+
+        return $this->collect($this->fetcher->read($this->request($query), $query), $query);
+    }
+
+    /**
+     * The first artist the read matches, fetching a single-resource page rather than a whole one.
+     *
+     * @return TProj|null
+     *
+     * @throws BadRequest         when a query parameter is rejected
+     * @throws Forbidden          when the read is not permitted
+     * @throws NotAcceptable      when the negotiated media type cannot be satisfied
+     * @throws ServerError        when the server fails
+     * @throws TransportException when no response is received at all
+     */
+    public function first(): ?object
+    {
+        return $this->page(1, 1)->get()->first();
+    }
+
+    /**
+     * @param ArtistFilterShape|array<string, mixed> $filter
+     *
+     * @return array<string, mixed>
+     *
+     * @throws UnknownFilterException
+     */
+    private static function guardFilters(array $filter): array
+    {
+        foreach (\array_keys($filter) as $name) {
+            $name = (string) $name;
+
+            if (!\in_array($name, Artist::FILTERS, true)) {
+                throw UnknownFilterException::for($name, Artist::FILTERS);
+            }
+        }
+
+        return $filter;
+    }
+
+    private function request(ReadQuery $query): Request
+    {
+        return Request::get($query->appendTo('/artists'));
+    }
+
+    /**
+     * @return PaginatedCollection<TProj, PageNumber>
+     */
+    private function collect(ResourceContext $context, ReadQuery $query): PaginatedCollection
+    {
+        $document = $context->document();
+        $artists = [];
+
+        foreach ($context->primaryList() as $raw) {
+            $artists[] = $this->hydrate($raw, $context);
+        }
+
+        return new PaginatedCollection(
+            $artists,
+            PageNumber::read($document->pageMeta(), PageLinks::fromArray($document->links())),
+            $document->meta(),
+            $document->links(),
+            fn(string $url): PaginatedCollection => $this->collect($this->fetcher->readUrl($url, $query), $query),
+        );
+    }
+
+    /**
+     * The one assertion the design cannot avoid. The runtime always builds a `Artist`, but `TProj`
+     * is a template parameter no bound can prove it satisfies. `ResourceContext::hydrate()` erases
+     * the concrete class so the assertion is legal.
+     *
+     * @param array<string, mixed> $raw
+     *
+     * @return TProj
+     */
+    private function hydrate(array $raw, ResourceContext $context): object
+    {
+        /** @var TProj */
+        return $context->hydrate($raw, Artist::_hydrate(...));
     }
 }
 

@@ -4,12 +4,29 @@ declare(strict_types=1);
 
 namespace haddowg\JsonApiClient\Tests\Generated\MusicCatalog;
 
+use haddowg\JsonApiClient\Collections\PaginatedCollection;
 use haddowg\JsonApiClient\Collections\ResourceCollection;
+use haddowg\JsonApiClient\Exceptions\BadRequest;
 use haddowg\JsonApiClient\Exceptions\FieldNotSelectedException;
+use haddowg\JsonApiClient\Exceptions\Forbidden;
 use haddowg\JsonApiClient\Exceptions\MalformedDocument;
 use haddowg\JsonApiClient\Exceptions\MissingRequiredMemberException;
+use haddowg\JsonApiClient\Exceptions\NotAcceptable;
 use haddowg\JsonApiClient\Exceptions\RelationNotIncludedException;
+use haddowg\JsonApiClient\Exceptions\ServerError;
+use haddowg\JsonApiClient\Exceptions\TransportException;
+use haddowg\JsonApiClient\Exceptions\Unauthorized;
 use haddowg\JsonApiClient\Exceptions\UnknownAttributeException;
+use haddowg\JsonApiClient\Exceptions\UnknownFieldException;
+use haddowg\JsonApiClient\Exceptions\UnknownFilterException;
+use haddowg\JsonApiClient\Exceptions\UnknownSortException;
+use haddowg\JsonApiClient\Http\Request;
+use haddowg\JsonApiClient\Pagination\PageLinks;
+use haddowg\JsonApiClient\Pagination\PageNumber;
+use haddowg\JsonApiClient\Query\Projection;
+use haddowg\JsonApiClient\Query\Query;
+use haddowg\JsonApiClient\Query\ReadQuery;
+use haddowg\JsonApiClient\Resources\Fetcher;
 use haddowg\JsonApiClient\Resources\Relationship;
 use haddowg\JsonApiClient\Resources\ResourceContext;
 use haddowg\JsonApiClient\Resources\ResourceObject;
@@ -18,6 +35,7 @@ use haddowg\JsonApiClient\Support\Conditionable;
 use haddowg\JsonApiClient\Support\Identifier;
 use haddowg\JsonApiClient\Support\ImmutableConditionable;
 use haddowg\JsonApiClient\Support\Missing;
+use haddowg\JsonApiClient\Support\QueryConditionable;
 
 /**
  * The `album` relation of a `tracks` resource, hydrated.
@@ -58,6 +76,64 @@ interface TrackHasPlaylists
 
     /** @var ResourceCollection<Playlist> */
     public ResourceCollection $playlists { get; }
+}
+
+/**
+ * The projection surface of `tracks`: the `withX()` include methods and the checked `fields()`,
+ * shared by {@see TrackProjection} and {@see TrackQuery}.
+ *
+ * A trait used by final classes rather than a shared base class: `@return static<TProj&Marker>`
+ * over a `static`-returning primitive resolves at level 9 only in a final class.
+ *
+ * @template TProj of object
+ *
+ * @phpstan-require-extends Projection<TProj>
+ *
+ * @generated from the `include` and `fields` parameters of the `tracks` read operations
+ */
+trait TrackProjecting
+{
+    /**
+     * Include the `album` relation, narrowing the projection so `$track->album` type-checks.
+     *
+     * @return static<TProj&TrackHasAlbum>
+     */
+    public function withAlbum(): static
+    {
+        return $this->including('album');
+    }
+
+    /**
+     * Include the `playlists` relation, narrowing the projection so `$track->playlists`
+     * type-checks.
+     *
+     * @return static<TProj&TrackHasPlaylists>
+     */
+    public function withPlaylists(): static
+    {
+        return $this->including('playlists');
+    }
+
+    /**
+     * Sparse fieldsets, with the `tracks` members checked against the descriptor. Other types'
+     * fieldsets pass through unchecked.
+     *
+     * @param array<string, list<string>> $fields
+     *
+     * @return static
+     *
+     * @throws UnknownFieldException when `fields[tracks]` names a member `tracks` does not have
+     */
+    public function fields(array $fields): static
+    {
+        foreach ($fields[TrackBase::TYPE] ?? [] as $field) {
+            if (!\in_array($field, Track::FIELDS, true)) {
+                throw UnknownFieldException::for(TrackBase::TYPE, $field, Track::FIELDS);
+            }
+        }
+
+        return parent::fields($fields);
+    }
 }
 
 /**
@@ -229,6 +305,11 @@ abstract class TrackBase extends ResourceObject
  * @phpstan-type TrackPlaylistsInput list<Identifier|Playlist>
  * @phpstan-type TrackCreateShape array{title: string, trackNumber?: int, durationSeconds?: int, explicit?: bool, genres?: list<string>, previewOffset?: string|null, album?: TrackAlbumInput, playlists?: TrackPlaylistsInput}
  * @phpstan-type TrackUpdateShape array{title?: string, trackNumber?: int, durationSeconds?: int, explicit?: bool, genres?: list<string>, previewOffset?: string|null, album?: TrackAlbumInput}
+ * @phpstan-type TrackFilterShape array{title?: string, explicit?: bool, genres?: list<string>, q?: string}
+ * @phpstan-type TrackSortToken '-title'|'-trackNumber'|'title'|'trackNumber'
+ * @phpstan-type TrackIncludePath 'album'|'album.artist'|'album.tracks'|'playlists'|'playlists.orderedTracks'|'playlists.publicOwner'|'playlists.tracks'
+ * @phpstan-type TrackFieldToken 'album'|'displayTitle'|'durationSeconds'|'explicit'|'genres'|'playlists'|'previewOffset'|'title'|'trackNumber'
+ * @phpstan-type TrackCountToken 'playlists'
  *
  * @generated from `components.schemas.TracksResource`
  */
@@ -273,6 +354,51 @@ final class Track extends TrackBase implements TrackHasAlbum, TrackHasPlaylists
      * @var list<string>
      */
     public const array REQUIRED_ON_CREATE = ['title'];
+
+    /**
+     * The filters `GET /tracks` accepts. The runtime guard on both array doors checks names against
+     * this, and the did-you-mean is drawn from it.
+     *
+     * @var list<string>
+     */
+    public const array FILTERS = ['title', 'explicit', 'genres', 'q'];
+
+    /**
+     * The signed sort tokens `GET /tracks` accepts, both directions of each.
+     *
+     * @var list<string>
+     */
+    public const array SORT_TOKENS = ['title', '-title', 'trackNumber', '-trackNumber'];
+
+    /**
+     * The members `fields[tracks]` may name.
+     *
+     * @var list<string>
+     */
+    public const array FIELDS = [
+        'title',
+        'trackNumber',
+        'durationSeconds',
+        'explicit',
+        'genres',
+        'previewOffset',
+        'displayTitle',
+        'album',
+        'playlists',
+    ];
+
+    /**
+     * The `withCount` tokens `GET /tracks` advertises.
+     *
+     * @var list<string>
+     */
+    public const array COUNT_TOKENS = ['playlists'];
+
+    /**
+     * The Countable profile, which the client adds to `Accept` only when a request uses
+     * `withCount`.
+     */
+    public const string COUNTABLE_PROFILE = 'https://haddowg.github.io/json-api/profiles/countable/';
 
     public ?Album $album { get => $this->album(); }
 
@@ -599,6 +725,314 @@ final class TrackCreateBuilder
             album: $this->album,
             playlists: $this->playlists,
         );
+    }
+}
+
+/**
+ * What a response carrying `tracks` should bring back: `include` and `fields`, and nothing else.
+ *
+ * A write response honours exactly these two parameters, so `sort()`, `filter()` and `page()` are
+ * not here at all. Reusable: build one and hand it to every operation that should come back the
+ * same shape.
+ *
+ * @template TProj of object
+ *
+ * @extends Projection<TProj>
+ *
+ * @generated from the `include` and `fields` parameters of `GET /tracks/{id}`, `POST /tracks`, `PATCH /tracks/{id}`
+ */
+final class TrackProjection extends Projection
+{
+    /** @use TrackProjecting<TProj> */
+    use TrackProjecting;
+
+    /**
+     * An empty projection over the unnarrowed resource.
+     *
+     * @return self<TrackBase>
+     */
+    public static function make(): self
+    {
+        /** @var self<TrackBase> */
+        return new self();
+    }
+
+    /**
+     * Resolve either projection form, a closure or a prebuilt projection, to the query parameters a
+     * response carries.
+     *
+     * @template T of object
+     *
+     * @param (callable(self<TrackBase>): self<T>)|self<T>|null $projection
+     */
+    public static function resolve(callable|self|null $projection): ReadQuery
+    {
+        if ($projection === null) {
+            return new ReadQuery();
+        }
+
+        return ($projection instanceof self ? $projection : $projection(self::make()))->toReadQuery();
+    }
+}
+
+/**
+ * A read of `GET /tracks`: the projection, plus everything only a read can carry.
+ *
+ * Every door the endpoint advertises is here and nothing it does not. Filters come in three doors:
+ * a `whereX()` per filter, the typed `filter()` shape, and the loose `filterRaw()`. They are
+ * separate methods because a parameter typed as the shape or any array would accept anything. Both
+ * array doors still check names at runtime.
+ *
+ * @template TProj of object
+ *
+ * @extends Query<TProj>
+ *
+ * @phpstan-import-type TrackCountToken from Track
+ * @phpstan-import-type TrackFilterShape from Track
+ * @phpstan-import-type TrackIncludePath from Track
+ * @phpstan-import-type TrackSortToken from Track
+ *
+ * @generated from `GET /tracks`
+ */
+final class TrackQuery extends Query
+{
+    /** @use TrackProjecting<TProj> */
+    use TrackProjecting;
+    use QueryConditionable;
+
+    public function __construct(private readonly Fetcher $fetcher) {}
+
+    /**
+     * Filter by `title`.
+     *
+     * @return static
+     */
+    public function whereTitle(string $value): static
+    {
+        return $this->filtering(['title' => $value]);
+    }
+
+    /**
+     * Filter by `explicit`.
+     *
+     * @return static
+     */
+    public function whereExplicit(bool $value): static
+    {
+        return $this->filtering(['explicit' => $value]);
+    }
+
+    /**
+     * Filter by `genres`.
+     *
+     * @param list<string> $value
+     *
+     * @return static
+     */
+    public function whereGenres(array $value): static
+    {
+        return $this->filtering(['genres' => $value]);
+    }
+
+    /**
+     * Filter by `q`.
+     *
+     * @return static
+     */
+    public function whereQ(string $value): static
+    {
+        return $this->filtering(['q' => $value]);
+    }
+
+    /**
+     * The typed array door: values are checked statically, nested ones included, and names at
+     * runtime.
+     *
+     * @param TrackFilterShape $filter
+     *
+     * @return static
+     *
+     * @throws UnknownFilterException when a name is not one this endpoint filters by
+     */
+    public function filter(array $filter): static
+    {
+        return $this->filtering(self::guardFilters($filter));
+    }
+
+    /**
+     * The loose door, for a filter map assembled at runtime. Nothing is checked statically; the
+     * names are still checked here.
+     *
+     * @param array<string, mixed> $filter
+     *
+     * @return static
+     *
+     * @throws UnknownFilterException when a name is not one this endpoint filters by
+     */
+    public function filterRaw(array $filter): static
+    {
+        return $this->filtering(self::guardFilters($filter));
+    }
+
+    /**
+     * Sort by the endpoint's own tokens, in precedence order. Argument order is precedence, so
+     * nothing is translated between the call and the wire.
+     *
+     * @param TrackSortToken ...$tokens
+     *
+     * @return static
+     */
+    public function sort(string ...$tokens): static
+    {
+        return $this->sorting(\array_values($tokens));
+    }
+
+    /**
+     * The loose sort door, for tokens assembled at runtime, which a literal union can never accept.
+     *
+     * @param list<string> $tokens
+     *
+     * @return static
+     *
+     * @throws UnknownSortException when a token is not one this endpoint sorts by
+     */
+    public function sortRaw(array $tokens): static
+    {
+        foreach ($tokens as $token) {
+            if (!\in_array($token, Track::SORT_TOKENS, true)) {
+                throw UnknownSortException::for($token, Track::SORT_TOKENS);
+            }
+        }
+
+        return $this->sorting($tokens);
+    }
+
+    /**
+     * Count related resources without including them, under the Countable profile. `GET /tracks`
+     * advertises `playlists`. A counted relation is still not an included one: its count is read
+     * through `_rel()`.
+     *
+     * @param list<TrackCountToken> $tokens
+     *
+     * @return static
+     */
+    public function withCount(array $tokens): static
+    {
+        return $this->counting($tokens);
+    }
+
+    /**
+     * @param positive-int      $number
+     * @param positive-int|null $size
+     *
+     * @return static
+     */
+    public function page(int $number, ?int $size = null): static
+    {
+        return $this->paging($size === null ? ['number' => $number] : ['number' => $number, 'size' => $size]);
+    }
+
+    /**
+     * Run the read.
+     *
+     * @return PaginatedCollection<TProj, PageNumber>
+     *
+     * @throws BadRequest         when a query parameter is rejected
+     * @throws Unauthorized       when credentials are missing or invalid
+     * @throws Forbidden          when the read is not permitted
+     * @throws NotAcceptable      when the negotiated media type cannot be satisfied
+     * @throws ServerError        when the server fails
+     * @throws TransportException when no response is received at all
+     */
+    public function get(): PaginatedCollection
+    {
+        $query = $this->toReadQuery();
+
+        return $this->collect($this->fetcher->read($this->request($query), $query), $query);
+    }
+
+    /**
+     * The first track the read matches, fetching a single-resource page rather than a whole one.
+     *
+     * @return TProj|null
+     *
+     * @throws BadRequest         when a query parameter is rejected
+     * @throws Unauthorized       when credentials are missing or invalid
+     * @throws Forbidden          when the read is not permitted
+     * @throws NotAcceptable      when the negotiated media type cannot be satisfied
+     * @throws ServerError        when the server fails
+     * @throws TransportException when no response is received at all
+     */
+    public function first(): ?object
+    {
+        return $this->page(1, 1)->get()->first();
+    }
+
+    /**
+     * @param TrackFilterShape|array<string, mixed> $filter
+     *
+     * @return array<string, mixed>
+     *
+     * @throws UnknownFilterException
+     */
+    private static function guardFilters(array $filter): array
+    {
+        foreach (\array_keys($filter) as $name) {
+            $name = (string) $name;
+
+            if (!\in_array($name, Track::FILTERS, true)) {
+                throw UnknownFilterException::for($name, Track::FILTERS);
+            }
+        }
+
+        return $filter;
+    }
+
+    /**
+     * The Countable profile is negotiated only when a request actually uses a `withCount`
+     * parameter, which is what `x-profile` on that parameter states.
+     */
+    private function request(ReadQuery $query): Request
+    {
+        $request = Request::get($query->appendTo('/tracks'));
+
+        return $query->withCount === [] ? $request : $request->withProfiles([Track::COUNTABLE_PROFILE]);
+    }
+
+    /**
+     * @return PaginatedCollection<TProj, PageNumber>
+     */
+    private function collect(ResourceContext $context, ReadQuery $query): PaginatedCollection
+    {
+        $document = $context->document();
+        $tracks = [];
+
+        foreach ($context->primaryList() as $raw) {
+            $tracks[] = $this->hydrate($raw, $context);
+        }
+
+        return new PaginatedCollection(
+            $tracks,
+            PageNumber::read($document->pageMeta(), PageLinks::fromArray($document->links())),
+            $document->meta(),
+            $document->links(),
+            fn(string $url): PaginatedCollection => $this->collect($this->fetcher->readUrl($url, $query), $query),
+        );
+    }
+
+    /**
+     * The one assertion the design cannot avoid. The runtime always builds a `Track`, but `TProj`
+     * is a template parameter no bound can prove it satisfies. `ResourceContext::hydrate()` erases
+     * the concrete class so the assertion is legal.
+     *
+     * @param array<string, mixed> $raw
+     *
+     * @return TProj
+     */
+    private function hydrate(array $raw, ResourceContext $context): object
+    {
+        /** @var TProj */
+        return $context->hydrate($raw, Track::_hydrate(...));
     }
 }
 

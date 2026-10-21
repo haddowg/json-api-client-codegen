@@ -4,10 +4,25 @@ declare(strict_types=1);
 
 namespace haddowg\JsonApiClient\Tests\Generated\MusicCatalog;
 
+use haddowg\JsonApiClient\Collections\PaginatedCollection;
+use haddowg\JsonApiClient\Exceptions\BadRequest;
 use haddowg\JsonApiClient\Exceptions\FieldNotSelectedException;
+use haddowg\JsonApiClient\Exceptions\Forbidden;
 use haddowg\JsonApiClient\Exceptions\MalformedDocument;
+use haddowg\JsonApiClient\Exceptions\NotAcceptable;
 use haddowg\JsonApiClient\Exceptions\RelationNotIncludedException;
+use haddowg\JsonApiClient\Exceptions\ServerError;
+use haddowg\JsonApiClient\Exceptions\TransportException;
+use haddowg\JsonApiClient\Exceptions\Unauthorized;
 use haddowg\JsonApiClient\Exceptions\UnknownAttributeException;
+use haddowg\JsonApiClient\Exceptions\UnknownFieldException;
+use haddowg\JsonApiClient\Http\Request;
+use haddowg\JsonApiClient\Pagination\PageLinks;
+use haddowg\JsonApiClient\Pagination\PageNumber;
+use haddowg\JsonApiClient\Query\Projection;
+use haddowg\JsonApiClient\Query\Query;
+use haddowg\JsonApiClient\Query\ReadQuery;
+use haddowg\JsonApiClient\Resources\Fetcher;
 use haddowg\JsonApiClient\Resources\Relationship;
 use haddowg\JsonApiClient\Resources\ResourceContext;
 use haddowg\JsonApiClient\Resources\ResourceObject;
@@ -16,6 +31,7 @@ use haddowg\JsonApiClient\Support\Conditionable;
 use haddowg\JsonApiClient\Support\Identifier;
 use haddowg\JsonApiClient\Support\ImmutableConditionable;
 use haddowg\JsonApiClient\Support\Missing;
+use haddowg\JsonApiClient\Support\QueryConditionable;
 
 /**
  * The `user` relation of a `favorites` resource, hydrated.
@@ -35,6 +51,53 @@ interface FavoriteHasUser
     public function user(): ?PublicProfile;
 
     public ?PublicProfile $user { get; }
+}
+
+/**
+ * The projection surface of `favorites`: the `withX()` include methods and the checked `fields()`,
+ * shared by {@see FavoriteProjection} and {@see FavoriteQuery}.
+ *
+ * A trait used by final classes rather than a shared base class: `@return static<TProj&Marker>`
+ * over a `static`-returning primitive resolves at level 9 only in a final class.
+ *
+ * @template TProj of object
+ *
+ * @phpstan-require-extends Projection<TProj>
+ *
+ * @generated from the `include` and `fields` parameters of the `favorites` read operations
+ */
+trait FavoriteProjecting
+{
+    /**
+     * Include the `user` relation, narrowing the projection so `$favorite->user` type-checks.
+     *
+     * @return static<TProj&FavoriteHasUser>
+     */
+    public function withUser(): static
+    {
+        return $this->including('user');
+    }
+
+    /**
+     * Sparse fieldsets, with the `favorites` members checked against the descriptor. Other types'
+     * fieldsets pass through unchecked.
+     *
+     * @param array<string, list<string>> $fields
+     *
+     * @return static
+     *
+     * @throws UnknownFieldException when `fields[favorites]` names a member `favorites` does not have
+     */
+    public function fields(array $fields): static
+    {
+        foreach ($fields[FavoriteBase::TYPE] ?? [] as $field) {
+            if (!\in_array($field, Favorite::FIELDS, true)) {
+                throw UnknownFieldException::for(FavoriteBase::TYPE, $field, Favorite::FIELDS);
+            }
+        }
+
+        return parent::fields($fields);
+    }
 }
 
 /**
@@ -140,6 +203,8 @@ abstract class FavoriteBase extends ResourceObject
  * @phpstan-type FavoriteFavoritableInput Album|Artist|Identifier|Track|null
  * @phpstan-type FavoriteCreateShape array{favoritedAt?: FavoriteDateInput, user?: FavoriteUserInput, favoritable?: FavoriteFavoritableInput}
  * @phpstan-type FavoriteUpdateShape array{user?: FavoriteUserInput, favoritable?: FavoriteFavoritableInput}
+ * @phpstan-type FavoriteIncludePath 'user'
+ * @phpstan-type FavoriteFieldToken 'favoritable'|'favoritedAt'|'user'
  *
  * @generated from `components.schemas.FavoritesResource`
  */
@@ -166,6 +231,13 @@ final class Favorite extends FavoriteBase implements FavoriteHasUser
      * @var list<string>
      */
     public const array REQUIRED_ON_CREATE = [];
+
+    /**
+     * The members `fields[favorites]` may name.
+     *
+     * @var list<string>
+     */
+    public const array FIELDS = ['favoritedAt', 'user', 'favoritable'];
 
     public ?PublicProfile $user { get => $this->user(); }
 
@@ -380,6 +452,166 @@ final class FavoriteCreateBuilder
             user: $this->user,
             favoritable: $this->favoritable,
         );
+    }
+}
+
+/**
+ * What a response carrying `favorites` should bring back: `include` and `fields`, and nothing else.
+ *
+ * A write response honours exactly these two parameters, so `sort()`, `filter()` and `page()` are
+ * not here at all. Reusable: build one and hand it to every operation that should come back the
+ * same shape.
+ *
+ * @template TProj of object
+ *
+ * @extends Projection<TProj>
+ *
+ * @generated from the `include` and `fields` parameters of `GET /favorites/{id}`, `POST /favorites`, `PATCH /favorites/{id}`
+ */
+final class FavoriteProjection extends Projection
+{
+    /** @use FavoriteProjecting<TProj> */
+    use FavoriteProjecting;
+
+    /**
+     * An empty projection over the unnarrowed resource.
+     *
+     * @return self<FavoriteBase>
+     */
+    public static function make(): self
+    {
+        /** @var self<FavoriteBase> */
+        return new self();
+    }
+
+    /**
+     * Resolve either projection form, a closure or a prebuilt projection, to the query parameters a
+     * response carries.
+     *
+     * @template T of object
+     *
+     * @param (callable(self<FavoriteBase>): self<T>)|self<T>|null $projection
+     */
+    public static function resolve(callable|self|null $projection): ReadQuery
+    {
+        if ($projection === null) {
+            return new ReadQuery();
+        }
+
+        return ($projection instanceof self ? $projection : $projection(self::make()))->toReadQuery();
+    }
+}
+
+/**
+ * A read of `GET /favorites`: the projection, plus everything only a read can carry.
+ *
+ * Every door the endpoint advertises is here and nothing it does not. Filters come in three doors:
+ * a `whereX()` per filter, the typed `filter()` shape, and the loose `filterRaw()`. They are
+ * separate methods because a parameter typed as the shape or any array would accept anything. Both
+ * array doors still check names at runtime.
+ *
+ * @template TProj of object
+ *
+ * @extends Query<TProj>
+ *
+ * @phpstan-import-type FavoriteIncludePath from Favorite
+ *
+ * @generated from `GET /favorites`
+ */
+final class FavoriteQuery extends Query
+{
+    /** @use FavoriteProjecting<TProj> */
+    use FavoriteProjecting;
+    use QueryConditionable;
+
+    public function __construct(private readonly Fetcher $fetcher) {}
+
+    /**
+     * @param positive-int      $number
+     * @param positive-int|null $size
+     *
+     * @return static
+     */
+    public function page(int $number, ?int $size = null): static
+    {
+        return $this->paging($size === null ? ['number' => $number] : ['number' => $number, 'size' => $size]);
+    }
+
+    /**
+     * Run the read.
+     *
+     * @return PaginatedCollection<TProj, PageNumber>
+     *
+     * @throws BadRequest         when a query parameter is rejected
+     * @throws Unauthorized       when credentials are missing or invalid
+     * @throws Forbidden          when the read is not permitted
+     * @throws NotAcceptable      when the negotiated media type cannot be satisfied
+     * @throws ServerError        when the server fails
+     * @throws TransportException when no response is received at all
+     */
+    public function get(): PaginatedCollection
+    {
+        $query = $this->toReadQuery();
+
+        return $this->collect($this->fetcher->read($this->request($query), $query), $query);
+    }
+
+    /**
+     * The first favorite the read matches, fetching a single-resource page rather than a whole one.
+     *
+     * @return TProj|null
+     *
+     * @throws BadRequest         when a query parameter is rejected
+     * @throws Unauthorized       when credentials are missing or invalid
+     * @throws Forbidden          when the read is not permitted
+     * @throws NotAcceptable      when the negotiated media type cannot be satisfied
+     * @throws ServerError        when the server fails
+     * @throws TransportException when no response is received at all
+     */
+    public function first(): ?object
+    {
+        return $this->page(1, 1)->get()->first();
+    }
+
+    private function request(ReadQuery $query): Request
+    {
+        return Request::get($query->appendTo('/favorites'));
+    }
+
+    /**
+     * @return PaginatedCollection<TProj, PageNumber>
+     */
+    private function collect(ResourceContext $context, ReadQuery $query): PaginatedCollection
+    {
+        $document = $context->document();
+        $favorites = [];
+
+        foreach ($context->primaryList() as $raw) {
+            $favorites[] = $this->hydrate($raw, $context);
+        }
+
+        return new PaginatedCollection(
+            $favorites,
+            PageNumber::read($document->pageMeta(), PageLinks::fromArray($document->links())),
+            $document->meta(),
+            $document->links(),
+            fn(string $url): PaginatedCollection => $this->collect($this->fetcher->readUrl($url, $query), $query),
+        );
+    }
+
+    /**
+     * The one assertion the design cannot avoid. The runtime always builds a `Favorite`, but
+     * `TProj` is a template parameter no bound can prove it satisfies. `ResourceContext::hydrate()`
+     * erases the concrete class so the assertion is legal.
+     *
+     * @param array<string, mixed> $raw
+     *
+     * @return TProj
+     */
+    private function hydrate(array $raw, ResourceContext $context): object
+    {
+        /** @var TProj */
+        return $context->hydrate($raw, Favorite::_hydrate(...));
     }
 }
 

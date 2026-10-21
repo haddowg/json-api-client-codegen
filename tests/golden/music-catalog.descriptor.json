@@ -1215,6 +1215,23 @@
                 "-status"
             ],
             "filterable": {
+                "tracks": {
+                    "schema": {
+                        "types": [
+                            "string"
+                        ],
+                        "format": null,
+                        "enum": [],
+                        "required": [],
+                        "properties": [],
+                        "items": null,
+                        "discriminator": null,
+                        "const": null,
+                        "oneOf": [],
+                        "anyOf": [],
+                        "allOf": []
+                    }
+                },
                 "artist.name": {
                     "schema": {
                         "types": [
@@ -1232,7 +1249,7 @@
                         "allOf": []
                     }
                 },
-                "q": {
+                "title": {
                     "schema": {
                         "types": [
                             "string"
@@ -1345,24 +1362,7 @@
                         "allOf": []
                     }
                 },
-                "title": {
-                    "schema": {
-                        "types": [
-                            "string"
-                        ],
-                        "format": null,
-                        "enum": [],
-                        "required": [],
-                        "properties": [],
-                        "items": null,
-                        "discriminator": null,
-                        "const": null,
-                        "oneOf": [],
-                        "anyOf": [],
-                        "allOf": []
-                    }
-                },
-                "tracks": {
+                "q": {
                     "schema": {
                         "types": [
                             "string"
@@ -2054,7 +2054,7 @@
                 "-createdAt"
             ],
             "filterable": {
-                "q": {
+                "slug": {
                     "schema": {
                         "types": [
                             "string"
@@ -2071,7 +2071,7 @@
                         "allOf": []
                     }
                 },
-                "slug": {
+                "q": {
                     "schema": {
                         "types": [
                             "string"
@@ -7538,6 +7538,23 @@
                 "-trackNumber"
             ],
             "filterable": {
+                "title": {
+                    "schema": {
+                        "types": [
+                            "string"
+                        ],
+                        "format": null,
+                        "enum": [],
+                        "required": [],
+                        "properties": [],
+                        "items": null,
+                        "discriminator": null,
+                        "const": null,
+                        "oneOf": [],
+                        "anyOf": [],
+                        "allOf": []
+                    }
+                },
                 "explicit": {
                     "schema": {
                         "types": [
@@ -7587,23 +7604,6 @@
                     }
                 },
                 "q": {
-                    "schema": {
-                        "types": [
-                            "string"
-                        ],
-                        "format": null,
-                        "enum": [],
-                        "required": [],
-                        "properties": [],
-                        "items": null,
-                        "discriminator": null,
-                        "const": null,
-                        "oneOf": [],
-                        "anyOf": [],
-                        "allOf": []
-                    }
-                },
-                "title": {
                     "schema": {
                         "types": [
                             "string"

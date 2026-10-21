@@ -4,10 +4,22 @@ declare(strict_types=1);
 
 namespace haddowg\JsonApiClient\Tests\Generated\MusicCatalog;
 
+use haddowg\JsonApiClient\Collections\ResourceCollection;
+use haddowg\JsonApiClient\Exceptions\BadRequest;
+use haddowg\JsonApiClient\Exceptions\Forbidden;
 use haddowg\JsonApiClient\Exceptions\MalformedDocument;
+use haddowg\JsonApiClient\Exceptions\NotAcceptable;
+use haddowg\JsonApiClient\Exceptions\ServerError;
+use haddowg\JsonApiClient\Exceptions\TransportException;
+use haddowg\JsonApiClient\Exceptions\Unauthorized;
+use haddowg\JsonApiClient\Http\Request;
+use haddowg\JsonApiClient\Query\Query;
+use haddowg\JsonApiClient\Query\ReadQuery;
+use haddowg\JsonApiClient\Resources\Fetcher;
 use haddowg\JsonApiClient\Resources\ResourceContext;
 use haddowg\JsonApiClient\Resources\ResourceObject;
 use haddowg\JsonApiClient\Support\Identifier;
+use haddowg\JsonApiClient\Support\QueryConditionable;
 
 /**
  * A `countries` resource with no relation hydrated: everything a read is guaranteed to give you.
@@ -85,5 +97,97 @@ final class Country extends CountryBase
     public static function ref(string $id, array $meta = []): Identifier
     {
         return Identifier::of(self::TYPE, $id, $meta);
+    }
+}
+
+/**
+ * A read of `GET /countries`: the projection, plus everything only a read can carry.
+ *
+ * Every door the endpoint advertises is here and nothing it does not. Filters come in three doors:
+ * a `whereX()` per filter, the typed `filter()` shape, and the loose `filterRaw()`. They are
+ * separate methods because a parameter typed as the shape or any array would accept anything. Both
+ * array doors still check names at runtime.
+ *
+ * @template TProj of object
+ *
+ * @extends Query<TProj>
+ *
+ * @generated from `GET /countries`
+ */
+final class CountryQuery extends Query
+{
+    use QueryConditionable;
+
+    public function __construct(private readonly Fetcher $fetcher) {}
+
+    /**
+     * Run the read.
+     *
+     * @return ResourceCollection<TProj>
+     *
+     * @throws BadRequest         when a query parameter is rejected
+     * @throws Unauthorized       when credentials are missing or invalid
+     * @throws Forbidden          when the read is not permitted
+     * @throws NotAcceptable      when the negotiated media type cannot be satisfied
+     * @throws ServerError        when the server fails
+     * @throws TransportException when no response is received at all
+     */
+    public function get(): ResourceCollection
+    {
+        $query = $this->toReadQuery();
+
+        return $this->collect($this->fetcher->read($this->request($query), $query));
+    }
+
+    /**
+     * The first country the read matches.
+     *
+     * @return TProj|null
+     *
+     * @throws BadRequest         when a query parameter is rejected
+     * @throws Unauthorized       when credentials are missing or invalid
+     * @throws Forbidden          when the read is not permitted
+     * @throws NotAcceptable      when the negotiated media type cannot be satisfied
+     * @throws ServerError        when the server fails
+     * @throws TransportException when no response is received at all
+     */
+    public function first(): ?object
+    {
+        return $this->get()->first();
+    }
+
+    private function request(ReadQuery $query): Request
+    {
+        return Request::get($query->appendTo('/countries'));
+    }
+
+    /**
+     * @return ResourceCollection<TProj>
+     */
+    private function collect(ResourceContext $context): ResourceCollection
+    {
+        $document = $context->document();
+        $countries = [];
+
+        foreach ($context->primaryList() as $raw) {
+            $countries[] = $this->hydrate($raw, $context);
+        }
+
+        return new ResourceCollection($countries, $document->meta(), $document->links());
+    }
+
+    /**
+     * The one assertion the design cannot avoid. The runtime always builds a `Country`, but `TProj`
+     * is a template parameter no bound can prove it satisfies. `ResourceContext::hydrate()` erases
+     * the concrete class so the assertion is legal.
+     *
+     * @param array<string, mixed> $raw
+     *
+     * @return TProj
+     */
+    private function hydrate(array $raw, ResourceContext $context): object
+    {
+        /** @var TProj */
+        return $context->hydrate($raw, Country::_hydrate(...));
     }
 }

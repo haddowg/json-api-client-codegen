@@ -110,8 +110,13 @@ final class MusicCatalogDescriptorTest extends TestCase
         self::assertSame('object', $releaseInfo->format);
         self::assertTrue($releaseInfo->nullable);
         self::assertNotNull($releaseInfo->schema);
-        self::assertSame(['catalogueNumber', 'label'], \array_keys($releaseInfo->schema->properties));
+        self::assertSame(['label', 'catalogueNumber'], \array_keys($releaseInfo->schema->properties), 'members keep document order, which a generated shape repeats');
         self::assertSame(['string'], $releaseInfo->schema->properties['label']->types);
+
+        $format = $this->resource('releases')->attributes['format']->schema;
+        self::assertNotNull($format);
+        self::assertSame('medium', $format->discriminator);
+        self::assertSame(['vinyl', 'cd', 'digital', null], \array_map(static fn($branch): ?string => $branch->properties['medium']->const ?? null, $format->oneOf));
 
         $genres = $this->resource('tracks')->attributes['genres'];
         self::assertSame('array', $genres->format);
@@ -435,7 +440,7 @@ final class MusicCatalogDescriptorTest extends TestCase
         $rating = $filters['rating']->schema;
         self::assertNotNull($rating);
         self::assertSame(['object'], $rating->types);
-        self::assertSame(['max', 'min'], \array_keys($rating->properties));
+        self::assertSame(['min', 'max'], \array_keys($rating->properties));
         self::assertSame(['number'], $rating->properties['min']->types);
         self::assertSame('date-time', $filters['releasedAt']->schema?->properties['min']->format);
     }

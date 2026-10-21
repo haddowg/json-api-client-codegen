@@ -778,12 +778,12 @@ final class DescriptorBuilder
         foreach ($schema->find('properties')?->members() ?? [] as $key => $property) {
             $properties[(string) $key] = $this->valueSchema($property);
         }
-        \ksort($properties, \SORT_STRING);
 
         $required = $schema->find('required')?->strings() ?? [];
         \sort($required, \SORT_STRING);
 
         $items = $schema->find('items');
+        $const = $schema->find('const');
 
         return new ValueSchema(
             $this->declaredTypes($schema),
@@ -796,6 +796,7 @@ final class DescriptorBuilder
             $this->branches($schema, 'anyOf'),
             $this->branches($schema, 'allOf'),
             $schema->path('discriminator', 'propertyName')?->string(),
+            $const !== null && $const->isString() ? $const->string() : null,
         );
     }
 

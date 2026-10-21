@@ -188,6 +188,7 @@ final class DescriptorSerializer
             'properties' => \array_map(self::valueSchema(...), $schema->properties),
             'items' => self::valueSchema($schema->items),
             'discriminator' => $schema->discriminator,
+            'const' => $schema->const,
             'oneOf' => \array_map(self::valueSchema(...), $schema->oneOf),
             'anyOf' => \array_map(self::valueSchema(...), $schema->anyOf),
             'allOf' => \array_map(self::valueSchema(...), $schema->allOf),

@@ -25,14 +25,28 @@ final class ArtefactParity
 
     public static function assertMatches(string $declaration, string $artefactFile, string $generatedSource): void
     {
-        $artefact = \file_get_contents(self::DIRECTORY . '/' . $artefactFile);
-        Assert::assertIsString($artefact, 'Missing artefact file ' . $artefactFile);
+        self::assertSourceMatches($declaration, self::artefact($artefactFile), $generatedSource);
+    }
 
+    /**
+     * The same comparison against artefact source the caller has prepared, for a declaration
+     * only part of which one emitter generates.
+     */
+    public static function assertSourceMatches(string $declaration, string $artefact, string $generatedSource): void
+    {
         Assert::assertSame(
             self::readable(self::normalised($artefact, $declaration)),
             self::readable(self::normalised($generatedSource, $declaration)),
             \sprintf('%s differs from the artefact in code or type-bearing PHPDoc.', $declaration),
         );
+    }
+
+    public static function artefact(string $file): string
+    {
+        $artefact = \file_get_contents(self::DIRECTORY . '/' . $file);
+        Assert::assertIsString($artefact, 'Missing artefact file ' . $file);
+
+        return $artefact;
     }
 
     /**

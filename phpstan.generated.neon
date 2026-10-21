@@ -1,0 +1,12 @@
+# Analyses the generated output at level 9, which is the claim every emitter has to meet. It runs
+# separately from the main analysis because the output targets PHP 8.4 (property hooks), while
+# the codegen itself still supports 8.3.
+parameters:
+    level: 9
+    phpVersion: 80400
+    paths:
+        - tests/golden/generated
+    bootstrapFiles:
+        - tests/golden/generated/autoload.php
+    tmpDir: .phpstan.cache/generated
+    treatPhpDocTypesAsCertain: false

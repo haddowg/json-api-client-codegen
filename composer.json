@@ -26,9 +26,17 @@
     },
     "require-dev": {
         "friendsofphp/php-cs-fixer": "^3.64",
+        "haddowg/json-api-client": "dev-main",
         "phpstan/phpstan": "^2.0",
         "phpunit/phpunit": "^12.0"
     },
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/haddowg/json-api-client",
+            "no-api": true
+        }
+    ],
     "bin": [
         "bin/json-api-client-codegen"
     ],
@@ -51,7 +59,9 @@
         "test-coverage": "phpunit --coverage-clover coverage.xml",
         "phpstan": "phpstan analyse --memory-limit=1G",
         "cs-check": "php-cs-fixer fix --dry-run --diff",
-        "cs-fix": "php-cs-fixer fix"
+        "cs-fix": "php-cs-fixer fix",
+        "phpstan-generated": "phpstan analyse --memory-limit=1G -c phpstan.generated.neon",
+        "cs-check-generated": "php-cs-fixer fix --dry-run --diff --config=.php-cs-fixer.generated.php"
     },
     "scripts-descriptions": {
         "test": "Run the PHPUnit test suite",

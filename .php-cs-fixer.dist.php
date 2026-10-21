@@ -10,6 +10,9 @@ $finder = PhpCsFixer\Finder::create()
     ->name('*.php')
     ->ignoreDotFiles(true)
     ->ignoreVCS(true)
+    // The artefact is a verbatim copy checked upstream, and the generated output targets PHP 8.4
+    // and has its own config (.php-cs-fixer.generated.php), so neither parses on an 8.3 run here.
+    ->notPath(['fixtures/artefact', 'golden/generated'])
     ->append([__DIR__ . '/bin/json-api-client-codegen']);
 
 return (new PhpCsFixer\Config())

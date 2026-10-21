@@ -39,3 +39,14 @@ one `page[number]`-style parameter each, and `json-api-ts` still has such a docu
 The reader normalises both, and `tests/Descriptor/PaginatorDetectionTest.php` pins every
 strategy against hand-built documents in both forms. Do not "simplify" it to the current form
 alone.
+
+## The reference artefact
+
+`artefact/` is a snapshot of `json-api-client/tests/Generated/MusicCatalog`, the hand-written
+output for the `albums` type that every emitter targets. Copied at json-api-client `23c909e`.
+
+`ArtefactParity` compares a generated declaration against it on code tokens and type-bearing
+PHPDoc only, because the artefact's prose explains the design to a reader and is not derivable
+from the document. `artists` and `tracks` there are trimmed companions, so only `Album*`
+declarations and `AlbumStatus` are compared. Re-copy it when the artefact changes upstream, and
+say so in the commit.

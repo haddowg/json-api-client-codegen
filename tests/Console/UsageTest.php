@@ -23,7 +23,7 @@ final class UsageTest extends TestCase
 
         self::assertStringStartsWith(Usage::BINARY, $text);
         self::assertStringContainsString('OpenAPI 3.1', $text);
-        self::assertStringContainsString('<openapi-document> <output-directory>', $text);
+        self::assertStringContainsString('<openapi-document> <output-directory> --namespace=<Namespace>', $text);
         self::assertStringEndsWith(\PHP_EOL, $text);
     }
 

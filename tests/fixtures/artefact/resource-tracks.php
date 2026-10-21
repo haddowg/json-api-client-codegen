@@ -38,9 +38,8 @@ interface TrackHasAlbum
  * companions but has no hydrated accessor here, because that would pull in the `playlists`
  * type; a full run emits both.
  *
- * `previewOffset` is `format: time`, which coerces to `DateTimeImmutable` by the same rule as
- * `date` and `date-time`. A time with no date attaches itself to today, which is a real wart:
- * the value is a duration offset, and `DateTimeImmutable` is the wrong shape for it.
+ * `previewOffset` is a plain nullable string. The server's `H:i:s` wire form is not valid RFC 3339,
+ * so the document declares no `format: time` for it, and there is nothing to coerce it to.
  *
  * @generated from `components.schemas.TracksResource`
  */
@@ -63,7 +62,7 @@ abstract class TrackBase extends ResourceObject
     /** @var list<string> */
     public array $genres { get => $this->genres(); }
 
-    public ?\DateTimeImmutable $previewOffset { get => $this->previewOffset(); }
+    public ?string $previewOffset { get => $this->previewOffset(); }
 
     public string $displayTitle { get => $this->displayTitle(); }
 
@@ -125,9 +124,9 @@ abstract class TrackBase extends ResourceObject
     /**
      * @throws FieldNotSelectedException when a sparse fieldset excluded `previewOffset`
      */
-    public function previewOffset(): ?\DateTimeImmutable
+    public function previewOffset(): ?string
     {
-        return $this->_nullableDateTime('previewOffset');
+        return $this->_nullableString('previewOffset');
     }
 
     /**

@@ -14,9 +14,10 @@ use haddowg\JsonApiClient\Resources\Fetcher;
  * Trimmed to `albums` here. A full run carries one property per type in the document, each
  * built over the same transport, so one client reaches the whole API.
  *
- * `atomic()` is absent from this artefact even though `/operations` advertises the extension —
- * see the README. When it is generated it is generated *because* the server advertises the
- * atomic media type, and on a server that does not it is simply not there.
+ * `atomic()` is absent even though `/operations` advertises the extension, because the runtime
+ * has no atomic-operations API for it to call yet. Once it does, `atomic()` is generated exactly
+ * when the server advertises the atomic media type, and on a server that does not it is simply
+ * not there.
  *
  * @generated from the Music Catalog API OpenAPI 3.1 document
  */

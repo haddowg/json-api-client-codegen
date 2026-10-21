@@ -635,6 +635,31 @@ final class AlbumActions
     ) {}
 
     /**
+     * Upload artwork.
+     *
+     * The action relaxes content-type negotiation and owns the body shape, so the body goes over
+     * the wire verbatim under `application/octet-stream` while the response is still negotiated
+     * as JSON:API.
+     *
+     * @throws BadRequest         when the request is malformed
+     * @throws Unauthorized       when credentials are missing or invalid
+     * @throws Forbidden          when the action is not permitted
+     * @throws NotFound           when no album has this id
+     * @throws NotAcceptable      when the negotiated media type cannot be satisfied
+     * @throws ValidationFailed   when the payload fails validation
+     * @throws ServerError        when the server fails
+     * @throws TransportException when no response is received at all
+     */
+    public function artwork(StreamInterface|string|null $body = null): void
+    {
+        $request = Request::post('/albums/' . $this->id . '/-actions/artwork');
+
+        $this->fetcher->send(
+            $body === null ? $request : $request->withRawBody($body, 'application/octet-stream'),
+        );
+    }
+
+    /**
      * Reissue the album.
      *
      * @template TProj of object
@@ -680,31 +705,6 @@ final class AlbumActions
         /** @var AlbumBase&TProj */
         return $context->hydrate($raw, Album::_hydrate(...));
     }
-
-    /**
-     * Upload artwork.
-     *
-     * The action relaxes content-type negotiation and owns the body shape, so the body goes over
-     * the wire verbatim under `application/octet-stream` while the response is still negotiated
-     * as JSON:API.
-     *
-     * @throws BadRequest           when the request is malformed
-     * @throws Unauthorized         when credentials are missing or invalid
-     * @throws Forbidden            when the action is not permitted
-     * @throws NotFound             when no album has this id
-     * @throws UnsupportedMediaType when the `Content-Type` is refused
-     * @throws ValidationFailed     when the payload fails validation
-     * @throws ServerError          when the server fails
-     * @throws TransportException   when no response is received at all
-     */
-    public function artwork(StreamInterface|string|null $body = null): void
-    {
-        $request = Request::post('/albums/' . $this->id . '/-actions/artwork');
-
-        $this->fetcher->send(
-            $body === null ? $request : $request->withRawBody($body, 'application/octet-stream'),
-        );
-    }
 }
 
 /**
@@ -734,6 +734,7 @@ final class AlbumArtistRelation
      * @throws Unauthorized       when credentials are missing or invalid
      * @throws Forbidden          when the read is not permitted
      * @throws NotFound           when no album has this id
+     * @throws NotAcceptable      when the negotiated media type cannot be satisfied
      * @throws ServerError        when the server fails
      * @throws TransportException when no response is received at all
      */
@@ -753,6 +754,7 @@ final class AlbumArtistRelation
      * @throws Unauthorized       when credentials are missing or invalid
      * @throws Forbidden          when the read is not permitted
      * @throws NotFound           when no album has this id
+     * @throws NotAcceptable      when the negotiated media type cannot be satisfied
      * @throws ServerError        when the server fails
      * @throws TransportException when no response is received at all
      */
@@ -767,13 +769,16 @@ final class AlbumArtistRelation
     /**
      * Point the relationship at an artist, or at nothing.
      *
-     * @throws BadRequest         when the document is malformed
-     * @throws Unauthorized       when credentials are missing or invalid
-     * @throws Forbidden          when the write is not permitted
-     * @throws NotFound           when no album has this id
-     * @throws ValidationFailed   when the linkage fails validation
-     * @throws ServerError        when the server fails
-     * @throws TransportException when no response is received at all
+     * @throws BadRequest           when the document is malformed
+     * @throws Unauthorized         when credentials are missing or invalid
+     * @throws Forbidden            when the write is not permitted
+     * @throws NotFound             when no album has this id
+     * @throws NotAcceptable        when the negotiated media type cannot be satisfied
+     * @throws Conflict             when the linkage conflicts with the relationship
+     * @throws UnsupportedMediaType when the `Content-Type` is refused
+     * @throws ValidationFailed     when the linkage fails validation
+     * @throws ServerError          when the server fails
+     * @throws TransportException   when no response is received at all
      */
     public function set(Artist|Identifier|null $target): void
     {
@@ -806,12 +811,15 @@ final class AlbumCollectionActions
      *
      * @return array<string, mixed>
      *
-     * @throws BadRequest         when the request is malformed
-     * @throws Unauthorized       when credentials are missing or invalid
-     * @throws Forbidden          when the action is not permitted
-     * @throws NotAcceptable      when the negotiated media type cannot be satisfied
-     * @throws ServerError        when the server fails
-     * @throws TransportException when no response is received at all
+     * @throws BadRequest           when the request is malformed
+     * @throws Unauthorized         when credentials are missing or invalid
+     * @throws Forbidden            when the action is not permitted
+     * @throws NotFound             when the endpoint does not exist
+     * @throws NotAcceptable        when the negotiated media type cannot be satisfied
+     * @throws UnsupportedMediaType when the `Content-Type` is refused
+     * @throws ValidationFailed     when the payload fails validation
+     * @throws ServerError          when the server fails
+     * @throws TransportException   when no response is received at all
      */
     public function summary(): array
     {
@@ -1213,9 +1221,11 @@ final class AlbumHandle
     }
 
     /**
+     * @throws BadRequest         when the request is malformed
      * @throws Unauthorized       when credentials are missing or invalid
      * @throws Forbidden          when the delete is not permitted
      * @throws NotFound           when no album has this id
+     * @throws NotAcceptable      when the negotiated media type cannot be satisfied
      * @throws ServerError        when the server fails
      * @throws TransportException when no response is received at all
      */
@@ -1652,6 +1662,7 @@ final class AlbumTracksRelation
      * @throws Unauthorized       when credentials are missing or invalid
      * @throws Forbidden          when the read is not permitted
      * @throws NotFound           when no album has this id
+     * @throws NotAcceptable      when the negotiated media type cannot be satisfied
      * @throws ServerError        when the server fails
      * @throws TransportException when no response is received at all
      */
@@ -1675,6 +1686,7 @@ final class AlbumTracksRelation
      * @throws Unauthorized       when credentials are missing or invalid
      * @throws Forbidden          when the read is not permitted
      * @throws NotFound           when no album has this id
+     * @throws NotAcceptable      when the negotiated media type cannot be satisfied
      * @throws ServerError        when the server fails
      * @throws TransportException when no response is received at all
      */
@@ -1688,13 +1700,16 @@ final class AlbumTracksRelation
      *
      * @param list<Identifier|Track> $tracks
      *
-     * @throws BadRequest         when the document is malformed
-     * @throws Unauthorized       when credentials are missing or invalid
-     * @throws Forbidden          when the write is not permitted
-     * @throws NotFound           when no album has this id
-     * @throws ValidationFailed   when the linkage fails validation
-     * @throws ServerError        when the server fails
-     * @throws TransportException when no response is received at all
+     * @throws BadRequest           when the document is malformed
+     * @throws Unauthorized         when credentials are missing or invalid
+     * @throws Forbidden            when the write is not permitted
+     * @throws NotFound             when no album has this id
+     * @throws NotAcceptable        when the negotiated media type cannot be satisfied
+     * @throws Conflict             when the linkage conflicts with the relationship
+     * @throws UnsupportedMediaType when the `Content-Type` is refused
+     * @throws ValidationFailed     when the linkage fails validation
+     * @throws ServerError          when the server fails
+     * @throws TransportException   when no response is received at all
      */
     public function add(array $tracks): void
     {
@@ -1709,13 +1724,16 @@ final class AlbumTracksRelation
      *
      * @param list<Identifier|Track> $tracks
      *
-     * @throws BadRequest         when the document is malformed
-     * @throws Unauthorized       when credentials are missing or invalid
-     * @throws Forbidden          when the write is not permitted
-     * @throws NotFound           when no album has this id
-     * @throws ValidationFailed   when the linkage fails validation
-     * @throws ServerError        when the server fails
-     * @throws TransportException when no response is received at all
+     * @throws BadRequest           when the document is malformed
+     * @throws Unauthorized         when credentials are missing or invalid
+     * @throws Forbidden            when the write is not permitted
+     * @throws NotFound             when no album has this id
+     * @throws NotAcceptable        when the negotiated media type cannot be satisfied
+     * @throws Conflict             when the linkage conflicts with the relationship
+     * @throws UnsupportedMediaType when the `Content-Type` is refused
+     * @throws ValidationFailed     when the linkage fails validation
+     * @throws ServerError          when the server fails
+     * @throws TransportException   when no response is received at all
      */
     public function remove(array $tracks): void
     {
@@ -1730,13 +1748,16 @@ final class AlbumTracksRelation
      *
      * @param list<Identifier|Track> $tracks
      *
-     * @throws BadRequest         when the document is malformed
-     * @throws Unauthorized       when credentials are missing or invalid
-     * @throws Forbidden          when the write is not permitted
-     * @throws NotFound           when no album has this id
-     * @throws ValidationFailed   when the linkage fails validation
-     * @throws ServerError        when the server fails
-     * @throws TransportException when no response is received at all
+     * @throws BadRequest           when the document is malformed
+     * @throws Unauthorized         when credentials are missing or invalid
+     * @throws Forbidden            when the write is not permitted
+     * @throws NotFound             when no album has this id
+     * @throws NotAcceptable        when the negotiated media type cannot be satisfied
+     * @throws Conflict             when the linkage conflicts with the relationship
+     * @throws UnsupportedMediaType when the `Content-Type` is refused
+     * @throws ValidationFailed     when the linkage fails validation
+     * @throws ServerError          when the server fails
+     * @throws TransportException   when no response is received at all
      */
     public function replace(array $tracks): void
     {

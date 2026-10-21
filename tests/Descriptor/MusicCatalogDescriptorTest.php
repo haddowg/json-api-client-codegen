@@ -12,6 +12,7 @@ use haddowg\JsonApiCodegen\Descriptor\Cardinality;
 use haddowg\JsonApiCodegen\Descriptor\ClientIdPolicy;
 use haddowg\JsonApiCodegen\Descriptor\DescriptorBuilder;
 use haddowg\JsonApiCodegen\Descriptor\DescriptorSerializer;
+use haddowg\JsonApiCodegen\Descriptor\ErrorSourceKind;
 use haddowg\JsonApiCodegen\Descriptor\OperationKind;
 use haddowg\JsonApiCodegen\Descriptor\PaginatorKind;
 use haddowg\JsonApiCodegen\Descriptor\RelationVerb;
@@ -437,6 +438,56 @@ final class MusicCatalogDescriptorTest extends TestCase
         self::assertSame(['max', 'min'], \array_keys($rating->properties));
         self::assertSame(['number'], $rating->properties['min']->types);
         self::assertSame('date-time', $filters['releasedAt']->schema?->properties['min']->format);
+    }
+
+    public function testAWriteWhoseResponseCarriesTheResourceDeclaresAProjection(): void
+    {
+        $albums = $this->resource('albums');
+        $tokens = ['artist', 'artist.albums', 'tracks', 'tracks.album', 'tracks.playlists'];
+
+        foreach ([OperationKind::Create, OperationKind::Update] as $kind) {
+            $projection = $albums->operation($kind)?->projection;
+            self::assertNotNull($projection, $kind->value . ' returns the album, so it accepts include and fields');
+            self::assertSame($tokens, $projection->includable);
+            self::assertSame(['albums', 'artists', 'playlists', 'tracks'], \array_keys($projection->fieldsets));
+        }
+
+        self::assertSame($tokens, $albums->actions['reissue']->projection?->includable);
+        self::assertContains('averageRating', $albums->operation(OperationKind::FetchOne)?->projection?->fieldsets['albums'] ?? []);
+    }
+
+    public function testAWriteWithNoResourceInItsResponseDeclaresNoProjection(): void
+    {
+        $albums = $this->resource('albums');
+
+        self::assertNull($albums->operation(OperationKind::Delete)?->projection);
+        self::assertNull($albums->actions['summary']->projection, 'a meta result has no resource to project');
+        self::assertNull($albums->actions['artwork']->projection, 'a 204 has no resource to project');
+        self::assertNull($albums->relation('tracks')?->mutation(RelationVerb::Add)?->projection);
+        self::assertNull($albums->relation('tracks')?->relationshipRead?->projection, 'a linkage read declares no include');
+        self::assertNull($this->resource('catalog-exports')->operation(OperationKind::Create)?->projection, 'a 202 job response is not the resource');
+    }
+
+    public function testTheErrorCatalogueListsEveryCodeWithItsStatusAndSource(): void
+    {
+        $errors = Fixtures::musicCatalogDescriptor()->errors;
+
+        self::assertCount(50, $errors);
+        self::assertSame(\array_keys($errors), (static function (array $codes): array {
+            \sort($codes, \SORT_STRING);
+
+            return $codes;
+        })(\array_keys($errors)));
+
+        $filterValue = Fixtures::musicCatalogDescriptor()->error('FILTER_VALUE_INVALID');
+        self::assertNotNull($filterValue);
+        self::assertSame(400, $filterValue->status);
+        self::assertSame('FilterValueInvalidError', $filterValue->schema);
+        self::assertSame(ErrorSourceKind::Parameter, $filterValue->source);
+
+        self::assertSame(ErrorSourceKind::Pointer, Fixtures::musicCatalogDescriptor()->error('ATTRIBUTE_VALUE_INVALID')?->source);
+        self::assertNull(Fixtures::musicCatalogDescriptor()->error('RESOURCE_NOT_FOUND')?->source);
+        self::assertSame(500, Fixtures::musicCatalogDescriptor()->error('APPLICATION_ERROR')?->status);
     }
 
     public function testActionsCarryTheirInputAndOutputShapes(): void

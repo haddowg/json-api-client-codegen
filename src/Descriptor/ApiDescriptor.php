@@ -9,19 +9,24 @@ namespace haddowg\JsonApiCodegen\Descriptor;
  * every emitter.
  *
  * `$contract` is `info.x-generator.contract` where the document declares it, and null where it
- * does not — no document emits it yet, and the absence is not a failure.
+ * does not. Documents from `json-api` before 1.1.0 carry none, and the absence is not a failure.
+ *
+ * `$errors` is the document's error catalogue. It is open: a code missing from it is still a
+ * valid error and must fall back, never fail.
  */
 final class ApiDescriptor
 {
     /**
      * @param array<string, ResourceDescriptor> $resources keyed and sorted by JSON:API type
      * @param array<string, EnumDescriptor>     $enums     keyed and sorted by component name
+     * @param array<string, ErrorCodeDescriptor> $errors  keyed and sorted by error code
      */
     public function __construct(
         public readonly array $resources,
         public readonly array $enums,
         public readonly ?AtomicDescriptor $atomic,
         public readonly ?int $contract,
+        public readonly array $errors,
     ) {}
 
     public function resource(string $type): ?ResourceDescriptor
@@ -32,5 +37,10 @@ final class ApiDescriptor
     public function enum(string $name): ?EnumDescriptor
     {
         return $this->enums[$name] ?? null;
+    }
+
+    public function error(string $code): ?ErrorCodeDescriptor
+    {
+        return $this->errors[$code] ?? null;
     }
 }

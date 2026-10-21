@@ -13,7 +13,7 @@ namespace haddowg\JsonApiCodegen\Spec;
  * server NEWER than the codegen is not — the new structure goes unread and the client silently
  * comes out missing capabilities the server offers. That is the case the warning exists for.
  *
- * No document emits the field yet, so the common answer is "no signal, proceed".
+ * Documents from `json-api` before 1.1.0 carry no contract, which is "no signal, proceed".
  */
 final class ContractCompatibility
 {
@@ -21,7 +21,7 @@ final class ContractCompatibility
     public const int MINIMUM = 1;
 
     /** Above this the document carries structures this codegen does not read. */
-    public const int MAXIMUM = 1;
+    public const int MAXIMUM = 2;
 
     /**
      * Check a document's declared contract against the supported range.

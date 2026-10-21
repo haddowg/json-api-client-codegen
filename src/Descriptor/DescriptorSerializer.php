@@ -35,6 +35,7 @@ final class DescriptorSerializer
                 'mediaType' => $descriptor->atomic->mediaType,
             ],
             'enums' => \array_map(self::enum(...), $descriptor->enums),
+            'errors' => \array_map(self::error(...), $descriptor->errors),
             'resources' => \array_map(self::resource(...), $descriptor->resources),
         ];
     }
@@ -117,6 +118,7 @@ final class DescriptorSerializer
             'outputType' => $action->outputType,
             'outputCardinality' => $action->outputCardinality?->value,
             'errorStatuses' => $action->errorStatuses,
+            'projection' => self::projection($action->projection),
         ];
     }
 
@@ -145,6 +147,27 @@ final class DescriptorSerializer
             'path' => $operation->path,
             'method' => $operation->method,
             'errorStatuses' => $operation->errorStatuses,
+            'projection' => self::projection($operation->projection),
+        ];
+    }
+
+    /** @return array<string, mixed>|null */
+    private static function projection(?ProjectionDescriptor $projection): ?array
+    {
+        return $projection === null ? null : [
+            'includable' => $projection->includable,
+            'fieldsets' => $projection->fieldsets,
+        ];
+    }
+
+    /** @return array<string, mixed> */
+    private static function error(ErrorCodeDescriptor $error): array
+    {
+        return [
+            'status' => $error->status,
+            'schema' => $error->schema,
+            'title' => $error->title,
+            'source' => $error->source?->value,
         ];
     }
 

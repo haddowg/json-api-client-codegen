@@ -18,5 +18,6 @@ final class OperationDescriptor
         public readonly string $path,
         public readonly string $method,
         public readonly array $errorStatuses,
+        public readonly ?ProjectionDescriptor $projection,
     ) {}
 }

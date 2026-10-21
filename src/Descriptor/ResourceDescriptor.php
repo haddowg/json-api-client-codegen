@@ -8,7 +8,8 @@ namespace haddowg\JsonApiCodegen\Descriptor;
  * Everything the emitters need about one resource type.
  *
  * The maps are keyed and sorted by name so a regeneration diff shows only what genuinely
- * changed.
+ * changed. `$filterable` is the exception: like `$includable` and `$sortable` it keeps the
+ * document's order, which is stable across regenerations too.
  */
 final class ResourceDescriptor
 {
@@ -20,7 +21,7 @@ final class ResourceDescriptor
      * @param array<string, OperationDescriptor> $operations keyed by {@see OperationKind} value
      * @param list<string>                       $includable relation paths accepted in `include`, nested ones among them
      * @param list<string>                       $sortable   signed sort tokens, both directions
-     * @param array<string, FilterDescriptor>    $filterable
+     * @param array<string, FilterDescriptor>    $filterable in document order
      * @param array<string, ActionDescriptor>    $actions
      * @param list<string>                       $createRelations relations the create document accepts, in document order
      * @param list<string>                       $updateRelations relations the update document accepts, in document order

@@ -462,7 +462,7 @@ final class MusicCatalogDescriptorTest extends TestCase
     {
         $filters = $this->resource('albums')->filterable;
 
-        self::assertSame(['artist.name', 'q', 'rating', 'releasedAt', 'title', 'tracks'], \array_keys($filters));
+        self::assertSame(['tracks', 'artist.name', 'title', 'rating', 'releasedAt', 'q'], \array_keys($filters), 'filters keep document order');
         self::assertSame(['string'], $filters['title']->schema?->types);
         self::assertSame(['string'], $filters['artist.name']->schema?->types);
 

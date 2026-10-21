@@ -785,7 +785,14 @@ final class DescriptorBuilder
         return $out;
     }
 
-    /** @return array<string, FilterDescriptor> */
+    /**
+     * The `filter[…]` keys a collection read accepts, in the order the document declares them.
+     *
+     * Document order rather than sorted, like `include` and `sort`: it is the order the server
+     * declared its filters in, so generated filter methods and shapes read the way the API does.
+     *
+     * @return array<string, FilterDescriptor>
+     */
     private function filterable(?Node $operation): array
     {
         if ($operation === null) {
@@ -805,7 +812,6 @@ final class DescriptorBuilder
                 $schema === null || $schema->members() === [] ? null : $this->valueSchema($schema),
             );
         }
-        \ksort($out, \SORT_STRING);
 
         return $out;
     }

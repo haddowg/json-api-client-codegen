@@ -7,8 +7,9 @@ namespace haddowg\JsonApiCodegen\Descriptor;
 /**
  * Renders a descriptor to JSON, deterministically.
  *
- * Maps arrive from the builder already sorted by key and every value object is written in a
- * fixed member order, so the same document always produces byte-identical output. That is what
+ * Maps arrive from the builder already ordered (sorted by key, or in document order for filters)
+ * and every value object is written in a fixed member order, so the same document always
+ * produces byte-identical output. That is what
  * makes the golden file a review artifact: a diff is a change in what the codegen understood,
  * never a reordering.
  *

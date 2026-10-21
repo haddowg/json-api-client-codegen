@@ -52,7 +52,7 @@ final class MusicCatalogDescriptorTest extends TestCase
         self::assertSame([
             'albums', 'artists', 'catalog-exports', 'charts', 'countries', 'devices',
             'export-jobs', 'favorites', 'genres', 'libraries', 'playlists', 'products',
-            'public-profiles', 'releases', 'tracks', 'users',
+            'public-profiles', 'releases', 'tracks',
         ], \array_keys(Fixtures::musicCatalogDescriptor()->resources));
     }
 
@@ -289,6 +289,19 @@ final class MusicCatalogDescriptorTest extends TestCase
         self::assertSame('/albums/{id}/relationships/tracks', $tracks->relationshipRead->path);
     }
 
+    public function testASuppressedRelatedReadLeavesTheLinkageReadInPlace(): void
+    {
+        // The owner is a `users` resource, which the default server does not register, so it
+        // offers the linkage but no related endpoint.
+        $owner = $this->resource('playlists')->relation('owner');
+        self::assertNotNull($owner);
+
+        self::assertNull($owner->relatedRead);
+        self::assertFalse($owner->related());
+        self::assertNotNull($owner->relationshipRead);
+        self::assertSame('/playlists/{id}/relationships/owner', $owner->relationshipRead->path);
+    }
+
     public function testTheTypeLevelRelationTemplateUnionsWhatTheByNameDoorCouldHit(): void
     {
         $related = $this->resource('albums')->operation(OperationKind::FetchRelated);
@@ -410,13 +423,13 @@ final class MusicCatalogDescriptorTest extends TestCase
         self::assertSame(['title', '-title', 'releasedAt', '-releasedAt', 'status', '-status'], $albums->sortable);
     }
 
-    public function testAFilterWithAnEmptySchemaIsModelledAsUnknown(): void
+    public function testFilterValueSchemasAreReadFromTheDocument(): void
     {
         $filters = $this->resource('albums')->filterable;
 
         self::assertSame(['artist.name', 'q', 'rating', 'releasedAt', 'title', 'tracks'], \array_keys($filters));
-        self::assertNull($filters['title']->schema, 'an empty schema means the value type is unknown, not string');
-        self::assertNull($filters['artist.name']->schema);
+        self::assertSame(['string'], $filters['title']->schema?->types);
+        self::assertSame(['string'], $filters['artist.name']->schema?->types);
 
         $rating = $filters['rating']->schema;
         self::assertNotNull($rating);
@@ -454,15 +467,6 @@ final class MusicCatalogDescriptorTest extends TestCase
         self::assertNotNull($atomic);
         self::assertSame('/operations', $atomic->path);
         self::assertStringContainsString('ext="https://jsonapi.org/ext/atomic"', $atomic->mediaType);
-    }
-
-    public function testATypeWithNoEndpointsCarriesNoOperations(): void
-    {
-        $users = $this->resource('users');
-
-        self::assertSame([], $users->operations);
-        self::assertSame([], $users->attributes);
-        self::assertSame(PaginatorKind::None, $users->paginator->kind);
     }
 
     private function resource(string $type): ResourceDescriptor

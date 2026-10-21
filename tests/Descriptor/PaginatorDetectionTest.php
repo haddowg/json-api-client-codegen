@@ -14,9 +14,9 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 /**
- * The music-catalog fixture only exercises page pagination, in the flattened `page[number]` form
- * an older projector emitted. Every other strategy — and the object-parameter form the current
- * projector emits — is pinned here against hand-built documents.
+ * The music-catalog fixture only exercises page pagination, in the `page` object parameter the
+ * current projector emits. Every other strategy, and the flattened `page[number]` form older
+ * projectors emitted, is pinned here against hand-built documents.
  */
 #[CoversClass(DescriptorBuilder::class)]
 #[CoversClass(PaginatorDescriptor::class)]

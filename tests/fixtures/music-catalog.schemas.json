@@ -791,7 +791,7 @@
                             "string",
                             "null"
                         ],
-                        "format": "time"
+                        "description": "A date/time value written as `09:08:07`. No standard `format` keyword describes that shape, so parse it literally rather than as an RFC 3339 date-time."
                     },
                     "displayTitle": {
                         "type": "string"

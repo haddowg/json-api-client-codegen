@@ -67,6 +67,7 @@ final class DescriptorBuilder
             $this->enums(),
             $this->atomic(),
             $this->document->contract(),
+            $this->errorCodes(),
         );
     }
 
@@ -673,6 +674,77 @@ final class DescriptorBuilder
         return [];
     }
 
+    /**
+     * The `include` paths and `fields[TYPE]` members an operation declares, or null when it
+     * declares neither and so accepts no projection.
+     */
+    private function projection(Node $operation): ?ProjectionDescriptor
+    {
+        $includable = null;
+        $fieldsets = [];
+
+        foreach ($operation->find('parameters')?->items() ?? [] as $parameter) {
+            $name = $parameter->find('name')?->string();
+            if ($name === 'include') {
+                $includable = $parameter->path('schema', 'items', 'enum')?->strings() ?? [];
+            } elseif ($name !== null && \str_starts_with($name, 'fields[') && \str_ends_with($name, ']')) {
+                $fieldsets[\substr($name, \strlen('fields['), -1)] = $parameter->path('schema', 'items', 'enum')?->strings() ?? [];
+            }
+        }
+
+        if ($includable === null && $fieldsets === []) {
+            return null;
+        }
+        \ksort($fieldsets, \SORT_STRING);
+
+        return new ProjectionDescriptor($includable ?? [], $fieldsets);
+    }
+
+    /**
+     * The error catalogue: every `<Name>Error` schema, each narrowing `code` and `status` to a
+     * constant over the open `Error`. A variant that narrows neither is a malformed catalogue and
+     * fails on its own pointer rather than being skipped.
+     *
+     * @return array<string, ErrorCodeDescriptor> keyed and sorted by code
+     */
+    private function errorCodes(): array
+    {
+        $out = [];
+
+        foreach ($this->document->schemas() as $name => $schema) {
+            $name = (string) $name;
+            if ($name === 'Error' || !\str_ends_with($name, 'Error')) {
+                continue;
+            }
+
+            $narrowing = null;
+            foreach ($schema->find('allOf')?->items() ?? [] as $part) {
+                if ($part->find('properties') !== null) {
+                    $narrowing = $part->get('properties');
+                }
+            }
+            $narrowing ??= $schema->get('properties');
+
+            $code = $narrowing->get('code')->get('const')->string();
+            $required = $narrowing->path('source', 'required')?->strings() ?? [];
+
+            $out[$code] = new ErrorCodeDescriptor(
+                $code,
+                (int) $narrowing->get('status')->get('const')->string(),
+                $name,
+                $schema->find('title')?->string() ?? $code,
+                match (true) {
+                    \in_array('pointer', $required, true) => ErrorSourceKind::Pointer,
+                    \in_array('parameter', $required, true) => ErrorSourceKind::Parameter,
+                    default => null,
+                },
+            );
+        }
+        \ksort($out, \SORT_STRING);
+
+        return $out;
+    }
+
     /** @return array<string, FilterDescriptor> */
     private function filterable(?Node $operation): array
     {
@@ -790,11 +862,11 @@ final class DescriptorBuilder
 
         $related = $this->relationReadStatuses($collection, false);
         if ($related !== null) {
-            $out[OperationKind::FetchRelated->value] = new OperationDescriptor($collection . '/{id}/{rel}', 'GET', $related);
+            $out[OperationKind::FetchRelated->value] = new OperationDescriptor($collection . '/{id}/{rel}', 'GET', $related, null);
         }
         $relationship = $this->relationReadStatuses($collection, true);
         if ($relationship !== null) {
-            $out[OperationKind::FetchRelationship->value] = new OperationDescriptor($collection . '/{id}/relationships/{rel}', 'GET', $relationship);
+            $out[OperationKind::FetchRelationship->value] = new OperationDescriptor($collection . '/{id}/relationships/{rel}', 'GET', $relationship, null);
         }
         \ksort($out, \SORT_STRING);
 
@@ -819,7 +891,7 @@ final class DescriptorBuilder
 
         return $operation === null
             ? null
-            : new OperationDescriptor($path, \strtoupper($method), $this->errorStatuses($operation));
+            : new OperationDescriptor($path, \strtoupper($method), $this->errorStatuses($operation), $this->projection($operation));
     }
 
     /**
@@ -948,6 +1020,7 @@ final class DescriptorBuilder
             $returned === null ? null : $returned['cardinality'],
             $contentType,
             $this->errorStatuses($operation),
+            $this->projection($operation),
         );
     }
 

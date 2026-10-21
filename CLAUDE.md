@@ -61,11 +61,23 @@ the projector whenever the emitted structure changes. This codegen declares a su
 this is the only thing that catches it. A feature-token list was rejected: it names what
 changed, at the cost of two hand-maintained lists that must agree.
 
+The supported range is `[1, 2]`. Contract 2 (json-api 1.1.0) added the error catalogue, shared
+error responses and write-side `include`/`fields`; the descriptor reads the first into `errors`,
+and the last into each operation's `projection`. Raise `MAXIMUM` only in the change that teaches
+the descriptor to read whatever the next contract adds.
+
 ## Emitter discipline
 
-- **Output is one class per file, PSR-4, and committed to the consuming repo.** A 13-type API
-  yields roughly 114 classes. Emission is sorted and stable so a regeneration diff contains only
-  genuinely changed classes.
+- **Output is one file per resource type plus a generated class map, committed to the consuming
+  repo.** Files are named `resource-<type>.php` (a hyphen no class name can contain, so nothing
+  collides on a case-insensitive filesystem), alongside `enums.php`, `client.php` and the
+  `autoload.php` map the consumer registers through `autoload.files`. The 1.1.0 music-catalog
+  document's default server is about 170 classes in about 19 files. Emission is sorted and stable
+  so a regeneration diff contains only genuinely changed types. See ADR 0004 in the runtime repo,
+  and its `tests/Generated/MusicCatalog` artefact for the exact shape.
+- **Core's error codes are not emitted.** The runtime ships a class per code in core's catalogue
+  (runtime ADR 0005). Emit a code class only for a code in the descriptor's `errors` that the
+  installed runtime's `ErrorCodes::MAP` lacks.
 - **Generate exactly what the contract permits.** An absent capability is an absent method, not
   a runtime guard. This is the rule the whole design rests on, and it means an emitter bug
   produces a wrong API surface rather than a wrong value.

@@ -26,5 +26,6 @@ final class ActionDescriptor
         public readonly ?Cardinality $outputCardinality,
         public readonly ?string $contentType,
         public readonly array $errorStatuses,
+        public readonly ?ProjectionDescriptor $projection,
     ) {}
 }

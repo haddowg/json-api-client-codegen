@@ -19,15 +19,10 @@ final class ContractCompatibilityTest extends TestCase
         self::assertNull(ContractCompatibility::check(null));
     }
 
-    public function testTheMusicCatalogContractIsNewerThanThisCodegenReads(): void
+    public function testTheMusicCatalogContractIsOneThisCodegenReads(): void
     {
-        // Contract 2 added the error catalogue, shared error responses and write-side
-        // include/fields. The codegen reads none of them yet, so the warning is the honest result
-        // until it does and MAXIMUM rises.
-        $warning = ContractCompatibility::check(Fixtures::musicCatalog()->contract());
-
-        self::assertNotNull($warning);
-        self::assertStringContainsString('contract 2', $warning);
+        self::assertSame(2, Fixtures::musicCatalog()->contract());
+        self::assertNull(ContractCompatibility::check(Fixtures::musicCatalog()->contract()));
     }
 
     public function testASupportedContractSaysNothing(): void

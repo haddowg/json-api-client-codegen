@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace haddowg\JsonApiCodegen\Tests\Descriptor;
 
 use haddowg\JsonApiCodegen\Descriptor\DescriptorBuilder;
+use haddowg\JsonApiCodegen\Descriptor\OperationKind;
 use haddowg\JsonApiCodegen\Descriptor\PaginatorKind;
 use haddowg\JsonApiCodegen\Descriptor\ResourceDescriptor;
 use haddowg\JsonApiCodegen\Spec\SpecDocument;
+use haddowg\JsonApiCodegen\Spec\SpecException;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
@@ -55,6 +57,38 @@ final class OlderDocumentShapesTest extends TestCase
         self::assertSame([], $users->operations);
         self::assertSame([], $users->attributes);
         self::assertSame(PaginatorKind::None, $users->paginator->kind);
+    }
+
+    public function testAnOperationDeclaringNeitherIncludeNorFieldsHasNoProjection(): void
+    {
+        $things = self::things([['name' => 'filter[title]', 'in' => 'query', 'schema' => ['type' => 'string']]]);
+
+        self::assertNull($things->operation(OperationKind::FetchMany)?->projection);
+    }
+
+    public function testADocumentWithoutAnErrorCatalogueHasNoCodes(): void
+    {
+        $document = SpecDocument::fromDecoded([
+            'openapi' => '3.1.0',
+            'components' => ['schemas' => ['Error' => ['type' => 'object']]],
+            'paths' => [],
+        ]);
+
+        self::assertSame([], DescriptorBuilder::build($document)->errors);
+    }
+
+    public function testACatalogueVariantThatNarrowsNoCodeNamesItsPointer(): void
+    {
+        $document = SpecDocument::fromDecoded([
+            'openapi' => '3.1.0',
+            'components' => ['schemas' => ['BrokenError' => ['allOf' => [['$ref' => '#/components/schemas/Error'], ['properties' => ['status' => ['const' => '400']]]]]]],
+            'paths' => [],
+        ]);
+
+        $this->expectException(SpecException::class);
+        $this->expectExceptionMessage('components.schemas.BrokenError.allOf.1.properties');
+
+        DescriptorBuilder::build($document);
     }
 
     /**

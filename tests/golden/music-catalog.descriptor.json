@@ -27,6 +27,308 @@
             ]
         }
     },
+    "errors": {
+        "ADDITION_PROHIBITED": {
+            "status": 403,
+            "schema": "AdditionProhibitedError",
+            "title": "Addition is prohibited",
+            "source": "pointer"
+        },
+        "APPLICATION_ERROR": {
+            "status": 500,
+            "schema": "ApplicationError",
+            "title": "Application error",
+            "source": null
+        },
+        "ATOMIC_OPERATIONS_INVALID": {
+            "status": 400,
+            "schema": "AtomicOperationsInvalidError",
+            "title": "Atomic operations request is invalid",
+            "source": "pointer"
+        },
+        "ATTRIBUTE_VALUE_INVALID": {
+            "status": 422,
+            "schema": "AttributeValueInvalidError",
+            "title": "Attribute value is invalid",
+            "source": "pointer"
+        },
+        "CLIENT_GENERATED_ID_ALREADY_EXISTS": {
+            "status": 409,
+            "schema": "ClientGeneratedIdAlreadyExistsError",
+            "title": "Client generated ID already exists",
+            "source": "pointer"
+        },
+        "CLIENT_GENERATED_ID_NOT_SUPPORTED": {
+            "status": 403,
+            "schema": "ClientGeneratedIdNotSupportedError",
+            "title": "Client generated ID is not supported",
+            "source": "pointer"
+        },
+        "CLIENT_GENERATED_ID_REQUIRED": {
+            "status": 403,
+            "schema": "ClientGeneratedIdRequiredError",
+            "title": "Required client generated ID",
+            "source": "pointer"
+        },
+        "DATA_MEMBER_MISSING": {
+            "status": 400,
+            "schema": "DataMemberMissingError",
+            "title": "Missing `data` member at the document's top level",
+            "source": null
+        },
+        "FIELDSET_MEMBER_UNRECOGNIZED": {
+            "status": 400,
+            "schema": "FieldsetMemberUnrecognizedError",
+            "title": "Fieldset member is unrecognized",
+            "source": "parameter"
+        },
+        "FILTERING_UNRECOGNIZED": {
+            "status": 400,
+            "schema": "FilteringUnrecognizedError",
+            "title": "Filtering parameter is unrecognized",
+            "source": "parameter"
+        },
+        "FILTER_VALUE_INVALID": {
+            "status": 400,
+            "schema": "FilterValueInvalidError",
+            "title": "Filter value is invalid",
+            "source": "parameter"
+        },
+        "FULL_REPLACEMENT_PROHIBITED": {
+            "status": 403,
+            "schema": "FullReplacementProhibitedError",
+            "title": "Full replacement is prohibited",
+            "source": "pointer"
+        },
+        "INCLUSION_DEPTH_EXCEEDED": {
+            "status": 400,
+            "schema": "InclusionDepthExceededError",
+            "title": "Inclusion depth exceeded",
+            "source": "parameter"
+        },
+        "INCLUSION_NOT_ALLOWED": {
+            "status": 400,
+            "schema": "InclusionNotAllowedError",
+            "title": "Inclusion is not allowed",
+            "source": "parameter"
+        },
+        "INCLUSION_UNRECOGNIZED": {
+            "status": 400,
+            "schema": "InclusionUnrecognizedError",
+            "title": "Inclusion is unrecognized",
+            "source": "parameter"
+        },
+        "INCLUSION_UNSUPPORTED": {
+            "status": 400,
+            "schema": "InclusionUnsupportedError",
+            "title": "Inclusion is unsupported",
+            "source": "parameter"
+        },
+        "LOCAL_ID_CONFLICT": {
+            "status": 400,
+            "schema": "LocalIdConflictError",
+            "title": "Local id conflict",
+            "source": null
+        },
+        "LOCAL_ID_NOT_FOUND": {
+            "status": 400,
+            "schema": "LocalIdNotFoundError",
+            "title": "Local id not found",
+            "source": null
+        },
+        "LOCAL_ID_NOT_SUPPORTED": {
+            "status": 400,
+            "schema": "LocalIdNotSupportedError",
+            "title": "Local id is not supported",
+            "source": "pointer"
+        },
+        "MEDIA_TYPE_UNACCEPTABLE": {
+            "status": 406,
+            "schema": "MediaTypeUnacceptableError",
+            "title": "The provided media type is unacceptable",
+            "source": "parameter"
+        },
+        "MEDIA_TYPE_UNSUPPORTED": {
+            "status": 415,
+            "schema": "MediaTypeUnsupportedError",
+            "title": "The provided media type is unsupported",
+            "source": "parameter"
+        },
+        "NO_RESOURCE_REGISTERED": {
+            "status": 500,
+            "schema": "NoResourceRegisteredError",
+            "title": "No resource registered",
+            "source": null
+        },
+        "QUERY_PARAM_MALFORMED": {
+            "status": 400,
+            "schema": "QueryParamMalformedError",
+            "title": "Query parameter is malformed",
+            "source": "parameter"
+        },
+        "QUERY_PARAM_UNRECOGNIZED": {
+            "status": 400,
+            "schema": "QueryParamUnrecognizedError",
+            "title": "Query parameter is unrecognized",
+            "source": "parameter"
+        },
+        "RELATED_ATTRIBUTE_OWNER_MISSING": {
+            "status": 422,
+            "schema": "RelatedAttributeOwnerMissingError",
+            "title": "Related attribute owner missing",
+            "source": "pointer"
+        },
+        "RELATIONSHIP_COUNT_NOT_ALLOWED": {
+            "status": 400,
+            "schema": "RelationshipCountNotAllowedError",
+            "title": "Relationship count is not allowed",
+            "source": "parameter"
+        },
+        "RELATIONSHIP_NOT_EXISTS": {
+            "status": 404,
+            "schema": "RelationshipNotExistsError",
+            "title": "The requested relationship does not exist!",
+            "source": null
+        },
+        "RELATIONSHIP_TYPE_INAPPROPRIATE": {
+            "status": 400,
+            "schema": "RelationshipTypeInappropriateError",
+            "title": "Relationship type is inappropriate",
+            "source": "pointer"
+        },
+        "REMOVAL_PROHIBITED": {
+            "status": 403,
+            "schema": "RemovalProhibitedError",
+            "title": "Removal is prohibited",
+            "source": "pointer"
+        },
+        "REQUEST_BODY_INVALID_JSON": {
+            "status": 400,
+            "schema": "RequestBodyInvalidJsonError",
+            "title": "Request body is an invalid JSON document",
+            "source": null
+        },
+        "REQUEST_BODY_INVALID_JSON_API": {
+            "status": 400,
+            "schema": "RequestBodyInvalidJsonApiError",
+            "title": "Request body is an invalid JSON:API document",
+            "source": null
+        },
+        "REQUIRED_TOP_LEVEL_MEMBERS_MISSING": {
+            "status": 400,
+            "schema": "RequiredTopLevelMembersMissingError",
+            "title": "Required top-level members are missing",
+            "source": null
+        },
+        "RESOURCE_IDENTIFIER_ID_INVALID": {
+            "status": 400,
+            "schema": "ResourceIdentifierIdInvalidError",
+            "title": "Resource identifier ID is invalid",
+            "source": null
+        },
+        "RESOURCE_IDENTIFIER_ID_MISSING": {
+            "status": 400,
+            "schema": "ResourceIdentifierIdMissingError",
+            "title": "An ID for the resource identifier is missing",
+            "source": null
+        },
+        "RESOURCE_IDENTIFIER_LID_INVALID": {
+            "status": 400,
+            "schema": "ResourceIdentifierLidInvalidError",
+            "title": "Resource identifier local ID is invalid",
+            "source": null
+        },
+        "RESOURCE_IDENTIFIER_TYPE_INVALID": {
+            "status": 400,
+            "schema": "ResourceIdentifierTypeInvalidError",
+            "title": "Resource identifier type is invalid",
+            "source": null
+        },
+        "RESOURCE_IDENTIFIER_TYPE_MISSING": {
+            "status": 400,
+            "schema": "ResourceIdentifierTypeMissingError",
+            "title": "A type for the resource identifier is missing",
+            "source": null
+        },
+        "RESOURCE_ID_CONFLICT": {
+            "status": 409,
+            "schema": "ResourceIdConflictError",
+            "title": "Resource id conflict",
+            "source": "pointer"
+        },
+        "RESOURCE_ID_INVALID": {
+            "status": 400,
+            "schema": "ResourceIdInvalidError",
+            "title": "Resource ID is invalid",
+            "source": "pointer"
+        },
+        "RESOURCE_ID_MISSING": {
+            "status": 400,
+            "schema": "ResourceIdMissingError",
+            "title": "Resource ID is missing",
+            "source": "pointer"
+        },
+        "RESOURCE_ID_UNDECODABLE": {
+            "status": 422,
+            "schema": "ResourceIdUndecodableError",
+            "title": "Resource ID is undecodable",
+            "source": "pointer"
+        },
+        "RESOURCE_NOT_FOUND": {
+            "status": 404,
+            "schema": "ResourceNotFoundError",
+            "title": "Resource not found",
+            "source": null
+        },
+        "RESOURCE_TYPE_MISSING": {
+            "status": 400,
+            "schema": "ResourceTypeMissingError",
+            "title": "Resource type is missing",
+            "source": "pointer"
+        },
+        "RESOURCE_TYPE_UNACCEPTABLE": {
+            "status": 409,
+            "schema": "ResourceTypeUnacceptableError",
+            "title": "Resource type is unacceptable",
+            "source": "pointer"
+        },
+        "RESPONSE_BODY_INVALID_JSON": {
+            "status": 500,
+            "schema": "ResponseBodyInvalidJsonError",
+            "title": "Response body is an invalid JSON document",
+            "source": null
+        },
+        "RESPONSE_BODY_INVALID_JSON_API": {
+            "status": 500,
+            "schema": "ResponseBodyInvalidJsonApiError",
+            "title": "Response body is an invalid JSON:API document",
+            "source": null
+        },
+        "SORTING_UNRECOGNIZED": {
+            "status": 400,
+            "schema": "SortingUnrecognizedError",
+            "title": "Sorting parameter is unrecognized",
+            "source": "parameter"
+        },
+        "SORTING_UNSUPPORTED": {
+            "status": 400,
+            "schema": "SortingUnsupportedError",
+            "title": "Sorting is unsupported",
+            "source": "parameter"
+        },
+        "TOP_LEVEL_MEMBERS_INCOMPATIBLE": {
+            "status": 400,
+            "schema": "TopLevelMembersIncompatibleError",
+            "title": "Top-level members are incompatible",
+            "source": null
+        },
+        "TOP_LEVEL_MEMBER_NOT_ALLOWED": {
+            "status": 400,
+            "schema": "TopLevelMemberNotAllowedError",
+            "title": "Top-level member is not allowed",
+            "source": null
+        }
+    },
     "resources": {
         "albums": {
             "type": "albums",
@@ -347,7 +649,49 @@
                             404,
                             406,
                             500
-                        ]
+                        ],
+                        "projection": {
+                            "includable": [
+                                "albums",
+                                "albums.artist",
+                                "albums.tracks"
+                            ],
+                            "fieldsets": {
+                                "albums": [
+                                    "title",
+                                    "averageRating",
+                                    "artwork",
+                                    "releasedAt",
+                                    "explicit",
+                                    "status",
+                                    "availableFrom",
+                                    "availableUntil",
+                                    "releaseInfo",
+                                    "artist",
+                                    "tracks"
+                                ],
+                                "artists": [
+                                    "name",
+                                    "slug",
+                                    "website",
+                                    "bio",
+                                    "trackCount",
+                                    "createdAt",
+                                    "albums"
+                                ],
+                                "tracks": [
+                                    "title",
+                                    "trackNumber",
+                                    "durationSeconds",
+                                    "explicit",
+                                    "genres",
+                                    "previewOffset",
+                                    "displayTitle",
+                                    "album",
+                                    "playlists"
+                                ]
+                            }
+                        }
                     },
                     "relationship": {
                         "path": "/albums/{id}/relationships/artist",
@@ -359,7 +703,8 @@
                             404,
                             406,
                             500
-                        ]
+                        ],
+                        "projection": null
                     },
                     "mutations": {
                         "set": {
@@ -375,7 +720,8 @@
                                 415,
                                 422,
                                 500
-                            ]
+                            ],
+                            "projection": null
                         }
                     },
                     "paginator": null,
@@ -398,7 +744,66 @@
                             404,
                             406,
                             500
-                        ]
+                        ],
+                        "projection": {
+                            "includable": [
+                                "album",
+                                "album.artist",
+                                "album.tracks",
+                                "playlists",
+                                "playlists.publicOwner",
+                                "playlists.tracks",
+                                "playlists.orderedTracks"
+                            ],
+                            "fieldsets": {
+                                "albums": [
+                                    "title",
+                                    "averageRating",
+                                    "artwork",
+                                    "releasedAt",
+                                    "explicit",
+                                    "status",
+                                    "availableFrom",
+                                    "availableUntil",
+                                    "releaseInfo",
+                                    "artist",
+                                    "tracks"
+                                ],
+                                "artists": [
+                                    "name",
+                                    "slug",
+                                    "website",
+                                    "bio",
+                                    "trackCount",
+                                    "createdAt",
+                                    "albums"
+                                ],
+                                "playlists": [
+                                    "title",
+                                    "slug",
+                                    "public",
+                                    "externalId",
+                                    "owner",
+                                    "publicOwner",
+                                    "tracks",
+                                    "orderedTracks"
+                                ],
+                                "public-profiles": [
+                                    "displayName"
+                                ],
+                                "tracks": [
+                                    "title",
+                                    "trackNumber",
+                                    "durationSeconds",
+                                    "explicit",
+                                    "genres",
+                                    "previewOffset",
+                                    "displayTitle",
+                                    "album",
+                                    "playlists"
+                                ]
+                            }
+                        }
                     },
                     "relationship": {
                         "path": "/albums/{id}/relationships/tracks",
@@ -410,7 +815,8 @@
                             404,
                             406,
                             500
-                        ]
+                        ],
+                        "projection": null
                     },
                     "mutations": {
                         "add": {
@@ -426,7 +832,8 @@
                                 415,
                                 422,
                                 500
-                            ]
+                            ],
+                            "projection": null
                         },
                         "remove": {
                             "path": "/albums/{id}/relationships/tracks",
@@ -441,7 +848,8 @@
                                 415,
                                 422,
                                 500
-                            ]
+                            ],
+                            "projection": null
                         },
                         "replace": {
                             "path": "/albums/{id}/relationships/tracks",
@@ -456,7 +864,8 @@
                                 415,
                                 422,
                                 500
-                            ]
+                            ],
+                            "projection": null
                         }
                     },
                     "paginator": null,
@@ -485,7 +894,61 @@
                         415,
                         422,
                         500
-                    ]
+                    ],
+                    "projection": {
+                        "includable": [
+                            "artist",
+                            "artist.albums",
+                            "tracks",
+                            "tracks.album",
+                            "tracks.playlists"
+                        ],
+                        "fieldsets": {
+                            "albums": [
+                                "title",
+                                "averageRating",
+                                "artwork",
+                                "releasedAt",
+                                "explicit",
+                                "status",
+                                "availableFrom",
+                                "availableUntil",
+                                "releaseInfo",
+                                "artist",
+                                "tracks"
+                            ],
+                            "artists": [
+                                "name",
+                                "slug",
+                                "website",
+                                "bio",
+                                "trackCount",
+                                "createdAt",
+                                "albums"
+                            ],
+                            "playlists": [
+                                "title",
+                                "slug",
+                                "public",
+                                "externalId",
+                                "owner",
+                                "publicOwner",
+                                "tracks",
+                                "orderedTracks"
+                            ],
+                            "tracks": [
+                                "title",
+                                "trackNumber",
+                                "durationSeconds",
+                                "explicit",
+                                "genres",
+                                "previewOffset",
+                                "displayTitle",
+                                "album",
+                                "playlists"
+                            ]
+                        }
+                    }
                 },
                 "delete": {
                     "path": "/albums/{id}",
@@ -497,7 +960,8 @@
                         404,
                         406,
                         500
-                    ]
+                    ],
+                    "projection": null
                 },
                 "fetchMany": {
                     "path": "/albums",
@@ -508,7 +972,61 @@
                         403,
                         406,
                         500
-                    ]
+                    ],
+                    "projection": {
+                        "includable": [
+                            "artist",
+                            "artist.albums",
+                            "tracks",
+                            "tracks.album",
+                            "tracks.playlists"
+                        ],
+                        "fieldsets": {
+                            "albums": [
+                                "title",
+                                "averageRating",
+                                "artwork",
+                                "releasedAt",
+                                "explicit",
+                                "status",
+                                "availableFrom",
+                                "availableUntil",
+                                "releaseInfo",
+                                "artist",
+                                "tracks"
+                            ],
+                            "artists": [
+                                "name",
+                                "slug",
+                                "website",
+                                "bio",
+                                "trackCount",
+                                "createdAt",
+                                "albums"
+                            ],
+                            "playlists": [
+                                "title",
+                                "slug",
+                                "public",
+                                "externalId",
+                                "owner",
+                                "publicOwner",
+                                "tracks",
+                                "orderedTracks"
+                            ],
+                            "tracks": [
+                                "title",
+                                "trackNumber",
+                                "durationSeconds",
+                                "explicit",
+                                "genres",
+                                "previewOffset",
+                                "displayTitle",
+                                "album",
+                                "playlists"
+                            ]
+                        }
+                    }
                 },
                 "fetchOne": {
                     "path": "/albums/{id}",
@@ -520,7 +1038,61 @@
                         404,
                         406,
                         500
-                    ]
+                    ],
+                    "projection": {
+                        "includable": [
+                            "artist",
+                            "artist.albums",
+                            "tracks",
+                            "tracks.album",
+                            "tracks.playlists"
+                        ],
+                        "fieldsets": {
+                            "albums": [
+                                "title",
+                                "averageRating",
+                                "artwork",
+                                "releasedAt",
+                                "explicit",
+                                "status",
+                                "availableFrom",
+                                "availableUntil",
+                                "releaseInfo",
+                                "artist",
+                                "tracks"
+                            ],
+                            "artists": [
+                                "name",
+                                "slug",
+                                "website",
+                                "bio",
+                                "trackCount",
+                                "createdAt",
+                                "albums"
+                            ],
+                            "playlists": [
+                                "title",
+                                "slug",
+                                "public",
+                                "externalId",
+                                "owner",
+                                "publicOwner",
+                                "tracks",
+                                "orderedTracks"
+                            ],
+                            "tracks": [
+                                "title",
+                                "trackNumber",
+                                "durationSeconds",
+                                "explicit",
+                                "genres",
+                                "previewOffset",
+                                "displayTitle",
+                                "album",
+                                "playlists"
+                            ]
+                        }
+                    }
                 },
                 "fetchRelated": {
                     "path": "/albums/{id}/{rel}",
@@ -532,7 +1104,8 @@
                         404,
                         406,
                         500
-                    ]
+                    ],
+                    "projection": null
                 },
                 "fetchRelationship": {
                     "path": "/albums/{id}/relationships/{rel}",
@@ -544,7 +1117,8 @@
                         404,
                         406,
                         500
-                    ]
+                    ],
+                    "projection": null
                 },
                 "update": {
                     "path": "/albums/{id}",
@@ -559,7 +1133,61 @@
                         415,
                         422,
                         500
-                    ]
+                    ],
+                    "projection": {
+                        "includable": [
+                            "artist",
+                            "artist.albums",
+                            "tracks",
+                            "tracks.album",
+                            "tracks.playlists"
+                        ],
+                        "fieldsets": {
+                            "albums": [
+                                "title",
+                                "averageRating",
+                                "artwork",
+                                "releasedAt",
+                                "explicit",
+                                "status",
+                                "availableFrom",
+                                "availableUntil",
+                                "releaseInfo",
+                                "artist",
+                                "tracks"
+                            ],
+                            "artists": [
+                                "name",
+                                "slug",
+                                "website",
+                                "bio",
+                                "trackCount",
+                                "createdAt",
+                                "albums"
+                            ],
+                            "playlists": [
+                                "title",
+                                "slug",
+                                "public",
+                                "externalId",
+                                "owner",
+                                "publicOwner",
+                                "tracks",
+                                "orderedTracks"
+                            ],
+                            "tracks": [
+                                "title",
+                                "trackNumber",
+                                "durationSeconds",
+                                "explicit",
+                                "genres",
+                                "previewOffset",
+                                "displayTitle",
+                                "album",
+                                "playlists"
+                            ]
+                        }
+                    }
                 }
             },
             "includable": [
@@ -752,7 +1380,8 @@
                         406,
                         422,
                         500
-                    ]
+                    ],
+                    "projection": null
                 },
                 "reissue": {
                     "scope": "resource",
@@ -773,7 +1402,61 @@
                         415,
                         422,
                         500
-                    ]
+                    ],
+                    "projection": {
+                        "includable": [
+                            "artist",
+                            "artist.albums",
+                            "tracks",
+                            "tracks.album",
+                            "tracks.playlists"
+                        ],
+                        "fieldsets": {
+                            "albums": [
+                                "title",
+                                "averageRating",
+                                "artwork",
+                                "releasedAt",
+                                "explicit",
+                                "status",
+                                "availableFrom",
+                                "availableUntil",
+                                "releaseInfo",
+                                "artist",
+                                "tracks"
+                            ],
+                            "artists": [
+                                "name",
+                                "slug",
+                                "website",
+                                "bio",
+                                "trackCount",
+                                "createdAt",
+                                "albums"
+                            ],
+                            "playlists": [
+                                "title",
+                                "slug",
+                                "public",
+                                "externalId",
+                                "owner",
+                                "publicOwner",
+                                "tracks",
+                                "orderedTracks"
+                            ],
+                            "tracks": [
+                                "title",
+                                "trackNumber",
+                                "durationSeconds",
+                                "explicit",
+                                "genres",
+                                "previewOffset",
+                                "displayTitle",
+                                "album",
+                                "playlists"
+                            ]
+                        }
+                    }
                 },
                 "summary": {
                     "scope": "collection",
@@ -794,7 +1477,8 @@
                         415,
                         422,
                         500
-                    ]
+                    ],
+                    "projection": null
                 }
             }
         },
@@ -929,7 +1613,61 @@
                             404,
                             406,
                             500
-                        ]
+                        ],
+                        "projection": {
+                            "includable": [
+                                "artist",
+                                "artist.albums",
+                                "tracks",
+                                "tracks.album",
+                                "tracks.playlists"
+                            ],
+                            "fieldsets": {
+                                "albums": [
+                                    "title",
+                                    "averageRating",
+                                    "artwork",
+                                    "releasedAt",
+                                    "explicit",
+                                    "status",
+                                    "availableFrom",
+                                    "availableUntil",
+                                    "releaseInfo",
+                                    "artist",
+                                    "tracks"
+                                ],
+                                "artists": [
+                                    "name",
+                                    "slug",
+                                    "website",
+                                    "bio",
+                                    "trackCount",
+                                    "createdAt",
+                                    "albums"
+                                ],
+                                "playlists": [
+                                    "title",
+                                    "slug",
+                                    "public",
+                                    "externalId",
+                                    "owner",
+                                    "publicOwner",
+                                    "tracks",
+                                    "orderedTracks"
+                                ],
+                                "tracks": [
+                                    "title",
+                                    "trackNumber",
+                                    "durationSeconds",
+                                    "explicit",
+                                    "genres",
+                                    "previewOffset",
+                                    "displayTitle",
+                                    "album",
+                                    "playlists"
+                                ]
+                            }
+                        }
                     },
                     "relationship": {
                         "path": "/artists/{id}/relationships/albums",
@@ -940,7 +1678,8 @@
                             404,
                             406,
                             500
-                        ]
+                        ],
+                        "projection": null
                     },
                     "mutations": {
                         "add": {
@@ -956,7 +1695,8 @@
                                 415,
                                 422,
                                 500
-                            ]
+                            ],
+                            "projection": null
                         },
                         "remove": {
                             "path": "/artists/{id}/relationships/albums",
@@ -971,7 +1711,8 @@
                                 415,
                                 422,
                                 500
-                            ]
+                            ],
+                            "projection": null
                         },
                         "replace": {
                             "path": "/artists/{id}/relationships/albums",
@@ -986,7 +1727,8 @@
                                 415,
                                 422,
                                 500
-                            ]
+                            ],
+                            "projection": null
                         }
                     },
                     "paginator": null,
@@ -1014,7 +1756,49 @@
                         415,
                         422,
                         500
-                    ]
+                    ],
+                    "projection": {
+                        "includable": [
+                            "albums",
+                            "albums.artist",
+                            "albums.tracks"
+                        ],
+                        "fieldsets": {
+                            "albums": [
+                                "title",
+                                "averageRating",
+                                "artwork",
+                                "releasedAt",
+                                "explicit",
+                                "status",
+                                "availableFrom",
+                                "availableUntil",
+                                "releaseInfo",
+                                "artist",
+                                "tracks"
+                            ],
+                            "artists": [
+                                "name",
+                                "slug",
+                                "website",
+                                "bio",
+                                "trackCount",
+                                "createdAt",
+                                "albums"
+                            ],
+                            "tracks": [
+                                "title",
+                                "trackNumber",
+                                "durationSeconds",
+                                "explicit",
+                                "genres",
+                                "previewOffset",
+                                "displayTitle",
+                                "album",
+                                "playlists"
+                            ]
+                        }
+                    }
                 },
                 "delete": {
                     "path": "/artists/{id}",
@@ -1026,7 +1810,8 @@
                         404,
                         406,
                         500
-                    ]
+                    ],
+                    "projection": null
                 },
                 "fetchMany": {
                     "path": "/artists",
@@ -1036,7 +1821,49 @@
                         403,
                         406,
                         500
-                    ]
+                    ],
+                    "projection": {
+                        "includable": [
+                            "albums",
+                            "albums.artist",
+                            "albums.tracks"
+                        ],
+                        "fieldsets": {
+                            "albums": [
+                                "title",
+                                "averageRating",
+                                "artwork",
+                                "releasedAt",
+                                "explicit",
+                                "status",
+                                "availableFrom",
+                                "availableUntil",
+                                "releaseInfo",
+                                "artist",
+                                "tracks"
+                            ],
+                            "artists": [
+                                "name",
+                                "slug",
+                                "website",
+                                "bio",
+                                "trackCount",
+                                "createdAt",
+                                "albums"
+                            ],
+                            "tracks": [
+                                "title",
+                                "trackNumber",
+                                "durationSeconds",
+                                "explicit",
+                                "genres",
+                                "previewOffset",
+                                "displayTitle",
+                                "album",
+                                "playlists"
+                            ]
+                        }
+                    }
                 },
                 "fetchOne": {
                     "path": "/artists/{id}",
@@ -1047,7 +1874,49 @@
                         404,
                         406,
                         500
-                    ]
+                    ],
+                    "projection": {
+                        "includable": [
+                            "albums",
+                            "albums.artist",
+                            "albums.tracks"
+                        ],
+                        "fieldsets": {
+                            "albums": [
+                                "title",
+                                "averageRating",
+                                "artwork",
+                                "releasedAt",
+                                "explicit",
+                                "status",
+                                "availableFrom",
+                                "availableUntil",
+                                "releaseInfo",
+                                "artist",
+                                "tracks"
+                            ],
+                            "artists": [
+                                "name",
+                                "slug",
+                                "website",
+                                "bio",
+                                "trackCount",
+                                "createdAt",
+                                "albums"
+                            ],
+                            "tracks": [
+                                "title",
+                                "trackNumber",
+                                "durationSeconds",
+                                "explicit",
+                                "genres",
+                                "previewOffset",
+                                "displayTitle",
+                                "album",
+                                "playlists"
+                            ]
+                        }
+                    }
                 },
                 "fetchRelated": {
                     "path": "/artists/{id}/{rel}",
@@ -1058,7 +1927,8 @@
                         404,
                         406,
                         500
-                    ]
+                    ],
+                    "projection": null
                 },
                 "fetchRelationship": {
                     "path": "/artists/{id}/relationships/{rel}",
@@ -1069,7 +1939,8 @@
                         404,
                         406,
                         500
-                    ]
+                    ],
+                    "projection": null
                 },
                 "update": {
                     "path": "/artists/{id}",
@@ -1084,7 +1955,49 @@
                         415,
                         422,
                         500
-                    ]
+                    ],
+                    "projection": {
+                        "includable": [
+                            "albums",
+                            "albums.artist",
+                            "albums.tracks"
+                        ],
+                        "fieldsets": {
+                            "albums": [
+                                "title",
+                                "averageRating",
+                                "artwork",
+                                "releasedAt",
+                                "explicit",
+                                "status",
+                                "availableFrom",
+                                "availableUntil",
+                                "releaseInfo",
+                                "artist",
+                                "tracks"
+                            ],
+                            "artists": [
+                                "name",
+                                "slug",
+                                "website",
+                                "bio",
+                                "trackCount",
+                                "createdAt",
+                                "albums"
+                            ],
+                            "tracks": [
+                                "title",
+                                "trackNumber",
+                                "durationSeconds",
+                                "explicit",
+                                "genres",
+                                "previewOffset",
+                                "displayTitle",
+                                "album",
+                                "playlists"
+                            ]
+                        }
+                    }
                 }
             },
             "includable": [
@@ -1186,7 +2099,8 @@
                         415,
                         422,
                         500
-                    ]
+                    ],
+                    "projection": null
                 },
                 "delete": {
                     "path": "/catalog-exports/{id}",
@@ -1198,7 +2112,8 @@
                         404,
                         406,
                         500
-                    ]
+                    ],
+                    "projection": null
                 },
                 "fetchMany": {
                     "path": "/catalog-exports",
@@ -1209,7 +2124,16 @@
                         403,
                         406,
                         500
-                    ]
+                    ],
+                    "projection": {
+                        "includable": [],
+                        "fieldsets": {
+                            "catalog-exports": [
+                                "format",
+                                "status"
+                            ]
+                        }
+                    }
                 },
                 "fetchOne": {
                     "path": "/catalog-exports/{id}",
@@ -1221,7 +2145,16 @@
                         404,
                         406,
                         500
-                    ]
+                    ],
+                    "projection": {
+                        "includable": [],
+                        "fieldsets": {
+                            "catalog-exports": [
+                                "format",
+                                "status"
+                            ]
+                        }
+                    }
                 }
             },
             "includable": [],
@@ -1251,7 +2184,8 @@
                         403,
                         406,
                         500
-                    ]
+                    ],
+                    "projection": null
                 },
                 "fetchOne": {
                     "path": "/charts/{id}",
@@ -1263,7 +2197,8 @@
                         404,
                         406,
                         500
-                    ]
+                    ],
+                    "projection": null
                 }
             },
             "includable": [],
@@ -1293,7 +2228,8 @@
                         403,
                         406,
                         500
-                    ]
+                    ],
+                    "projection": null
                 },
                 "fetchOne": {
                     "path": "/countries/{id}",
@@ -1305,7 +2241,8 @@
                         404,
                         406,
                         500
-                    ]
+                    ],
+                    "projection": null
                 }
             },
             "includable": [],
@@ -1365,7 +2302,15 @@
                         415,
                         422,
                         500
-                    ]
+                    ],
+                    "projection": {
+                        "includable": [],
+                        "fieldsets": {
+                            "devices": [
+                                "label"
+                            ]
+                        }
+                    }
                 },
                 "delete": {
                     "path": "/devices/{id}",
@@ -1377,7 +2322,8 @@
                         404,
                         406,
                         500
-                    ]
+                    ],
+                    "projection": null
                 },
                 "fetchMany": {
                     "path": "/devices",
@@ -1388,7 +2334,15 @@
                         403,
                         406,
                         500
-                    ]
+                    ],
+                    "projection": {
+                        "includable": [],
+                        "fieldsets": {
+                            "devices": [
+                                "label"
+                            ]
+                        }
+                    }
                 },
                 "fetchOne": {
                     "path": "/devices/{id}",
@@ -1400,7 +2354,15 @@
                         404,
                         406,
                         500
-                    ]
+                    ],
+                    "projection": {
+                        "includable": [],
+                        "fieldsets": {
+                            "devices": [
+                                "label"
+                            ]
+                        }
+                    }
                 },
                 "update": {
                     "path": "/devices/{id}",
@@ -1415,7 +2377,15 @@
                         415,
                         422,
                         500
-                    ]
+                    ],
+                    "projection": {
+                        "includable": [],
+                        "fieldsets": {
+                            "devices": [
+                                "label"
+                            ]
+                        }
+                    }
                 }
             },
             "includable": [],
@@ -1455,7 +2425,15 @@
                         403,
                         406,
                         500
-                    ]
+                    ],
+                    "projection": {
+                        "includable": [],
+                        "fieldsets": {
+                            "export-jobs": [
+                                "state"
+                            ]
+                        }
+                    }
                 },
                 "fetchOne": {
                     "path": "/export-jobs/{id}",
@@ -1467,7 +2445,15 @@
                         404,
                         406,
                         500
-                    ]
+                    ],
+                    "projection": {
+                        "includable": [],
+                        "fieldsets": {
+                            "export-jobs": [
+                                "state"
+                            ]
+                        }
+                    }
                 }
             },
             "includable": [],
@@ -1522,7 +2508,45 @@
                             404,
                             406,
                             500
-                        ]
+                        ],
+                        "projection": {
+                            "includable": [],
+                            "fieldsets": {
+                                "albums": [
+                                    "title",
+                                    "averageRating",
+                                    "artwork",
+                                    "releasedAt",
+                                    "explicit",
+                                    "status",
+                                    "availableFrom",
+                                    "availableUntil",
+                                    "releaseInfo",
+                                    "artist",
+                                    "tracks"
+                                ],
+                                "artists": [
+                                    "name",
+                                    "slug",
+                                    "website",
+                                    "bio",
+                                    "trackCount",
+                                    "createdAt",
+                                    "albums"
+                                ],
+                                "tracks": [
+                                    "title",
+                                    "trackNumber",
+                                    "durationSeconds",
+                                    "explicit",
+                                    "genres",
+                                    "previewOffset",
+                                    "displayTitle",
+                                    "album",
+                                    "playlists"
+                                ]
+                            }
+                        }
                     },
                     "relationship": {
                         "path": "/favorites/{id}/relationships/favoritable",
@@ -1534,7 +2558,8 @@
                             404,
                             406,
                             500
-                        ]
+                        ],
+                        "projection": null
                     },
                     "mutations": {
                         "set": {
@@ -1550,7 +2575,8 @@
                                 415,
                                 422,
                                 500
-                            ]
+                            ],
+                            "projection": null
                         }
                     },
                     "paginator": null,
@@ -1573,7 +2599,15 @@
                             404,
                             406,
                             500
-                        ]
+                        ],
+                        "projection": {
+                            "includable": [],
+                            "fieldsets": {
+                                "public-profiles": [
+                                    "displayName"
+                                ]
+                            }
+                        }
                     },
                     "relationship": {
                         "path": "/favorites/{id}/relationships/user",
@@ -1585,7 +2619,8 @@
                             404,
                             406,
                             500
-                        ]
+                        ],
+                        "projection": null
                     },
                     "mutations": {
                         "set": {
@@ -1601,7 +2636,8 @@
                                 415,
                                 422,
                                 500
-                            ]
+                            ],
+                            "projection": null
                         }
                     },
                     "paginator": null,
@@ -1624,7 +2660,22 @@
                         415,
                         422,
                         500
-                    ]
+                    ],
+                    "projection": {
+                        "includable": [
+                            "user"
+                        ],
+                        "fieldsets": {
+                            "favorites": [
+                                "favoritedAt",
+                                "user",
+                                "favoritable"
+                            ],
+                            "public-profiles": [
+                                "displayName"
+                            ]
+                        }
+                    }
                 },
                 "delete": {
                     "path": "/favorites/{id}",
@@ -1636,7 +2687,8 @@
                         404,
                         406,
                         500
-                    ]
+                    ],
+                    "projection": null
                 },
                 "fetchMany": {
                     "path": "/favorites",
@@ -1647,7 +2699,22 @@
                         403,
                         406,
                         500
-                    ]
+                    ],
+                    "projection": {
+                        "includable": [
+                            "user"
+                        ],
+                        "fieldsets": {
+                            "favorites": [
+                                "favoritedAt",
+                                "user",
+                                "favoritable"
+                            ],
+                            "public-profiles": [
+                                "displayName"
+                            ]
+                        }
+                    }
                 },
                 "fetchOne": {
                     "path": "/favorites/{id}",
@@ -1659,7 +2726,22 @@
                         404,
                         406,
                         500
-                    ]
+                    ],
+                    "projection": {
+                        "includable": [
+                            "user"
+                        ],
+                        "fieldsets": {
+                            "favorites": [
+                                "favoritedAt",
+                                "user",
+                                "favoritable"
+                            ],
+                            "public-profiles": [
+                                "displayName"
+                            ]
+                        }
+                    }
                 },
                 "fetchRelated": {
                     "path": "/favorites/{id}/{rel}",
@@ -1671,7 +2753,8 @@
                         404,
                         406,
                         500
-                    ]
+                    ],
+                    "projection": null
                 },
                 "fetchRelationship": {
                     "path": "/favorites/{id}/relationships/{rel}",
@@ -1683,7 +2766,8 @@
                         404,
                         406,
                         500
-                    ]
+                    ],
+                    "projection": null
                 },
                 "update": {
                     "path": "/favorites/{id}",
@@ -1698,7 +2782,22 @@
                         415,
                         422,
                         500
-                    ]
+                    ],
+                    "projection": {
+                        "includable": [
+                            "user"
+                        ],
+                        "fieldsets": {
+                            "favorites": [
+                                "favoritedAt",
+                                "user",
+                                "favoritable"
+                            ],
+                            "public-profiles": [
+                                "displayName"
+                            ]
+                        }
+                    }
                 }
             },
             "includable": [
@@ -1760,7 +2859,15 @@
                         415,
                         422,
                         500
-                    ]
+                    ],
+                    "projection": {
+                        "includable": [],
+                        "fieldsets": {
+                            "genres": [
+                                "name"
+                            ]
+                        }
+                    }
                 },
                 "delete": {
                     "path": "/genres/{id}",
@@ -1772,7 +2879,8 @@
                         404,
                         406,
                         500
-                    ]
+                    ],
+                    "projection": null
                 },
                 "fetchMany": {
                     "path": "/genres",
@@ -1783,7 +2891,15 @@
                         403,
                         406,
                         500
-                    ]
+                    ],
+                    "projection": {
+                        "includable": [],
+                        "fieldsets": {
+                            "genres": [
+                                "name"
+                            ]
+                        }
+                    }
                 },
                 "fetchOne": {
                     "path": "/genres/{id}",
@@ -1795,7 +2911,15 @@
                         404,
                         406,
                         500
-                    ]
+                    ],
+                    "projection": {
+                        "includable": [],
+                        "fieldsets": {
+                            "genres": [
+                                "name"
+                            ]
+                        }
+                    }
                 },
                 "update": {
                     "path": "/genres/{id}",
@@ -1810,7 +2934,15 @@
                         415,
                         422,
                         500
-                    ]
+                    ],
+                    "projection": {
+                        "includable": [],
+                        "fieldsets": {
+                            "genres": [
+                                "name"
+                            ]
+                        }
+                    }
                 }
             },
             "includable": [],
@@ -1850,7 +2982,45 @@
                             404,
                             406,
                             500
-                        ]
+                        ],
+                        "projection": {
+                            "includable": [],
+                            "fieldsets": {
+                                "albums": [
+                                    "title",
+                                    "averageRating",
+                                    "artwork",
+                                    "releasedAt",
+                                    "explicit",
+                                    "status",
+                                    "availableFrom",
+                                    "availableUntil",
+                                    "releaseInfo",
+                                    "artist",
+                                    "tracks"
+                                ],
+                                "artists": [
+                                    "name",
+                                    "slug",
+                                    "website",
+                                    "bio",
+                                    "trackCount",
+                                    "createdAt",
+                                    "albums"
+                                ],
+                                "tracks": [
+                                    "title",
+                                    "trackNumber",
+                                    "durationSeconds",
+                                    "explicit",
+                                    "genres",
+                                    "previewOffset",
+                                    "displayTitle",
+                                    "album",
+                                    "playlists"
+                                ]
+                            }
+                        }
                     },
                     "relationship": {
                         "path": "/libraries/{id}/relationships/items",
@@ -1862,7 +3032,8 @@
                             404,
                             406,
                             500
-                        ]
+                        ],
+                        "projection": null
                     },
                     "mutations": {
                         "add": {
@@ -1878,7 +3049,8 @@
                                 415,
                                 422,
                                 500
-                            ]
+                            ],
+                            "projection": null
                         },
                         "remove": {
                             "path": "/libraries/{id}/relationships/items",
@@ -1893,7 +3065,8 @@
                                 415,
                                 422,
                                 500
-                            ]
+                            ],
+                            "projection": null
                         },
                         "replace": {
                             "path": "/libraries/{id}/relationships/items",
@@ -1908,7 +3081,8 @@
                                 415,
                                 422,
                                 500
-                            ]
+                            ],
+                            "projection": null
                         }
                     },
                     "paginator": null,
@@ -1931,7 +3105,15 @@
                             404,
                             406,
                             500
-                        ]
+                        ],
+                        "projection": {
+                            "includable": [],
+                            "fieldsets": {
+                                "public-profiles": [
+                                    "displayName"
+                                ]
+                            }
+                        }
                     },
                     "relationship": {
                         "path": "/libraries/{id}/relationships/owner",
@@ -1943,7 +3125,8 @@
                             404,
                             406,
                             500
-                        ]
+                        ],
+                        "projection": null
                     },
                     "mutations": {
                         "set": {
@@ -1959,7 +3142,8 @@
                                 415,
                                 422,
                                 500
-                            ]
+                            ],
+                            "projection": null
                         }
                     },
                     "paginator": null,
@@ -1982,7 +3166,55 @@
                         415,
                         422,
                         500
-                    ]
+                    ],
+                    "projection": {
+                        "includable": [
+                            "owner",
+                            "items"
+                        ],
+                        "fieldsets": {
+                            "albums": [
+                                "title",
+                                "averageRating",
+                                "artwork",
+                                "releasedAt",
+                                "explicit",
+                                "status",
+                                "availableFrom",
+                                "availableUntil",
+                                "releaseInfo",
+                                "artist",
+                                "tracks"
+                            ],
+                            "artists": [
+                                "name",
+                                "slug",
+                                "website",
+                                "bio",
+                                "trackCount",
+                                "createdAt",
+                                "albums"
+                            ],
+                            "libraries": [
+                                "owner",
+                                "items"
+                            ],
+                            "public-profiles": [
+                                "displayName"
+                            ],
+                            "tracks": [
+                                "title",
+                                "trackNumber",
+                                "durationSeconds",
+                                "explicit",
+                                "genres",
+                                "previewOffset",
+                                "displayTitle",
+                                "album",
+                                "playlists"
+                            ]
+                        }
+                    }
                 },
                 "delete": {
                     "path": "/libraries/{id}",
@@ -1994,7 +3226,8 @@
                         404,
                         406,
                         500
-                    ]
+                    ],
+                    "projection": null
                 },
                 "fetchMany": {
                     "path": "/libraries",
@@ -2005,7 +3238,55 @@
                         403,
                         406,
                         500
-                    ]
+                    ],
+                    "projection": {
+                        "includable": [
+                            "owner",
+                            "items"
+                        ],
+                        "fieldsets": {
+                            "albums": [
+                                "title",
+                                "averageRating",
+                                "artwork",
+                                "releasedAt",
+                                "explicit",
+                                "status",
+                                "availableFrom",
+                                "availableUntil",
+                                "releaseInfo",
+                                "artist",
+                                "tracks"
+                            ],
+                            "artists": [
+                                "name",
+                                "slug",
+                                "website",
+                                "bio",
+                                "trackCount",
+                                "createdAt",
+                                "albums"
+                            ],
+                            "libraries": [
+                                "owner",
+                                "items"
+                            ],
+                            "public-profiles": [
+                                "displayName"
+                            ],
+                            "tracks": [
+                                "title",
+                                "trackNumber",
+                                "durationSeconds",
+                                "explicit",
+                                "genres",
+                                "previewOffset",
+                                "displayTitle",
+                                "album",
+                                "playlists"
+                            ]
+                        }
+                    }
                 },
                 "fetchOne": {
                     "path": "/libraries/{id}",
@@ -2017,7 +3298,55 @@
                         404,
                         406,
                         500
-                    ]
+                    ],
+                    "projection": {
+                        "includable": [
+                            "owner",
+                            "items"
+                        ],
+                        "fieldsets": {
+                            "albums": [
+                                "title",
+                                "averageRating",
+                                "artwork",
+                                "releasedAt",
+                                "explicit",
+                                "status",
+                                "availableFrom",
+                                "availableUntil",
+                                "releaseInfo",
+                                "artist",
+                                "tracks"
+                            ],
+                            "artists": [
+                                "name",
+                                "slug",
+                                "website",
+                                "bio",
+                                "trackCount",
+                                "createdAt",
+                                "albums"
+                            ],
+                            "libraries": [
+                                "owner",
+                                "items"
+                            ],
+                            "public-profiles": [
+                                "displayName"
+                            ],
+                            "tracks": [
+                                "title",
+                                "trackNumber",
+                                "durationSeconds",
+                                "explicit",
+                                "genres",
+                                "previewOffset",
+                                "displayTitle",
+                                "album",
+                                "playlists"
+                            ]
+                        }
+                    }
                 },
                 "fetchRelated": {
                     "path": "/libraries/{id}/{rel}",
@@ -2029,7 +3358,8 @@
                         404,
                         406,
                         500
-                    ]
+                    ],
+                    "projection": null
                 },
                 "fetchRelationship": {
                     "path": "/libraries/{id}/relationships/{rel}",
@@ -2041,7 +3371,8 @@
                         404,
                         406,
                         500
-                    ]
+                    ],
+                    "projection": null
                 },
                 "update": {
                     "path": "/libraries/{id}",
@@ -2056,7 +3387,55 @@
                         415,
                         422,
                         500
-                    ]
+                    ],
+                    "projection": {
+                        "includable": [
+                            "owner",
+                            "items"
+                        ],
+                        "fieldsets": {
+                            "albums": [
+                                "title",
+                                "averageRating",
+                                "artwork",
+                                "releasedAt",
+                                "explicit",
+                                "status",
+                                "availableFrom",
+                                "availableUntil",
+                                "releaseInfo",
+                                "artist",
+                                "tracks"
+                            ],
+                            "artists": [
+                                "name",
+                                "slug",
+                                "website",
+                                "bio",
+                                "trackCount",
+                                "createdAt",
+                                "albums"
+                            ],
+                            "libraries": [
+                                "owner",
+                                "items"
+                            ],
+                            "public-profiles": [
+                                "displayName"
+                            ],
+                            "tracks": [
+                                "title",
+                                "trackNumber",
+                                "durationSeconds",
+                                "explicit",
+                                "genres",
+                                "previewOffset",
+                                "displayTitle",
+                                "album",
+                                "playlists"
+                            ]
+                        }
+                    }
                 }
             },
             "includable": [
@@ -2171,7 +3550,66 @@
                             404,
                             406,
                             500
-                        ]
+                        ],
+                        "projection": {
+                            "includable": [
+                                "album",
+                                "album.artist",
+                                "album.tracks",
+                                "playlists",
+                                "playlists.publicOwner",
+                                "playlists.tracks",
+                                "playlists.orderedTracks"
+                            ],
+                            "fieldsets": {
+                                "albums": [
+                                    "title",
+                                    "averageRating",
+                                    "artwork",
+                                    "releasedAt",
+                                    "explicit",
+                                    "status",
+                                    "availableFrom",
+                                    "availableUntil",
+                                    "releaseInfo",
+                                    "artist",
+                                    "tracks"
+                                ],
+                                "artists": [
+                                    "name",
+                                    "slug",
+                                    "website",
+                                    "bio",
+                                    "trackCount",
+                                    "createdAt",
+                                    "albums"
+                                ],
+                                "playlists": [
+                                    "title",
+                                    "slug",
+                                    "public",
+                                    "externalId",
+                                    "owner",
+                                    "publicOwner",
+                                    "tracks",
+                                    "orderedTracks"
+                                ],
+                                "public-profiles": [
+                                    "displayName"
+                                ],
+                                "tracks": [
+                                    "title",
+                                    "trackNumber",
+                                    "durationSeconds",
+                                    "explicit",
+                                    "genres",
+                                    "previewOffset",
+                                    "displayTitle",
+                                    "album",
+                                    "playlists"
+                                ]
+                            }
+                        }
                     },
                     "relationship": {
                         "path": "/playlists/{id}/relationships/orderedTracks",
@@ -2183,7 +3621,8 @@
                             404,
                             406,
                             500
-                        ]
+                        ],
+                        "projection": null
                     },
                     "mutations": {
                         "add": {
@@ -2199,7 +3638,8 @@
                                 415,
                                 422,
                                 500
-                            ]
+                            ],
+                            "projection": null
                         },
                         "remove": {
                             "path": "/playlists/{id}/relationships/orderedTracks",
@@ -2214,7 +3654,8 @@
                                 415,
                                 422,
                                 500
-                            ]
+                            ],
+                            "projection": null
                         },
                         "replace": {
                             "path": "/playlists/{id}/relationships/orderedTracks",
@@ -2229,7 +3670,8 @@
                                 415,
                                 422,
                                 500
-                            ]
+                            ],
+                            "projection": null
                         }
                     },
                     "paginator": null,
@@ -2283,7 +3725,8 @@
                             404,
                             406,
                             500
-                        ]
+                        ],
+                        "projection": null
                     },
                     "mutations": {
                         "set": {
@@ -2299,7 +3742,8 @@
                                 415,
                                 422,
                                 500
-                            ]
+                            ],
+                            "projection": null
                         }
                     },
                     "paginator": null,
@@ -2322,7 +3766,15 @@
                             404,
                             406,
                             500
-                        ]
+                        ],
+                        "projection": {
+                            "includable": [],
+                            "fieldsets": {
+                                "public-profiles": [
+                                    "displayName"
+                                ]
+                            }
+                        }
                     },
                     "relationship": {
                         "path": "/playlists/{id}/relationships/publicOwner",
@@ -2334,7 +3786,8 @@
                             404,
                             406,
                             500
-                        ]
+                        ],
+                        "projection": null
                     },
                     "mutations": {
                         "set": {
@@ -2350,7 +3803,8 @@
                                 415,
                                 422,
                                 500
-                            ]
+                            ],
+                            "projection": null
                         }
                     },
                     "paginator": null,
@@ -2373,7 +3827,66 @@
                             404,
                             406,
                             500
-                        ]
+                        ],
+                        "projection": {
+                            "includable": [
+                                "album",
+                                "album.artist",
+                                "album.tracks",
+                                "playlists",
+                                "playlists.publicOwner",
+                                "playlists.tracks",
+                                "playlists.orderedTracks"
+                            ],
+                            "fieldsets": {
+                                "albums": [
+                                    "title",
+                                    "averageRating",
+                                    "artwork",
+                                    "releasedAt",
+                                    "explicit",
+                                    "status",
+                                    "availableFrom",
+                                    "availableUntil",
+                                    "releaseInfo",
+                                    "artist",
+                                    "tracks"
+                                ],
+                                "artists": [
+                                    "name",
+                                    "slug",
+                                    "website",
+                                    "bio",
+                                    "trackCount",
+                                    "createdAt",
+                                    "albums"
+                                ],
+                                "playlists": [
+                                    "title",
+                                    "slug",
+                                    "public",
+                                    "externalId",
+                                    "owner",
+                                    "publicOwner",
+                                    "tracks",
+                                    "orderedTracks"
+                                ],
+                                "public-profiles": [
+                                    "displayName"
+                                ],
+                                "tracks": [
+                                    "title",
+                                    "trackNumber",
+                                    "durationSeconds",
+                                    "explicit",
+                                    "genres",
+                                    "previewOffset",
+                                    "displayTitle",
+                                    "album",
+                                    "playlists"
+                                ]
+                            }
+                        }
                     },
                     "relationship": {
                         "path": "/playlists/{id}/relationships/tracks",
@@ -2385,7 +3898,8 @@
                             404,
                             406,
                             500
-                        ]
+                        ],
+                        "projection": null
                     },
                     "mutations": {
                         "add": {
@@ -2401,7 +3915,8 @@
                                 415,
                                 422,
                                 500
-                            ]
+                            ],
+                            "projection": null
                         },
                         "remove": {
                             "path": "/playlists/{id}/relationships/tracks",
@@ -2416,7 +3931,8 @@
                                 415,
                                 422,
                                 500
-                            ]
+                            ],
+                            "projection": null
                         },
                         "replace": {
                             "path": "/playlists/{id}/relationships/tracks",
@@ -2431,7 +3947,8 @@
                                 415,
                                 422,
                                 500
-                            ]
+                            ],
+                            "projection": null
                         }
                     },
                     "paginator": null,
@@ -2460,7 +3977,57 @@
                         415,
                         422,
                         500
-                    ]
+                    ],
+                    "projection": {
+                        "includable": [
+                            "publicOwner",
+                            "tracks",
+                            "tracks.album",
+                            "tracks.playlists",
+                            "orderedTracks",
+                            "orderedTracks.album",
+                            "orderedTracks.playlists"
+                        ],
+                        "fieldsets": {
+                            "albums": [
+                                "title",
+                                "averageRating",
+                                "artwork",
+                                "releasedAt",
+                                "explicit",
+                                "status",
+                                "availableFrom",
+                                "availableUntil",
+                                "releaseInfo",
+                                "artist",
+                                "tracks"
+                            ],
+                            "playlists": [
+                                "title",
+                                "slug",
+                                "public",
+                                "externalId",
+                                "owner",
+                                "publicOwner",
+                                "tracks",
+                                "orderedTracks"
+                            ],
+                            "public-profiles": [
+                                "displayName"
+                            ],
+                            "tracks": [
+                                "title",
+                                "trackNumber",
+                                "durationSeconds",
+                                "explicit",
+                                "genres",
+                                "previewOffset",
+                                "displayTitle",
+                                "album",
+                                "playlists"
+                            ]
+                        }
+                    }
                 },
                 "delete": {
                     "path": "/playlists/{id}",
@@ -2472,7 +4039,8 @@
                         404,
                         406,
                         500
-                    ]
+                    ],
+                    "projection": null
                 },
                 "fetchMany": {
                     "path": "/playlists",
@@ -2483,7 +4051,57 @@
                         403,
                         406,
                         500
-                    ]
+                    ],
+                    "projection": {
+                        "includable": [
+                            "publicOwner",
+                            "tracks",
+                            "tracks.album",
+                            "tracks.playlists",
+                            "orderedTracks",
+                            "orderedTracks.album",
+                            "orderedTracks.playlists"
+                        ],
+                        "fieldsets": {
+                            "albums": [
+                                "title",
+                                "averageRating",
+                                "artwork",
+                                "releasedAt",
+                                "explicit",
+                                "status",
+                                "availableFrom",
+                                "availableUntil",
+                                "releaseInfo",
+                                "artist",
+                                "tracks"
+                            ],
+                            "playlists": [
+                                "title",
+                                "slug",
+                                "public",
+                                "externalId",
+                                "owner",
+                                "publicOwner",
+                                "tracks",
+                                "orderedTracks"
+                            ],
+                            "public-profiles": [
+                                "displayName"
+                            ],
+                            "tracks": [
+                                "title",
+                                "trackNumber",
+                                "durationSeconds",
+                                "explicit",
+                                "genres",
+                                "previewOffset",
+                                "displayTitle",
+                                "album",
+                                "playlists"
+                            ]
+                        }
+                    }
                 },
                 "fetchOne": {
                     "path": "/playlists/{id}",
@@ -2495,7 +4113,57 @@
                         404,
                         406,
                         500
-                    ]
+                    ],
+                    "projection": {
+                        "includable": [
+                            "publicOwner",
+                            "tracks",
+                            "tracks.album",
+                            "tracks.playlists",
+                            "orderedTracks",
+                            "orderedTracks.album",
+                            "orderedTracks.playlists"
+                        ],
+                        "fieldsets": {
+                            "albums": [
+                                "title",
+                                "averageRating",
+                                "artwork",
+                                "releasedAt",
+                                "explicit",
+                                "status",
+                                "availableFrom",
+                                "availableUntil",
+                                "releaseInfo",
+                                "artist",
+                                "tracks"
+                            ],
+                            "playlists": [
+                                "title",
+                                "slug",
+                                "public",
+                                "externalId",
+                                "owner",
+                                "publicOwner",
+                                "tracks",
+                                "orderedTracks"
+                            ],
+                            "public-profiles": [
+                                "displayName"
+                            ],
+                            "tracks": [
+                                "title",
+                                "trackNumber",
+                                "durationSeconds",
+                                "explicit",
+                                "genres",
+                                "previewOffset",
+                                "displayTitle",
+                                "album",
+                                "playlists"
+                            ]
+                        }
+                    }
                 },
                 "fetchRelated": {
                     "path": "/playlists/{id}/{rel}",
@@ -2507,7 +4175,8 @@
                         404,
                         406,
                         500
-                    ]
+                    ],
+                    "projection": null
                 },
                 "fetchRelationship": {
                     "path": "/playlists/{id}/relationships/{rel}",
@@ -2519,7 +4188,8 @@
                         404,
                         406,
                         500
-                    ]
+                    ],
+                    "projection": null
                 },
                 "update": {
                     "path": "/playlists/{id}",
@@ -2534,7 +4204,57 @@
                         415,
                         422,
                         500
-                    ]
+                    ],
+                    "projection": {
+                        "includable": [
+                            "publicOwner",
+                            "tracks",
+                            "tracks.album",
+                            "tracks.playlists",
+                            "orderedTracks",
+                            "orderedTracks.album",
+                            "orderedTracks.playlists"
+                        ],
+                        "fieldsets": {
+                            "albums": [
+                                "title",
+                                "averageRating",
+                                "artwork",
+                                "releasedAt",
+                                "explicit",
+                                "status",
+                                "availableFrom",
+                                "availableUntil",
+                                "releaseInfo",
+                                "artist",
+                                "tracks"
+                            ],
+                            "playlists": [
+                                "title",
+                                "slug",
+                                "public",
+                                "externalId",
+                                "owner",
+                                "publicOwner",
+                                "tracks",
+                                "orderedTracks"
+                            ],
+                            "public-profiles": [
+                                "displayName"
+                            ],
+                            "tracks": [
+                                "title",
+                                "trackNumber",
+                                "durationSeconds",
+                                "explicit",
+                                "genres",
+                                "previewOffset",
+                                "displayTitle",
+                                "album",
+                                "playlists"
+                            ]
+                        }
+                    }
                 }
             },
             "includable": [
@@ -2603,7 +4323,18 @@
                             404,
                             406,
                             500
-                        ]
+                        ],
+                        "projection": {
+                            "includable": [
+                                "parent"
+                            ],
+                            "fieldsets": {
+                                "products": [
+                                    "name",
+                                    "parent"
+                                ]
+                            }
+                        }
                     },
                     "relationship": {
                         "path": "/products/{id}/relationships/parent",
@@ -2615,7 +4346,8 @@
                             404,
                             406,
                             500
-                        ]
+                        ],
+                        "projection": null
                     },
                     "mutations": {
                         "set": {
@@ -2631,7 +4363,8 @@
                                 415,
                                 422,
                                 500
-                            ]
+                            ],
+                            "projection": null
                         }
                     },
                     "paginator": null,
@@ -2654,7 +4387,18 @@
                         415,
                         422,
                         500
-                    ]
+                    ],
+                    "projection": {
+                        "includable": [
+                            "parent"
+                        ],
+                        "fieldsets": {
+                            "products": [
+                                "name",
+                                "parent"
+                            ]
+                        }
+                    }
                 },
                 "delete": {
                     "path": "/products/{id}",
@@ -2666,7 +4410,8 @@
                         404,
                         406,
                         500
-                    ]
+                    ],
+                    "projection": null
                 },
                 "fetchMany": {
                     "path": "/products",
@@ -2677,7 +4422,18 @@
                         403,
                         406,
                         500
-                    ]
+                    ],
+                    "projection": {
+                        "includable": [
+                            "parent"
+                        ],
+                        "fieldsets": {
+                            "products": [
+                                "name",
+                                "parent"
+                            ]
+                        }
+                    }
                 },
                 "fetchOne": {
                     "path": "/products/{id}",
@@ -2689,7 +4445,18 @@
                         404,
                         406,
                         500
-                    ]
+                    ],
+                    "projection": {
+                        "includable": [
+                            "parent"
+                        ],
+                        "fieldsets": {
+                            "products": [
+                                "name",
+                                "parent"
+                            ]
+                        }
+                    }
                 },
                 "fetchRelated": {
                     "path": "/products/{id}/{rel}",
@@ -2701,7 +4468,8 @@
                         404,
                         406,
                         500
-                    ]
+                    ],
+                    "projection": null
                 },
                 "fetchRelationship": {
                     "path": "/products/{id}/relationships/{rel}",
@@ -2713,7 +4481,8 @@
                         404,
                         406,
                         500
-                    ]
+                    ],
+                    "projection": null
                 },
                 "update": {
                     "path": "/products/{id}",
@@ -2728,7 +4497,18 @@
                         415,
                         422,
                         500
-                    ]
+                    ],
+                    "projection": {
+                        "includable": [
+                            "parent"
+                        ],
+                        "fieldsets": {
+                            "products": [
+                                "name",
+                                "parent"
+                            ]
+                        }
+                    }
                 }
             },
             "includable": [
@@ -2770,7 +4550,15 @@
                         403,
                         406,
                         500
-                    ]
+                    ],
+                    "projection": {
+                        "includable": [],
+                        "fieldsets": {
+                            "public-profiles": [
+                                "displayName"
+                            ]
+                        }
+                    }
                 },
                 "fetchOne": {
                     "path": "/public-profiles/{id}",
@@ -2782,7 +4570,15 @@
                         404,
                         406,
                         500
-                    ]
+                    ],
+                    "projection": {
+                        "includable": [],
+                        "fieldsets": {
+                            "public-profiles": [
+                                "displayName"
+                            ]
+                        }
+                    }
                 }
             },
             "includable": [],
@@ -4278,7 +6074,61 @@
                             404,
                             406,
                             500
-                        ]
+                        ],
+                        "projection": {
+                            "includable": [
+                                "artist",
+                                "artist.albums",
+                                "tracks",
+                                "tracks.album",
+                                "tracks.playlists"
+                            ],
+                            "fieldsets": {
+                                "albums": [
+                                    "title",
+                                    "averageRating",
+                                    "artwork",
+                                    "releasedAt",
+                                    "explicit",
+                                    "status",
+                                    "availableFrom",
+                                    "availableUntil",
+                                    "releaseInfo",
+                                    "artist",
+                                    "tracks"
+                                ],
+                                "artists": [
+                                    "name",
+                                    "slug",
+                                    "website",
+                                    "bio",
+                                    "trackCount",
+                                    "createdAt",
+                                    "albums"
+                                ],
+                                "playlists": [
+                                    "title",
+                                    "slug",
+                                    "public",
+                                    "externalId",
+                                    "owner",
+                                    "publicOwner",
+                                    "tracks",
+                                    "orderedTracks"
+                                ],
+                                "tracks": [
+                                    "title",
+                                    "trackNumber",
+                                    "durationSeconds",
+                                    "explicit",
+                                    "genres",
+                                    "previewOffset",
+                                    "displayTitle",
+                                    "album",
+                                    "playlists"
+                                ]
+                            }
+                        }
                     },
                     "relationship": {
                         "path": "/releases/{id}/relationships/album",
@@ -4290,7 +6140,8 @@
                             404,
                             406,
                             500
-                        ]
+                        ],
+                        "projection": null
                     },
                     "mutations": {
                         "set": {
@@ -4306,7 +6157,8 @@
                                 415,
                                 422,
                                 500
-                            ]
+                            ],
+                            "projection": null
                         }
                     },
                     "paginator": null,
@@ -4329,7 +6181,57 @@
                         415,
                         422,
                         500
-                    ]
+                    ],
+                    "projection": {
+                        "includable": [
+                            "album",
+                            "album.artist",
+                            "album.tracks"
+                        ],
+                        "fieldsets": {
+                            "albums": [
+                                "title",
+                                "averageRating",
+                                "artwork",
+                                "releasedAt",
+                                "explicit",
+                                "status",
+                                "availableFrom",
+                                "availableUntil",
+                                "releaseInfo",
+                                "artist",
+                                "tracks"
+                            ],
+                            "artists": [
+                                "name",
+                                "slug",
+                                "website",
+                                "bio",
+                                "trackCount",
+                                "createdAt",
+                                "albums"
+                            ],
+                            "releases": [
+                                "catalogNumber",
+                                "format",
+                                "packaging",
+                                "availability",
+                                "dimensions",
+                                "album"
+                            ],
+                            "tracks": [
+                                "title",
+                                "trackNumber",
+                                "durationSeconds",
+                                "explicit",
+                                "genres",
+                                "previewOffset",
+                                "displayTitle",
+                                "album",
+                                "playlists"
+                            ]
+                        }
+                    }
                 },
                 "delete": {
                     "path": "/releases/{id}",
@@ -4341,7 +6243,8 @@
                         404,
                         406,
                         500
-                    ]
+                    ],
+                    "projection": null
                 },
                 "fetchMany": {
                     "path": "/releases",
@@ -4352,7 +6255,57 @@
                         403,
                         406,
                         500
-                    ]
+                    ],
+                    "projection": {
+                        "includable": [
+                            "album",
+                            "album.artist",
+                            "album.tracks"
+                        ],
+                        "fieldsets": {
+                            "albums": [
+                                "title",
+                                "averageRating",
+                                "artwork",
+                                "releasedAt",
+                                "explicit",
+                                "status",
+                                "availableFrom",
+                                "availableUntil",
+                                "releaseInfo",
+                                "artist",
+                                "tracks"
+                            ],
+                            "artists": [
+                                "name",
+                                "slug",
+                                "website",
+                                "bio",
+                                "trackCount",
+                                "createdAt",
+                                "albums"
+                            ],
+                            "releases": [
+                                "catalogNumber",
+                                "format",
+                                "packaging",
+                                "availability",
+                                "dimensions",
+                                "album"
+                            ],
+                            "tracks": [
+                                "title",
+                                "trackNumber",
+                                "durationSeconds",
+                                "explicit",
+                                "genres",
+                                "previewOffset",
+                                "displayTitle",
+                                "album",
+                                "playlists"
+                            ]
+                        }
+                    }
                 },
                 "fetchOne": {
                     "path": "/releases/{id}",
@@ -4364,7 +6317,57 @@
                         404,
                         406,
                         500
-                    ]
+                    ],
+                    "projection": {
+                        "includable": [
+                            "album",
+                            "album.artist",
+                            "album.tracks"
+                        ],
+                        "fieldsets": {
+                            "albums": [
+                                "title",
+                                "averageRating",
+                                "artwork",
+                                "releasedAt",
+                                "explicit",
+                                "status",
+                                "availableFrom",
+                                "availableUntil",
+                                "releaseInfo",
+                                "artist",
+                                "tracks"
+                            ],
+                            "artists": [
+                                "name",
+                                "slug",
+                                "website",
+                                "bio",
+                                "trackCount",
+                                "createdAt",
+                                "albums"
+                            ],
+                            "releases": [
+                                "catalogNumber",
+                                "format",
+                                "packaging",
+                                "availability",
+                                "dimensions",
+                                "album"
+                            ],
+                            "tracks": [
+                                "title",
+                                "trackNumber",
+                                "durationSeconds",
+                                "explicit",
+                                "genres",
+                                "previewOffset",
+                                "displayTitle",
+                                "album",
+                                "playlists"
+                            ]
+                        }
+                    }
                 },
                 "fetchRelated": {
                     "path": "/releases/{id}/{rel}",
@@ -4376,7 +6379,8 @@
                         404,
                         406,
                         500
-                    ]
+                    ],
+                    "projection": null
                 },
                 "fetchRelationship": {
                     "path": "/releases/{id}/relationships/{rel}",
@@ -4388,7 +6392,8 @@
                         404,
                         406,
                         500
-                    ]
+                    ],
+                    "projection": null
                 },
                 "update": {
                     "path": "/releases/{id}",
@@ -4403,7 +6408,57 @@
                         415,
                         422,
                         500
-                    ]
+                    ],
+                    "projection": {
+                        "includable": [
+                            "album",
+                            "album.artist",
+                            "album.tracks"
+                        ],
+                        "fieldsets": {
+                            "albums": [
+                                "title",
+                                "averageRating",
+                                "artwork",
+                                "releasedAt",
+                                "explicit",
+                                "status",
+                                "availableFrom",
+                                "availableUntil",
+                                "releaseInfo",
+                                "artist",
+                                "tracks"
+                            ],
+                            "artists": [
+                                "name",
+                                "slug",
+                                "website",
+                                "bio",
+                                "trackCount",
+                                "createdAt",
+                                "albums"
+                            ],
+                            "releases": [
+                                "catalogNumber",
+                                "format",
+                                "packaging",
+                                "availability",
+                                "dimensions",
+                                "album"
+                            ],
+                            "tracks": [
+                                "title",
+                                "trackNumber",
+                                "durationSeconds",
+                                "explicit",
+                                "genres",
+                                "previewOffset",
+                                "displayTitle",
+                                "album",
+                                "playlists"
+                            ]
+                        }
+                    }
                 }
             },
             "includable": [
@@ -4660,7 +6715,61 @@
                             404,
                             406,
                             500
-                        ]
+                        ],
+                        "projection": {
+                            "includable": [
+                                "artist",
+                                "artist.albums",
+                                "tracks",
+                                "tracks.album",
+                                "tracks.playlists"
+                            ],
+                            "fieldsets": {
+                                "albums": [
+                                    "title",
+                                    "averageRating",
+                                    "artwork",
+                                    "releasedAt",
+                                    "explicit",
+                                    "status",
+                                    "availableFrom",
+                                    "availableUntil",
+                                    "releaseInfo",
+                                    "artist",
+                                    "tracks"
+                                ],
+                                "artists": [
+                                    "name",
+                                    "slug",
+                                    "website",
+                                    "bio",
+                                    "trackCount",
+                                    "createdAt",
+                                    "albums"
+                                ],
+                                "playlists": [
+                                    "title",
+                                    "slug",
+                                    "public",
+                                    "externalId",
+                                    "owner",
+                                    "publicOwner",
+                                    "tracks",
+                                    "orderedTracks"
+                                ],
+                                "tracks": [
+                                    "title",
+                                    "trackNumber",
+                                    "durationSeconds",
+                                    "explicit",
+                                    "genres",
+                                    "previewOffset",
+                                    "displayTitle",
+                                    "album",
+                                    "playlists"
+                                ]
+                            }
+                        }
                     },
                     "relationship": {
                         "path": "/tracks/{id}/relationships/album",
@@ -4672,7 +6781,8 @@
                             404,
                             406,
                             500
-                        ]
+                        ],
+                        "projection": null
                     },
                     "mutations": {
                         "set": {
@@ -4688,7 +6798,8 @@
                                 415,
                                 422,
                                 500
-                            ]
+                            ],
+                            "projection": null
                         }
                     },
                     "paginator": null,
@@ -4711,7 +6822,57 @@
                             404,
                             406,
                             500
-                        ]
+                        ],
+                        "projection": {
+                            "includable": [
+                                "publicOwner",
+                                "tracks",
+                                "tracks.album",
+                                "tracks.playlists",
+                                "orderedTracks",
+                                "orderedTracks.album",
+                                "orderedTracks.playlists"
+                            ],
+                            "fieldsets": {
+                                "albums": [
+                                    "title",
+                                    "averageRating",
+                                    "artwork",
+                                    "releasedAt",
+                                    "explicit",
+                                    "status",
+                                    "availableFrom",
+                                    "availableUntil",
+                                    "releaseInfo",
+                                    "artist",
+                                    "tracks"
+                                ],
+                                "playlists": [
+                                    "title",
+                                    "slug",
+                                    "public",
+                                    "externalId",
+                                    "owner",
+                                    "publicOwner",
+                                    "tracks",
+                                    "orderedTracks"
+                                ],
+                                "public-profiles": [
+                                    "displayName"
+                                ],
+                                "tracks": [
+                                    "title",
+                                    "trackNumber",
+                                    "durationSeconds",
+                                    "explicit",
+                                    "genres",
+                                    "previewOffset",
+                                    "displayTitle",
+                                    "album",
+                                    "playlists"
+                                ]
+                            }
+                        }
                     },
                     "relationship": {
                         "path": "/tracks/{id}/relationships/playlists",
@@ -4723,7 +6884,8 @@
                             404,
                             406,
                             500
-                        ]
+                        ],
+                        "projection": null
                     },
                     "mutations": {
                         "add": {
@@ -4739,7 +6901,8 @@
                                 415,
                                 422,
                                 500
-                            ]
+                            ],
+                            "projection": null
                         },
                         "remove": {
                             "path": "/tracks/{id}/relationships/playlists",
@@ -4754,7 +6917,8 @@
                                 415,
                                 422,
                                 500
-                            ]
+                            ],
+                            "projection": null
                         }
                     },
                     "paginator": null,
@@ -4783,7 +6947,66 @@
                         415,
                         422,
                         500
-                    ]
+                    ],
+                    "projection": {
+                        "includable": [
+                            "album",
+                            "album.artist",
+                            "album.tracks",
+                            "playlists",
+                            "playlists.publicOwner",
+                            "playlists.tracks",
+                            "playlists.orderedTracks"
+                        ],
+                        "fieldsets": {
+                            "albums": [
+                                "title",
+                                "averageRating",
+                                "artwork",
+                                "releasedAt",
+                                "explicit",
+                                "status",
+                                "availableFrom",
+                                "availableUntil",
+                                "releaseInfo",
+                                "artist",
+                                "tracks"
+                            ],
+                            "artists": [
+                                "name",
+                                "slug",
+                                "website",
+                                "bio",
+                                "trackCount",
+                                "createdAt",
+                                "albums"
+                            ],
+                            "playlists": [
+                                "title",
+                                "slug",
+                                "public",
+                                "externalId",
+                                "owner",
+                                "publicOwner",
+                                "tracks",
+                                "orderedTracks"
+                            ],
+                            "public-profiles": [
+                                "displayName"
+                            ],
+                            "tracks": [
+                                "title",
+                                "trackNumber",
+                                "durationSeconds",
+                                "explicit",
+                                "genres",
+                                "previewOffset",
+                                "displayTitle",
+                                "album",
+                                "playlists"
+                            ]
+                        }
+                    }
                 },
                 "delete": {
                     "path": "/tracks/{id}",
@@ -4795,7 +7018,8 @@
                         404,
                         406,
                         500
-                    ]
+                    ],
+                    "projection": null
                 },
                 "fetchMany": {
                     "path": "/tracks",
@@ -4806,7 +7030,66 @@
                         403,
                         406,
                         500
-                    ]
+                    ],
+                    "projection": {
+                        "includable": [
+                            "album",
+                            "album.artist",
+                            "album.tracks",
+                            "playlists",
+                            "playlists.publicOwner",
+                            "playlists.tracks",
+                            "playlists.orderedTracks"
+                        ],
+                        "fieldsets": {
+                            "albums": [
+                                "title",
+                                "averageRating",
+                                "artwork",
+                                "releasedAt",
+                                "explicit",
+                                "status",
+                                "availableFrom",
+                                "availableUntil",
+                                "releaseInfo",
+                                "artist",
+                                "tracks"
+                            ],
+                            "artists": [
+                                "name",
+                                "slug",
+                                "website",
+                                "bio",
+                                "trackCount",
+                                "createdAt",
+                                "albums"
+                            ],
+                            "playlists": [
+                                "title",
+                                "slug",
+                                "public",
+                                "externalId",
+                                "owner",
+                                "publicOwner",
+                                "tracks",
+                                "orderedTracks"
+                            ],
+                            "public-profiles": [
+                                "displayName"
+                            ],
+                            "tracks": [
+                                "title",
+                                "trackNumber",
+                                "durationSeconds",
+                                "explicit",
+                                "genres",
+                                "previewOffset",
+                                "displayTitle",
+                                "album",
+                                "playlists"
+                            ]
+                        }
+                    }
                 },
                 "fetchOne": {
                     "path": "/tracks/{id}",
@@ -4818,7 +7101,66 @@
                         404,
                         406,
                         500
-                    ]
+                    ],
+                    "projection": {
+                        "includable": [
+                            "album",
+                            "album.artist",
+                            "album.tracks",
+                            "playlists",
+                            "playlists.publicOwner",
+                            "playlists.tracks",
+                            "playlists.orderedTracks"
+                        ],
+                        "fieldsets": {
+                            "albums": [
+                                "title",
+                                "averageRating",
+                                "artwork",
+                                "releasedAt",
+                                "explicit",
+                                "status",
+                                "availableFrom",
+                                "availableUntil",
+                                "releaseInfo",
+                                "artist",
+                                "tracks"
+                            ],
+                            "artists": [
+                                "name",
+                                "slug",
+                                "website",
+                                "bio",
+                                "trackCount",
+                                "createdAt",
+                                "albums"
+                            ],
+                            "playlists": [
+                                "title",
+                                "slug",
+                                "public",
+                                "externalId",
+                                "owner",
+                                "publicOwner",
+                                "tracks",
+                                "orderedTracks"
+                            ],
+                            "public-profiles": [
+                                "displayName"
+                            ],
+                            "tracks": [
+                                "title",
+                                "trackNumber",
+                                "durationSeconds",
+                                "explicit",
+                                "genres",
+                                "previewOffset",
+                                "displayTitle",
+                                "album",
+                                "playlists"
+                            ]
+                        }
+                    }
                 },
                 "fetchRelated": {
                     "path": "/tracks/{id}/{rel}",
@@ -4830,7 +7172,8 @@
                         404,
                         406,
                         500
-                    ]
+                    ],
+                    "projection": null
                 },
                 "fetchRelationship": {
                     "path": "/tracks/{id}/relationships/{rel}",
@@ -4842,7 +7185,8 @@
                         404,
                         406,
                         500
-                    ]
+                    ],
+                    "projection": null
                 },
                 "update": {
                     "path": "/tracks/{id}",
@@ -4857,7 +7201,66 @@
                         415,
                         422,
                         500
-                    ]
+                    ],
+                    "projection": {
+                        "includable": [
+                            "album",
+                            "album.artist",
+                            "album.tracks",
+                            "playlists",
+                            "playlists.publicOwner",
+                            "playlists.tracks",
+                            "playlists.orderedTracks"
+                        ],
+                        "fieldsets": {
+                            "albums": [
+                                "title",
+                                "averageRating",
+                                "artwork",
+                                "releasedAt",
+                                "explicit",
+                                "status",
+                                "availableFrom",
+                                "availableUntil",
+                                "releaseInfo",
+                                "artist",
+                                "tracks"
+                            ],
+                            "artists": [
+                                "name",
+                                "slug",
+                                "website",
+                                "bio",
+                                "trackCount",
+                                "createdAt",
+                                "albums"
+                            ],
+                            "playlists": [
+                                "title",
+                                "slug",
+                                "public",
+                                "externalId",
+                                "owner",
+                                "publicOwner",
+                                "tracks",
+                                "orderedTracks"
+                            ],
+                            "public-profiles": [
+                                "displayName"
+                            ],
+                            "tracks": [
+                                "title",
+                                "trackNumber",
+                                "durationSeconds",
+                                "explicit",
+                                "genres",
+                                "previewOffset",
+                                "displayTitle",
+                                "album",
+                                "playlists"
+                            ]
+                        }
+                    }
                 }
             },
             "includable": [

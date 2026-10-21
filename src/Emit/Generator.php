@@ -25,6 +25,7 @@ final class Generator
             new Writes\WritesEmitter(),
             new Reads\ReadsEmitter(),
             new Surface\SurfaceEmitter(),
+            new Root\ClientEmitter(),
             new Root\ErrorCodeEmitter(),
         ]);
     }

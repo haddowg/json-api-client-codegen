@@ -33,9 +33,9 @@ final class SpecDocumentTest extends TestCase
         self::assertSame($sorted, $paths);
     }
 
-    public function testTheMusicCatalogDocumentDeclaresNoContract(): void
+    public function testTheMusicCatalogDocumentDeclaresItsContract(): void
     {
-        self::assertNull(Fixtures::musicCatalog()->contract());
+        self::assertSame(2, Fixtures::musicCatalog()->contract());
     }
 
     public function testAContractIsReadFromTheGeneratorBlock(): void

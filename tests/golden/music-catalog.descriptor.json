@@ -1,5 +1,5 @@
 {
-    "contract": null,
+    "contract": 2,
     "atomic": {
         "path": "/operations",
         "mediaType": "application/vnd.api+json; ext=\"https://jsonapi.org/ext/atomic\""
@@ -579,10 +579,36 @@
             ],
             "filterable": {
                 "artist.name": {
-                    "schema": null
+                    "schema": {
+                        "types": [
+                            "string"
+                        ],
+                        "format": null,
+                        "enum": [],
+                        "required": [],
+                        "properties": [],
+                        "items": null,
+                        "discriminator": null,
+                        "oneOf": [],
+                        "anyOf": [],
+                        "allOf": []
+                    }
                 },
                 "q": {
-                    "schema": null
+                    "schema": {
+                        "types": [
+                            "string"
+                        ],
+                        "format": null,
+                        "enum": [],
+                        "required": [],
+                        "properties": [],
+                        "items": null,
+                        "discriminator": null,
+                        "oneOf": [],
+                        "anyOf": [],
+                        "allOf": []
+                    }
                 },
                 "rating": {
                     "schema": {
@@ -675,10 +701,36 @@
                     }
                 },
                 "title": {
-                    "schema": null
+                    "schema": {
+                        "types": [
+                            "string"
+                        ],
+                        "format": null,
+                        "enum": [],
+                        "required": [],
+                        "properties": [],
+                        "items": null,
+                        "discriminator": null,
+                        "oneOf": [],
+                        "anyOf": [],
+                        "allOf": []
+                    }
                 },
                 "tracks": {
-                    "schema": null
+                    "schema": {
+                        "types": [
+                            "string"
+                        ],
+                        "format": null,
+                        "enum": [],
+                        "required": [],
+                        "properties": [],
+                        "items": null,
+                        "discriminator": null,
+                        "oneOf": [],
+                        "anyOf": [],
+                        "allOf": []
+                    }
                 }
             },
             "actions": {
@@ -1050,10 +1102,36 @@
             ],
             "filterable": {
                 "q": {
-                    "schema": null
+                    "schema": {
+                        "types": [
+                            "string"
+                        ],
+                        "format": null,
+                        "enum": [],
+                        "required": [],
+                        "properties": [],
+                        "items": null,
+                        "discriminator": null,
+                        "oneOf": [],
+                        "anyOf": [],
+                        "allOf": []
+                    }
                 },
                 "slug": {
-                    "schema": null
+                    "schema": {
+                        "types": [
+                            "string"
+                        ],
+                        "format": null,
+                        "enum": [],
+                        "required": [],
+                        "properties": [],
+                        "items": null,
+                        "discriminator": null,
+                        "oneOf": [],
+                        "anyOf": [],
+                        "allOf": []
+                    }
                 }
             },
             "actions": []
@@ -1483,7 +1561,7 @@
                 "user": {
                     "cardinality": "one",
                     "types": [
-                        "users"
+                        "public-profiles"
                     ],
                     "related": {
                         "path": "/favorites/{id}/user",
@@ -1623,7 +1701,9 @@
                     ]
                 }
             },
-            "includable": [],
+            "includable": [
+                "user"
+            ],
             "sortable": [],
             "filterable": [],
             "actions": []
@@ -1839,7 +1919,7 @@
                 "owner": {
                     "cardinality": "one",
                     "types": [
-                        "users"
+                        "public-profiles"
                     ],
                     "related": {
                         "path": "/libraries/{id}/owner",
@@ -1980,6 +2060,7 @@
                 }
             },
             "includable": [
+                "owner",
                 "items"
             ],
             "sortable": [],
@@ -2191,18 +2272,7 @@
                     "types": [
                         "users"
                     ],
-                    "related": {
-                        "path": "/playlists/{id}/owner",
-                        "method": "GET",
-                        "errorStatuses": [
-                            400,
-                            401,
-                            403,
-                            404,
-                            406,
-                            500
-                        ]
-                    },
+                    "related": null,
                     "relationship": {
                         "path": "/playlists/{id}/relationships/owner",
                         "method": "GET",
@@ -4416,7 +4486,7 @@
                     }
                 },
                 "previewOffset": {
-                    "format": "time",
+                    "format": "string",
                     "nullable": true,
                     "enum": null,
                     "schema": null
@@ -4483,7 +4553,7 @@
                     }
                 },
                 "previewOffset": {
-                    "format": "time",
+                    "format": "string",
                     "nullable": true,
                     "enum": null,
                     "required": false,
@@ -4553,7 +4623,7 @@
                     }
                 },
                 "previewOffset": {
-                    "format": "time",
+                    "format": "string",
                     "nullable": true,
                     "enum": null,
                     "required": false,
@@ -4823,33 +4893,67 @@
                     }
                 },
                 "genres": {
-                    "schema": null
+                    "schema": {
+                        "types": [
+                            "array"
+                        ],
+                        "format": null,
+                        "enum": [],
+                        "required": [],
+                        "properties": [],
+                        "items": {
+                            "types": [
+                                "string"
+                            ],
+                            "format": null,
+                            "enum": [],
+                            "required": [],
+                            "properties": [],
+                            "items": null,
+                            "discriminator": null,
+                            "oneOf": [],
+                            "anyOf": [],
+                            "allOf": []
+                        },
+                        "discriminator": null,
+                        "oneOf": [],
+                        "anyOf": [],
+                        "allOf": []
+                    }
                 },
                 "q": {
-                    "schema": null
+                    "schema": {
+                        "types": [
+                            "string"
+                        ],
+                        "format": null,
+                        "enum": [],
+                        "required": [],
+                        "properties": [],
+                        "items": null,
+                        "discriminator": null,
+                        "oneOf": [],
+                        "anyOf": [],
+                        "allOf": []
+                    }
                 },
                 "title": {
-                    "schema": null
+                    "schema": {
+                        "types": [
+                            "string"
+                        ],
+                        "format": null,
+                        "enum": [],
+                        "required": [],
+                        "properties": [],
+                        "items": null,
+                        "discriminator": null,
+                        "oneOf": [],
+                        "anyOf": [],
+                        "allOf": []
+                    }
                 }
             },
-            "actions": []
-        },
-        "users": {
-            "type": "users",
-            "paginator": {
-                "kind": "none",
-                "parameters": []
-            },
-            "clientId": "forbidden",
-            "countable": null,
-            "attributes": [],
-            "createAttributes": [],
-            "updateAttributes": [],
-            "relations": [],
-            "operations": [],
-            "includable": [],
-            "sortable": [],
-            "filterable": [],
             "actions": []
         }
     }

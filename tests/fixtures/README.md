@@ -7,7 +7,7 @@ the two codegens are kept consistent.
 
 | File | What it is |
 | --- | --- |
-| `music-catalog.openapi.json` | The OpenAPI 3.1 document for the music-catalog API. 64 paths, 193 component schemas, 16 resource types. |
+| `music-catalog.openapi.json` | The OpenAPI 3.1 document for the music-catalog API. 63 paths, 248 component schemas, 15 resource types, generator contract 2. |
 | `music-catalog.schemas.json` | The sidecar JSON Schema map, one draft-2020-12 schema per resource type, keyed by type. |
 
 This is the canonical codegen input. Golden-file tests generate from it and diff the committed

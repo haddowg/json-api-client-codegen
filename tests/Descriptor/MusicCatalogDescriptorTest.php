@@ -140,6 +140,36 @@ final class MusicCatalogDescriptorTest extends TestCase
         self::assertSame(\array_keys($albums->createAttributes), \array_keys($albums->updateAttributes));
     }
 
+    public function testWriteRelationsAreReadFromTheirOwnDocuments(): void
+    {
+        $albums = $this->resource('albums');
+        self::assertSame(['artist', 'tracks'], $albums->createRelations);
+        self::assertSame(['artist', 'tracks'], $albums->updateRelations);
+
+        // `tracks.playlists` permits no replacement, so the update document leaves it out.
+        $tracks = $this->resource('tracks');
+        self::assertSame(['album', 'playlists'], $tracks->createRelations);
+        self::assertSame(['album'], $tracks->updateRelations);
+
+        self::assertSame([], $this->resource('charts')->createRelations, 'a type with no create accepts no relations');
+    }
+
+    public function testDocumentOrderIsKeptBesideTheSortedMaps(): void
+    {
+        $albums = $this->resource('albums');
+
+        self::assertSame(
+            ['title', 'averageRating', 'artwork', 'releasedAt', 'explicit', 'status', 'availableFrom', 'availableUntil', 'releaseInfo', 'artist', 'tracks'],
+            $albums->memberOrder,
+        );
+        self::assertSame(['title', 'releasedAt', 'status', 'unknown'], $albums->inDocumentOrder(['unknown', 'status', 'title', 'releasedAt']));
+
+        $releaseInfo = $albums->attributes['releaseInfo']->schema;
+        self::assertNotNull($releaseInfo);
+        self::assertSame(['label', 'catalogueNumber'], $releaseInfo->propertyOrder);
+        self::assertSame(['label', 'catalogueNumber'], \array_keys($releaseInfo->orderedProperties()));
+    }
+
     public function testRequiredIsCarriedPerMemberAndPerDocument(): void
     {
         $albums = $this->resource('albums');

@@ -78,6 +78,9 @@ final class DescriptorSerializer
                 'schema' => self::valueSchema($filter->schema),
             ], $resource->filterable),
             'actions' => \array_map(self::action(...), $resource->actions),
+            'createRelations' => $resource->createRelations,
+            'updateRelations' => $resource->updateRelations,
+            'memberOrder' => $resource->memberOrder,
         ];
     }
 
@@ -186,6 +189,7 @@ final class DescriptorSerializer
             'enum' => $schema->enum,
             'required' => $schema->required,
             'properties' => \array_map(self::valueSchema(...), $schema->properties),
+            'propertyOrder' => $schema->propertyOrder,
             'items' => self::valueSchema($schema->items),
             'discriminator' => $schema->discriminator,
             'const' => $schema->const,

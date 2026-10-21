@@ -43,7 +43,7 @@ alone.
 ## The reference artefact
 
 `artefact/` is a snapshot of `json-api-client/tests/Generated/MusicCatalog`, the hand-written
-output for the `albums` type that every emitter targets. Copied at json-api-client `23c909e`.
+output for the `albums` type that every emitter targets. Copied at json-api-client `8a523b6`.
 
 `ArtefactParity` compares a generated declaration against it on code tokens and type-bearing
 PHPDoc only, because the artefact's prose explains the design to a reader and is not derivable

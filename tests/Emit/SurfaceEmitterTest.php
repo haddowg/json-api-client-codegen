@@ -34,47 +34,6 @@ use PHPUnit\Framework\TestCase;
 final class SurfaceEmitterTest extends TestCase
 {
     /**
-     * Where the artefact's `@throws` lists disagree with the error statuses the document declares.
-     *
-     * The artefact was written by hand and several of its lists are short of, or beyond, what the
-     * operation's `responses` say. The generated lists come from the document, so the difference
-     * is removed from both sides here, each entry named, and everything else must still match.
-     *
-     * @var array<string, array{generated?: array<string, list<string>>, artefact?: array<string, list<string>>}>
-     */
-    private const array THROWS_DISCREPANCIES = [
-        // DELETE /albums/{id} declares 400 and 406.
-        'AlbumHandle' => ['generated' => ['delete' => ['BadRequest', 'NotAcceptable']]],
-        // Both reads declare 406; PATCH declares 406, 409 and 415.
-        'AlbumArtistRelation' => ['generated' => [
-            'get' => ['NotAcceptable'],
-            'related' => ['NotAcceptable'],
-            'set' => ['NotAcceptable', 'Conflict', 'UnsupportedMediaType'],
-        ]],
-        // Both reads declare 406; POST, DELETE and PATCH each declare 406, 409 and 415.
-        'AlbumTracksRelation' => ['generated' => [
-            'get' => ['NotAcceptable'],
-            'related' => ['NotAcceptable'],
-            'add' => ['NotAcceptable', 'Conflict', 'UnsupportedMediaType'],
-            'remove' => ['NotAcceptable', 'Conflict', 'UnsupportedMediaType'],
-            'replace' => ['NotAcceptable', 'Conflict', 'UnsupportedMediaType'],
-        ]],
-        // POST /albums/{id}/-actions/artwork declares 406 and no 415.
-        'AlbumActions' => [
-            'generated' => ['artwork' => ['NotAcceptable']],
-            'artefact' => ['artwork' => ['UnsupportedMediaType']],
-        ],
-        // POST /albums/-actions/summary declares 404, 415 and 422.
-        'AlbumCollectionActions' => ['generated' => ['summary' => ['NotFound', 'UnsupportedMediaType', 'ValidationFailed']]],
-    ];
-
-    /**
-     * The artefact orders `AlbumActions` as the document lists the paths; the descriptor, and so
-     * the output, orders actions by name.
-     */
-    private const array ORDER_INSENSITIVE = ['AlbumActions'];
-
-    /**
      * @return iterable<string, array{string}>
      */
     public static function artefactClasses(): iterable
@@ -87,42 +46,7 @@ final class SurfaceEmitterTest extends TestCase
     #[DataProvider('artefactClasses')]
     public function testMatchesTheArtefact(string $class): void
     {
-        $artefact = \file_get_contents(ArtefactParity::DIRECTORY . '/resource-albums.php');
-        self::assertIsString($artefact);
-        $generated = Generated::file('resource-albums.php');
-
-        $known = self::THROWS_DISCREPANCIES[$class] ?? [];
-        foreach ($known['generated'] ?? [] as $method => $exceptions) {
-            $generated = self::withoutThrows($generated, $class, $method, $exceptions);
-        }
-        foreach ($known['artefact'] ?? [] as $method => $exceptions) {
-            $artefact = self::withoutThrows($artefact, $class, $method, $exceptions);
-        }
-        if (\in_array($class, self::ORDER_INSENSITIVE, true)) {
-            $artefact = self::membersByName($artefact, $class);
-            $generated = self::membersByName($generated, $class);
-        }
-
-        self::assertSame(
-            self::readable(ArtefactParity::normalised($artefact, $class)),
-            self::readable(ArtefactParity::normalised($generated, $class)),
-            \sprintf('%s differs from the artefact in code or type-bearing PHPDoc.', $class),
-        );
-    }
-
-    public function testAnUndocumentedDiscrepancyIsStillCaught(): void
-    {
-        $generated = Generated::file('resource-albums.php');
-
-        self::assertNotSame(
-            ArtefactParity::normalised(self::withoutThrows($generated, 'AlbumHandle', 'delete', ['BadRequest']), 'AlbumHandle'),
-            ArtefactParity::normalised($generated, 'AlbumHandle'),
-            'the discrepancy filter removes what it names',
-        );
-        self::assertStringContainsString('@throws NotAcceptable', ArtefactParity::normalised(
-            self::withoutThrows($generated, 'AlbumHandle', 'delete', ['BadRequest']),
-            'AlbumHandle',
-        ));
+        ArtefactParity::assertMatches($class, 'resource-albums.php', Generated::file('resource-albums.php'));
     }
 
     public function testEveryThrowsListFollowsTheOperationsDeclaredStatuses(): void
@@ -302,20 +226,6 @@ final class SurfaceEmitterTest extends TestCase
     }
 
     /**
-     * Drop the named `@throws` lines from one method's docblock.
-     *
-     * @param list<string> $exceptions
-     */
-    private static function withoutThrows(string $source, string $class, string $method, array $exceptions): string
-    {
-        [$start, $length, $docblock] = self::docblockOf($source, $class, $method);
-        $filtered = (string) \preg_replace('/\n\s*\* @throws (?:' . \implode('|', $exceptions) . ')\b[^\n]*/', '', $docblock, -1, $count);
-        self::assertSame(\count($exceptions), $count, \sprintf('Every named exception is in %s::%s()\'s @throws list.', $class, $method));
-
-        return \substr_replace($source, $filtered, $start, $length);
-    }
-
-    /**
      * @return array{int, int, string} offset, length and text of the docblock above `$class::$method()`
      */
     private static function docblockOf(string $source, string $class, string $method): array
@@ -332,59 +242,4 @@ final class SurfaceEmitterTest extends TestCase
         return [$start, $end + 2 - $start, \substr($source, $start, $end + 2 - $start)];
     }
 
-    /**
-     * The source with one class's members reordered by method name, so a comparison ignores
-     * member order.
-     */
-    private static function membersByName(string $source, string $class): string
-    {
-        $tokens = \PhpToken::tokenize($source);
-        $count = \count($tokens);
-        $open = null;
-        for ($i = 0; $i < $count; $i++) {
-            if ($tokens[$i]->is(\T_CLASS) && ($tokens[$i + 2]->text ?? null) === $class) {
-                for ($open = $i; $tokens[$open]->text !== '{'; $open++);
-                break;
-            }
-        }
-        self::assertNotNull($open, 'No class ' . $class);
-
-        $members = [];
-        $current = '';
-        $name = '';
-        $depth = 0;
-        $close = $count;
-        for ($i = $open + 1; $i < $count; $i++) {
-            $token = $tokens[$i];
-            if ($depth === 0 && $token->text === '}') {
-                $close = $i;
-                break;
-            }
-            $current .= $token->text;
-            if ($token->is(\T_FUNCTION) && $depth === 0) {
-                $name = $tokens[$i + 2]->text ?? '';
-            }
-            if ($token->text === '{' || $token->is([\T_CURLY_OPEN, \T_DOLLAR_OPEN_CURLY_BRACES])) {
-                $depth++;
-            } elseif ($token->text === '}') {
-                $depth--;
-                if ($depth === 0) {
-                    $members[] = [$name, \trim($current)];
-                    $current = '';
-                    $name = '';
-                }
-            }
-        }
-        \usort($members, static fn(array $a, array $b): int => $a[0] <=> $b[0]);
-
-        $before = \implode('', \array_map(static fn(\PhpToken $token): string => $token->text, \array_slice($tokens, 0, $open + 1)));
-        $after = \implode('', \array_map(static fn(\PhpToken $token): string => $token->text, \array_slice($tokens, $close)));
-
-        return $before . "\n" . \implode("\n\n", \array_map(static fn(array $member): string => $member[1], $members)) . "\n" . $after;
-    }
-
-    private static function readable(string $normalised): string
-    {
-        return (string) \preg_replace('/ ([;{}]) /', " $1\n", $normalised);
-    }
 }

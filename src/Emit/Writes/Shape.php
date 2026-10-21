@@ -89,7 +89,7 @@ final class Shape
                 return null;
             }
             $own = [];
-            foreach ($schema->orderedProperties() as $name => $property) {
+            foreach ($schema->properties as $name => $property) {
                 $own[$name] = ['schema' => $property, 'required' => \in_array($name, $schema->required, true)];
             }
         }

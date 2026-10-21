@@ -43,16 +43,6 @@ final class ValueSchema
         public readonly ?string $const = null,
     ) {}
 
-    /**
-     * The object members, in the order the document declares them.
-     *
-     * @return array<string, ValueSchema>
-     */
-    public function orderedProperties(): array
-    {
-        return $this->properties;
-    }
-
     /** True when this schema's real shape is in its branches rather than its own members. */
     public function composed(): bool
     {

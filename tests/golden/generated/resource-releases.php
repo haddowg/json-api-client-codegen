@@ -6,11 +6,17 @@ namespace haddowg\JsonApiClient\Tests\Generated\MusicCatalog;
 
 use haddowg\JsonApiClient\Exceptions\FieldNotSelectedException;
 use haddowg\JsonApiClient\Exceptions\MalformedDocument;
+use haddowg\JsonApiClient\Exceptions\MissingRequiredMemberException;
 use haddowg\JsonApiClient\Exceptions\RelationNotIncludedException;
+use haddowg\JsonApiClient\Exceptions\UnknownAttributeException;
 use haddowg\JsonApiClient\Resources\Relationship;
 use haddowg\JsonApiClient\Resources\ResourceContext;
 use haddowg\JsonApiClient\Resources\ResourceObject;
+use haddowg\JsonApiClient\Support\Coerce;
+use haddowg\JsonApiClient\Support\Conditionable;
 use haddowg\JsonApiClient\Support\Identifier;
+use haddowg\JsonApiClient\Support\ImmutableConditionable;
+use haddowg\JsonApiClient\Support\Missing;
 
 /**
  * The `album` relation of a `releases` resource, hydrated.
@@ -266,11 +272,29 @@ abstract class ReleaseBase extends ResourceObject
  * @phpstan-type ReleasePackagingShape array{material?: string, gatefold?: bool}
  * @phpstan-type ReleaseAvailabilityShape array{worldwide?: bool, regions?: list<string>}
  * @phpstan-type ReleaseDimensionsShape array{widthMm: float, heightMm: float, depthMm?: float}
+ * @phpstan-type ReleaseAlbumInput Album|Identifier|null
+ * @phpstan-type ReleaseCreateShape array{catalogNumber: string, format?: array{rpm: int, coloured?: bool, medium: string}|array{discs: int, medium: string}|array{codec: string, bitrateKbps?: int, medium: string}|null, packaging?: array{material: string, gatefold?: bool}|null, availability?: array{worldwide?: bool, regions?: list<string>}|null, dimensions?: array{widthMm: float, heightMm: float, depthMm?: float}|null, album?: ReleaseAlbumInput}
+ * @phpstan-type ReleaseUpdateShape array{catalogNumber?: string, format?: array{rpm?: int, coloured?: bool, medium?: string}|array{discs?: int, medium?: string}|array{codec?: string, bitrateKbps?: int, medium?: string}|null, packaging?: ReleasePackagingShape|null, availability?: array{worldwide?: bool, regions?: list<string>}|null, dimensions?: array{widthMm: float, heightMm: float, depthMm?: float}|null, album?: ReleaseAlbumInput}
  *
  * @generated from `components.schemas.ReleasesResource`
  */
 final class Release extends ReleaseBase implements ReleaseHasAlbum
 {
+    /**
+     * Every member a write input accepts, in document order. The runtime guard on the array door
+     * checks against this, and the did-you-mean is drawn from it.
+     *
+     * @var list<string>
+     */
+    public const array WRITABLE = ['catalogNumber', 'format', 'packaging', 'availability', 'dimensions', 'album'];
+
+    /**
+     * Members a create document requires.
+     *
+     * @var list<string>
+     */
+    public const array REQUIRED_ON_CREATE = ['catalogNumber'];
+
     public ?Album $album { get => $this->album(); }
 
     /**
@@ -353,6 +377,212 @@ final class Release extends ReleaseBase implements ReleaseHasAlbum
         $raw = $this->_includedOne('album', 'albumRef');
 
         return $raw === null ? null : Album::_hydrate($raw, $this->_child('album'));
+    }
+}
+
+/**
+ * The canonical create input for `releases`, as named arguments. A missing required member is a
+ * static error and an `ArgumentCountError`; every optional member defaults to `Missing`, which
+ * keeps an absent member distinct from an explicit `null`.
+ *
+ * @phpstan-import-type ReleaseCreateShape from Release
+ *
+ * @generated from `POST /releases`
+ */
+final class ReleaseCreate
+{
+    /**
+     * @param array{rpm: int, coloured?: bool, medium: string}|array{discs: int, medium: string}|array{codec: string, bitrateKbps?: int, medium: string}|Missing|null $format
+     * @param array{material: string, gatefold?: bool}|Missing|null $packaging
+     * @param array{worldwide?: bool, regions?: list<string>}|Missing|null $availability
+     * @param array{widthMm: float, heightMm: float, depthMm?: float}|Missing|null $dimensions
+     * @param Album|Identifier|Missing|null $album
+     */
+    public function __construct(
+        public readonly string $catalogNumber,
+        public readonly array|Missing|null $format = Missing::Value,
+        public readonly array|Missing|null $packaging = Missing::Value,
+        public readonly array|Missing|null $availability = Missing::Value,
+        public readonly array|Missing|null $dimensions = Missing::Value,
+        public readonly Album|Identifier|Missing|null $album = Missing::Value,
+    ) {}
+
+    /**
+     * Build the DTO from the array door, checking every key against the descriptor.
+     *
+     * @param ReleaseCreateShape $input
+     *
+     * @throws UnknownAttributeException when a key is not a writable member of `releases`
+     */
+    public static function from(array $input): self
+    {
+        foreach (\array_keys($input) as $member) {
+            if (!\in_array($member, Release::WRITABLE, true)) {
+                throw UnknownAttributeException::for(ReleaseBase::TYPE, (string) $member, Release::WRITABLE);
+            }
+        }
+
+        // `array_key_exists`, not `??`: an explicit null clears the member, and `??` would drop it.
+        return new self(
+            catalogNumber: $input['catalogNumber'],
+            format: \array_key_exists('format', $input) ? $input['format'] : Missing::Value,
+            packaging: \array_key_exists('packaging', $input) ? $input['packaging'] : Missing::Value,
+            availability: \array_key_exists('availability', $input) ? $input['availability'] : Missing::Value,
+            dimensions: \array_key_exists('dimensions', $input) ? $input['dimensions'] : Missing::Value,
+            album: \array_key_exists('album', $input) ? $input['album'] : Missing::Value,
+        );
+    }
+
+    /**
+     * The `POST /releases` request document.
+     *
+     * @return array<string, mixed>
+     */
+    public function toDocument(): array
+    {
+        $data = ['type' => ReleaseBase::TYPE];
+
+        $attributes = ['catalogNumber' => $this->catalogNumber];
+
+        if (!$this->format instanceof Missing) {
+            $attributes['format'] = $this->format;
+        }
+
+        if (!$this->packaging instanceof Missing) {
+            $attributes['packaging'] = $this->packaging;
+        }
+
+        if (!$this->availability instanceof Missing) {
+            $attributes['availability'] = $this->availability;
+        }
+
+        if (!$this->dimensions instanceof Missing) {
+            $attributes['dimensions'] = $this->dimensions;
+        }
+
+        $data['attributes'] = $attributes;
+
+        $relationships = [];
+
+        if (!$this->album instanceof Missing) {
+            $relationships['album'] = ['data' => Coerce::linkage($this->album)];
+        }
+
+        if ($relationships !== []) {
+            $data['relationships'] = $relationships;
+        }
+
+        return ['data' => $data];
+    }
+}
+
+/**
+ * The fluent create input for `releases`, for assembly that is conditional. `build()` rejects a
+ * missing required member, which this form cannot check statically.
+ *
+ * @generated from `POST /releases`
+ */
+final class ReleaseCreateBuilder
+{
+    use Conditionable;
+
+    private string|Missing $catalogNumber = Missing::Value;
+
+    /**
+     * @var array{rpm: int, coloured?: bool, medium: string}|array{discs: int, medium: string}|array{codec: string, bitrateKbps?: int, medium: string}|Missing|null
+     */
+    private array|Missing|null $format = Missing::Value;
+
+    /**
+     * @var array{material: string, gatefold?: bool}|Missing|null
+     */
+    private array|Missing|null $packaging = Missing::Value;
+
+    /**
+     * @var array{worldwide?: bool, regions?: list<string>}|Missing|null
+     */
+    private array|Missing|null $availability = Missing::Value;
+
+    /**
+     * @var array{widthMm: float, heightMm: float, depthMm?: float}|Missing|null
+     */
+    private array|Missing|null $dimensions = Missing::Value;
+
+    private Album|Identifier|Missing|null $album = Missing::Value;
+
+    public function catalogNumber(string $catalogNumber): self
+    {
+        $this->catalogNumber = $catalogNumber;
+
+        return $this;
+    }
+
+    /**
+     * @param array{rpm: int, coloured?: bool, medium: string}|array{discs: int, medium: string}|array{codec: string, bitrateKbps?: int, medium: string}|null $format
+     */
+    public function format(?array $format): self
+    {
+        $this->format = $format;
+
+        return $this;
+    }
+
+    /**
+     * @param array{material: string, gatefold?: bool}|null $packaging
+     */
+    public function packaging(?array $packaging): self
+    {
+        $this->packaging = $packaging;
+
+        return $this;
+    }
+
+    /**
+     * @param array{worldwide?: bool, regions?: list<string>}|null $availability
+     */
+    public function availability(?array $availability): self
+    {
+        $this->availability = $availability;
+
+        return $this;
+    }
+
+    /**
+     * @param array{widthMm: float, heightMm: float, depthMm?: float}|null $dimensions
+     */
+    public function dimensions(?array $dimensions): self
+    {
+        $this->dimensions = $dimensions;
+
+        return $this;
+    }
+
+    public function album(Album|Identifier|null $album): self
+    {
+        $this->album = $album;
+
+        return $this;
+    }
+
+    /**
+     * Produce the DTO, which is the only form that ever reaches the serialiser.
+     *
+     * @throws MissingRequiredMemberException when a member the create document requires was never set
+     */
+    public function build(): ReleaseCreate
+    {
+        if ($this->catalogNumber instanceof Missing) {
+            throw MissingRequiredMemberException::for(ReleaseBase::TYPE, ['catalogNumber']);
+        }
+
+        return new ReleaseCreate(
+            catalogNumber: $this->catalogNumber,
+            format: $this->format,
+            packaging: $this->packaging,
+            availability: $this->availability,
+            dimensions: $this->dimensions,
+            album: $this->album,
+        );
     }
 }
 
@@ -463,5 +693,221 @@ final class ReleaseFormatVinyl
         }
 
         return new self($rpmValue, $colouredValue);
+    }
+}
+
+/**
+ * The canonical update input for `releases`: every member optional, which is what a JSON:API
+ * `PATCH` is. The id is not a member; it comes from the handle the update is called on, so it
+ * cannot disagree with the URL.
+ *
+ * @phpstan-import-type ReleasePackagingShape from Release
+ * @phpstan-import-type ReleaseUpdateShape from Release
+ *
+ * @generated from `PATCH /releases/{id}`
+ */
+final class ReleaseUpdate
+{
+    use ImmutableConditionable;
+
+    /**
+     * @param array{rpm?: int, coloured?: bool, medium?: string}|array{discs?: int, medium?: string}|array{codec?: string, bitrateKbps?: int, medium?: string}|Missing|null $format
+     * @param ReleasePackagingShape|Missing|null $packaging
+     * @param array{worldwide?: bool, regions?: list<string>}|Missing|null $availability
+     * @param array{widthMm: float, heightMm: float, depthMm?: float}|Missing|null $dimensions
+     * @param Album|Identifier|Missing|null $album
+     *
+     * @phpstan-pure
+     */
+    public function __construct(
+        public readonly string|Missing $catalogNumber = Missing::Value,
+        public readonly array|Missing|null $format = Missing::Value,
+        public readonly array|Missing|null $packaging = Missing::Value,
+        public readonly array|Missing|null $availability = Missing::Value,
+        public readonly array|Missing|null $dimensions = Missing::Value,
+        public readonly Album|Identifier|Missing|null $album = Missing::Value,
+    ) {}
+
+    /**
+     * @phpstan-pure
+     */
+    public function catalogNumber(string $catalogNumber): self
+    {
+        return new self(
+            catalogNumber: $catalogNumber,
+            format: $this->format,
+            packaging: $this->packaging,
+            availability: $this->availability,
+            dimensions: $this->dimensions,
+            album: $this->album,
+        );
+    }
+
+    /**
+     * @param array{rpm?: int, coloured?: bool, medium?: string}|array{discs?: int, medium?: string}|array{codec?: string, bitrateKbps?: int, medium?: string}|null $format
+     *
+     * @phpstan-pure
+     */
+    public function format(?array $format): self
+    {
+        return new self(
+            catalogNumber: $this->catalogNumber,
+            format: $format,
+            packaging: $this->packaging,
+            availability: $this->availability,
+            dimensions: $this->dimensions,
+            album: $this->album,
+        );
+    }
+
+    /**
+     * @param ReleasePackagingShape|null $packaging
+     *
+     * @phpstan-pure
+     */
+    public function packaging(?array $packaging): self
+    {
+        return new self(
+            catalogNumber: $this->catalogNumber,
+            format: $this->format,
+            packaging: $packaging,
+            availability: $this->availability,
+            dimensions: $this->dimensions,
+            album: $this->album,
+        );
+    }
+
+    /**
+     * @param array{worldwide?: bool, regions?: list<string>}|null $availability
+     *
+     * @phpstan-pure
+     */
+    public function availability(?array $availability): self
+    {
+        return new self(
+            catalogNumber: $this->catalogNumber,
+            format: $this->format,
+            packaging: $this->packaging,
+            availability: $availability,
+            dimensions: $this->dimensions,
+            album: $this->album,
+        );
+    }
+
+    /**
+     * @param array{widthMm: float, heightMm: float, depthMm?: float}|null $dimensions
+     *
+     * @phpstan-pure
+     */
+    public function dimensions(?array $dimensions): self
+    {
+        return new self(
+            catalogNumber: $this->catalogNumber,
+            format: $this->format,
+            packaging: $this->packaging,
+            availability: $this->availability,
+            dimensions: $dimensions,
+            album: $this->album,
+        );
+    }
+
+    /**
+     * @phpstan-pure
+     */
+    public function album(Album|Identifier|null $album): self
+    {
+        return new self(
+            catalogNumber: $this->catalogNumber,
+            format: $this->format,
+            packaging: $this->packaging,
+            availability: $this->availability,
+            dimensions: $this->dimensions,
+            album: $album,
+        );
+    }
+
+    /**
+     * The input itself, so an update assembled fluently ends the way a create one does.
+     *
+     * @phpstan-pure
+     */
+    public function build(): self
+    {
+        return $this;
+    }
+
+    /**
+     * Build the DTO from the array door, checking every key against the descriptor.
+     *
+     * @param ReleaseUpdateShape $input
+     *
+     * @throws UnknownAttributeException when a key is not a writable member of `releases`
+     */
+    public static function from(array $input): self
+    {
+        foreach (\array_keys($input) as $member) {
+            if (!\in_array($member, Release::WRITABLE, true)) {
+                throw UnknownAttributeException::for(ReleaseBase::TYPE, (string) $member, Release::WRITABLE);
+            }
+        }
+
+        // `array_key_exists`, not `??`: an explicit null clears the member, and `??` would drop it.
+        return new self(
+            catalogNumber: \array_key_exists('catalogNumber', $input) ? $input['catalogNumber'] : Missing::Value,
+            format: \array_key_exists('format', $input) ? $input['format'] : Missing::Value,
+            packaging: \array_key_exists('packaging', $input) ? $input['packaging'] : Missing::Value,
+            availability: \array_key_exists('availability', $input) ? $input['availability'] : Missing::Value,
+            dimensions: \array_key_exists('dimensions', $input) ? $input['dimensions'] : Missing::Value,
+            album: \array_key_exists('album', $input) ? $input['album'] : Missing::Value,
+        );
+    }
+
+    /**
+     * The `PATCH /releases/{id}` request document. A member holding `null` is sent and clears the
+     * server value; one holding `Missing` is not sent.
+     *
+     * @return array<string, mixed>
+     */
+    public function toDocument(string $id): array
+    {
+        $data = ['type' => ReleaseBase::TYPE, 'id' => $id];
+
+        $attributes = [];
+
+        if (!$this->catalogNumber instanceof Missing) {
+            $attributes['catalogNumber'] = $this->catalogNumber;
+        }
+
+        if (!$this->format instanceof Missing) {
+            $attributes['format'] = $this->format;
+        }
+
+        if (!$this->packaging instanceof Missing) {
+            $attributes['packaging'] = $this->packaging;
+        }
+
+        if (!$this->availability instanceof Missing) {
+            $attributes['availability'] = $this->availability;
+        }
+
+        if (!$this->dimensions instanceof Missing) {
+            $attributes['dimensions'] = $this->dimensions;
+        }
+
+        if ($attributes !== []) {
+            $data['attributes'] = $attributes;
+        }
+
+        $relationships = [];
+
+        if (!$this->album instanceof Missing) {
+            $relationships['album'] = ['data' => Coerce::linkage($this->album)];
+        }
+
+        if ($relationships !== []) {
+            $data['relationships'] = $relationships;
+        }
+
+        return ['data' => $data];
     }
 }

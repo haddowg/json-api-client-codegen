@@ -7,10 +7,15 @@ namespace haddowg\JsonApiClient\Tests\Generated\MusicCatalog;
 use haddowg\JsonApiClient\Collections\ResourceCollection;
 use haddowg\JsonApiClient\Exceptions\MalformedDocument;
 use haddowg\JsonApiClient\Exceptions\RelationNotIncludedException;
+use haddowg\JsonApiClient\Exceptions\UnknownAttributeException;
 use haddowg\JsonApiClient\Resources\Relationship;
 use haddowg\JsonApiClient\Resources\ResourceContext;
 use haddowg\JsonApiClient\Resources\ResourceObject;
+use haddowg\JsonApiClient\Support\Coerce;
+use haddowg\JsonApiClient\Support\Conditionable;
 use haddowg\JsonApiClient\Support\Identifier;
+use haddowg\JsonApiClient\Support\ImmutableConditionable;
+use haddowg\JsonApiClient\Support\Missing;
 
 /**
  * The `items` relation of a `libraries` resource, hydrated.
@@ -139,10 +144,30 @@ abstract class LibraryBase extends ResourceObject
  * the runtime guards check against. `@phpstan-type` aliases are class-local, so every other class
  * using one imports it from here.
  *
+ * @phpstan-type LibraryOwnerInput Identifier|PublicProfile|null
+ * @phpstan-type LibraryItemsInput list<Album|Artist|Identifier|Track>
+ * @phpstan-type LibraryCreateShape array{owner?: LibraryOwnerInput, items?: LibraryItemsInput}
+ * @phpstan-type LibraryUpdateShape array{owner?: LibraryOwnerInput, items?: LibraryItemsInput}
+ *
  * @generated from `components.schemas.LibrariesResource`
  */
 final class Library extends LibraryBase implements LibraryHasOwner, LibraryHasItems
 {
+    /**
+     * Every member a write input accepts, in document order. The runtime guard on the array door
+     * checks against this, and the did-you-mean is drawn from it.
+     *
+     * @var list<string>
+     */
+    public const array WRITABLE = ['owner', 'items'];
+
+    /**
+     * Members a create document requires.
+     *
+     * @var list<string>
+     */
+    public const array REQUIRED_ON_CREATE = [];
+
     public ?PublicProfile $owner { get => $this->owner(); }
 
     /** @var ResourceCollection<Track|Album|Artist> */
@@ -250,5 +275,228 @@ final class Library extends LibraryBase implements LibraryHasOwner, LibraryHasIt
         }
 
         return new ResourceCollection($items);
+    }
+}
+
+/**
+ * The canonical create input for `libraries`, as named arguments. A missing required member is a
+ * static error and an `ArgumentCountError`; every optional member defaults to `Missing`, which
+ * keeps an absent member distinct from an explicit `null`.
+ *
+ * @phpstan-import-type LibraryCreateShape from Library
+ *
+ * @generated from `POST /libraries`
+ */
+final class LibraryCreate
+{
+    /**
+     * @param Identifier|PublicProfile|Missing|null $owner
+     * @param list<Album|Artist|Identifier|Track>|Missing $items
+     */
+    public function __construct(
+        public readonly Identifier|PublicProfile|Missing|null $owner = Missing::Value,
+        public readonly array|Missing $items = Missing::Value,
+    ) {}
+
+    /**
+     * Build the DTO from the array door, checking every key against the descriptor.
+     *
+     * @param LibraryCreateShape $input
+     *
+     * @throws UnknownAttributeException when a key is not a writable member of `libraries`
+     */
+    public static function from(array $input): self
+    {
+        foreach (\array_keys($input) as $member) {
+            if (!\in_array($member, Library::WRITABLE, true)) {
+                throw UnknownAttributeException::for(LibraryBase::TYPE, (string) $member, Library::WRITABLE);
+            }
+        }
+
+        // `array_key_exists`, not `??`: an explicit null clears the member, and `??` would drop it.
+        return new self(
+            owner: \array_key_exists('owner', $input) ? $input['owner'] : Missing::Value,
+            items: \array_key_exists('items', $input) ? $input['items'] : Missing::Value,
+        );
+    }
+
+    /**
+     * The `POST /libraries` request document.
+     *
+     * @return array<string, mixed>
+     */
+    public function toDocument(): array
+    {
+        $data = ['type' => LibraryBase::TYPE];
+
+        $relationships = [];
+
+        if (!$this->owner instanceof Missing) {
+            $relationships['owner'] = ['data' => Coerce::linkage($this->owner)];
+        }
+
+        if (!$this->items instanceof Missing) {
+            $relationships['items'] = ['data' => Coerce::linkageList($this->items)];
+        }
+
+        if ($relationships !== []) {
+            $data['relationships'] = $relationships;
+        }
+
+        return ['data' => $data];
+    }
+}
+
+/**
+ * The fluent create input for `libraries`, for assembly that is conditional. `build()` rejects a
+ * missing required member, which this form cannot check statically.
+ *
+ * @generated from `POST /libraries`
+ */
+final class LibraryCreateBuilder
+{
+    use Conditionable;
+
+    private Identifier|PublicProfile|Missing|null $owner = Missing::Value;
+
+    /**
+     * @var list<Album|Artist|Identifier|Track>|Missing
+     */
+    private array|Missing $items = Missing::Value;
+
+    public function owner(Identifier|PublicProfile|null $owner): self
+    {
+        $this->owner = $owner;
+
+        return $this;
+    }
+
+    /**
+     * @param list<Album|Artist|Identifier|Track> $items
+     */
+    public function items(array $items): self
+    {
+        $this->items = $items;
+
+        return $this;
+    }
+
+    /**
+     * Produce the DTO, which is the only form that ever reaches the serialiser.
+     */
+    public function build(): LibraryCreate
+    {
+        return new LibraryCreate(
+            owner: $this->owner,
+            items: $this->items,
+        );
+    }
+}
+
+/**
+ * The canonical update input for `libraries`: every member optional, which is what a JSON:API
+ * `PATCH` is. The id is not a member; it comes from the handle the update is called on, so it
+ * cannot disagree with the URL.
+ *
+ * @phpstan-import-type LibraryUpdateShape from Library
+ *
+ * @generated from `PATCH /libraries/{id}`
+ */
+final class LibraryUpdate
+{
+    use ImmutableConditionable;
+
+    /**
+     * @param Identifier|PublicProfile|Missing|null $owner
+     * @param list<Album|Artist|Identifier|Track>|Missing $items
+     *
+     * @phpstan-pure
+     */
+    public function __construct(
+        public readonly Identifier|PublicProfile|Missing|null $owner = Missing::Value,
+        public readonly array|Missing $items = Missing::Value,
+    ) {}
+
+    /**
+     * @phpstan-pure
+     */
+    public function owner(Identifier|PublicProfile|null $owner): self
+    {
+        return new self(
+            owner: $owner,
+            items: $this->items,
+        );
+    }
+
+    /**
+     * @param list<Album|Artist|Identifier|Track> $items
+     *
+     * @phpstan-pure
+     */
+    public function items(array $items): self
+    {
+        return new self(
+            owner: $this->owner,
+            items: $items,
+        );
+    }
+
+    /**
+     * The input itself, so an update assembled fluently ends the way a create one does.
+     *
+     * @phpstan-pure
+     */
+    public function build(): self
+    {
+        return $this;
+    }
+
+    /**
+     * Build the DTO from the array door, checking every key against the descriptor.
+     *
+     * @param LibraryUpdateShape $input
+     *
+     * @throws UnknownAttributeException when a key is not a writable member of `libraries`
+     */
+    public static function from(array $input): self
+    {
+        foreach (\array_keys($input) as $member) {
+            if (!\in_array($member, Library::WRITABLE, true)) {
+                throw UnknownAttributeException::for(LibraryBase::TYPE, (string) $member, Library::WRITABLE);
+            }
+        }
+
+        // `array_key_exists`, not `??`: an explicit null clears the member, and `??` would drop it.
+        return new self(
+            owner: \array_key_exists('owner', $input) ? $input['owner'] : Missing::Value,
+            items: \array_key_exists('items', $input) ? $input['items'] : Missing::Value,
+        );
+    }
+
+    /**
+     * The `PATCH /libraries/{id}` request document. A member holding `null` is sent and clears the
+     * server value; one holding `Missing` is not sent.
+     *
+     * @return array<string, mixed>
+     */
+    public function toDocument(string $id): array
+    {
+        $data = ['type' => LibraryBase::TYPE, 'id' => $id];
+
+        $relationships = [];
+
+        if (!$this->owner instanceof Missing) {
+            $relationships['owner'] = ['data' => Coerce::linkage($this->owner)];
+        }
+
+        if (!$this->items instanceof Missing) {
+            $relationships['items'] = ['data' => Coerce::linkageList($this->items)];
+        }
+
+        if ($relationships !== []) {
+            $data['relationships'] = $relationships;
+        }
+
+        return ['data' => $data];
     }
 }

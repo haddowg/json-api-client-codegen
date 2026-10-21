@@ -7,10 +7,15 @@ namespace haddowg\JsonApiClient\Tests\Generated\MusicCatalog;
 use haddowg\JsonApiClient\Exceptions\FieldNotSelectedException;
 use haddowg\JsonApiClient\Exceptions\MalformedDocument;
 use haddowg\JsonApiClient\Exceptions\RelationNotIncludedException;
+use haddowg\JsonApiClient\Exceptions\UnknownAttributeException;
 use haddowg\JsonApiClient\Resources\Relationship;
 use haddowg\JsonApiClient\Resources\ResourceContext;
 use haddowg\JsonApiClient\Resources\ResourceObject;
+use haddowg\JsonApiClient\Support\Coerce;
+use haddowg\JsonApiClient\Support\Conditionable;
 use haddowg\JsonApiClient\Support\Identifier;
+use haddowg\JsonApiClient\Support\ImmutableConditionable;
+use haddowg\JsonApiClient\Support\Missing;
 
 /**
  * The `user` relation of a `favorites` resource, hydrated.
@@ -130,10 +135,38 @@ abstract class FavoriteBase extends ResourceObject
  * the runtime guards check against. `@phpstan-type` aliases are class-local, so every other class
  * using one imports it from here.
  *
+ * @phpstan-type FavoriteDateInput \DateTimeImmutable|string
+ * @phpstan-type FavoriteUserInput Identifier|PublicProfile|null
+ * @phpstan-type FavoriteFavoritableInput Album|Artist|Identifier|Track|null
+ * @phpstan-type FavoriteCreateShape array{favoritedAt?: FavoriteDateInput, user?: FavoriteUserInput, favoritable?: FavoriteFavoritableInput}
+ * @phpstan-type FavoriteUpdateShape array{user?: FavoriteUserInput, favoritable?: FavoriteFavoritableInput}
+ *
  * @generated from `components.schemas.FavoritesResource`
  */
 final class Favorite extends FavoriteBase implements FavoriteHasUser
 {
+    /**
+     * Every member a write input accepts, in document order. The runtime guard on the array door
+     * checks against this, and the did-you-mean is drawn from it.
+     *
+     * @var list<string>
+     */
+    public const array WRITABLE = ['favoritedAt', 'user', 'favoritable'];
+
+    /**
+     * The members the update document accepts, where they differ from `WRITABLE`.
+     *
+     * @var list<string>
+     */
+    public const array WRITABLE_ON_UPDATE = ['user', 'favoritable'];
+
+    /**
+     * Members a create document requires.
+     *
+     * @var list<string>
+     */
+    public const array REQUIRED_ON_CREATE = [];
+
     public ?PublicProfile $user { get => $this->user(); }
 
     /**
@@ -216,5 +249,242 @@ final class Favorite extends FavoriteBase implements FavoriteHasUser
         $raw = $this->_includedOne('user', 'userRef');
 
         return $raw === null ? null : PublicProfile::_hydrate($raw, $this->_child('user'));
+    }
+}
+
+/**
+ * The canonical create input for `favorites`, as named arguments. A missing required member is a
+ * static error and an `ArgumentCountError`; every optional member defaults to `Missing`, which
+ * keeps an absent member distinct from an explicit `null`.
+ *
+ * @phpstan-import-type FavoriteCreateShape from Favorite
+ *
+ * @generated from `POST /favorites`
+ */
+final class FavoriteCreate
+{
+    /**
+     * @param Identifier|PublicProfile|Missing|null $user
+     * @param Album|Artist|Identifier|Track|Missing|null $favoritable
+     */
+    public function __construct(
+        public readonly \DateTimeImmutable|Missing $favoritedAt = Missing::Value,
+        public readonly Identifier|PublicProfile|Missing|null $user = Missing::Value,
+        public readonly Album|Artist|Identifier|Track|Missing|null $favoritable = Missing::Value,
+    ) {}
+
+    /**
+     * Build the DTO from the array door, checking every key against the descriptor.
+     *
+     * @param FavoriteCreateShape $input
+     *
+     * @throws UnknownAttributeException when a key is not a writable member of `favorites`
+     */
+    public static function from(array $input): self
+    {
+        foreach (\array_keys($input) as $member) {
+            if (!\in_array($member, Favorite::WRITABLE, true)) {
+                throw UnknownAttributeException::for(FavoriteBase::TYPE, (string) $member, Favorite::WRITABLE);
+            }
+        }
+
+        // `array_key_exists`, not `??`: an explicit null clears the member, and `??` would drop it.
+        return new self(
+            favoritedAt: Coerce::dateTime(\array_key_exists('favoritedAt', $input) ? $input['favoritedAt'] : Missing::Value),
+            user: \array_key_exists('user', $input) ? $input['user'] : Missing::Value,
+            favoritable: \array_key_exists('favoritable', $input) ? $input['favoritable'] : Missing::Value,
+        );
+    }
+
+    /**
+     * The `POST /favorites` request document.
+     *
+     * @return array<string, mixed>
+     */
+    public function toDocument(): array
+    {
+        $data = ['type' => FavoriteBase::TYPE];
+
+        $attributes = [];
+
+        if (!$this->favoritedAt instanceof Missing) {
+            $attributes['favoritedAt'] = $this->favoritedAt->format(\DateTimeInterface::ATOM);
+        }
+
+        if ($attributes !== []) {
+            $data['attributes'] = $attributes;
+        }
+
+        $relationships = [];
+
+        if (!$this->user instanceof Missing) {
+            $relationships['user'] = ['data' => Coerce::linkage($this->user)];
+        }
+
+        if (!$this->favoritable instanceof Missing) {
+            $relationships['favoritable'] = ['data' => Coerce::linkage($this->favoritable)];
+        }
+
+        if ($relationships !== []) {
+            $data['relationships'] = $relationships;
+        }
+
+        return ['data' => $data];
+    }
+}
+
+/**
+ * The fluent create input for `favorites`, for assembly that is conditional. `build()` rejects a
+ * missing required member, which this form cannot check statically.
+ *
+ * @generated from `POST /favorites`
+ */
+final class FavoriteCreateBuilder
+{
+    use Conditionable;
+
+    private \DateTimeImmutable|Missing $favoritedAt = Missing::Value;
+
+    private Identifier|PublicProfile|Missing|null $user = Missing::Value;
+
+    private Album|Artist|Identifier|Track|Missing|null $favoritable = Missing::Value;
+
+    public function favoritedAt(\DateTimeImmutable $favoritedAt): self
+    {
+        $this->favoritedAt = $favoritedAt;
+
+        return $this;
+    }
+
+    public function user(Identifier|PublicProfile|null $user): self
+    {
+        $this->user = $user;
+
+        return $this;
+    }
+
+    public function favoritable(Album|Artist|Identifier|Track|null $favoritable): self
+    {
+        $this->favoritable = $favoritable;
+
+        return $this;
+    }
+
+    /**
+     * Produce the DTO, which is the only form that ever reaches the serialiser.
+     */
+    public function build(): FavoriteCreate
+    {
+        return new FavoriteCreate(
+            favoritedAt: $this->favoritedAt,
+            user: $this->user,
+            favoritable: $this->favoritable,
+        );
+    }
+}
+
+/**
+ * The canonical update input for `favorites`: every member optional, which is what a JSON:API
+ * `PATCH` is. The id is not a member; it comes from the handle the update is called on, so it
+ * cannot disagree with the URL.
+ *
+ * @phpstan-import-type FavoriteUpdateShape from Favorite
+ *
+ * @generated from `PATCH /favorites/{id}`
+ */
+final class FavoriteUpdate
+{
+    use ImmutableConditionable;
+
+    /**
+     * @param Identifier|PublicProfile|Missing|null $user
+     * @param Album|Artist|Identifier|Track|Missing|null $favoritable
+     *
+     * @phpstan-pure
+     */
+    public function __construct(
+        public readonly Identifier|PublicProfile|Missing|null $user = Missing::Value,
+        public readonly Album|Artist|Identifier|Track|Missing|null $favoritable = Missing::Value,
+    ) {}
+
+    /**
+     * @phpstan-pure
+     */
+    public function user(Identifier|PublicProfile|null $user): self
+    {
+        return new self(
+            user: $user,
+            favoritable: $this->favoritable,
+        );
+    }
+
+    /**
+     * @phpstan-pure
+     */
+    public function favoritable(Album|Artist|Identifier|Track|null $favoritable): self
+    {
+        return new self(
+            user: $this->user,
+            favoritable: $favoritable,
+        );
+    }
+
+    /**
+     * The input itself, so an update assembled fluently ends the way a create one does.
+     *
+     * @phpstan-pure
+     */
+    public function build(): self
+    {
+        return $this;
+    }
+
+    /**
+     * Build the DTO from the array door, checking every key against the descriptor.
+     *
+     * @param FavoriteUpdateShape $input
+     *
+     * @throws UnknownAttributeException when a key is not a writable member of `favorites`
+     */
+    public static function from(array $input): self
+    {
+        foreach (\array_keys($input) as $member) {
+            if (!\in_array($member, Favorite::WRITABLE_ON_UPDATE, true)) {
+                throw UnknownAttributeException::for(FavoriteBase::TYPE, (string) $member, Favorite::WRITABLE_ON_UPDATE);
+            }
+        }
+
+        // `array_key_exists`, not `??`: an explicit null clears the member, and `??` would drop it.
+        return new self(
+            user: \array_key_exists('user', $input) ? $input['user'] : Missing::Value,
+            favoritable: \array_key_exists('favoritable', $input) ? $input['favoritable'] : Missing::Value,
+        );
+    }
+
+    /**
+     * The `PATCH /favorites/{id}` request document. A member holding `null` is sent and clears the
+     * server value; one holding `Missing` is not sent.
+     *
+     * @return array<string, mixed>
+     */
+    public function toDocument(string $id): array
+    {
+        $data = ['type' => FavoriteBase::TYPE, 'id' => $id];
+
+        $relationships = [];
+
+        if (!$this->user instanceof Missing) {
+            $relationships['user'] = ['data' => Coerce::linkage($this->user)];
+        }
+
+        if (!$this->favoritable instanceof Missing) {
+            $relationships['favoritable'] = ['data' => Coerce::linkage($this->favoritable)];
+        }
+
+        if ($relationships !== []) {
+            $data['relationships'] = $relationships;
+        }
+
+        return ['data' => $data];
     }
 }

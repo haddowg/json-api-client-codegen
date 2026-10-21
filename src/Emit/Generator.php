@@ -22,6 +22,7 @@ final class Generator
         return new self([
             new Enums\EnumEmitter(),
             new ReadModel\ReadModelEmitter(),
+            new Writes\WritesEmitter(),
         ]);
     }
 

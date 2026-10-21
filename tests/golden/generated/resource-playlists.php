@@ -7,11 +7,17 @@ namespace haddowg\JsonApiClient\Tests\Generated\MusicCatalog;
 use haddowg\JsonApiClient\Collections\ResourceCollection;
 use haddowg\JsonApiClient\Exceptions\FieldNotSelectedException;
 use haddowg\JsonApiClient\Exceptions\MalformedDocument;
+use haddowg\JsonApiClient\Exceptions\MissingRequiredMemberException;
 use haddowg\JsonApiClient\Exceptions\RelationNotIncludedException;
+use haddowg\JsonApiClient\Exceptions\UnknownAttributeException;
 use haddowg\JsonApiClient\Resources\Relationship;
 use haddowg\JsonApiClient\Resources\ResourceContext;
 use haddowg\JsonApiClient\Resources\ResourceObject;
+use haddowg\JsonApiClient\Support\Coerce;
+use haddowg\JsonApiClient\Support\Conditionable;
 use haddowg\JsonApiClient\Support\Identifier;
+use haddowg\JsonApiClient\Support\ImmutableConditionable;
+use haddowg\JsonApiClient\Support\Missing;
 
 /**
  * The `orderedTracks` relation of a `playlists` resource, hydrated.
@@ -242,10 +248,32 @@ abstract class PlaylistBase extends ResourceObject
  * the runtime guards check against. `@phpstan-type` aliases are class-local, so every other class
  * using one imports it from here.
  *
+ * @phpstan-type PlaylistOwnerInput Identifier|null
+ * @phpstan-type PlaylistPublicOwnerInput Identifier|PublicProfile|null
+ * @phpstan-type PlaylistTracksInput list<Identifier|Track>
+ * @phpstan-type PlaylistOrderedTracksInput list<Identifier|Track>
+ * @phpstan-type PlaylistCreateShape array{title: string, public?: bool, externalId?: string|null, owner?: PlaylistOwnerInput, publicOwner?: PlaylistPublicOwnerInput, tracks?: PlaylistTracksInput, orderedTracks?: PlaylistOrderedTracksInput}
+ * @phpstan-type PlaylistUpdateShape array{title?: string, public?: bool, externalId?: string|null, owner?: PlaylistOwnerInput, publicOwner?: PlaylistPublicOwnerInput, tracks?: PlaylistTracksInput, orderedTracks?: PlaylistOrderedTracksInput}
+ *
  * @generated from `components.schemas.PlaylistsResource`
  */
 final class Playlist extends PlaylistBase implements PlaylistHasPublicOwner, PlaylistHasTracks, PlaylistHasOrderedTracks
 {
+    /**
+     * Every member a write input accepts, in document order. The runtime guard on the array door
+     * checks against this, and the did-you-mean is drawn from it.
+     *
+     * @var list<string>
+     */
+    public const array WRITABLE = ['title', 'public', 'externalId', 'owner', 'publicOwner', 'tracks', 'orderedTracks'];
+
+    /**
+     * Members a create document requires. Read-only attributes (`slug`) are in no write shape.
+     *
+     * @var list<string>
+     */
+    public const array REQUIRED_ON_CREATE = ['title'];
+
     public ?PublicProfile $publicOwner { get => $this->publicOwner(); }
 
     /** @var ResourceCollection<Track> */
@@ -368,5 +396,452 @@ final class Playlist extends PlaylistBase implements PlaylistHasPublicOwner, Pla
         }
 
         return new ResourceCollection($orderedTracks);
+    }
+}
+
+/**
+ * The canonical create input for `playlists`, as named arguments. A missing required member is a
+ * static error and an `ArgumentCountError`; every optional member defaults to `Missing`, which
+ * keeps an absent member distinct from an explicit `null`.
+ *
+ * @phpstan-import-type PlaylistCreateShape from Playlist
+ *
+ * @generated from `POST /playlists`
+ */
+final class PlaylistCreate
+{
+    /**
+     * @param Identifier|Missing|null $owner
+     * @param Identifier|PublicProfile|Missing|null $publicOwner
+     * @param list<Identifier|Track>|Missing $tracks
+     * @param list<Identifier|Track>|Missing $orderedTracks
+     */
+    public function __construct(
+        public readonly string $title,
+        public readonly bool|Missing $public = Missing::Value,
+        public readonly string|Missing|null $externalId = Missing::Value,
+        public readonly Identifier|Missing|null $owner = Missing::Value,
+        public readonly Identifier|PublicProfile|Missing|null $publicOwner = Missing::Value,
+        public readonly array|Missing $tracks = Missing::Value,
+        public readonly array|Missing $orderedTracks = Missing::Value,
+    ) {}
+
+    /**
+     * Build the DTO from the array door, checking every key against the descriptor.
+     *
+     * @param PlaylistCreateShape $input
+     *
+     * @throws UnknownAttributeException when a key is not a writable member of `playlists`
+     */
+    public static function from(array $input): self
+    {
+        foreach (\array_keys($input) as $member) {
+            if (!\in_array($member, Playlist::WRITABLE, true)) {
+                throw UnknownAttributeException::for(PlaylistBase::TYPE, (string) $member, Playlist::WRITABLE);
+            }
+        }
+
+        // `array_key_exists`, not `??`: an explicit null clears the member, and `??` would drop it.
+        return new self(
+            title: $input['title'],
+            public: \array_key_exists('public', $input) ? $input['public'] : Missing::Value,
+            externalId: \array_key_exists('externalId', $input) ? $input['externalId'] : Missing::Value,
+            owner: \array_key_exists('owner', $input) ? $input['owner'] : Missing::Value,
+            publicOwner: \array_key_exists('publicOwner', $input) ? $input['publicOwner'] : Missing::Value,
+            tracks: \array_key_exists('tracks', $input) ? $input['tracks'] : Missing::Value,
+            orderedTracks: \array_key_exists('orderedTracks', $input) ? $input['orderedTracks'] : Missing::Value,
+        );
+    }
+
+    /**
+     * The `POST /playlists` request document.
+     *
+     * @return array<string, mixed>
+     */
+    public function toDocument(): array
+    {
+        $data = ['type' => PlaylistBase::TYPE];
+
+        $attributes = ['title' => $this->title];
+
+        if (!$this->public instanceof Missing) {
+            $attributes['public'] = $this->public;
+        }
+
+        if (!$this->externalId instanceof Missing) {
+            $attributes['externalId'] = $this->externalId;
+        }
+
+        $data['attributes'] = $attributes;
+
+        $relationships = [];
+
+        if (!$this->owner instanceof Missing) {
+            $relationships['owner'] = ['data' => Coerce::linkage($this->owner)];
+        }
+
+        if (!$this->publicOwner instanceof Missing) {
+            $relationships['publicOwner'] = ['data' => Coerce::linkage($this->publicOwner)];
+        }
+
+        if (!$this->tracks instanceof Missing) {
+            $relationships['tracks'] = ['data' => Coerce::linkageList($this->tracks)];
+        }
+
+        if (!$this->orderedTracks instanceof Missing) {
+            $relationships['orderedTracks'] = ['data' => Coerce::linkageList($this->orderedTracks)];
+        }
+
+        if ($relationships !== []) {
+            $data['relationships'] = $relationships;
+        }
+
+        return ['data' => $data];
+    }
+}
+
+/**
+ * The fluent create input for `playlists`, for assembly that is conditional. `build()` rejects a
+ * missing required member, which this form cannot check statically.
+ *
+ * @generated from `POST /playlists`
+ */
+final class PlaylistCreateBuilder
+{
+    use Conditionable;
+
+    private string|Missing $title = Missing::Value;
+
+    private bool|Missing $public = Missing::Value;
+
+    private string|Missing|null $externalId = Missing::Value;
+
+    private Identifier|Missing|null $owner = Missing::Value;
+
+    private Identifier|PublicProfile|Missing|null $publicOwner = Missing::Value;
+
+    /**
+     * @var list<Identifier|Track>|Missing
+     */
+    private array|Missing $tracks = Missing::Value;
+
+    /**
+     * @var list<Identifier|Track>|Missing
+     */
+    private array|Missing $orderedTracks = Missing::Value;
+
+    public function title(string $title): self
+    {
+        $this->title = $title;
+
+        return $this;
+    }
+
+    public function public(bool $public = true): self
+    {
+        $this->public = $public;
+
+        return $this;
+    }
+
+    public function externalId(?string $externalId): self
+    {
+        $this->externalId = $externalId;
+
+        return $this;
+    }
+
+    public function owner(?Identifier $owner): self
+    {
+        $this->owner = $owner;
+
+        return $this;
+    }
+
+    public function publicOwner(Identifier|PublicProfile|null $publicOwner): self
+    {
+        $this->publicOwner = $publicOwner;
+
+        return $this;
+    }
+
+    /**
+     * @param list<Identifier|Track> $tracks
+     */
+    public function tracks(array $tracks): self
+    {
+        $this->tracks = $tracks;
+
+        return $this;
+    }
+
+    /**
+     * @param list<Identifier|Track> $orderedTracks
+     */
+    public function orderedTracks(array $orderedTracks): self
+    {
+        $this->orderedTracks = $orderedTracks;
+
+        return $this;
+    }
+
+    /**
+     * Produce the DTO, which is the only form that ever reaches the serialiser.
+     *
+     * @throws MissingRequiredMemberException when a member the create document requires was never set
+     */
+    public function build(): PlaylistCreate
+    {
+        if ($this->title instanceof Missing) {
+            throw MissingRequiredMemberException::for(PlaylistBase::TYPE, ['title']);
+        }
+
+        return new PlaylistCreate(
+            title: $this->title,
+            public: $this->public,
+            externalId: $this->externalId,
+            owner: $this->owner,
+            publicOwner: $this->publicOwner,
+            tracks: $this->tracks,
+            orderedTracks: $this->orderedTracks,
+        );
+    }
+}
+
+/**
+ * The canonical update input for `playlists`: every member optional, which is what a JSON:API
+ * `PATCH` is. The id is not a member; it comes from the handle the update is called on, so it
+ * cannot disagree with the URL.
+ *
+ * @phpstan-import-type PlaylistUpdateShape from Playlist
+ *
+ * @generated from `PATCH /playlists/{id}`
+ */
+final class PlaylistUpdate
+{
+    use ImmutableConditionable;
+
+    /**
+     * @param Identifier|Missing|null $owner
+     * @param Identifier|PublicProfile|Missing|null $publicOwner
+     * @param list<Identifier|Track>|Missing $tracks
+     * @param list<Identifier|Track>|Missing $orderedTracks
+     *
+     * @phpstan-pure
+     */
+    public function __construct(
+        public readonly string|Missing $title = Missing::Value,
+        public readonly bool|Missing $public = Missing::Value,
+        public readonly string|Missing|null $externalId = Missing::Value,
+        public readonly Identifier|Missing|null $owner = Missing::Value,
+        public readonly Identifier|PublicProfile|Missing|null $publicOwner = Missing::Value,
+        public readonly array|Missing $tracks = Missing::Value,
+        public readonly array|Missing $orderedTracks = Missing::Value,
+    ) {}
+
+    /**
+     * @phpstan-pure
+     */
+    public function title(string $title): self
+    {
+        return new self(
+            title: $title,
+            public: $this->public,
+            externalId: $this->externalId,
+            owner: $this->owner,
+            publicOwner: $this->publicOwner,
+            tracks: $this->tracks,
+            orderedTracks: $this->orderedTracks,
+        );
+    }
+
+    /**
+     * @phpstan-pure
+     */
+    public function public(bool $public = true): self
+    {
+        return new self(
+            title: $this->title,
+            public: $public,
+            externalId: $this->externalId,
+            owner: $this->owner,
+            publicOwner: $this->publicOwner,
+            tracks: $this->tracks,
+            orderedTracks: $this->orderedTracks,
+        );
+    }
+
+    /**
+     * @phpstan-pure
+     */
+    public function externalId(?string $externalId): self
+    {
+        return new self(
+            title: $this->title,
+            public: $this->public,
+            externalId: $externalId,
+            owner: $this->owner,
+            publicOwner: $this->publicOwner,
+            tracks: $this->tracks,
+            orderedTracks: $this->orderedTracks,
+        );
+    }
+
+    /**
+     * @phpstan-pure
+     */
+    public function owner(?Identifier $owner): self
+    {
+        return new self(
+            title: $this->title,
+            public: $this->public,
+            externalId: $this->externalId,
+            owner: $owner,
+            publicOwner: $this->publicOwner,
+            tracks: $this->tracks,
+            orderedTracks: $this->orderedTracks,
+        );
+    }
+
+    /**
+     * @phpstan-pure
+     */
+    public function publicOwner(Identifier|PublicProfile|null $publicOwner): self
+    {
+        return new self(
+            title: $this->title,
+            public: $this->public,
+            externalId: $this->externalId,
+            owner: $this->owner,
+            publicOwner: $publicOwner,
+            tracks: $this->tracks,
+            orderedTracks: $this->orderedTracks,
+        );
+    }
+
+    /**
+     * @param list<Identifier|Track> $tracks
+     *
+     * @phpstan-pure
+     */
+    public function tracks(array $tracks): self
+    {
+        return new self(
+            title: $this->title,
+            public: $this->public,
+            externalId: $this->externalId,
+            owner: $this->owner,
+            publicOwner: $this->publicOwner,
+            tracks: $tracks,
+            orderedTracks: $this->orderedTracks,
+        );
+    }
+
+    /**
+     * @param list<Identifier|Track> $orderedTracks
+     *
+     * @phpstan-pure
+     */
+    public function orderedTracks(array $orderedTracks): self
+    {
+        return new self(
+            title: $this->title,
+            public: $this->public,
+            externalId: $this->externalId,
+            owner: $this->owner,
+            publicOwner: $this->publicOwner,
+            tracks: $this->tracks,
+            orderedTracks: $orderedTracks,
+        );
+    }
+
+    /**
+     * The input itself, so an update assembled fluently ends the way a create one does.
+     *
+     * @phpstan-pure
+     */
+    public function build(): self
+    {
+        return $this;
+    }
+
+    /**
+     * Build the DTO from the array door, checking every key against the descriptor.
+     *
+     * @param PlaylistUpdateShape $input
+     *
+     * @throws UnknownAttributeException when a key is not a writable member of `playlists`
+     */
+    public static function from(array $input): self
+    {
+        foreach (\array_keys($input) as $member) {
+            if (!\in_array($member, Playlist::WRITABLE, true)) {
+                throw UnknownAttributeException::for(PlaylistBase::TYPE, (string) $member, Playlist::WRITABLE);
+            }
+        }
+
+        // `array_key_exists`, not `??`: an explicit null clears the member, and `??` would drop it.
+        return new self(
+            title: \array_key_exists('title', $input) ? $input['title'] : Missing::Value,
+            public: \array_key_exists('public', $input) ? $input['public'] : Missing::Value,
+            externalId: \array_key_exists('externalId', $input) ? $input['externalId'] : Missing::Value,
+            owner: \array_key_exists('owner', $input) ? $input['owner'] : Missing::Value,
+            publicOwner: \array_key_exists('publicOwner', $input) ? $input['publicOwner'] : Missing::Value,
+            tracks: \array_key_exists('tracks', $input) ? $input['tracks'] : Missing::Value,
+            orderedTracks: \array_key_exists('orderedTracks', $input) ? $input['orderedTracks'] : Missing::Value,
+        );
+    }
+
+    /**
+     * The `PATCH /playlists/{id}` request document. A member holding `null` is sent and clears the
+     * server value; one holding `Missing` is not sent.
+     *
+     * @return array<string, mixed>
+     */
+    public function toDocument(string $id): array
+    {
+        $data = ['type' => PlaylistBase::TYPE, 'id' => $id];
+
+        $attributes = [];
+
+        if (!$this->title instanceof Missing) {
+            $attributes['title'] = $this->title;
+        }
+
+        if (!$this->public instanceof Missing) {
+            $attributes['public'] = $this->public;
+        }
+
+        if (!$this->externalId instanceof Missing) {
+            $attributes['externalId'] = $this->externalId;
+        }
+
+        if ($attributes !== []) {
+            $data['attributes'] = $attributes;
+        }
+
+        $relationships = [];
+
+        if (!$this->owner instanceof Missing) {
+            $relationships['owner'] = ['data' => Coerce::linkage($this->owner)];
+        }
+
+        if (!$this->publicOwner instanceof Missing) {
+            $relationships['publicOwner'] = ['data' => Coerce::linkage($this->publicOwner)];
+        }
+
+        if (!$this->tracks instanceof Missing) {
+            $relationships['tracks'] = ['data' => Coerce::linkageList($this->tracks)];
+        }
+
+        if (!$this->orderedTracks instanceof Missing) {
+            $relationships['orderedTracks'] = ['data' => Coerce::linkageList($this->orderedTracks)];
+        }
+
+        if ($relationships !== []) {
+            $data['relationships'] = $relationships;
+        }
+
+        return ['data' => $data];
     }
 }

@@ -166,8 +166,7 @@ final class MusicCatalogDescriptorTest extends TestCase
 
         $releaseInfo = $albums->attributes['releaseInfo']->schema;
         self::assertNotNull($releaseInfo);
-        self::assertSame(['label', 'catalogueNumber'], $releaseInfo->propertyOrder);
-        self::assertSame(['label', 'catalogueNumber'], \array_keys($releaseInfo->orderedProperties()));
+        self::assertSame(['label', 'catalogueNumber'], \array_keys($releaseInfo->properties));
     }
 
     public function testRequiredIsCarriedPerMemberAndPerDocument(): void

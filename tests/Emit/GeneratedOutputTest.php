@@ -43,8 +43,8 @@ final class GeneratedOutputTest extends TestCase
 
     public function testGenerationIsStable(): void
     {
-        $first = Generated::generator()->generate(Fixtures::musicCatalogDescriptor(), Generated::config(), 'x');
-        $again = Generated::generator()->generate(Fixtures::musicCatalogDescriptor(), Generated::config(), 'x');
+        $first = Generator::default()->generate(Fixtures::musicCatalogDescriptor(), Generated::config(), 'x');
+        $again = Generator::default()->generate(Fixtures::musicCatalogDescriptor(), Generated::config(), 'x');
 
         self::assertSame($first, $again);
     }

@@ -9,6 +9,7 @@ use haddowg\JsonApiClient\Exceptions\BadRequest;
 use haddowg\JsonApiClient\Exceptions\Forbidden;
 use haddowg\JsonApiClient\Exceptions\MalformedDocument;
 use haddowg\JsonApiClient\Exceptions\NotAcceptable;
+use haddowg\JsonApiClient\Exceptions\NotFound;
 use haddowg\JsonApiClient\Exceptions\ServerError;
 use haddowg\JsonApiClient\Exceptions\TransportException;
 use haddowg\JsonApiClient\Exceptions\Unauthorized;
@@ -96,6 +97,49 @@ final class Chart extends ChartBase
     public static function ref(string $id, array $meta = []): Identifier
     {
         return Identifier::of(self::TYPE, $id, $meta);
+    }
+}
+
+/**
+ * One chart by id, before anything has been fetched. Creating the handle performs no IO; each
+ * method on it is one request.
+ *
+ * @generated from the `charts` operations on one resource
+ */
+final class ChartHandle
+{
+    public function __construct(
+        private readonly Fetcher $fetcher,
+        private readonly string $id,
+    ) {}
+
+    /**
+     * The id this handle addresses.
+     */
+    public function id(): string
+    {
+        return $this->id;
+    }
+
+    /**
+     * Fetch the chart. The endpoint advertises no `include` or `fields`, so there is nothing to
+     * project.
+     *
+     * @throws BadRequest         when a query parameter is rejected
+     * @throws Unauthorized       when credentials are missing or invalid
+     * @throws Forbidden          when the read is not permitted
+     * @throws NotFound           when no chart has this id
+     * @throws NotAcceptable      when the negotiated media type cannot be satisfied
+     * @throws ServerError        when the server fails
+     * @throws TransportException when no response is received at all
+     * @throws MalformedDocument  when the response carries no primary resource
+     */
+    public function get(): ChartBase
+    {
+        $context = $this->fetcher->read(Request::get('/charts/' . $this->id));
+        $raw = $context->primary() ?? throw MalformedDocument::missingMember('The charts response', 'data');
+
+        return Chart::_hydrate($raw, $context);
     }
 }
 
@@ -188,5 +232,35 @@ final class ChartQuery extends Query
     {
         /** @var TProj */
         return $context->hydrate($raw, Chart::_hydrate(...));
+    }
+}
+
+/**
+ * The `charts` type: every operation its collection endpoint advertises, and the way to one
+ * resource by id.
+ *
+ * @generated from the `charts` operations
+ */
+final class Charts
+{
+    public function __construct(private readonly Fetcher $fetcher) {}
+
+    /**
+     * A read of the charts collection, not yet sent: unprojected, unfiltered and unsorted.
+     *
+     * @return ChartQuery<ChartBase>
+     */
+    public function query(): ChartQuery
+    {
+        /** @var ChartQuery<ChartBase> */
+        return new ChartQuery($this->fetcher);
+    }
+
+    /**
+     * A handle on one chart by id. Nothing is fetched until a method on it is called.
+     */
+    public function id(string $id): ChartHandle
+    {
+        return new ChartHandle($this->fetcher, $id);
     }
 }

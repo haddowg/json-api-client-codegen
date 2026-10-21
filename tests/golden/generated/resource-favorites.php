@@ -6,16 +6,20 @@ namespace haddowg\JsonApiClient\Tests\Generated\MusicCatalog;
 
 use haddowg\JsonApiClient\Collections\PaginatedCollection;
 use haddowg\JsonApiClient\Exceptions\BadRequest;
+use haddowg\JsonApiClient\Exceptions\Conflict;
 use haddowg\JsonApiClient\Exceptions\FieldNotSelectedException;
 use haddowg\JsonApiClient\Exceptions\Forbidden;
 use haddowg\JsonApiClient\Exceptions\MalformedDocument;
 use haddowg\JsonApiClient\Exceptions\NotAcceptable;
+use haddowg\JsonApiClient\Exceptions\NotFound;
 use haddowg\JsonApiClient\Exceptions\RelationNotIncludedException;
 use haddowg\JsonApiClient\Exceptions\ServerError;
 use haddowg\JsonApiClient\Exceptions\TransportException;
 use haddowg\JsonApiClient\Exceptions\Unauthorized;
 use haddowg\JsonApiClient\Exceptions\UnknownAttributeException;
 use haddowg\JsonApiClient\Exceptions\UnknownFieldException;
+use haddowg\JsonApiClient\Exceptions\UnsupportedMediaType;
+use haddowg\JsonApiClient\Exceptions\ValidationFailed;
 use haddowg\JsonApiClient\Http\Request;
 use haddowg\JsonApiClient\Pagination\PageLinks;
 use haddowg\JsonApiClient\Pagination\PageNumber;
@@ -456,6 +460,234 @@ final class FavoriteCreateBuilder
 }
 
 /**
+ * The `favoritable` relationship of one favorite. `get()` reads the linkage and `related()` reads
+ * the related resources; any read the server switched off is absent. The writes are `set()`, the
+ * methods the relationship endpoint declares, and no others.
+ *
+ * @generated from `/favorites/{id}/favoritable` and `/favorites/{id}/relationships/favoritable`
+ */
+final class FavoriteFavoritableRelation
+{
+    public function __construct(
+        private readonly Fetcher $fetcher,
+        private readonly string $id,
+    ) {}
+
+    /**
+     * The linkage alone: the identifier of the related resource, or null, without fetching it.
+     *
+     * @throws BadRequest         when a query parameter is rejected
+     * @throws Unauthorized       when credentials are missing or invalid
+     * @throws Forbidden          when the read is not permitted
+     * @throws NotFound           when no favorite has this id
+     * @throws NotAcceptable      when the negotiated media type cannot be satisfied
+     * @throws ServerError        when the server fails
+     * @throws TransportException when no response is received at all
+     */
+    public function get(): ?Identifier
+    {
+        $raw = $this->fetcher
+            ->read(Request::get('/favorites/' . $this->id . '/relationships/favoritable'))
+            ->primary();
+
+        return $raw === null ? null : Identifier::fromArray($raw, 'the "favoritable" linkage');
+    }
+
+    /**
+     * The related resource itself, or null when the relationship is empty.
+     *
+     * @throws BadRequest         when a query parameter is rejected
+     * @throws Unauthorized       when credentials are missing or invalid
+     * @throws Forbidden          when the read is not permitted
+     * @throws NotFound           when no favorite has this id
+     * @throws NotAcceptable      when the negotiated media type cannot be satisfied
+     * @throws ServerError        when the server fails
+     * @throws TransportException when no response is received at all
+     */
+    public function related(): Album|Artist|Track|null
+    {
+        $context = $this->fetcher->read(Request::get('/favorites/' . $this->id . '/favoritable'));
+        $raw = $context->primary();
+
+        return $raw === null ? null : self::member($raw, $context);
+    }
+
+    /**
+     * Point the relationship at another resource, or at nothing.
+     *
+     * @throws BadRequest           when the document is malformed
+     * @throws Unauthorized         when credentials are missing or invalid
+     * @throws Forbidden            when the write is not permitted
+     * @throws NotFound             when no favorite has this id
+     * @throws NotAcceptable        when the negotiated media type cannot be satisfied
+     * @throws Conflict             when the linkage conflicts with the relationship
+     * @throws UnsupportedMediaType when the `Content-Type` is refused
+     * @throws ValidationFailed     when the linkage fails validation
+     * @throws ServerError          when the server fails
+     * @throws TransportException   when no response is received at all
+     */
+    public function set(Album|Artist|Identifier|Track|null $target): void
+    {
+        $this->fetcher->send(Request::patch(
+            '/favorites/' . $this->id . '/relationships/favoritable',
+            \json_encode(['data' => Coerce::linkage($target)], \JSON_THROW_ON_ERROR),
+        ));
+    }
+
+    /**
+     * The related resource as the class its own `type` names.
+     *
+     * @param array<string, mixed> $raw
+     *
+     * @throws MalformedDocument when the resource is of a type the relation does not declare
+     */
+    private static function member(array $raw, ResourceContext $context): Album|Artist|Track
+    {
+        return match ($raw['type'] ?? null) {
+            'tracks' => Track::_hydrate($raw, $context),
+            'albums' => Album::_hydrate($raw, $context),
+            'artists' => Artist::_hydrate($raw, $context),
+            default => throw MalformedDocument::unexpectedMember('The related resource', 'type', 'one of "tracks", "albums", "artists"'),
+        };
+    }
+}
+
+/**
+ * One favorite by id, before anything has been fetched. Creating the handle performs no IO; each
+ * method on it is one request.
+ *
+ * @phpstan-import-type FavoriteUpdateShape from Favorite
+ *
+ * @generated from the `favorites` operations on one resource
+ */
+final class FavoriteHandle
+{
+    public function __construct(
+        private readonly Fetcher $fetcher,
+        private readonly string $id,
+    ) {}
+
+    /**
+     * The id this handle addresses.
+     */
+    public function id(): string
+    {
+        return $this->id;
+    }
+
+    /**
+     * Fetch the favorite, shaped by the optional projection: a closure over a fresh projection, or
+     * a prebuilt one.
+     *
+     * @template TProj of object
+     *
+     * @param (callable(FavoriteProjection<FavoriteBase>): FavoriteProjection<TProj>)|FavoriteProjection<TProj>|null $projection
+     *
+     * @return ($projection is null ? FavoriteBase : FavoriteBase&TProj)
+     *
+     * @throws BadRequest         when a query parameter is rejected
+     * @throws Unauthorized       when credentials are missing or invalid
+     * @throws Forbidden          when the read is not permitted
+     * @throws NotFound           when no favorite has this id
+     * @throws NotAcceptable      when the negotiated media type cannot be satisfied
+     * @throws ServerError        when the server fails
+     * @throws TransportException when no response is received at all
+     * @throws MalformedDocument  when the response carries no primary resource
+     */
+    public function get(callable|FavoriteProjection|null $projection = null): FavoriteBase
+    {
+        $query = FavoriteProjection::resolve($projection);
+        $context = $this->fetcher->read(Request::get($query->appendTo('/favorites/' . $this->id)), $query);
+        $raw = $context->primary() ?? throw MalformedDocument::missingMember('The favorites response', 'data');
+
+        /** @var FavoriteBase&TProj */
+        return $context->hydrate($raw, Favorite::_hydrate(...));
+    }
+
+    /**
+     * Patch the favorite, in either input form, and return it shaped by the optional projection.
+     *
+     * The id comes from the handle and is written into the document, so the body and the URL cannot
+     * disagree.
+     *
+     * @template TProj of object
+     *
+     * @param FavoriteUpdate|FavoriteUpdateShape                                                                     $input
+     * @param (callable(FavoriteProjection<FavoriteBase>): FavoriteProjection<TProj>)|FavoriteProjection<TProj>|null $projection
+     *
+     * @return ($projection is null ? FavoriteBase : FavoriteBase&TProj)
+     *
+     * @throws BadRequest           when the request is malformed
+     * @throws Unauthorized         when credentials are missing or invalid
+     * @throws Forbidden            when the update is not permitted
+     * @throws NotFound             when no favorite has this id
+     * @throws NotAcceptable        when the negotiated media type cannot be satisfied
+     * @throws Conflict             when the document's type or id disagrees with the endpoint
+     * @throws UnsupportedMediaType when the `Content-Type` is refused
+     * @throws ValidationFailed     when the document fails validation
+     * @throws ServerError          when the server fails
+     * @throws TransportException   when no response is received at all
+     * @throws MalformedDocument    when the response carries no primary resource
+     */
+    public function update(
+        FavoriteUpdate|array $input,
+        callable|FavoriteProjection|null $projection = null,
+    ): FavoriteBase {
+        $document = match (true) {
+            $input instanceof FavoriteUpdate => $input,
+            default => FavoriteUpdate::from($input),
+        };
+
+        $query = FavoriteProjection::resolve($projection);
+
+        $context = $this->fetcher->read(
+            Request::patch(
+                $query->appendTo('/favorites/' . $this->id),
+                \json_encode($document->toDocument($this->id), \JSON_THROW_ON_ERROR),
+            ),
+            $query,
+        );
+
+        $raw = $context->primary() ?? throw MalformedDocument::missingMember('The update response', 'data');
+
+        /** @var FavoriteBase&TProj */
+        return $context->hydrate($raw, Favorite::_hydrate(...));
+    }
+
+    /**
+     * Delete the favorite.
+     *
+     * @throws BadRequest         when the request is malformed
+     * @throws Unauthorized       when credentials are missing or invalid
+     * @throws Forbidden          when the delete is not permitted
+     * @throws NotFound           when no favorite has this id
+     * @throws NotAcceptable      when the negotiated media type cannot be satisfied
+     * @throws ServerError        when the server fails
+     * @throws TransportException when no response is received at all
+     */
+    public function delete(): void
+    {
+        $this->fetcher->send(Request::delete('/favorites/' . $this->id));
+    }
+
+    /**
+     * The `favoritable` relationship, a to-one whose endpoint advertises `set()`.
+     */
+    public function favoritable(): FavoriteFavoritableRelation
+    {
+        return new FavoriteFavoritableRelation($this->fetcher, $this->id);
+    }
+
+    /**
+     * The `user` relationship, a to-one whose endpoint advertises `set()`.
+     */
+    public function user(): FavoriteUserRelation
+    {
+        return new FavoriteUserRelation($this->fetcher, $this->id);
+    }
+}
+
+/**
  * What a response carrying `favorites` should bring back: `include` and `fields`, and nothing else.
  *
  * A write response honours exactly these two parameters, so `sort()`, `filter()` and `page()` are
@@ -718,5 +950,159 @@ final class FavoriteUpdate
         }
 
         return ['data' => $data];
+    }
+}
+
+/**
+ * The `user` relationship of one favorite. `get()` reads the linkage and `related()` reads the
+ * related resources; any read the server switched off is absent. The writes are `set()`, the
+ * methods the relationship endpoint declares, and no others.
+ *
+ * @generated from `/favorites/{id}/user` and `/favorites/{id}/relationships/user`
+ */
+final class FavoriteUserRelation
+{
+    public function __construct(
+        private readonly Fetcher $fetcher,
+        private readonly string $id,
+    ) {}
+
+    /**
+     * The linkage alone: the identifier of the related resource, or null, without fetching it.
+     *
+     * @throws BadRequest         when a query parameter is rejected
+     * @throws Unauthorized       when credentials are missing or invalid
+     * @throws Forbidden          when the read is not permitted
+     * @throws NotFound           when no favorite has this id
+     * @throws NotAcceptable      when the negotiated media type cannot be satisfied
+     * @throws ServerError        when the server fails
+     * @throws TransportException when no response is received at all
+     */
+    public function get(): ?Identifier
+    {
+        $raw = $this->fetcher
+            ->read(Request::get('/favorites/' . $this->id . '/relationships/user'))
+            ->primary();
+
+        return $raw === null ? null : Identifier::fromArray($raw, 'the "user" linkage');
+    }
+
+    /**
+     * The related resource itself, or null when the relationship is empty.
+     *
+     * @throws BadRequest         when a query parameter is rejected
+     * @throws Unauthorized       when credentials are missing or invalid
+     * @throws Forbidden          when the read is not permitted
+     * @throws NotFound           when no favorite has this id
+     * @throws NotAcceptable      when the negotiated media type cannot be satisfied
+     * @throws ServerError        when the server fails
+     * @throws TransportException when no response is received at all
+     */
+    public function related(): ?PublicProfile
+    {
+        $context = $this->fetcher->read(Request::get('/favorites/' . $this->id . '/user'));
+        $raw = $context->primary();
+
+        return $raw === null ? null : PublicProfile::_hydrate($raw, $context);
+    }
+
+    /**
+     * Point the relationship at another resource, or at nothing.
+     *
+     * @throws BadRequest           when the document is malformed
+     * @throws Unauthorized         when credentials are missing or invalid
+     * @throws Forbidden            when the write is not permitted
+     * @throws NotFound             when no favorite has this id
+     * @throws NotAcceptable        when the negotiated media type cannot be satisfied
+     * @throws Conflict             when the linkage conflicts with the relationship
+     * @throws UnsupportedMediaType when the `Content-Type` is refused
+     * @throws ValidationFailed     when the linkage fails validation
+     * @throws ServerError          when the server fails
+     * @throws TransportException   when no response is received at all
+     */
+    public function set(Identifier|PublicProfile|null $target): void
+    {
+        $this->fetcher->send(Request::patch(
+            '/favorites/' . $this->id . '/relationships/user',
+            \json_encode(['data' => Coerce::linkage($target)], \JSON_THROW_ON_ERROR),
+        ));
+    }
+}
+
+/**
+ * The `favorites` type: every operation its collection endpoint advertises, and the way to one
+ * resource by id.
+ *
+ * @phpstan-import-type FavoriteCreateShape from Favorite
+ *
+ * @generated from the `favorites` operations
+ */
+final class Favorites
+{
+    public function __construct(private readonly Fetcher $fetcher) {}
+
+    /**
+     * A read of the favorites collection, not yet sent: unprojected, unfiltered and unsorted.
+     *
+     * @return FavoriteQuery<FavoriteBase>
+     */
+    public function query(): FavoriteQuery
+    {
+        /** @var FavoriteQuery<FavoriteBase> */
+        return new FavoriteQuery($this->fetcher);
+    }
+
+    /**
+     * A handle on one favorite by id. Nothing is fetched until a method on it is called.
+     */
+    public function id(string $id): FavoriteHandle
+    {
+        return new FavoriteHandle($this->fetcher, $id);
+    }
+
+    /**
+     * Create a favorite, in any of the three input forms, and return it shaped by the optional
+     * projection: a closure over a fresh projection, or a prebuilt one.
+     *
+     * @template TProj of object
+     *
+     * @param FavoriteCreate|FavoriteCreateBuilder|FavoriteCreateShape                                               $input
+     * @param (callable(FavoriteProjection<FavoriteBase>): FavoriteProjection<TProj>)|FavoriteProjection<TProj>|null $projection
+     *
+     * @return ($projection is null ? FavoriteBase : FavoriteBase&TProj)
+     *
+     * @throws BadRequest           when the request is malformed
+     * @throws Unauthorized         when credentials are missing or invalid
+     * @throws Forbidden            when the create is not permitted
+     * @throws NotFound             when the endpoint does not exist
+     * @throws NotAcceptable        when the negotiated media type cannot be satisfied
+     * @throws Conflict             when the document conflicts with the endpoint
+     * @throws UnsupportedMediaType when the `Content-Type` is refused
+     * @throws ValidationFailed     when the document fails validation
+     * @throws ServerError          when the server fails
+     * @throws TransportException   when no response is received at all
+     * @throws MalformedDocument    when the response carries no primary resource
+     */
+    public function create(
+        FavoriteCreate|FavoriteCreateBuilder|array $input,
+        callable|FavoriteProjection|null $projection = null,
+    ): FavoriteBase {
+        $document = match (true) {
+            $input instanceof FavoriteCreate => $input,
+            $input instanceof FavoriteCreateBuilder => $input->build(),
+            default => FavoriteCreate::from($input),
+        };
+
+        $query = FavoriteProjection::resolve($projection);
+
+        $context = $this->fetcher->read(
+            Request::post($query->appendTo('/favorites'), \json_encode($document->toDocument(), \JSON_THROW_ON_ERROR)),
+            $query,
+        );
+
+        $raw = $context->primary() ?? throw MalformedDocument::missingMember('The create response', 'data');
+
+        /** @var FavoriteBase&TProj */
+        return $context->hydrate($raw, Favorite::_hydrate(...));
     }
 }

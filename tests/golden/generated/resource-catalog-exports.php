@@ -6,17 +6,22 @@ namespace haddowg\JsonApiClient\Tests\Generated\MusicCatalog;
 
 use haddowg\JsonApiClient\Collections\PaginatedCollection;
 use haddowg\JsonApiClient\Exceptions\BadRequest;
+use haddowg\JsonApiClient\Exceptions\Conflict;
 use haddowg\JsonApiClient\Exceptions\FieldNotSelectedException;
 use haddowg\JsonApiClient\Exceptions\Forbidden;
 use haddowg\JsonApiClient\Exceptions\MalformedDocument;
 use haddowg\JsonApiClient\Exceptions\MissingRequiredMemberException;
 use haddowg\JsonApiClient\Exceptions\NotAcceptable;
+use haddowg\JsonApiClient\Exceptions\NotFound;
 use haddowg\JsonApiClient\Exceptions\ServerError;
 use haddowg\JsonApiClient\Exceptions\TransportException;
 use haddowg\JsonApiClient\Exceptions\Unauthorized;
 use haddowg\JsonApiClient\Exceptions\UnknownAttributeException;
 use haddowg\JsonApiClient\Exceptions\UnknownFieldException;
+use haddowg\JsonApiClient\Exceptions\UnsupportedMediaType;
+use haddowg\JsonApiClient\Exceptions\ValidationFailed;
 use haddowg\JsonApiClient\Http\Request;
+use haddowg\JsonApiClient\Http\Response;
 use haddowg\JsonApiClient\Pagination\PageLinks;
 use haddowg\JsonApiClient\Pagination\PageNumber;
 use haddowg\JsonApiClient\Query\Projection;
@@ -304,6 +309,73 @@ final class CatalogExportCreateBuilder
 }
 
 /**
+ * One catalog export by id, before anything has been fetched. Creating the handle performs no IO;
+ * each method on it is one request.
+ *
+ * @generated from the `catalog-exports` operations on one resource
+ */
+final class CatalogExportHandle
+{
+    public function __construct(
+        private readonly Fetcher $fetcher,
+        private readonly string $id,
+    ) {}
+
+    /**
+     * The id this handle addresses.
+     */
+    public function id(): string
+    {
+        return $this->id;
+    }
+
+    /**
+     * Fetch the catalog export, shaped by the optional projection: a closure over a fresh
+     * projection, or a prebuilt one.
+     *
+     * @template TProj of object
+     *
+     * @param (callable(CatalogExportProjection<CatalogExportBase>): CatalogExportProjection<TProj>)|CatalogExportProjection<TProj>|null $projection
+     *
+     * @return ($projection is null ? CatalogExportBase : CatalogExportBase&TProj)
+     *
+     * @throws BadRequest         when a query parameter is rejected
+     * @throws Unauthorized       when credentials are missing or invalid
+     * @throws Forbidden          when the read is not permitted
+     * @throws NotFound           when no catalog export has this id
+     * @throws NotAcceptable      when the negotiated media type cannot be satisfied
+     * @throws ServerError        when the server fails
+     * @throws TransportException when no response is received at all
+     * @throws MalformedDocument  when the response carries no primary resource
+     */
+    public function get(callable|CatalogExportProjection|null $projection = null): CatalogExportBase
+    {
+        $query = CatalogExportProjection::resolve($projection);
+        $context = $this->fetcher->read(Request::get($query->appendTo('/catalog-exports/' . $this->id)), $query);
+        $raw = $context->primary() ?? throw MalformedDocument::missingMember('The catalog-exports response', 'data');
+
+        /** @var CatalogExportBase&TProj */
+        return $context->hydrate($raw, CatalogExport::_hydrate(...));
+    }
+
+    /**
+     * Delete the catalog export.
+     *
+     * @throws BadRequest         when the request is malformed
+     * @throws Unauthorized       when credentials are missing or invalid
+     * @throws Forbidden          when the delete is not permitted
+     * @throws NotFound           when no catalog export has this id
+     * @throws NotAcceptable      when the negotiated media type cannot be satisfied
+     * @throws ServerError        when the server fails
+     * @throws TransportException when no response is received at all
+     */
+    public function delete(): void
+    {
+        $this->fetcher->send(Request::delete('/catalog-exports/' . $this->id));
+    }
+}
+
+/**
  * What a response carrying `catalog-exports` should bring back: `include` and `fields`, and nothing
  * else.
  *
@@ -460,5 +532,66 @@ final class CatalogExportQuery extends Query
     {
         /** @var TProj */
         return $context->hydrate($raw, CatalogExport::_hydrate(...));
+    }
+}
+
+/**
+ * The `catalog-exports` type: every operation its collection endpoint advertises, and the way to
+ * one resource by id.
+ *
+ * @phpstan-import-type CatalogExportCreateShape from CatalogExport
+ *
+ * @generated from the `catalog-exports` operations
+ */
+final class CatalogExports
+{
+    public function __construct(private readonly Fetcher $fetcher) {}
+
+    /**
+     * A read of the catalog-exports collection, not yet sent: unprojected, unfiltered and unsorted.
+     *
+     * @return CatalogExportQuery<CatalogExportBase>
+     */
+    public function query(): CatalogExportQuery
+    {
+        /** @var CatalogExportQuery<CatalogExportBase> */
+        return new CatalogExportQuery($this->fetcher);
+    }
+
+    /**
+     * A handle on one catalog export by id. Nothing is fetched until a method on it is called.
+     */
+    public function id(string $id): CatalogExportHandle
+    {
+        return new CatalogExportHandle($this->fetcher, $id);
+    }
+
+    /**
+     * Create a catalog export, in any of the three input forms. The server accepts the create for
+     * processing and answers with something other than the catalog export, so the response is
+     * returned as it came.
+     *
+     * @param CatalogExportCreate|CatalogExportCreateBuilder|CatalogExportCreateShape $input
+     *
+     * @throws BadRequest           when the request is malformed
+     * @throws Unauthorized         when credentials are missing or invalid
+     * @throws Forbidden            when the create is not permitted
+     * @throws NotFound             when the endpoint does not exist
+     * @throws NotAcceptable        when the negotiated media type cannot be satisfied
+     * @throws Conflict             when the document conflicts with the endpoint
+     * @throws UnsupportedMediaType when the `Content-Type` is refused
+     * @throws ValidationFailed     when the document fails validation
+     * @throws ServerError          when the server fails
+     * @throws TransportException   when no response is received at all
+     */
+    public function create(CatalogExportCreate|CatalogExportCreateBuilder|array $input): Response
+    {
+        $document = match (true) {
+            $input instanceof CatalogExportCreate => $input,
+            $input instanceof CatalogExportCreateBuilder => $input->build(),
+            default => CatalogExportCreate::from($input),
+        };
+
+        return $this->fetcher->send(Request::post('/catalog-exports', \json_encode($document->toDocument(), \JSON_THROW_ON_ERROR)));
     }
 }

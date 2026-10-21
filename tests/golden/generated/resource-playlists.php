@@ -7,17 +7,21 @@ namespace haddowg\JsonApiClient\Tests\Generated\MusicCatalog;
 use haddowg\JsonApiClient\Collections\PaginatedCollection;
 use haddowg\JsonApiClient\Collections\ResourceCollection;
 use haddowg\JsonApiClient\Exceptions\BadRequest;
+use haddowg\JsonApiClient\Exceptions\Conflict;
 use haddowg\JsonApiClient\Exceptions\FieldNotSelectedException;
 use haddowg\JsonApiClient\Exceptions\Forbidden;
 use haddowg\JsonApiClient\Exceptions\MalformedDocument;
 use haddowg\JsonApiClient\Exceptions\MissingRequiredMemberException;
 use haddowg\JsonApiClient\Exceptions\NotAcceptable;
+use haddowg\JsonApiClient\Exceptions\NotFound;
 use haddowg\JsonApiClient\Exceptions\RelationNotIncludedException;
 use haddowg\JsonApiClient\Exceptions\ServerError;
 use haddowg\JsonApiClient\Exceptions\TransportException;
 use haddowg\JsonApiClient\Exceptions\Unauthorized;
 use haddowg\JsonApiClient\Exceptions\UnknownAttributeException;
 use haddowg\JsonApiClient\Exceptions\UnknownFieldException;
+use haddowg\JsonApiClient\Exceptions\UnsupportedMediaType;
+use haddowg\JsonApiClient\Exceptions\ValidationFailed;
 use haddowg\JsonApiClient\Http\Request;
 use haddowg\JsonApiClient\Pagination\PageLinks;
 use haddowg\JsonApiClient\Pagination\PageNumber;
@@ -726,6 +730,430 @@ final class PlaylistCreateBuilder
 }
 
 /**
+ * One playlist by id, before anything has been fetched. Creating the handle performs no IO; each
+ * method on it is one request.
+ *
+ * @phpstan-import-type PlaylistUpdateShape from Playlist
+ *
+ * @generated from the `playlists` operations on one resource
+ */
+final class PlaylistHandle
+{
+    public function __construct(
+        private readonly Fetcher $fetcher,
+        private readonly string $id,
+    ) {}
+
+    /**
+     * The id this handle addresses.
+     */
+    public function id(): string
+    {
+        return $this->id;
+    }
+
+    /**
+     * Fetch the playlist, shaped by the optional projection: a closure over a fresh projection, or
+     * a prebuilt one.
+     *
+     * @template TProj of object
+     *
+     * @param (callable(PlaylistProjection<PlaylistBase>): PlaylistProjection<TProj>)|PlaylistProjection<TProj>|null $projection
+     *
+     * @return ($projection is null ? PlaylistBase : PlaylistBase&TProj)
+     *
+     * @throws BadRequest         when a query parameter is rejected
+     * @throws Unauthorized       when credentials are missing or invalid
+     * @throws Forbidden          when the read is not permitted
+     * @throws NotFound           when no playlist has this id
+     * @throws NotAcceptable      when the negotiated media type cannot be satisfied
+     * @throws ServerError        when the server fails
+     * @throws TransportException when no response is received at all
+     * @throws MalformedDocument  when the response carries no primary resource
+     */
+    public function get(callable|PlaylistProjection|null $projection = null): PlaylistBase
+    {
+        $query = PlaylistProjection::resolve($projection);
+        $context = $this->fetcher->read(Request::get($query->appendTo('/playlists/' . $this->id)), $query);
+        $raw = $context->primary() ?? throw MalformedDocument::missingMember('The playlists response', 'data');
+
+        /** @var PlaylistBase&TProj */
+        return $context->hydrate($raw, Playlist::_hydrate(...));
+    }
+
+    /**
+     * Patch the playlist, in either input form, and return it shaped by the optional projection.
+     *
+     * The id comes from the handle and is written into the document, so the body and the URL cannot
+     * disagree.
+     *
+     * @template TProj of object
+     *
+     * @param PlaylistUpdate|PlaylistUpdateShape                                                                     $input
+     * @param (callable(PlaylistProjection<PlaylistBase>): PlaylistProjection<TProj>)|PlaylistProjection<TProj>|null $projection
+     *
+     * @return ($projection is null ? PlaylistBase : PlaylistBase&TProj)
+     *
+     * @throws BadRequest           when the request is malformed
+     * @throws Unauthorized         when credentials are missing or invalid
+     * @throws Forbidden            when the update is not permitted
+     * @throws NotFound             when no playlist has this id
+     * @throws NotAcceptable        when the negotiated media type cannot be satisfied
+     * @throws Conflict             when the document's type or id disagrees with the endpoint
+     * @throws UnsupportedMediaType when the `Content-Type` is refused
+     * @throws ValidationFailed     when the document fails validation
+     * @throws ServerError          when the server fails
+     * @throws TransportException   when no response is received at all
+     * @throws MalformedDocument    when the response carries no primary resource
+     */
+    public function update(
+        PlaylistUpdate|array $input,
+        callable|PlaylistProjection|null $projection = null,
+    ): PlaylistBase {
+        $document = match (true) {
+            $input instanceof PlaylistUpdate => $input,
+            default => PlaylistUpdate::from($input),
+        };
+
+        $query = PlaylistProjection::resolve($projection);
+
+        $context = $this->fetcher->read(
+            Request::patch(
+                $query->appendTo('/playlists/' . $this->id),
+                \json_encode($document->toDocument($this->id), \JSON_THROW_ON_ERROR),
+            ),
+            $query,
+        );
+
+        $raw = $context->primary() ?? throw MalformedDocument::missingMember('The update response', 'data');
+
+        /** @var PlaylistBase&TProj */
+        return $context->hydrate($raw, Playlist::_hydrate(...));
+    }
+
+    /**
+     * Delete the playlist.
+     *
+     * @throws BadRequest         when the request is malformed
+     * @throws Unauthorized       when credentials are missing or invalid
+     * @throws Forbidden          when the delete is not permitted
+     * @throws NotFound           when no playlist has this id
+     * @throws NotAcceptable      when the negotiated media type cannot be satisfied
+     * @throws ServerError        when the server fails
+     * @throws TransportException when no response is received at all
+     */
+    public function delete(): void
+    {
+        $this->fetcher->send(Request::delete('/playlists/' . $this->id));
+    }
+
+    /**
+     * The `orderedTracks` relationship, a to-many whose endpoint advertises `add()`, `remove()` and
+     * `replace()`.
+     */
+    public function orderedTracks(): PlaylistOrderedTracksRelation
+    {
+        return new PlaylistOrderedTracksRelation($this->fetcher, $this->id);
+    }
+
+    /**
+     * The `owner` relationship, a to-one whose endpoint advertises `set()`.
+     */
+    public function owner(): PlaylistOwnerRelation
+    {
+        return new PlaylistOwnerRelation($this->fetcher, $this->id);
+    }
+
+    /**
+     * The `publicOwner` relationship, a to-one whose endpoint advertises `set()`.
+     */
+    public function publicOwner(): PlaylistPublicOwnerRelation
+    {
+        return new PlaylistPublicOwnerRelation($this->fetcher, $this->id);
+    }
+
+    /**
+     * The `tracks` relationship, a to-many whose endpoint advertises `add()`, `remove()` and
+     * `replace()`.
+     */
+    public function tracks(): PlaylistTracksRelation
+    {
+        return new PlaylistTracksRelation($this->fetcher, $this->id);
+    }
+}
+
+/**
+ * One `orderedTracks` member and its pivot data, for a relationship write. Only the writable pivot
+ * fields are here (`addedAt` is read-only), and a required one takes no default, so leaving it out
+ * fails before the request exists.
+ *
+ * @generated from the `meta.pivot` of `playlists.orderedTracks` linkage
+ */
+final class PlaylistOrderedTracksEdge
+{
+    public function __construct(
+        public readonly Identifier|Track $target,
+        public readonly int $position,
+        public readonly int|Missing $weight = Missing::Value,
+    ) {}
+
+    /**
+     * The linkage member this edge writes, its pivot under `meta.pivot`.
+     *
+     * @return array{type: string, id: string, meta: array{pivot: array<string, mixed>}}
+     */
+    public function toLinkage(): array
+    {
+        $pivot = [
+            'position' => $this->position,
+        ];
+
+        if (!$this->weight instanceof Missing) {
+            $pivot['weight'] = $this->weight;
+        }
+
+        $identifier = $this->target instanceof Identifier ? $this->target : $this->target->_identifier();
+
+        return ['type' => $identifier->type, 'id' => $identifier->id, 'meta' => ['pivot' => $pivot]];
+    }
+}
+
+/**
+ * The `orderedTracks` relationship of one playlist. `get()` reads the linkage and `related()` reads
+ * the related resources; any read the server switched off is absent. The writes are `add()`,
+ * `remove()` and `replace()`, the methods the relationship endpoint declares, and no others.
+ * Members are written as {@see PlaylistOrderedTracksEdge}, which carries the writable pivot fields.
+ *
+ * @generated from `/playlists/{id}/orderedTracks` and `/playlists/{id}/relationships/orderedTracks`
+ */
+final class PlaylistOrderedTracksRelation
+{
+    public function __construct(
+        private readonly Fetcher $fetcher,
+        private readonly string $id,
+    ) {}
+
+    /**
+     * The linkage alone, a page at a time, without fetching the related resources.
+     *
+     * @return PaginatedCollection<Identifier, PageNumber>
+     *
+     * @throws BadRequest         when a query parameter is rejected
+     * @throws Unauthorized       when credentials are missing or invalid
+     * @throws Forbidden          when the read is not permitted
+     * @throws NotFound           when no playlist has this id
+     * @throws NotAcceptable      when the negotiated media type cannot be satisfied
+     * @throws ServerError        when the server fails
+     * @throws TransportException when no response is received at all
+     */
+    public function get(): PaginatedCollection
+    {
+        return $this->linkage(
+            $this->fetcher->read(Request::get('/playlists/' . $this->id . '/relationships/orderedTracks')),
+        );
+    }
+
+    /**
+     * The related resources themselves, a page at a time.
+     *
+     * @return PaginatedCollection<Track, PageNumber>
+     *
+     * @throws BadRequest         when a query parameter is rejected
+     * @throws Unauthorized       when credentials are missing or invalid
+     * @throws Forbidden          when the read is not permitted
+     * @throws NotFound           when no playlist has this id
+     * @throws NotAcceptable      when the negotiated media type cannot be satisfied
+     * @throws ServerError        when the server fails
+     * @throws TransportException when no response is received at all
+     */
+    public function related(): PaginatedCollection
+    {
+        return $this->resources($this->fetcher->read(Request::get('/playlists/' . $this->id . '/orderedTracks')));
+    }
+
+    /**
+     * Add members to the relationship, leaving the rest alone.
+     *
+     * @param list<PlaylistOrderedTracksEdge> $orderedTracks
+     *
+     * @throws BadRequest           when the document is malformed
+     * @throws Unauthorized         when credentials are missing or invalid
+     * @throws Forbidden            when the write is not permitted
+     * @throws NotFound             when no playlist has this id
+     * @throws NotAcceptable        when the negotiated media type cannot be satisfied
+     * @throws Conflict             when the linkage conflicts with the relationship
+     * @throws UnsupportedMediaType when the `Content-Type` is refused
+     * @throws ValidationFailed     when the linkage fails validation
+     * @throws ServerError          when the server fails
+     * @throws TransportException   when no response is received at all
+     */
+    public function add(array $orderedTracks): void
+    {
+        $this->fetcher->send(Request::post(
+            '/playlists/' . $this->id . '/relationships/orderedTracks',
+            \json_encode(['data' => self::edges($orderedTracks)], \JSON_THROW_ON_ERROR),
+        ));
+    }
+
+    /**
+     * Remove members from the relationship, leaving the rest alone.
+     *
+     * @param list<Identifier|Track> $orderedTracks
+     *
+     * @throws BadRequest           when the document is malformed
+     * @throws Unauthorized         when credentials are missing or invalid
+     * @throws Forbidden            when the write is not permitted
+     * @throws NotFound             when no playlist has this id
+     * @throws NotAcceptable        when the negotiated media type cannot be satisfied
+     * @throws Conflict             when the linkage conflicts with the relationship
+     * @throws UnsupportedMediaType when the `Content-Type` is refused
+     * @throws ValidationFailed     when the linkage fails validation
+     * @throws ServerError          when the server fails
+     * @throws TransportException   when no response is received at all
+     */
+    public function remove(array $orderedTracks): void
+    {
+        $this->fetcher->send(Request::delete(
+            '/playlists/' . $this->id . '/relationships/orderedTracks',
+            \json_encode(['data' => Coerce::linkageList($orderedTracks)], \JSON_THROW_ON_ERROR),
+        ));
+    }
+
+    /**
+     * Replace every member of the relationship.
+     *
+     * @param list<PlaylistOrderedTracksEdge> $orderedTracks
+     *
+     * @throws BadRequest           when the document is malformed
+     * @throws Unauthorized         when credentials are missing or invalid
+     * @throws Forbidden            when the write is not permitted
+     * @throws NotFound             when no playlist has this id
+     * @throws NotAcceptable        when the negotiated media type cannot be satisfied
+     * @throws Conflict             when the linkage conflicts with the relationship
+     * @throws UnsupportedMediaType when the `Content-Type` is refused
+     * @throws ValidationFailed     when the linkage fails validation
+     * @throws ServerError          when the server fails
+     * @throws TransportException   when no response is received at all
+     */
+    public function replace(array $orderedTracks): void
+    {
+        $this->fetcher->send(Request::patch(
+            '/playlists/' . $this->id . '/relationships/orderedTracks',
+            \json_encode(['data' => self::edges($orderedTracks)], \JSON_THROW_ON_ERROR),
+        ));
+    }
+
+    /**
+     * @return PaginatedCollection<Identifier, PageNumber>
+     */
+    private function linkage(ResourceContext $context): PaginatedCollection
+    {
+        $document = $context->document();
+        $identifiers = [];
+
+        foreach ($context->primaryList() as $raw) {
+            $identifiers[] = Identifier::fromArray($raw, 'the "orderedTracks" linkage');
+        }
+
+        return new PaginatedCollection(
+            $identifiers,
+            PageNumber::read($document->pageMeta(), PageLinks::fromArray($document->links())),
+            $document->meta(),
+            $document->links(),
+            fn(string $url): PaginatedCollection => $this->linkage($this->fetcher->readUrl($url)),
+        );
+    }
+
+    /**
+     * @return PaginatedCollection<Track, PageNumber>
+     */
+    private function resources(ResourceContext $context): PaginatedCollection
+    {
+        $document = $context->document();
+        $orderedTracks = [];
+
+        foreach ($context->primaryList() as $raw) {
+            $orderedTracks[] = Track::_hydrate($raw, $context);
+        }
+
+        return new PaginatedCollection(
+            $orderedTracks,
+            PageNumber::read($document->pageMeta(), PageLinks::fromArray($document->links())),
+            $document->meta(),
+            $document->links(),
+            fn(string $url): PaginatedCollection => $this->resources($this->fetcher->readUrl($url, new ReadQuery())),
+        );
+    }
+
+    /**
+     * @param list<PlaylistOrderedTracksEdge> $edges
+     *
+     * @return list<array{type: string, id: string, meta: array{pivot: array<string, mixed>}}>
+     */
+    private static function edges(array $edges): array
+    {
+        return \array_map(static fn(PlaylistOrderedTracksEdge $edge): array => $edge->toLinkage(), $edges);
+    }
+}
+
+/**
+ * The `owner` relationship of one playlist. `get()` reads the linkage; any read the server switched
+ * off is absent. The writes are `set()`, the methods the relationship endpoint declares, and no
+ * others.
+ *
+ * @generated from `/playlists/{id}/relationships/owner`
+ */
+final class PlaylistOwnerRelation
+{
+    public function __construct(
+        private readonly Fetcher $fetcher,
+        private readonly string $id,
+    ) {}
+
+    /**
+     * The linkage alone: the identifier of the related resource, or null, without fetching it.
+     *
+     * @throws BadRequest         when a query parameter is rejected
+     * @throws Unauthorized       when credentials are missing or invalid
+     * @throws Forbidden          when the read is not permitted
+     * @throws NotFound           when no playlist has this id
+     * @throws NotAcceptable      when the negotiated media type cannot be satisfied
+     * @throws ServerError        when the server fails
+     * @throws TransportException when no response is received at all
+     */
+    public function get(): ?Identifier
+    {
+        $raw = $this->fetcher
+            ->read(Request::get('/playlists/' . $this->id . '/relationships/owner'))
+            ->primary();
+
+        return $raw === null ? null : Identifier::fromArray($raw, 'the "owner" linkage');
+    }
+
+    /**
+     * Point the relationship at another resource, or at nothing.
+     *
+     * @throws BadRequest           when the document is malformed
+     * @throws Unauthorized         when credentials are missing or invalid
+     * @throws Forbidden            when the write is not permitted
+     * @throws NotFound             when no playlist has this id
+     * @throws NotAcceptable        when the negotiated media type cannot be satisfied
+     * @throws Conflict             when the linkage conflicts with the relationship
+     * @throws UnsupportedMediaType when the `Content-Type` is refused
+     * @throws ValidationFailed     when the linkage fails validation
+     * @throws ServerError          when the server fails
+     * @throws TransportException   when no response is received at all
+     */
+    public function set(Identifier|null $target): void
+    {
+        $this->fetcher->send(Request::patch(
+            '/playlists/' . $this->id . '/relationships/owner',
+            \json_encode(['data' => Coerce::linkage($target)], \JSON_THROW_ON_ERROR),
+        ));
+    }
+}
+
+/**
  * What a response carrying `playlists` should bring back: `include` and `fields`, and nothing else.
  *
  * A write response honours exactly these two parameters, so `sort()`, `filter()` and `page()` are
@@ -769,6 +1197,82 @@ final class PlaylistProjection extends Projection
         }
 
         return ($projection instanceof self ? $projection : $projection(self::make()))->toReadQuery();
+    }
+}
+
+/**
+ * The `publicOwner` relationship of one playlist. `get()` reads the linkage and `related()` reads
+ * the related resources; any read the server switched off is absent. The writes are `set()`, the
+ * methods the relationship endpoint declares, and no others.
+ *
+ * @generated from `/playlists/{id}/publicOwner` and `/playlists/{id}/relationships/publicOwner`
+ */
+final class PlaylistPublicOwnerRelation
+{
+    public function __construct(
+        private readonly Fetcher $fetcher,
+        private readonly string $id,
+    ) {}
+
+    /**
+     * The linkage alone: the identifier of the related resource, or null, without fetching it.
+     *
+     * @throws BadRequest         when a query parameter is rejected
+     * @throws Unauthorized       when credentials are missing or invalid
+     * @throws Forbidden          when the read is not permitted
+     * @throws NotFound           when no playlist has this id
+     * @throws NotAcceptable      when the negotiated media type cannot be satisfied
+     * @throws ServerError        when the server fails
+     * @throws TransportException when no response is received at all
+     */
+    public function get(): ?Identifier
+    {
+        $raw = $this->fetcher
+            ->read(Request::get('/playlists/' . $this->id . '/relationships/publicOwner'))
+            ->primary();
+
+        return $raw === null ? null : Identifier::fromArray($raw, 'the "publicOwner" linkage');
+    }
+
+    /**
+     * The related resource itself, or null when the relationship is empty.
+     *
+     * @throws BadRequest         when a query parameter is rejected
+     * @throws Unauthorized       when credentials are missing or invalid
+     * @throws Forbidden          when the read is not permitted
+     * @throws NotFound           when no playlist has this id
+     * @throws NotAcceptable      when the negotiated media type cannot be satisfied
+     * @throws ServerError        when the server fails
+     * @throws TransportException when no response is received at all
+     */
+    public function related(): ?PublicProfile
+    {
+        $context = $this->fetcher->read(Request::get('/playlists/' . $this->id . '/publicOwner'));
+        $raw = $context->primary();
+
+        return $raw === null ? null : PublicProfile::_hydrate($raw, $context);
+    }
+
+    /**
+     * Point the relationship at another resource, or at nothing.
+     *
+     * @throws BadRequest           when the document is malformed
+     * @throws Unauthorized         when credentials are missing or invalid
+     * @throws Forbidden            when the write is not permitted
+     * @throws NotFound             when no playlist has this id
+     * @throws NotAcceptable        when the negotiated media type cannot be satisfied
+     * @throws Conflict             when the linkage conflicts with the relationship
+     * @throws UnsupportedMediaType when the `Content-Type` is refused
+     * @throws ValidationFailed     when the linkage fails validation
+     * @throws ServerError          when the server fails
+     * @throws TransportException   when no response is received at all
+     */
+    public function set(Identifier|PublicProfile|null $target): void
+    {
+        $this->fetcher->send(Request::patch(
+            '/playlists/' . $this->id . '/relationships/publicOwner',
+            \json_encode(['data' => Coerce::linkage($target)], \JSON_THROW_ON_ERROR),
+        ));
     }
 }
 
@@ -903,6 +1407,173 @@ final class PlaylistQuery extends Query
     {
         /** @var TProj */
         return $context->hydrate($raw, Playlist::_hydrate(...));
+    }
+}
+
+/**
+ * The `tracks` relationship of one playlist. `get()` reads the linkage and `related()` reads the
+ * related resources; any read the server switched off is absent. The writes are `add()`, `remove()`
+ * and `replace()`, the methods the relationship endpoint declares, and no others.
+ *
+ * @generated from `/playlists/{id}/tracks` and `/playlists/{id}/relationships/tracks`
+ */
+final class PlaylistTracksRelation
+{
+    public function __construct(
+        private readonly Fetcher $fetcher,
+        private readonly string $id,
+    ) {}
+
+    /**
+     * The linkage alone, a page at a time, without fetching the related resources.
+     *
+     * @return PaginatedCollection<Identifier, PageNumber>
+     *
+     * @throws BadRequest         when a query parameter is rejected
+     * @throws Unauthorized       when credentials are missing or invalid
+     * @throws Forbidden          when the read is not permitted
+     * @throws NotFound           when no playlist has this id
+     * @throws NotAcceptable      when the negotiated media type cannot be satisfied
+     * @throws ServerError        when the server fails
+     * @throws TransportException when no response is received at all
+     */
+    public function get(): PaginatedCollection
+    {
+        return $this->linkage(
+            $this->fetcher->read(Request::get('/playlists/' . $this->id . '/relationships/tracks')),
+        );
+    }
+
+    /**
+     * The related resources themselves, a page at a time.
+     *
+     * @return PaginatedCollection<Track, PageNumber>
+     *
+     * @throws BadRequest         when a query parameter is rejected
+     * @throws Unauthorized       when credentials are missing or invalid
+     * @throws Forbidden          when the read is not permitted
+     * @throws NotFound           when no playlist has this id
+     * @throws NotAcceptable      when the negotiated media type cannot be satisfied
+     * @throws ServerError        when the server fails
+     * @throws TransportException when no response is received at all
+     */
+    public function related(): PaginatedCollection
+    {
+        return $this->resources($this->fetcher->read(Request::get('/playlists/' . $this->id . '/tracks')));
+    }
+
+    /**
+     * Add members to the relationship, leaving the rest alone.
+     *
+     * @param list<Identifier|Track> $tracks
+     *
+     * @throws BadRequest           when the document is malformed
+     * @throws Unauthorized         when credentials are missing or invalid
+     * @throws Forbidden            when the write is not permitted
+     * @throws NotFound             when no playlist has this id
+     * @throws NotAcceptable        when the negotiated media type cannot be satisfied
+     * @throws Conflict             when the linkage conflicts with the relationship
+     * @throws UnsupportedMediaType when the `Content-Type` is refused
+     * @throws ValidationFailed     when the linkage fails validation
+     * @throws ServerError          when the server fails
+     * @throws TransportException   when no response is received at all
+     */
+    public function add(array $tracks): void
+    {
+        $this->fetcher->send(Request::post(
+            '/playlists/' . $this->id . '/relationships/tracks',
+            \json_encode(['data' => Coerce::linkageList($tracks)], \JSON_THROW_ON_ERROR),
+        ));
+    }
+
+    /**
+     * Remove members from the relationship, leaving the rest alone.
+     *
+     * @param list<Identifier|Track> $tracks
+     *
+     * @throws BadRequest           when the document is malformed
+     * @throws Unauthorized         when credentials are missing or invalid
+     * @throws Forbidden            when the write is not permitted
+     * @throws NotFound             when no playlist has this id
+     * @throws NotAcceptable        when the negotiated media type cannot be satisfied
+     * @throws Conflict             when the linkage conflicts with the relationship
+     * @throws UnsupportedMediaType when the `Content-Type` is refused
+     * @throws ValidationFailed     when the linkage fails validation
+     * @throws ServerError          when the server fails
+     * @throws TransportException   when no response is received at all
+     */
+    public function remove(array $tracks): void
+    {
+        $this->fetcher->send(Request::delete(
+            '/playlists/' . $this->id . '/relationships/tracks',
+            \json_encode(['data' => Coerce::linkageList($tracks)], \JSON_THROW_ON_ERROR),
+        ));
+    }
+
+    /**
+     * Replace every member of the relationship.
+     *
+     * @param list<Identifier|Track> $tracks
+     *
+     * @throws BadRequest           when the document is malformed
+     * @throws Unauthorized         when credentials are missing or invalid
+     * @throws Forbidden            when the write is not permitted
+     * @throws NotFound             when no playlist has this id
+     * @throws NotAcceptable        when the negotiated media type cannot be satisfied
+     * @throws Conflict             when the linkage conflicts with the relationship
+     * @throws UnsupportedMediaType when the `Content-Type` is refused
+     * @throws ValidationFailed     when the linkage fails validation
+     * @throws ServerError          when the server fails
+     * @throws TransportException   when no response is received at all
+     */
+    public function replace(array $tracks): void
+    {
+        $this->fetcher->send(Request::patch(
+            '/playlists/' . $this->id . '/relationships/tracks',
+            \json_encode(['data' => Coerce::linkageList($tracks)], \JSON_THROW_ON_ERROR),
+        ));
+    }
+
+    /**
+     * @return PaginatedCollection<Identifier, PageNumber>
+     */
+    private function linkage(ResourceContext $context): PaginatedCollection
+    {
+        $document = $context->document();
+        $identifiers = [];
+
+        foreach ($context->primaryList() as $raw) {
+            $identifiers[] = Identifier::fromArray($raw, 'the "tracks" linkage');
+        }
+
+        return new PaginatedCollection(
+            $identifiers,
+            PageNumber::read($document->pageMeta(), PageLinks::fromArray($document->links())),
+            $document->meta(),
+            $document->links(),
+            fn(string $url): PaginatedCollection => $this->linkage($this->fetcher->readUrl($url)),
+        );
+    }
+
+    /**
+     * @return PaginatedCollection<Track, PageNumber>
+     */
+    private function resources(ResourceContext $context): PaginatedCollection
+    {
+        $document = $context->document();
+        $tracks = [];
+
+        foreach ($context->primaryList() as $raw) {
+            $tracks[] = Track::_hydrate($raw, $context);
+        }
+
+        return new PaginatedCollection(
+            $tracks,
+            PageNumber::read($document->pageMeta(), PageLinks::fromArray($document->links())),
+            $document->meta(),
+            $document->links(),
+            fn(string $url): PaginatedCollection => $this->resources($this->fetcher->readUrl($url, new ReadQuery())),
+        );
     }
 }
 
@@ -1141,5 +1812,83 @@ final class PlaylistUpdate
         }
 
         return ['data' => $data];
+    }
+}
+
+/**
+ * The `playlists` type: every operation its collection endpoint advertises, and the way to one
+ * resource by id.
+ *
+ * @phpstan-import-type PlaylistCreateShape from Playlist
+ *
+ * @generated from the `playlists` operations
+ */
+final class Playlists
+{
+    public function __construct(private readonly Fetcher $fetcher) {}
+
+    /**
+     * A read of the playlists collection, not yet sent: unprojected, unfiltered and unsorted.
+     *
+     * @return PlaylistQuery<PlaylistBase>
+     */
+    public function query(): PlaylistQuery
+    {
+        /** @var PlaylistQuery<PlaylistBase> */
+        return new PlaylistQuery($this->fetcher);
+    }
+
+    /**
+     * A handle on one playlist by id. Nothing is fetched until a method on it is called.
+     */
+    public function id(string $id): PlaylistHandle
+    {
+        return new PlaylistHandle($this->fetcher, $id);
+    }
+
+    /**
+     * Create a playlist, in any of the three input forms, and return it shaped by the optional
+     * projection: a closure over a fresh projection, or a prebuilt one.
+     *
+     * @template TProj of object
+     *
+     * @param PlaylistCreate|PlaylistCreateBuilder|PlaylistCreateShape                                               $input
+     * @param (callable(PlaylistProjection<PlaylistBase>): PlaylistProjection<TProj>)|PlaylistProjection<TProj>|null $projection
+     *
+     * @return ($projection is null ? PlaylistBase : PlaylistBase&TProj)
+     *
+     * @throws BadRequest           when the request is malformed
+     * @throws Unauthorized         when credentials are missing or invalid
+     * @throws Forbidden            when the create is not permitted
+     * @throws NotFound             when the endpoint does not exist
+     * @throws NotAcceptable        when the negotiated media type cannot be satisfied
+     * @throws Conflict             when the document conflicts with the endpoint
+     * @throws UnsupportedMediaType when the `Content-Type` is refused
+     * @throws ValidationFailed     when the document fails validation
+     * @throws ServerError          when the server fails
+     * @throws TransportException   when no response is received at all
+     * @throws MalformedDocument    when the response carries no primary resource
+     */
+    public function create(
+        PlaylistCreate|PlaylistCreateBuilder|array $input,
+        callable|PlaylistProjection|null $projection = null,
+    ): PlaylistBase {
+        $document = match (true) {
+            $input instanceof PlaylistCreate => $input,
+            $input instanceof PlaylistCreateBuilder => $input->build(),
+            default => PlaylistCreate::from($input),
+        };
+
+        $query = PlaylistProjection::resolve($projection);
+
+        $context = $this->fetcher->read(
+            Request::post($query->appendTo('/playlists'), \json_encode($document->toDocument(), \JSON_THROW_ON_ERROR)),
+            $query,
+        );
+
+        $raw = $context->primary() ?? throw MalformedDocument::missingMember('The create response', 'data');
+
+        /** @var PlaylistBase&TProj */
+        return $context->hydrate($raw, Playlist::_hydrate(...));
     }
 }

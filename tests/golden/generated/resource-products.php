@@ -6,17 +6,21 @@ namespace haddowg\JsonApiClient\Tests\Generated\MusicCatalog;
 
 use haddowg\JsonApiClient\Collections\PaginatedCollection;
 use haddowg\JsonApiClient\Exceptions\BadRequest;
+use haddowg\JsonApiClient\Exceptions\Conflict;
 use haddowg\JsonApiClient\Exceptions\FieldNotSelectedException;
 use haddowg\JsonApiClient\Exceptions\Forbidden;
 use haddowg\JsonApiClient\Exceptions\MalformedDocument;
 use haddowg\JsonApiClient\Exceptions\MissingRequiredMemberException;
 use haddowg\JsonApiClient\Exceptions\NotAcceptable;
+use haddowg\JsonApiClient\Exceptions\NotFound;
 use haddowg\JsonApiClient\Exceptions\RelationNotIncludedException;
 use haddowg\JsonApiClient\Exceptions\ServerError;
 use haddowg\JsonApiClient\Exceptions\TransportException;
 use haddowg\JsonApiClient\Exceptions\Unauthorized;
 use haddowg\JsonApiClient\Exceptions\UnknownAttributeException;
 use haddowg\JsonApiClient\Exceptions\UnknownFieldException;
+use haddowg\JsonApiClient\Exceptions\UnsupportedMediaType;
+use haddowg\JsonApiClient\Exceptions\ValidationFailed;
 use haddowg\JsonApiClient\Http\Request;
 use haddowg\JsonApiClient\Pagination\PageLinks;
 use haddowg\JsonApiClient\Pagination\PageNumber;
@@ -415,6 +419,209 @@ final class ProductCreateBuilder
 }
 
 /**
+ * One product by id, before anything has been fetched. Creating the handle performs no IO; each
+ * method on it is one request.
+ *
+ * @phpstan-import-type ProductUpdateShape from Product
+ *
+ * @generated from the `products` operations on one resource
+ */
+final class ProductHandle
+{
+    public function __construct(
+        private readonly Fetcher $fetcher,
+        private readonly string $id,
+    ) {}
+
+    /**
+     * The id this handle addresses.
+     */
+    public function id(): string
+    {
+        return $this->id;
+    }
+
+    /**
+     * Fetch the product, shaped by the optional projection: a closure over a fresh projection, or a
+     * prebuilt one.
+     *
+     * @template TProj of object
+     *
+     * @param (callable(ProductProjection<ProductBase>): ProductProjection<TProj>)|ProductProjection<TProj>|null $projection
+     *
+     * @return ($projection is null ? ProductBase : ProductBase&TProj)
+     *
+     * @throws BadRequest         when a query parameter is rejected
+     * @throws Unauthorized       when credentials are missing or invalid
+     * @throws Forbidden          when the read is not permitted
+     * @throws NotFound           when no product has this id
+     * @throws NotAcceptable      when the negotiated media type cannot be satisfied
+     * @throws ServerError        when the server fails
+     * @throws TransportException when no response is received at all
+     * @throws MalformedDocument  when the response carries no primary resource
+     */
+    public function get(callable|ProductProjection|null $projection = null): ProductBase
+    {
+        $query = ProductProjection::resolve($projection);
+        $context = $this->fetcher->read(Request::get($query->appendTo('/products/' . $this->id)), $query);
+        $raw = $context->primary() ?? throw MalformedDocument::missingMember('The products response', 'data');
+
+        /** @var ProductBase&TProj */
+        return $context->hydrate($raw, Product::_hydrate(...));
+    }
+
+    /**
+     * Patch the product, in either input form, and return it shaped by the optional projection.
+     *
+     * The id comes from the handle and is written into the document, so the body and the URL cannot
+     * disagree.
+     *
+     * @template TProj of object
+     *
+     * @param ProductUpdate|ProductUpdateShape                                                                   $input
+     * @param (callable(ProductProjection<ProductBase>): ProductProjection<TProj>)|ProductProjection<TProj>|null $projection
+     *
+     * @return ($projection is null ? ProductBase : ProductBase&TProj)
+     *
+     * @throws BadRequest           when the request is malformed
+     * @throws Unauthorized         when credentials are missing or invalid
+     * @throws Forbidden            when the update is not permitted
+     * @throws NotFound             when no product has this id
+     * @throws NotAcceptable        when the negotiated media type cannot be satisfied
+     * @throws Conflict             when the document's type or id disagrees with the endpoint
+     * @throws UnsupportedMediaType when the `Content-Type` is refused
+     * @throws ValidationFailed     when the document fails validation
+     * @throws ServerError          when the server fails
+     * @throws TransportException   when no response is received at all
+     * @throws MalformedDocument    when the response carries no primary resource
+     */
+    public function update(
+        ProductUpdate|array $input,
+        callable|ProductProjection|null $projection = null,
+    ): ProductBase {
+        $document = match (true) {
+            $input instanceof ProductUpdate => $input,
+            default => ProductUpdate::from($input),
+        };
+
+        $query = ProductProjection::resolve($projection);
+
+        $context = $this->fetcher->read(
+            Request::patch(
+                $query->appendTo('/products/' . $this->id),
+                \json_encode($document->toDocument($this->id), \JSON_THROW_ON_ERROR),
+            ),
+            $query,
+        );
+
+        $raw = $context->primary() ?? throw MalformedDocument::missingMember('The update response', 'data');
+
+        /** @var ProductBase&TProj */
+        return $context->hydrate($raw, Product::_hydrate(...));
+    }
+
+    /**
+     * Delete the product.
+     *
+     * @throws BadRequest         when the request is malformed
+     * @throws Unauthorized       when credentials are missing or invalid
+     * @throws Forbidden          when the delete is not permitted
+     * @throws NotFound           when no product has this id
+     * @throws NotAcceptable      when the negotiated media type cannot be satisfied
+     * @throws ServerError        when the server fails
+     * @throws TransportException when no response is received at all
+     */
+    public function delete(): void
+    {
+        $this->fetcher->send(Request::delete('/products/' . $this->id));
+    }
+
+    /**
+     * The `parent` relationship, a to-one whose endpoint advertises `set()`.
+     */
+    public function parent(): ProductParentRelation
+    {
+        return new ProductParentRelation($this->fetcher, $this->id);
+    }
+}
+
+/**
+ * The `parent` relationship of one product. `get()` reads the linkage and `related()` reads the
+ * related resources; any read the server switched off is absent. The writes are `set()`, the
+ * methods the relationship endpoint declares, and no others.
+ *
+ * @generated from `/products/{id}/parent` and `/products/{id}/relationships/parent`
+ */
+final class ProductParentRelation
+{
+    public function __construct(
+        private readonly Fetcher $fetcher,
+        private readonly string $id,
+    ) {}
+
+    /**
+     * The linkage alone: the identifier of the related resource, or null, without fetching it.
+     *
+     * @throws BadRequest         when a query parameter is rejected
+     * @throws Unauthorized       when credentials are missing or invalid
+     * @throws Forbidden          when the read is not permitted
+     * @throws NotFound           when no product has this id
+     * @throws NotAcceptable      when the negotiated media type cannot be satisfied
+     * @throws ServerError        when the server fails
+     * @throws TransportException when no response is received at all
+     */
+    public function get(): ?Identifier
+    {
+        $raw = $this->fetcher
+            ->read(Request::get('/products/' . $this->id . '/relationships/parent'))
+            ->primary();
+
+        return $raw === null ? null : Identifier::fromArray($raw, 'the "parent" linkage');
+    }
+
+    /**
+     * The related resource itself, or null when the relationship is empty.
+     *
+     * @throws BadRequest         when a query parameter is rejected
+     * @throws Unauthorized       when credentials are missing or invalid
+     * @throws Forbidden          when the read is not permitted
+     * @throws NotFound           when no product has this id
+     * @throws NotAcceptable      when the negotiated media type cannot be satisfied
+     * @throws ServerError        when the server fails
+     * @throws TransportException when no response is received at all
+     */
+    public function related(): ?Product
+    {
+        $context = $this->fetcher->read(Request::get('/products/' . $this->id . '/parent'));
+        $raw = $context->primary();
+
+        return $raw === null ? null : Product::_hydrate($raw, $context);
+    }
+
+    /**
+     * Point the relationship at another resource, or at nothing.
+     *
+     * @throws BadRequest           when the document is malformed
+     * @throws Unauthorized         when credentials are missing or invalid
+     * @throws Forbidden            when the write is not permitted
+     * @throws NotFound             when no product has this id
+     * @throws NotAcceptable        when the negotiated media type cannot be satisfied
+     * @throws Conflict             when the linkage conflicts with the relationship
+     * @throws UnsupportedMediaType when the `Content-Type` is refused
+     * @throws ValidationFailed     when the linkage fails validation
+     * @throws ServerError          when the server fails
+     * @throws TransportException   when no response is received at all
+     */
+    public function set(Identifier|Product|null $target): void
+    {
+        $this->fetcher->send(Request::patch(
+            '/products/' . $this->id . '/relationships/parent',
+            \json_encode(['data' => Coerce::linkage($target)], \JSON_THROW_ON_ERROR),
+        ));
+    }
+}
+
+/**
  * What a response carrying `products` should bring back: `include` and `fields`, and nothing else.
  *
  * A write response honours exactly these two parameters, so `sort()`, `filter()` and `page()` are
@@ -682,5 +889,83 @@ final class ProductUpdate
         }
 
         return ['data' => $data];
+    }
+}
+
+/**
+ * The `products` type: every operation its collection endpoint advertises, and the way to one
+ * resource by id.
+ *
+ * @phpstan-import-type ProductCreateShape from Product
+ *
+ * @generated from the `products` operations
+ */
+final class Products
+{
+    public function __construct(private readonly Fetcher $fetcher) {}
+
+    /**
+     * A read of the products collection, not yet sent: unprojected, unfiltered and unsorted.
+     *
+     * @return ProductQuery<ProductBase>
+     */
+    public function query(): ProductQuery
+    {
+        /** @var ProductQuery<ProductBase> */
+        return new ProductQuery($this->fetcher);
+    }
+
+    /**
+     * A handle on one product by id. Nothing is fetched until a method on it is called.
+     */
+    public function id(string $id): ProductHandle
+    {
+        return new ProductHandle($this->fetcher, $id);
+    }
+
+    /**
+     * Create a product, in any of the three input forms, and return it shaped by the optional
+     * projection: a closure over a fresh projection, or a prebuilt one.
+     *
+     * @template TProj of object
+     *
+     * @param ProductCreate|ProductCreateBuilder|ProductCreateShape                                              $input
+     * @param (callable(ProductProjection<ProductBase>): ProductProjection<TProj>)|ProductProjection<TProj>|null $projection
+     *
+     * @return ($projection is null ? ProductBase : ProductBase&TProj)
+     *
+     * @throws BadRequest           when the request is malformed
+     * @throws Unauthorized         when credentials are missing or invalid
+     * @throws Forbidden            when the create is not permitted
+     * @throws NotFound             when the endpoint does not exist
+     * @throws NotAcceptable        when the negotiated media type cannot be satisfied
+     * @throws Conflict             when the document conflicts with the endpoint
+     * @throws UnsupportedMediaType when the `Content-Type` is refused
+     * @throws ValidationFailed     when the document fails validation
+     * @throws ServerError          when the server fails
+     * @throws TransportException   when no response is received at all
+     * @throws MalformedDocument    when the response carries no primary resource
+     */
+    public function create(
+        ProductCreate|ProductCreateBuilder|array $input,
+        callable|ProductProjection|null $projection = null,
+    ): ProductBase {
+        $document = match (true) {
+            $input instanceof ProductCreate => $input,
+            $input instanceof ProductCreateBuilder => $input->build(),
+            default => ProductCreate::from($input),
+        };
+
+        $query = ProductProjection::resolve($projection);
+
+        $context = $this->fetcher->read(
+            Request::post($query->appendTo('/products'), \json_encode($document->toDocument(), \JSON_THROW_ON_ERROR)),
+            $query,
+        );
+
+        $raw = $context->primary() ?? throw MalformedDocument::missingMember('The create response', 'data');
+
+        /** @var ProductBase&TProj */
+        return $context->hydrate($raw, Product::_hydrate(...));
     }
 }

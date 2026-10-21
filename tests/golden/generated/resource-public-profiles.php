@@ -10,6 +10,7 @@ use haddowg\JsonApiClient\Exceptions\FieldNotSelectedException;
 use haddowg\JsonApiClient\Exceptions\Forbidden;
 use haddowg\JsonApiClient\Exceptions\MalformedDocument;
 use haddowg\JsonApiClient\Exceptions\NotAcceptable;
+use haddowg\JsonApiClient\Exceptions\NotFound;
 use haddowg\JsonApiClient\Exceptions\ServerError;
 use haddowg\JsonApiClient\Exceptions\TransportException;
 use haddowg\JsonApiClient\Exceptions\Unauthorized;
@@ -175,6 +176,57 @@ final class PublicProfile extends PublicProfileBase
     public static function ref(string $id, array $meta = []): Identifier
     {
         return Identifier::of(self::TYPE, $id, $meta);
+    }
+}
+
+/**
+ * One public profile by id, before anything has been fetched. Creating the handle performs no IO;
+ * each method on it is one request.
+ *
+ * @generated from the `public-profiles` operations on one resource
+ */
+final class PublicProfileHandle
+{
+    public function __construct(
+        private readonly Fetcher $fetcher,
+        private readonly string $id,
+    ) {}
+
+    /**
+     * The id this handle addresses.
+     */
+    public function id(): string
+    {
+        return $this->id;
+    }
+
+    /**
+     * Fetch the public profile, shaped by the optional projection: a closure over a fresh
+     * projection, or a prebuilt one.
+     *
+     * @template TProj of object
+     *
+     * @param (callable(PublicProfileProjection<PublicProfileBase>): PublicProfileProjection<TProj>)|PublicProfileProjection<TProj>|null $projection
+     *
+     * @return ($projection is null ? PublicProfileBase : PublicProfileBase&TProj)
+     *
+     * @throws BadRequest         when a query parameter is rejected
+     * @throws Unauthorized       when credentials are missing or invalid
+     * @throws Forbidden          when the read is not permitted
+     * @throws NotFound           when no public profile has this id
+     * @throws NotAcceptable      when the negotiated media type cannot be satisfied
+     * @throws ServerError        when the server fails
+     * @throws TransportException when no response is received at all
+     * @throws MalformedDocument  when the response carries no primary resource
+     */
+    public function get(callable|PublicProfileProjection|null $projection = null): PublicProfileBase
+    {
+        $query = PublicProfileProjection::resolve($projection);
+        $context = $this->fetcher->read(Request::get($query->appendTo('/public-profiles/' . $this->id)), $query);
+        $raw = $context->primary() ?? throw MalformedDocument::missingMember('The public-profiles response', 'data');
+
+        /** @var PublicProfileBase&TProj */
+        return $context->hydrate($raw, PublicProfile::_hydrate(...));
     }
 }
 
@@ -370,5 +422,35 @@ final class PublicProfileQuery extends Query
     {
         /** @var TProj */
         return $context->hydrate($raw, PublicProfile::_hydrate(...));
+    }
+}
+
+/**
+ * The `public-profiles` type: every operation its collection endpoint advertises, and the way to
+ * one resource by id.
+ *
+ * @generated from the `public-profiles` operations
+ */
+final class PublicProfiles
+{
+    public function __construct(private readonly Fetcher $fetcher) {}
+
+    /**
+     * A read of the public-profiles collection, not yet sent: unprojected, unfiltered and unsorted.
+     *
+     * @return PublicProfileQuery<PublicProfileBase>
+     */
+    public function query(): PublicProfileQuery
+    {
+        /** @var PublicProfileQuery<PublicProfileBase> */
+        return new PublicProfileQuery($this->fetcher);
+    }
+
+    /**
+     * A handle on one public profile by id. Nothing is fetched until a method on it is called.
+     */
+    public function id(string $id): PublicProfileHandle
+    {
+        return new PublicProfileHandle($this->fetcher, $id);
     }
 }

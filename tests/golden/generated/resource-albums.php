@@ -7,11 +7,13 @@ namespace haddowg\JsonApiClient\Tests\Generated\MusicCatalog;
 use haddowg\JsonApiClient\Collections\PaginatedCollection;
 use haddowg\JsonApiClient\Collections\ResourceCollection;
 use haddowg\JsonApiClient\Exceptions\BadRequest;
+use haddowg\JsonApiClient\Exceptions\Conflict;
 use haddowg\JsonApiClient\Exceptions\FieldNotSelectedException;
 use haddowg\JsonApiClient\Exceptions\Forbidden;
 use haddowg\JsonApiClient\Exceptions\MalformedDocument;
 use haddowg\JsonApiClient\Exceptions\MissingRequiredMemberException;
 use haddowg\JsonApiClient\Exceptions\NotAcceptable;
+use haddowg\JsonApiClient\Exceptions\NotFound;
 use haddowg\JsonApiClient\Exceptions\RelationNotIncludedException;
 use haddowg\JsonApiClient\Exceptions\ServerError;
 use haddowg\JsonApiClient\Exceptions\TransportException;
@@ -20,6 +22,8 @@ use haddowg\JsonApiClient\Exceptions\UnknownAttributeException;
 use haddowg\JsonApiClient\Exceptions\UnknownFieldException;
 use haddowg\JsonApiClient\Exceptions\UnknownFilterException;
 use haddowg\JsonApiClient\Exceptions\UnknownSortException;
+use haddowg\JsonApiClient\Exceptions\UnsupportedMediaType;
+use haddowg\JsonApiClient\Exceptions\ValidationFailed;
 use haddowg\JsonApiClient\Http\Request;
 use haddowg\JsonApiClient\Pagination\PageLinks;
 use haddowg\JsonApiClient\Pagination\PageNumber;
@@ -36,6 +40,7 @@ use haddowg\JsonApiClient\Support\Identifier;
 use haddowg\JsonApiClient\Support\ImmutableConditionable;
 use haddowg\JsonApiClient\Support\Missing;
 use haddowg\JsonApiClient\Support\QueryConditionable;
+use Psr\Http\Message\StreamInterface;
 
 /**
  * The `artist` relation of an `albums` resource, hydrated.
@@ -560,6 +565,200 @@ final class Album extends AlbumBase implements AlbumHasArtist, AlbumHasTracks
 }
 
 /**
+ * The resource-scoped custom actions of `albums`, reached through one album's handle. Each
+ * signature is derived from the action's own request body and response.
+ *
+ * @phpstan-import-type AlbumCreateShape from Album
+ *
+ * @generated from `POST /albums/{id}/-actions/artwork` and `POST /albums/{id}/-actions/reissue`
+ */
+final class AlbumActions
+{
+    public function __construct(
+        private readonly Fetcher $fetcher,
+        private readonly string $id,
+    ) {}
+
+    /**
+     * Artwork: `POST /albums/{id}/-actions/artwork`. The body goes over the wire verbatim as
+     * `application/octet-stream`, while the response is still negotiated as JSON:API. The body is
+     * optional, so it may be left out.
+     *
+     * @throws BadRequest         when the request is malformed
+     * @throws Unauthorized       when credentials are missing or invalid
+     * @throws Forbidden          when the action is not permitted
+     * @throws NotFound           when no album has this id
+     * @throws NotAcceptable      when the negotiated media type cannot be satisfied
+     * @throws ValidationFailed   when the payload fails validation
+     * @throws ServerError        when the server fails
+     * @throws TransportException when no response is received at all
+     */
+    public function artwork(StreamInterface|string|null $body = null): void
+    {
+        $request = Request::post('/albums/' . $this->id . '/-actions/artwork');
+
+        $this->fetcher->send(
+            $body === null ? $request : $request->withRawBody($body, 'application/octet-stream'),
+        );
+    }
+
+    /**
+     * Reissue: `POST /albums/{id}/-actions/reissue`. The body is a create document of `albums`, in
+     * any of its three input forms.
+     *
+     * @template TProj of object
+     *
+     * @param AlbumCreate|AlbumCreateBuilder|AlbumCreateShape                                            $input
+     * @param (callable(AlbumProjection<AlbumBase>): AlbumProjection<TProj>)|AlbumProjection<TProj>|null $projection
+     *
+     * @return ($projection is null ? AlbumBase : AlbumBase&TProj)
+     *
+     * @throws BadRequest           when the request is malformed
+     * @throws Unauthorized         when credentials are missing or invalid
+     * @throws Forbidden            when the action is not permitted
+     * @throws NotFound             when no album has this id
+     * @throws NotAcceptable        when the negotiated media type cannot be satisfied
+     * @throws UnsupportedMediaType when the `Content-Type` is refused
+     * @throws ValidationFailed     when the document fails validation
+     * @throws ServerError          when the server fails
+     * @throws TransportException   when no response is received at all
+     * @throws MalformedDocument    when the response carries no primary resource
+     */
+    public function reissue(
+        AlbumCreate|AlbumCreateBuilder|array $input,
+        callable|AlbumProjection|null $projection = null,
+    ): AlbumBase {
+        $document = match (true) {
+            $input instanceof AlbumCreate => $input,
+            $input instanceof AlbumCreateBuilder => $input->build(),
+            default => AlbumCreate::from($input),
+        };
+
+        $query = AlbumProjection::resolve($projection);
+
+        $context = $this->fetcher->read(
+            Request::post(
+                $query->appendTo('/albums/' . $this->id . '/-actions/reissue'),
+                \json_encode($document->toDocument(), \JSON_THROW_ON_ERROR),
+            ),
+            $query,
+        );
+
+        $raw = $context->primary() ?? throw MalformedDocument::missingMember('The reissue response', 'data');
+
+        /** @var AlbumBase&TProj */
+        return $context->hydrate($raw, Album::_hydrate(...));
+    }
+}
+
+/**
+ * The `artist` relationship of one album. `get()` reads the linkage and `related()` reads the
+ * related resources; any read the server switched off is absent. The writes are `set()`, the
+ * methods the relationship endpoint declares, and no others.
+ *
+ * @generated from `/albums/{id}/artist` and `/albums/{id}/relationships/artist`
+ */
+final class AlbumArtistRelation
+{
+    public function __construct(
+        private readonly Fetcher $fetcher,
+        private readonly string $id,
+    ) {}
+
+    /**
+     * The linkage alone: the identifier of the related resource, or null, without fetching it.
+     *
+     * @throws BadRequest         when a query parameter is rejected
+     * @throws Unauthorized       when credentials are missing or invalid
+     * @throws Forbidden          when the read is not permitted
+     * @throws NotFound           when no album has this id
+     * @throws NotAcceptable      when the negotiated media type cannot be satisfied
+     * @throws ServerError        when the server fails
+     * @throws TransportException when no response is received at all
+     */
+    public function get(): ?Identifier
+    {
+        $raw = $this->fetcher
+            ->read(Request::get('/albums/' . $this->id . '/relationships/artist'))
+            ->primary();
+
+        return $raw === null ? null : Identifier::fromArray($raw, 'the "artist" linkage');
+    }
+
+    /**
+     * The related resource itself, or null when the relationship is empty.
+     *
+     * @throws BadRequest         when a query parameter is rejected
+     * @throws Unauthorized       when credentials are missing or invalid
+     * @throws Forbidden          when the read is not permitted
+     * @throws NotFound           when no album has this id
+     * @throws NotAcceptable      when the negotiated media type cannot be satisfied
+     * @throws ServerError        when the server fails
+     * @throws TransportException when no response is received at all
+     */
+    public function related(): ?Artist
+    {
+        $context = $this->fetcher->read(Request::get('/albums/' . $this->id . '/artist'));
+        $raw = $context->primary();
+
+        return $raw === null ? null : Artist::_hydrate($raw, $context);
+    }
+
+    /**
+     * Point the relationship at another resource, or at nothing.
+     *
+     * @throws BadRequest           when the document is malformed
+     * @throws Unauthorized         when credentials are missing or invalid
+     * @throws Forbidden            when the write is not permitted
+     * @throws NotFound             when no album has this id
+     * @throws NotAcceptable        when the negotiated media type cannot be satisfied
+     * @throws Conflict             when the linkage conflicts with the relationship
+     * @throws UnsupportedMediaType when the `Content-Type` is refused
+     * @throws ValidationFailed     when the linkage fails validation
+     * @throws ServerError          when the server fails
+     * @throws TransportException   when no response is received at all
+     */
+    public function set(Artist|Identifier|null $target): void
+    {
+        $this->fetcher->send(Request::patch(
+            '/albums/' . $this->id . '/relationships/artist',
+            \json_encode(['data' => Coerce::linkage($target)], \JSON_THROW_ON_ERROR),
+        ));
+    }
+}
+
+/**
+ * The collection-scoped custom actions of `albums`, reached through the type accessor. Each
+ * signature is derived from the action's own request body and response.
+ *
+ * @generated from `POST /albums/-actions/summary`
+ */
+final class AlbumCollectionActions
+{
+    public function __construct(private readonly Fetcher $fetcher) {}
+
+    /**
+     * Summary: `POST /albums/-actions/summary`. It declares no request body, so it takes no input.
+     *
+     * @return array<string, mixed>
+     *
+     * @throws BadRequest           when the request is malformed
+     * @throws Unauthorized         when credentials are missing or invalid
+     * @throws Forbidden            when the action is not permitted
+     * @throws NotFound             when the endpoint does not exist
+     * @throws NotAcceptable        when the negotiated media type cannot be satisfied
+     * @throws UnsupportedMediaType when the `Content-Type` is refused
+     * @throws ValidationFailed     when the payload fails validation
+     * @throws ServerError          when the server fails
+     * @throws TransportException   when no response is received at all
+     */
+    public function summary(): array
+    {
+        return $this->fetcher->meta(Request::post('/albums/-actions/summary'));
+    }
+}
+
+/**
  * The canonical create input for `albums`, as named arguments. A missing required member is a
  * static error and an `ArgumentCountError`; every optional member defaults to `Missing`, which
  * keeps an absent member distinct from an explicit `null`.
@@ -797,6 +996,151 @@ final class AlbumCreateBuilder
             artist: $this->artist,
             tracks: $this->tracks,
         );
+    }
+}
+
+/**
+ * One album by id, before anything has been fetched. Creating the handle performs no IO; each
+ * method on it is one request.
+ *
+ * @phpstan-import-type AlbumUpdateShape from Album
+ *
+ * @generated from the `albums` operations on one resource
+ */
+final class AlbumHandle
+{
+    public function __construct(
+        private readonly Fetcher $fetcher,
+        private readonly string $id,
+    ) {}
+
+    /**
+     * The id this handle addresses.
+     */
+    public function id(): string
+    {
+        return $this->id;
+    }
+
+    /**
+     * Fetch the album, shaped by the optional projection: a closure over a fresh projection, or a
+     * prebuilt one.
+     *
+     * @template TProj of object
+     *
+     * @param (callable(AlbumProjection<AlbumBase>): AlbumProjection<TProj>)|AlbumProjection<TProj>|null $projection
+     *
+     * @return ($projection is null ? AlbumBase : AlbumBase&TProj)
+     *
+     * @throws BadRequest         when a query parameter is rejected
+     * @throws Unauthorized       when credentials are missing or invalid
+     * @throws Forbidden          when the read is not permitted
+     * @throws NotFound           when no album has this id
+     * @throws NotAcceptable      when the negotiated media type cannot be satisfied
+     * @throws ServerError        when the server fails
+     * @throws TransportException when no response is received at all
+     * @throws MalformedDocument  when the response carries no primary resource
+     */
+    public function get(callable|AlbumProjection|null $projection = null): AlbumBase
+    {
+        $query = AlbumProjection::resolve($projection);
+        $context = $this->fetcher->read(Request::get($query->appendTo('/albums/' . $this->id)), $query);
+        $raw = $context->primary() ?? throw MalformedDocument::missingMember('The albums response', 'data');
+
+        /** @var AlbumBase&TProj */
+        return $context->hydrate($raw, Album::_hydrate(...));
+    }
+
+    /**
+     * Patch the album, in either input form, and return it shaped by the optional projection.
+     *
+     * The id comes from the handle and is written into the document, so the body and the URL cannot
+     * disagree.
+     *
+     * @template TProj of object
+     *
+     * @param AlbumUpdate|AlbumUpdateShape                                                               $input
+     * @param (callable(AlbumProjection<AlbumBase>): AlbumProjection<TProj>)|AlbumProjection<TProj>|null $projection
+     *
+     * @return ($projection is null ? AlbumBase : AlbumBase&TProj)
+     *
+     * @throws BadRequest           when the request is malformed
+     * @throws Unauthorized         when credentials are missing or invalid
+     * @throws Forbidden            when the update is not permitted
+     * @throws NotFound             when no album has this id
+     * @throws NotAcceptable        when the negotiated media type cannot be satisfied
+     * @throws Conflict             when the document's type or id disagrees with the endpoint
+     * @throws UnsupportedMediaType when the `Content-Type` is refused
+     * @throws ValidationFailed     when the document fails validation
+     * @throws ServerError          when the server fails
+     * @throws TransportException   when no response is received at all
+     * @throws MalformedDocument    when the response carries no primary resource
+     */
+    public function update(
+        AlbumUpdate|array $input,
+        callable|AlbumProjection|null $projection = null,
+    ): AlbumBase {
+        $document = match (true) {
+            $input instanceof AlbumUpdate => $input,
+            default => AlbumUpdate::from($input),
+        };
+
+        $query = AlbumProjection::resolve($projection);
+
+        $context = $this->fetcher->read(
+            Request::patch(
+                $query->appendTo('/albums/' . $this->id),
+                \json_encode($document->toDocument($this->id), \JSON_THROW_ON_ERROR),
+            ),
+            $query,
+        );
+
+        $raw = $context->primary() ?? throw MalformedDocument::missingMember('The update response', 'data');
+
+        /** @var AlbumBase&TProj */
+        return $context->hydrate($raw, Album::_hydrate(...));
+    }
+
+    /**
+     * Delete the album.
+     *
+     * @throws BadRequest         when the request is malformed
+     * @throws Unauthorized       when credentials are missing or invalid
+     * @throws Forbidden          when the delete is not permitted
+     * @throws NotFound           when no album has this id
+     * @throws NotAcceptable      when the negotiated media type cannot be satisfied
+     * @throws ServerError        when the server fails
+     * @throws TransportException when no response is received at all
+     */
+    public function delete(): void
+    {
+        $this->fetcher->send(Request::delete('/albums/' . $this->id));
+    }
+
+    /**
+     * The `artist` relationship, a to-one whose endpoint advertises `set()`.
+     */
+    public function artist(): AlbumArtistRelation
+    {
+        return new AlbumArtistRelation($this->fetcher, $this->id);
+    }
+
+    /**
+     * The `tracks` relationship, a to-many whose endpoint advertises `add()`, `remove()` and
+     * `replace()`.
+     */
+    public function tracks(): AlbumTracksRelation
+    {
+        return new AlbumTracksRelation($this->fetcher, $this->id);
+    }
+
+    /**
+     * Resource-scoped custom actions, behind their own namespace because an action name may collide
+     * with a relation or a verb.
+     */
+    public function actions(): AlbumActions
+    {
+        return new AlbumActions($this->fetcher, $this->id);
     }
 }
 
@@ -1147,6 +1491,173 @@ final class AlbumQuery extends Query
 }
 
 /**
+ * The `tracks` relationship of one album. `get()` reads the linkage and `related()` reads the
+ * related resources; any read the server switched off is absent. The writes are `add()`, `remove()`
+ * and `replace()`, the methods the relationship endpoint declares, and no others.
+ *
+ * @generated from `/albums/{id}/tracks` and `/albums/{id}/relationships/tracks`
+ */
+final class AlbumTracksRelation
+{
+    public function __construct(
+        private readonly Fetcher $fetcher,
+        private readonly string $id,
+    ) {}
+
+    /**
+     * The linkage alone, a page at a time, without fetching the related resources.
+     *
+     * @return PaginatedCollection<Identifier, PageNumber>
+     *
+     * @throws BadRequest         when a query parameter is rejected
+     * @throws Unauthorized       when credentials are missing or invalid
+     * @throws Forbidden          when the read is not permitted
+     * @throws NotFound           when no album has this id
+     * @throws NotAcceptable      when the negotiated media type cannot be satisfied
+     * @throws ServerError        when the server fails
+     * @throws TransportException when no response is received at all
+     */
+    public function get(): PaginatedCollection
+    {
+        return $this->linkage(
+            $this->fetcher->read(Request::get('/albums/' . $this->id . '/relationships/tracks')),
+        );
+    }
+
+    /**
+     * The related resources themselves, a page at a time.
+     *
+     * @return PaginatedCollection<Track, PageNumber>
+     *
+     * @throws BadRequest         when a query parameter is rejected
+     * @throws Unauthorized       when credentials are missing or invalid
+     * @throws Forbidden          when the read is not permitted
+     * @throws NotFound           when no album has this id
+     * @throws NotAcceptable      when the negotiated media type cannot be satisfied
+     * @throws ServerError        when the server fails
+     * @throws TransportException when no response is received at all
+     */
+    public function related(): PaginatedCollection
+    {
+        return $this->resources($this->fetcher->read(Request::get('/albums/' . $this->id . '/tracks')));
+    }
+
+    /**
+     * Add members to the relationship, leaving the rest alone.
+     *
+     * @param list<Identifier|Track> $tracks
+     *
+     * @throws BadRequest           when the document is malformed
+     * @throws Unauthorized         when credentials are missing or invalid
+     * @throws Forbidden            when the write is not permitted
+     * @throws NotFound             when no album has this id
+     * @throws NotAcceptable        when the negotiated media type cannot be satisfied
+     * @throws Conflict             when the linkage conflicts with the relationship
+     * @throws UnsupportedMediaType when the `Content-Type` is refused
+     * @throws ValidationFailed     when the linkage fails validation
+     * @throws ServerError          when the server fails
+     * @throws TransportException   when no response is received at all
+     */
+    public function add(array $tracks): void
+    {
+        $this->fetcher->send(Request::post(
+            '/albums/' . $this->id . '/relationships/tracks',
+            \json_encode(['data' => Coerce::linkageList($tracks)], \JSON_THROW_ON_ERROR),
+        ));
+    }
+
+    /**
+     * Remove members from the relationship, leaving the rest alone.
+     *
+     * @param list<Identifier|Track> $tracks
+     *
+     * @throws BadRequest           when the document is malformed
+     * @throws Unauthorized         when credentials are missing or invalid
+     * @throws Forbidden            when the write is not permitted
+     * @throws NotFound             when no album has this id
+     * @throws NotAcceptable        when the negotiated media type cannot be satisfied
+     * @throws Conflict             when the linkage conflicts with the relationship
+     * @throws UnsupportedMediaType when the `Content-Type` is refused
+     * @throws ValidationFailed     when the linkage fails validation
+     * @throws ServerError          when the server fails
+     * @throws TransportException   when no response is received at all
+     */
+    public function remove(array $tracks): void
+    {
+        $this->fetcher->send(Request::delete(
+            '/albums/' . $this->id . '/relationships/tracks',
+            \json_encode(['data' => Coerce::linkageList($tracks)], \JSON_THROW_ON_ERROR),
+        ));
+    }
+
+    /**
+     * Replace every member of the relationship.
+     *
+     * @param list<Identifier|Track> $tracks
+     *
+     * @throws BadRequest           when the document is malformed
+     * @throws Unauthorized         when credentials are missing or invalid
+     * @throws Forbidden            when the write is not permitted
+     * @throws NotFound             when no album has this id
+     * @throws NotAcceptable        when the negotiated media type cannot be satisfied
+     * @throws Conflict             when the linkage conflicts with the relationship
+     * @throws UnsupportedMediaType when the `Content-Type` is refused
+     * @throws ValidationFailed     when the linkage fails validation
+     * @throws ServerError          when the server fails
+     * @throws TransportException   when no response is received at all
+     */
+    public function replace(array $tracks): void
+    {
+        $this->fetcher->send(Request::patch(
+            '/albums/' . $this->id . '/relationships/tracks',
+            \json_encode(['data' => Coerce::linkageList($tracks)], \JSON_THROW_ON_ERROR),
+        ));
+    }
+
+    /**
+     * @return PaginatedCollection<Identifier, PageNumber>
+     */
+    private function linkage(ResourceContext $context): PaginatedCollection
+    {
+        $document = $context->document();
+        $identifiers = [];
+
+        foreach ($context->primaryList() as $raw) {
+            $identifiers[] = Identifier::fromArray($raw, 'the "tracks" linkage');
+        }
+
+        return new PaginatedCollection(
+            $identifiers,
+            PageNumber::read($document->pageMeta(), PageLinks::fromArray($document->links())),
+            $document->meta(),
+            $document->links(),
+            fn(string $url): PaginatedCollection => $this->linkage($this->fetcher->readUrl($url)),
+        );
+    }
+
+    /**
+     * @return PaginatedCollection<Track, PageNumber>
+     */
+    private function resources(ResourceContext $context): PaginatedCollection
+    {
+        $document = $context->document();
+        $tracks = [];
+
+        foreach ($context->primaryList() as $raw) {
+            $tracks[] = Track::_hydrate($raw, $context);
+        }
+
+        return new PaginatedCollection(
+            $tracks,
+            PageNumber::read($document->pageMeta(), PageLinks::fromArray($document->links())),
+            $document->meta(),
+            $document->links(),
+            fn(string $url): PaginatedCollection => $this->resources($this->fetcher->readUrl($url, new ReadQuery())),
+        );
+    }
+}
+
+/**
  * The canonical update input for `albums`: every member optional, which is what a JSON:API `PATCH`
  * is. The id is not a member; it comes from the handle the update is called on, so it cannot
  * disagree with the URL.
@@ -1443,5 +1954,92 @@ final class AlbumUpdate
         }
 
         return ['data' => $data];
+    }
+}
+
+/**
+ * The `albums` type: every operation its collection endpoint advertises, and the way to one
+ * resource by id.
+ *
+ * @phpstan-import-type AlbumCreateShape from Album
+ *
+ * @generated from the `albums` operations
+ */
+final class Albums
+{
+    public function __construct(private readonly Fetcher $fetcher) {}
+
+    /**
+     * A read of the albums collection, not yet sent: unprojected, unfiltered and unsorted.
+     *
+     * @return AlbumQuery<AlbumBase>
+     */
+    public function query(): AlbumQuery
+    {
+        /** @var AlbumQuery<AlbumBase> */
+        return new AlbumQuery($this->fetcher);
+    }
+
+    /**
+     * A handle on one album by id. Nothing is fetched until a method on it is called.
+     */
+    public function id(string $id): AlbumHandle
+    {
+        return new AlbumHandle($this->fetcher, $id);
+    }
+
+    /**
+     * Create an album, in any of the three input forms, and return it shaped by the optional
+     * projection: a closure over a fresh projection, or a prebuilt one.
+     *
+     * @template TProj of object
+     *
+     * @param AlbumCreate|AlbumCreateBuilder|AlbumCreateShape                                            $input
+     * @param (callable(AlbumProjection<AlbumBase>): AlbumProjection<TProj>)|AlbumProjection<TProj>|null $projection
+     *
+     * @return ($projection is null ? AlbumBase : AlbumBase&TProj)
+     *
+     * @throws BadRequest           when the request is malformed
+     * @throws Unauthorized         when credentials are missing or invalid
+     * @throws Forbidden            when the create is not permitted
+     * @throws NotFound             when the endpoint does not exist
+     * @throws NotAcceptable        when the negotiated media type cannot be satisfied
+     * @throws Conflict             when the document conflicts with the endpoint
+     * @throws UnsupportedMediaType when the `Content-Type` is refused
+     * @throws ValidationFailed     when the document fails validation
+     * @throws ServerError          when the server fails
+     * @throws TransportException   when no response is received at all
+     * @throws MalformedDocument    when the response carries no primary resource
+     */
+    public function create(
+        AlbumCreate|AlbumCreateBuilder|array $input,
+        callable|AlbumProjection|null $projection = null,
+    ): AlbumBase {
+        $document = match (true) {
+            $input instanceof AlbumCreate => $input,
+            $input instanceof AlbumCreateBuilder => $input->build(),
+            default => AlbumCreate::from($input),
+        };
+
+        $query = AlbumProjection::resolve($projection);
+
+        $context = $this->fetcher->read(
+            Request::post($query->appendTo('/albums'), \json_encode($document->toDocument(), \JSON_THROW_ON_ERROR)),
+            $query,
+        );
+
+        $raw = $context->primary() ?? throw MalformedDocument::missingMember('The create response', 'data');
+
+        /** @var AlbumBase&TProj */
+        return $context->hydrate($raw, Album::_hydrate(...));
+    }
+
+    /**
+     * Collection-scoped custom actions, behind their own namespace because an action name may
+     * collide with a relation or a verb.
+     */
+    public function actions(): AlbumCollectionActions
+    {
+        return new AlbumCollectionActions($this->fetcher);
     }
 }

@@ -10,6 +10,7 @@ use haddowg\JsonApiClient\Exceptions\FieldNotSelectedException;
 use haddowg\JsonApiClient\Exceptions\Forbidden;
 use haddowg\JsonApiClient\Exceptions\MalformedDocument;
 use haddowg\JsonApiClient\Exceptions\NotAcceptable;
+use haddowg\JsonApiClient\Exceptions\NotFound;
 use haddowg\JsonApiClient\Exceptions\ServerError;
 use haddowg\JsonApiClient\Exceptions\TransportException;
 use haddowg\JsonApiClient\Exceptions\Unauthorized;
@@ -164,6 +165,57 @@ final class ExportJob extends ExportJobBase
     public static function ref(string $id, array $meta = []): Identifier
     {
         return Identifier::of(self::TYPE, $id, $meta);
+    }
+}
+
+/**
+ * One export job by id, before anything has been fetched. Creating the handle performs no IO; each
+ * method on it is one request.
+ *
+ * @generated from the `export-jobs` operations on one resource
+ */
+final class ExportJobHandle
+{
+    public function __construct(
+        private readonly Fetcher $fetcher,
+        private readonly string $id,
+    ) {}
+
+    /**
+     * The id this handle addresses.
+     */
+    public function id(): string
+    {
+        return $this->id;
+    }
+
+    /**
+     * Fetch the export job, shaped by the optional projection: a closure over a fresh projection,
+     * or a prebuilt one.
+     *
+     * @template TProj of object
+     *
+     * @param (callable(ExportJobProjection<ExportJobBase>): ExportJobProjection<TProj>)|ExportJobProjection<TProj>|null $projection
+     *
+     * @return ($projection is null ? ExportJobBase : ExportJobBase&TProj)
+     *
+     * @throws BadRequest         when a query parameter is rejected
+     * @throws Unauthorized       when credentials are missing or invalid
+     * @throws Forbidden          when the read is not permitted
+     * @throws NotFound           when no export job has this id
+     * @throws NotAcceptable      when the negotiated media type cannot be satisfied
+     * @throws ServerError        when the server fails
+     * @throws TransportException when no response is received at all
+     * @throws MalformedDocument  when the response carries no primary resource
+     */
+    public function get(callable|ExportJobProjection|null $projection = null): ExportJobBase
+    {
+        $query = ExportJobProjection::resolve($projection);
+        $context = $this->fetcher->read(Request::get($query->appendTo('/export-jobs/' . $this->id)), $query);
+        $raw = $context->primary() ?? throw MalformedDocument::missingMember('The export-jobs response', 'data');
+
+        /** @var ExportJobBase&TProj */
+        return $context->hydrate($raw, ExportJob::_hydrate(...));
     }
 }
 
@@ -324,5 +376,35 @@ final class ExportJobQuery extends Query
     {
         /** @var TProj */
         return $context->hydrate($raw, ExportJob::_hydrate(...));
+    }
+}
+
+/**
+ * The `export-jobs` type: every operation its collection endpoint advertises, and the way to one
+ * resource by id.
+ *
+ * @generated from the `export-jobs` operations
+ */
+final class ExportJobs
+{
+    public function __construct(private readonly Fetcher $fetcher) {}
+
+    /**
+     * A read of the export-jobs collection, not yet sent: unprojected, unfiltered and unsorted.
+     *
+     * @return ExportJobQuery<ExportJobBase>
+     */
+    public function query(): ExportJobQuery
+    {
+        /** @var ExportJobQuery<ExportJobBase> */
+        return new ExportJobQuery($this->fetcher);
+    }
+
+    /**
+     * A handle on one export job by id. Nothing is fetched until a method on it is called.
+     */
+    public function id(string $id): ExportJobHandle
+    {
+        return new ExportJobHandle($this->fetcher, $id);
     }
 }

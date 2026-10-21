@@ -6,16 +6,20 @@ namespace haddowg\JsonApiClient\Tests\Generated\MusicCatalog;
 
 use haddowg\JsonApiClient\Collections\PaginatedCollection;
 use haddowg\JsonApiClient\Exceptions\BadRequest;
+use haddowg\JsonApiClient\Exceptions\Conflict;
 use haddowg\JsonApiClient\Exceptions\FieldNotSelectedException;
 use haddowg\JsonApiClient\Exceptions\Forbidden;
 use haddowg\JsonApiClient\Exceptions\MalformedDocument;
 use haddowg\JsonApiClient\Exceptions\MissingRequiredMemberException;
 use haddowg\JsonApiClient\Exceptions\NotAcceptable;
+use haddowg\JsonApiClient\Exceptions\NotFound;
 use haddowg\JsonApiClient\Exceptions\ServerError;
 use haddowg\JsonApiClient\Exceptions\TransportException;
 use haddowg\JsonApiClient\Exceptions\Unauthorized;
 use haddowg\JsonApiClient\Exceptions\UnknownAttributeException;
 use haddowg\JsonApiClient\Exceptions\UnknownFieldException;
+use haddowg\JsonApiClient\Exceptions\UnsupportedMediaType;
+use haddowg\JsonApiClient\Exceptions\ValidationFailed;
 use haddowg\JsonApiClient\Http\Request;
 use haddowg\JsonApiClient\Pagination\PageLinks;
 use haddowg\JsonApiClient\Pagination\PageNumber;
@@ -331,6 +335,125 @@ final class GenreCreateBuilder
 }
 
 /**
+ * One genre by id, before anything has been fetched. Creating the handle performs no IO; each
+ * method on it is one request.
+ *
+ * @phpstan-import-type GenreUpdateShape from Genre
+ *
+ * @generated from the `genres` operations on one resource
+ */
+final class GenreHandle
+{
+    public function __construct(
+        private readonly Fetcher $fetcher,
+        private readonly string $id,
+    ) {}
+
+    /**
+     * The id this handle addresses.
+     */
+    public function id(): string
+    {
+        return $this->id;
+    }
+
+    /**
+     * Fetch the genre, shaped by the optional projection: a closure over a fresh projection, or a
+     * prebuilt one.
+     *
+     * @template TProj of object
+     *
+     * @param (callable(GenreProjection<GenreBase>): GenreProjection<TProj>)|GenreProjection<TProj>|null $projection
+     *
+     * @return ($projection is null ? GenreBase : GenreBase&TProj)
+     *
+     * @throws BadRequest         when a query parameter is rejected
+     * @throws Unauthorized       when credentials are missing or invalid
+     * @throws Forbidden          when the read is not permitted
+     * @throws NotFound           when no genre has this id
+     * @throws NotAcceptable      when the negotiated media type cannot be satisfied
+     * @throws ServerError        when the server fails
+     * @throws TransportException when no response is received at all
+     * @throws MalformedDocument  when the response carries no primary resource
+     */
+    public function get(callable|GenreProjection|null $projection = null): GenreBase
+    {
+        $query = GenreProjection::resolve($projection);
+        $context = $this->fetcher->read(Request::get($query->appendTo('/genres/' . $this->id)), $query);
+        $raw = $context->primary() ?? throw MalformedDocument::missingMember('The genres response', 'data');
+
+        /** @var GenreBase&TProj */
+        return $context->hydrate($raw, Genre::_hydrate(...));
+    }
+
+    /**
+     * Patch the genre, in either input form, and return it shaped by the optional projection.
+     *
+     * The id comes from the handle and is written into the document, so the body and the URL cannot
+     * disagree.
+     *
+     * @template TProj of object
+     *
+     * @param GenreUpdate|GenreUpdateShape                                                               $input
+     * @param (callable(GenreProjection<GenreBase>): GenreProjection<TProj>)|GenreProjection<TProj>|null $projection
+     *
+     * @return ($projection is null ? GenreBase : GenreBase&TProj)
+     *
+     * @throws BadRequest           when the request is malformed
+     * @throws Unauthorized         when credentials are missing or invalid
+     * @throws Forbidden            when the update is not permitted
+     * @throws NotFound             when no genre has this id
+     * @throws NotAcceptable        when the negotiated media type cannot be satisfied
+     * @throws Conflict             when the document's type or id disagrees with the endpoint
+     * @throws UnsupportedMediaType when the `Content-Type` is refused
+     * @throws ValidationFailed     when the document fails validation
+     * @throws ServerError          when the server fails
+     * @throws TransportException   when no response is received at all
+     * @throws MalformedDocument    when the response carries no primary resource
+     */
+    public function update(
+        GenreUpdate|array $input,
+        callable|GenreProjection|null $projection = null,
+    ): GenreBase {
+        $document = match (true) {
+            $input instanceof GenreUpdate => $input,
+            default => GenreUpdate::from($input),
+        };
+
+        $query = GenreProjection::resolve($projection);
+
+        $context = $this->fetcher->read(
+            Request::patch(
+                $query->appendTo('/genres/' . $this->id),
+                \json_encode($document->toDocument($this->id), \JSON_THROW_ON_ERROR),
+            ),
+            $query,
+        );
+
+        $raw = $context->primary() ?? throw MalformedDocument::missingMember('The update response', 'data');
+
+        /** @var GenreBase&TProj */
+        return $context->hydrate($raw, Genre::_hydrate(...));
+    }
+
+    /**
+     * Delete the genre.
+     *
+     * @throws BadRequest         when the request is malformed
+     * @throws Unauthorized       when credentials are missing or invalid
+     * @throws Forbidden          when the delete is not permitted
+     * @throws NotFound           when no genre has this id
+     * @throws NotAcceptable      when the negotiated media type cannot be satisfied
+     * @throws ServerError        when the server fails
+     * @throws TransportException when no response is received at all
+     */
+    public function delete(): void
+    {
+        $this->fetcher->send(Request::delete('/genres/' . $this->id));
+    }
+}
+
+/**
  * What a response carrying `genres` should bring back: `include` and `fields`, and nothing else.
  *
  * A write response honours exactly these two parameters, so `sort()`, `filter()` and `page()` are
@@ -570,5 +693,86 @@ final class GenreUpdate
         }
 
         return ['data' => $data];
+    }
+}
+
+/**
+ * The `genres` type: every operation its collection endpoint advertises, and the way to one
+ * resource by id.
+ *
+ * @phpstan-import-type GenreCreateShape from Genre
+ *
+ * @generated from the `genres` operations
+ */
+final class Genres
+{
+    public function __construct(private readonly Fetcher $fetcher) {}
+
+    /**
+     * A read of the genres collection, not yet sent: unprojected, unfiltered and unsorted.
+     *
+     * @return GenreQuery<GenreBase>
+     */
+    public function query(): GenreQuery
+    {
+        /** @var GenreQuery<GenreBase> */
+        return new GenreQuery($this->fetcher);
+    }
+
+    /**
+     * A handle on one genre by id. Nothing is fetched until a method on it is called.
+     */
+    public function id(string $id): GenreHandle
+    {
+        return new GenreHandle($this->fetcher, $id);
+    }
+
+    /**
+     * Create a genre, in any of the three input forms, and return it shaped by the optional
+     * projection: a closure over a fresh projection, or a prebuilt one.
+     *
+     * The document requires a client-generated id, so `$id` takes no default.
+     *
+     * @template TProj of object
+     *
+     * @param GenreCreate|GenreCreateBuilder|GenreCreateShape                                            $input
+     * @param (callable(GenreProjection<GenreBase>): GenreProjection<TProj>)|GenreProjection<TProj>|null $projection
+     *
+     * @return ($projection is null ? GenreBase : GenreBase&TProj)
+     *
+     * @throws BadRequest           when the request is malformed
+     * @throws Unauthorized         when credentials are missing or invalid
+     * @throws Forbidden            when the create is not permitted
+     * @throws NotFound             when the endpoint does not exist
+     * @throws NotAcceptable        when the negotiated media type cannot be satisfied
+     * @throws Conflict             when the document conflicts with the endpoint
+     * @throws UnsupportedMediaType when the `Content-Type` is refused
+     * @throws ValidationFailed     when the document fails validation
+     * @throws ServerError          when the server fails
+     * @throws TransportException   when no response is received at all
+     * @throws MalformedDocument    when the response carries no primary resource
+     */
+    public function create(
+        GenreCreate|GenreCreateBuilder|array $input,
+        string $id,
+        callable|GenreProjection|null $projection = null,
+    ): GenreBase {
+        $document = match (true) {
+            $input instanceof GenreCreate => $input,
+            $input instanceof GenreCreateBuilder => $input->build(),
+            default => GenreCreate::from($input),
+        };
+
+        $query = GenreProjection::resolve($projection);
+
+        $context = $this->fetcher->read(
+            Request::post($query->appendTo('/genres'), \json_encode($document->toDocument($id), \JSON_THROW_ON_ERROR)),
+            $query,
+        );
+
+        $raw = $context->primary() ?? throw MalformedDocument::missingMember('The create response', 'data');
+
+        /** @var GenreBase&TProj */
+        return $context->hydrate($raw, Genre::_hydrate(...));
     }
 }

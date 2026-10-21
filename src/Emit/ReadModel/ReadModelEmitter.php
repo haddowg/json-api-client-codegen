@@ -19,6 +19,7 @@ use haddowg\JsonApiCodegen\Emit\GeneratorConfig;
 use haddowg\JsonApiCodegen\Emit\Naming;
 use haddowg\JsonApiCodegen\Emit\Php;
 use haddowg\JsonApiCodegen\Emit\UnitKind;
+use haddowg\JsonApiCodegen\Emit\Warns;
 
 /**
  * The read model of every resource type: the relation markers, the resource base and the
@@ -34,7 +35,7 @@ use haddowg\JsonApiCodegen\Emit\UnitKind;
  * it, and every type it can point at is generated. Anything else keeps its linkage companions
  * and is reached through `_rel()`.
  */
-final class ReadModelEmitter implements Emitter
+final class ReadModelEmitter implements Emitter, Warns
 {
     /** Order of this emitter's contribution to the resource class: the attribute shapes come first. */
     public const int ORDER = 10;

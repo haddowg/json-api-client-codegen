@@ -5,6 +5,11 @@ declare(strict_types=1);
 namespace haddowg\JsonApiCodegen\Tests\Console;
 
 use haddowg\JsonApiCodegen\Console\Command;
+use haddowg\JsonApiCodegen\Descriptor\ApiDescriptor;
+use haddowg\JsonApiCodegen\Emit\Emitter;
+use haddowg\JsonApiCodegen\Emit\Generator;
+use haddowg\JsonApiCodegen\Emit\GeneratorConfig;
+use haddowg\JsonApiCodegen\Emit\Warns;
 use haddowg\JsonApiCodegen\Tests\Support\Fixtures;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
@@ -99,6 +104,26 @@ final class CommandTest extends TestCase
     {
         self::assertSame(Command::FAILURE, $this->invoke('/nope/missing.json', $this->output, '--namespace=App\\Api'));
         self::assertStringContainsString('missing.json', $this->read($this->stderr));
+    }
+
+    public function testAnEmittersWarningsReachTheUser(): void
+    {
+        $warns = new class implements Emitter, Warns {
+            public function emit(ApiDescriptor $api, GeneratorConfig $config): iterable
+            {
+                return [];
+            }
+
+            public function warnings(): array
+            {
+                return ['the filter `artist.name` is reachable only through filter()'];
+            }
+        };
+
+        $command = new Command($this->stdout, $this->stderr, new Generator([$warns]));
+
+        self::assertSame(Command::OK, $command->run($this->arguments()));
+        self::assertStringContainsString('Warning: the filter `artist.name` is reachable only through filter()', $this->read($this->stderr));
     }
 
     /**

@@ -133,12 +133,6 @@ final class SurfaceEmitter implements Emitter
 
         $params = [[TypeSurface::createDocType($type->type()), '$input']];
         $signature = [TypeSurface::createNativeType($type->type()) . ' $input'];
-        $idArgument = '';
-        if ($type->resource->clientId !== ClientIdPolicy::Forbidden) {
-            $optional = $type->resource->clientId === ClientIdPolicy::Optional;
-            $signature[] = ($optional ? '?string $id = null' : 'string $id');
-            $idArgument = '$id';
-        }
         if ($projected) {
             $params[] = [TypeSurface::projectionParam($projection, $base), '$projection'];
             $signature[] = 'callable|' . $projection . '|null $projection = null';
@@ -149,10 +143,11 @@ final class SurfaceEmitter implements Emitter
             $projected => 'Create ' . self::article($type->label()) . ', in any of the three input forms, and return it shaped by the optional projection: a closure over a fresh projection, or a prebuilt one.',
             default => 'Create ' . self::article($type->label()) . ', in any of the three input forms, and return it.',
         }, 4);
+        // A client-generated id is a member of the create input, so all three forms carry it.
         $clientId = match ($type->resource->clientId) {
             ClientIdPolicy::Forbidden => null,
-            ClientIdPolicy::Optional => 'The document accepts a client-generated id, so `$id` may carry one.',
-            ClientIdPolicy::Required => 'The document requires a client-generated id, so `$id` takes no default.',
+            ClientIdPolicy::Optional => 'The document accepts a client-generated id, carried as the input\'s `id`.',
+            ClientIdPolicy::Required => 'The document requires a client-generated id, carried as the input\'s `id`.',
         };
         if ($clientId !== null) {
             $doc = [...$doc, '', ...Php::wrap($clientId, 4)];
@@ -169,7 +164,7 @@ final class SurfaceEmitter implements Emitter
             'Forbidden' => 'when the create is not permitted',
         ], $resource)];
 
-        $json = '\\json_encode($document->toDocument(' . $idArgument . '), \\JSON_THROW_ON_ERROR)';
+        $json = '\\json_encode($document->toDocument(), \\JSON_THROW_ON_ERROR)';
         $path = Php::string($create->path);
         $body = TypeSurface::createInput($type->type()) . "\n";
 

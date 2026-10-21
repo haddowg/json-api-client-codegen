@@ -140,7 +140,13 @@ final class WritesBehaviourTest extends TestCase
 
     private static function builder(): object
     {
-        $class = Generated::NAMESPACE . '\AlbumCreateBuilder';
+        return self::instance('AlbumCreateBuilder');
+    }
+
+    /** A generated class by short name; analysis cannot see the golden output, so it stays dynamic. */
+    private static function instance(string $class): object
+    {
+        $class = Generated::NAMESPACE . '\\' . $class;
 
         return new $class();
     }

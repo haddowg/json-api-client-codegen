@@ -200,13 +200,13 @@ final class SurfaceEmitterTest extends TestCase
         self::assertStringNotContainsString('create(', self::unit('Charts')->source);
     }
 
-    public function testARequiredClientIdIsARequiredParameter(): void
+    public function testAClientGeneratedIdTravelsInTheCreateInputNotBesideIt(): void
     {
         $source = self::unit('Genres')->source;
 
-        self::assertStringContainsString('        string $id,', $source);
-        self::assertStringContainsString('$document->toDocument($id)', $source);
-        self::assertStringNotContainsString('toDocument($id)', self::unit('Albums')->source, 'albums forbids a client-generated id');
+        self::assertStringNotContainsString('        string $id,' . "\n", $source, 'the id is a member of GenreCreate, so create() takes no second one');
+        self::assertStringContainsString('$document->toDocument()', $source);
+        self::assertStringContainsString("carried as the input's `id`", $source);
     }
 
     public function testARelationNamedLikeAHandleVerbIsRoutedThroughAFallback(): void

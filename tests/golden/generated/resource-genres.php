@@ -731,7 +731,7 @@ final class Genres
      * Create a genre, in any of the three input forms, and return it shaped by the optional
      * projection: a closure over a fresh projection, or a prebuilt one.
      *
-     * The document requires a client-generated id, so `$id` takes no default.
+     * The document requires a client-generated id, carried as the input's `id`.
      *
      * @template TProj of object
      *
@@ -754,7 +754,6 @@ final class Genres
      */
     public function create(
         GenreCreate|GenreCreateBuilder|array $input,
-        string $id,
         callable|GenreProjection|null $projection = null,
     ): GenreBase {
         $document = match (true) {
@@ -766,7 +765,7 @@ final class Genres
         $query = GenreProjection::resolve($projection);
 
         $context = $this->fetcher->read(
-            Request::post($query->appendTo('/genres'), \json_encode($document->toDocument($id), \JSON_THROW_ON_ERROR)),
+            Request::post($query->appendTo('/genres'), \json_encode($document->toDocument(), \JSON_THROW_ON_ERROR)),
             $query,
         );
 

@@ -7,6 +7,7 @@ namespace haddowg\JsonApiCodegen\Emit\Reads;
 use haddowg\JsonApiCodegen\Descriptor\ApiDescriptor;
 use haddowg\JsonApiCodegen\Emit\Emitter;
 use haddowg\JsonApiCodegen\Emit\GeneratorConfig;
+use haddowg\JsonApiCodegen\Emit\Warns;
 
 /**
  * The read side of each type: the shared `withX()` trait, the write-response projection, the
@@ -18,7 +19,7 @@ use haddowg\JsonApiCodegen\Emit\GeneratorConfig;
  * no projection; a query builder has `sort()` only where the endpoint sorts, `withCount()` only
  * where it counts, and the pagination methods of its own paginator and no other.
  */
-final class ReadsEmitter implements Emitter
+final class ReadsEmitter implements Emitter, Warns
 {
     /** The read emitter's place among the contributions to a resource class. */
     public const int ORDER = 30;

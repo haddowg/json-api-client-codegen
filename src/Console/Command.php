@@ -88,7 +88,11 @@ final class Command
                 \fwrite($this->stderr, 'Warning: ' . $warning . \PHP_EOL);
             }
 
-            $files = ($this->generator ?? Generator::default())->generate(DescriptorBuilder::build($document), $config, \hash('sha256', $raw));
+            $generator = $this->generator ?? Generator::default();
+            $files = $generator->generate(DescriptorBuilder::build($document), $config, \hash('sha256', $raw));
+            foreach ($generator->warnings() as $generated) {
+                \fwrite($this->stderr, 'Warning: ' . $generated . \PHP_EOL);
+            }
         } catch (\InvalidArgumentException|SpecException|UnsupportedContractException|RuntimeCatalogueUnavailable $e) {
             \fwrite($this->stderr, $e->getMessage() . \PHP_EOL);
 

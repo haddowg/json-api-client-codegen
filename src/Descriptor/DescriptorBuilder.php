@@ -155,7 +155,47 @@ final class DescriptorBuilder
             $this->tokenEnum($list, 'sort'),
             $this->filterable($list),
             $collection === null ? [] : $this->actions($collection),
+            $this->writeRelations($collection === null ? null : $this->document->pathItem($collection)?->find('post')),
+            $this->writeRelations($single?->find('patch')),
+            $this->memberOrder($schema),
         );
+    }
+
+    /**
+     * The relations one write operation accepts, in document order. They are read from the
+     * request document because they differ from the resource's relations and between create and
+     * update: `tracks.playlists` is accepted on create and not on update, where the relation
+     * permits no replacement.
+     *
+     * @return list<string>
+     */
+    private function writeRelations(?Node $operation): array
+    {
+        $relationships = $operation === null
+            ? null
+            : $this->requestBodySchema($operation)?->path('properties', 'data', 'properties', 'relationships');
+        $properties = $relationships === null ? null : $this->document->dereference($relationships)->find('properties');
+
+        return \array_map(static fn(int|string $key): string => (string) $key, \array_keys($properties?->members() ?? []));
+    }
+
+    /**
+     * The resource schema's attributes then relations, in the order it declares them.
+     *
+     * @return list<string>
+     */
+    private function memberOrder(Node $schema): array
+    {
+        $names = [];
+        $attributes = $schema->path('properties', 'attributes');
+        $attributes = $attributes === null ? null : $this->document->dereference($attributes)->find('properties');
+        foreach ([$attributes, $schema->path('properties', 'relationships', 'properties')] as $properties) {
+            foreach (\array_keys($properties?->members() ?? []) as $key) {
+                $names[] = (string) $key;
+            }
+        }
+
+        return $names;
     }
 
     /**
@@ -745,7 +785,14 @@ final class DescriptorBuilder
         return $out;
     }
 
-    /** @return array<string, FilterDescriptor> */
+    /**
+     * The `filter[…]` keys a collection read accepts, in the order the document declares them.
+     *
+     * Document order rather than sorted, like `include` and `sort`: it is the order the server
+     * declared its filters in, so generated filter methods and shapes read the way the API does.
+     *
+     * @return array<string, FilterDescriptor>
+     */
     private function filterable(?Node $operation): array
     {
         if ($operation === null) {
@@ -765,7 +812,6 @@ final class DescriptorBuilder
                 $schema === null || $schema->members() === [] ? null : $this->valueSchema($schema),
             );
         }
-        \ksort($out, \SORT_STRING);
 
         return $out;
     }
@@ -778,12 +824,12 @@ final class DescriptorBuilder
         foreach ($schema->find('properties')?->members() ?? [] as $key => $property) {
             $properties[(string) $key] = $this->valueSchema($property);
         }
-        \ksort($properties, \SORT_STRING);
 
         $required = $schema->find('required')?->strings() ?? [];
         \sort($required, \SORT_STRING);
 
         $items = $schema->find('items');
+        $const = $schema->find('const');
 
         return new ValueSchema(
             $this->declaredTypes($schema),
@@ -796,6 +842,7 @@ final class DescriptorBuilder
             $this->branches($schema, 'anyOf'),
             $this->branches($schema, 'allOf'),
             $schema->path('discriminator', 'propertyName')?->string(),
+            $const !== null && $const->isString() ? $const->string() : null,
         );
     }
 
@@ -1021,6 +1068,7 @@ final class DescriptorBuilder
             $contentType,
             $this->errorStatuses($operation),
             $this->projection($operation),
+            $input === ActionInput::None || $operation->path('requestBody', 'required')?->bool() === true,
         );
     }
 

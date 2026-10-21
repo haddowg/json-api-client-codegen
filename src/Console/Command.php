@@ -9,6 +9,7 @@ use haddowg\JsonApiCodegen\Emit\FileKey;
 use haddowg\JsonApiCodegen\Emit\Generator;
 use haddowg\JsonApiCodegen\Emit\GeneratorConfig;
 use haddowg\JsonApiCodegen\Emit\PhpTarget;
+use haddowg\JsonApiCodegen\Emit\Root\RuntimeCatalogueUnavailable;
 use haddowg\JsonApiCodegen\Spec\ContractCompatibility;
 use haddowg\JsonApiCodegen\Spec\SpecDocument;
 use haddowg\JsonApiCodegen\Spec\SpecException;
@@ -87,8 +88,12 @@ final class Command
                 \fwrite($this->stderr, 'Warning: ' . $warning . \PHP_EOL);
             }
 
-            $files = ($this->generator ?? Generator::default())->generate(DescriptorBuilder::build($document), $config, \hash('sha256', $raw));
-        } catch (\InvalidArgumentException|SpecException|UnsupportedContractException $e) {
+            $generator = $this->generator ?? Generator::default();
+            $files = $generator->generate(DescriptorBuilder::build($document), $config, \hash('sha256', $raw));
+            foreach ($generator->warnings() as $generated) {
+                \fwrite($this->stderr, 'Warning: ' . $generated . \PHP_EOL);
+            }
+        } catch (\InvalidArgumentException|SpecException|UnsupportedContractException|RuntimeCatalogueUnavailable $e) {
             \fwrite($this->stderr, $e->getMessage() . \PHP_EOL);
 
             return self::FAILURE;

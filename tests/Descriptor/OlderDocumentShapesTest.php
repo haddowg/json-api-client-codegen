@@ -27,7 +27,7 @@ final class OlderDocumentShapesTest extends TestCase
             ['name' => 'filter[rating]', 'in' => 'query', 'schema' => ['type' => 'number']],
         ])->filterable;
 
-        self::assertSame(['rating', 'title'], \array_keys($filters));
+        self::assertSame(['title', 'rating'], \array_keys($filters));
         self::assertNull($filters['title']->schema, 'an empty schema means the value type is unknown, not string');
         self::assertSame(['number'], $filters['rating']->schema?->types);
     }

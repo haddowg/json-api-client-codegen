@@ -20,12 +20,14 @@ final class ValueSchema
 {
     /**
      * @param list<string>               $types      the declared JSON types, `null` among them when nullable
-     * @param array<string, ValueSchema> $properties object members, sorted by name
+     * @param array<string, ValueSchema> $properties object members, in document order, which is the order a generated shape lists them
      * @param list<string>               $required   required member names, sorted
      * @param list<string>               $enum       permitted string values
      * @param list<ValueSchema>          $oneOf      exactly-one-of branches, in document order
      * @param list<ValueSchema>          $anyOf      at-least-one-of branches, in document order
      * @param list<ValueSchema>          $allOf      all-of branches, in document order
+     * @param string|null                $const      a string `const`, which is how a discriminated
+     *                                               branch names the value that selects it
      */
     public function __construct(
         public readonly array $types,
@@ -38,6 +40,7 @@ final class ValueSchema
         public readonly array $anyOf,
         public readonly array $allOf,
         public readonly ?string $discriminator,
+        public readonly ?string $const = null,
     ) {}
 
     /** True when this schema's real shape is in its branches rather than its own members. */

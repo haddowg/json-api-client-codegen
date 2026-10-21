@@ -8,7 +8,8 @@ namespace haddowg\JsonApiCodegen\Descriptor;
  * Everything the emitters need about one resource type.
  *
  * The maps are keyed and sorted by name so a regeneration diff shows only what genuinely
- * changed.
+ * changed. `$filterable` is the exception: like `$includable` and `$sortable` it keeps the
+ * document's order, which is stable across regenerations too.
  */
 final class ResourceDescriptor
 {
@@ -20,8 +21,11 @@ final class ResourceDescriptor
      * @param array<string, OperationDescriptor> $operations keyed by {@see OperationKind} value
      * @param list<string>                       $includable relation paths accepted in `include`, nested ones among them
      * @param list<string>                       $sortable   signed sort tokens, both directions
-     * @param array<string, FilterDescriptor>    $filterable
+     * @param array<string, FilterDescriptor>    $filterable in document order
      * @param array<string, ActionDescriptor>    $actions
+     * @param list<string>                       $createRelations relations the create document accepts, in document order
+     * @param list<string>                       $updateRelations relations the update document accepts, in document order
+     * @param list<string>                       $memberOrder     every attribute then every relation, in the order the resource schema declares them
      */
     public function __construct(
         public readonly string $type,
@@ -37,7 +41,26 @@ final class ResourceDescriptor
         public readonly array $sortable,
         public readonly array $filterable,
         public readonly array $actions,
+        public readonly array $createRelations = [],
+        public readonly array $updateRelations = [],
+        public readonly array $memberOrder = [],
     ) {}
+
+    /**
+     * `$names` in the order the document declares them, for generated code whose member order
+     * should follow the document rather than the sorted maps. Names the resource schema does
+     * not declare follow, in the order given.
+     *
+     * @param list<string> $names
+     *
+     * @return list<string>
+     */
+    public function inDocumentOrder(array $names): array
+    {
+        $known = \array_values(\array_intersect($this->memberOrder, $names));
+
+        return [...$known, ...\array_values(\array_diff($names, $known))];
+    }
 
     public function operation(OperationKind $kind): ?OperationDescriptor
     {

@@ -110,8 +110,13 @@ final class MusicCatalogDescriptorTest extends TestCase
         self::assertSame('object', $releaseInfo->format);
         self::assertTrue($releaseInfo->nullable);
         self::assertNotNull($releaseInfo->schema);
-        self::assertSame(['catalogueNumber', 'label'], \array_keys($releaseInfo->schema->properties));
+        self::assertSame(['label', 'catalogueNumber'], \array_keys($releaseInfo->schema->properties), 'members keep document order, which a generated shape repeats');
         self::assertSame(['string'], $releaseInfo->schema->properties['label']->types);
+
+        $format = $this->resource('releases')->attributes['format']->schema;
+        self::assertNotNull($format);
+        self::assertSame('medium', $format->discriminator);
+        self::assertSame(['vinyl', 'cd', 'digital', null], \array_map(static fn($branch): ?string => $branch->properties['medium']->const ?? null, $format->oneOf));
 
         $genres = $this->resource('tracks')->attributes['genres'];
         self::assertSame('array', $genres->format);
@@ -133,6 +138,35 @@ final class MusicCatalogDescriptorTest extends TestCase
             \array_keys($albums->createAttributes),
         );
         self::assertSame(\array_keys($albums->createAttributes), \array_keys($albums->updateAttributes));
+    }
+
+    public function testWriteRelationsAreReadFromTheirOwnDocuments(): void
+    {
+        $albums = $this->resource('albums');
+        self::assertSame(['artist', 'tracks'], $albums->createRelations);
+        self::assertSame(['artist', 'tracks'], $albums->updateRelations);
+
+        // `tracks.playlists` permits no replacement, so the update document leaves it out.
+        $tracks = $this->resource('tracks');
+        self::assertSame(['album', 'playlists'], $tracks->createRelations);
+        self::assertSame(['album'], $tracks->updateRelations);
+
+        self::assertSame([], $this->resource('charts')->createRelations, 'a type with no create accepts no relations');
+    }
+
+    public function testDocumentOrderIsKeptBesideTheSortedMaps(): void
+    {
+        $albums = $this->resource('albums');
+
+        self::assertSame(
+            ['title', 'averageRating', 'artwork', 'releasedAt', 'explicit', 'status', 'availableFrom', 'availableUntil', 'releaseInfo', 'artist', 'tracks'],
+            $albums->memberOrder,
+        );
+        self::assertSame(['title', 'releasedAt', 'status', 'unknown'], $albums->inDocumentOrder(['unknown', 'status', 'title', 'releasedAt']));
+
+        $releaseInfo = $albums->attributes['releaseInfo']->schema;
+        self::assertNotNull($releaseInfo);
+        self::assertSame(['label', 'catalogueNumber'], \array_keys($releaseInfo->properties));
     }
 
     public function testRequiredIsCarriedPerMemberAndPerDocument(): void
@@ -428,14 +462,14 @@ final class MusicCatalogDescriptorTest extends TestCase
     {
         $filters = $this->resource('albums')->filterable;
 
-        self::assertSame(['artist.name', 'q', 'rating', 'releasedAt', 'title', 'tracks'], \array_keys($filters));
+        self::assertSame(['tracks', 'artist.name', 'title', 'rating', 'releasedAt', 'q'], \array_keys($filters), 'filters keep document order');
         self::assertSame(['string'], $filters['title']->schema?->types);
         self::assertSame(['string'], $filters['artist.name']->schema?->types);
 
         $rating = $filters['rating']->schema;
         self::assertNotNull($rating);
         self::assertSame(['object'], $rating->types);
-        self::assertSame(['max', 'min'], \array_keys($rating->properties));
+        self::assertSame(['min', 'max'], \array_keys($rating->properties));
         self::assertSame(['number'], $rating->properties['min']->types);
         self::assertSame('date-time', $filters['releasedAt']->schema?->properties['min']->format);
     }
@@ -503,6 +537,8 @@ final class MusicCatalogDescriptorTest extends TestCase
         self::assertSame(ActionInput::Raw, $actions['artwork']->input);
         self::assertSame('application/octet-stream', $actions['artwork']->contentType);
         self::assertSame(ActionOutput::None, $actions['artwork']->output);
+        self::assertFalse($actions['artwork']->bodyRequired, 'artwork declares its body `required: false`');
+        self::assertTrue($actions['reissue']->bodyRequired);
 
         self::assertSame(ActionInput::Document, $actions['reissue']->input);
         self::assertSame('albums', $actions['reissue']->inputType);

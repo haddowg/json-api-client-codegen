@@ -10,6 +10,9 @@ namespace haddowg\JsonApiCodegen\Descriptor;
  * The input and output kinds drive the generated signature: `none` takes no parameters, `raw`
  * takes a body plus `$contentType`, `document` takes the write forms for `$inputType`; the
  * output is `void`, a meta array, or the resource view of `$outputType`.
+ *
+ * `$bodyRequired` is the request body's own `required` flag. OpenAPI defaults it to false, and an
+ * action that leaves it so may be called with no body at all.
  */
 final class ActionDescriptor
 {
@@ -27,5 +30,6 @@ final class ActionDescriptor
         public readonly ?string $contentType,
         public readonly array $errorStatuses,
         public readonly ?ProjectionDescriptor $projection,
+        public readonly bool $bodyRequired = true,
     ) {}
 }

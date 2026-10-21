@@ -7,8 +7,9 @@ namespace haddowg\JsonApiCodegen\Descriptor;
 /**
  * Renders a descriptor to JSON, deterministically.
  *
- * Maps arrive from the builder already sorted by key and every value object is written in a
- * fixed member order, so the same document always produces byte-identical output. That is what
+ * Maps arrive from the builder already ordered (sorted by key, or in document order for filters)
+ * and every value object is written in a fixed member order, so the same document always
+ * produces byte-identical output. That is what
  * makes the golden file a review artifact: a diff is a change in what the codegen understood,
  * never a reordering.
  *
@@ -78,6 +79,9 @@ final class DescriptorSerializer
                 'schema' => self::valueSchema($filter->schema),
             ], $resource->filterable),
             'actions' => \array_map(self::action(...), $resource->actions),
+            'createRelations' => $resource->createRelations,
+            'updateRelations' => $resource->updateRelations,
+            'memberOrder' => $resource->memberOrder,
         ];
     }
 
@@ -114,6 +118,7 @@ final class DescriptorSerializer
             'input' => $action->input->value,
             'inputType' => $action->inputType,
             'contentType' => $action->contentType,
+            'bodyRequired' => $action->bodyRequired,
             'output' => $action->output->value,
             'outputType' => $action->outputType,
             'outputCardinality' => $action->outputCardinality?->value,
@@ -188,6 +193,7 @@ final class DescriptorSerializer
             'properties' => \array_map(self::valueSchema(...), $schema->properties),
             'items' => self::valueSchema($schema->items),
             'discriminator' => $schema->discriminator,
+            'const' => $schema->const,
             'oneOf' => \array_map(self::valueSchema(...), $schema->oneOf),
             'anyOf' => \array_map(self::valueSchema(...), $schema->anyOf),
             'allOf' => \array_map(self::valueSchema(...), $schema->allOf),

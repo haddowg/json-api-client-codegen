@@ -24,6 +24,7 @@ final class Generator
             new ReadModel\ReadModelEmitter(),
             new Writes\WritesEmitter(),
             new Reads\ReadsEmitter(),
+            new Surface\SurfaceEmitter(),
         ]);
     }
 

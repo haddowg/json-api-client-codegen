@@ -6,5 +6,7 @@ parameters:
         - bin/json-api-client-codegen
     excludePaths:
         - tests/fixtures
+        # Generated output targets PHP 8.4 and has its own analysis, phpstan.generated.neon.
+        - tests/golden/generated
     tmpDir: .phpstan.cache
     treatPhpDocTypesAsCertain: false

@@ -7,6 +7,7 @@ namespace haddowg\JsonApiCodegen\Tests\Emit;
 use haddowg\JsonApiCodegen\Descriptor\ApiDescriptor;
 use haddowg\JsonApiCodegen\Descriptor\EnumCase;
 use haddowg\JsonApiCodegen\Descriptor\EnumDescriptor;
+use haddowg\JsonApiCodegen\Emit\ClassUnit;
 use haddowg\JsonApiCodegen\Emit\Enums\EnumEmitter;
 use haddowg\JsonApiCodegen\Emit\Php;
 use haddowg\JsonApiCodegen\Tests\Support\ArtefactParity;
@@ -30,7 +31,9 @@ final class EnumEmitterTest extends TestCase
             new EnumCase('2fa', null, null),
         ], 'Who can see it.')], null, 2, []);
 
-        $source = [...(new EnumEmitter())->emit($api, Generated::config())][0]->source;
+        $unit = [...(new EnumEmitter())->emit($api, Generated::config())][0];
+        self::assertInstanceOf(ClassUnit::class, $unit);
+        $source = $unit->source;
 
         self::assertStringContainsString("case PublicRead = 'public-read';", $source);
         self::assertStringContainsString("case Case2fa = '2fa';", $source);

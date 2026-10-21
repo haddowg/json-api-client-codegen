@@ -6,6 +6,7 @@ namespace haddowg\JsonApiCodegen\Tests\Emit;
 
 use haddowg\JsonApiCodegen\Emit\Assembler;
 use haddowg\JsonApiCodegen\Emit\ClassUnit;
+use haddowg\JsonApiCodegen\Emit\Contribution;
 use haddowg\JsonApiCodegen\Emit\FileKey;
 use haddowg\JsonApiCodegen\Emit\GeneratorConfig;
 use haddowg\JsonApiCodegen\Emit\PhpTarget;
@@ -16,6 +17,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(Assembler::class)]
 #[CoversClass(ClassUnit::class)]
 #[CoversClass(FileKey::class)]
+#[CoversClass(Contribution::class)]
 final class AssemblerTest extends TestCase
 {
     public function testDeclarationsAreOrderedSoEveryParentIsDeclaredFirst(): void
@@ -99,6 +101,31 @@ final class AssemblerTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
 
         FileKey::resource('../albums');
+    }
+
+    public function testContributionsMergeIntoTheirTargetInOrder(): void
+    {
+        $owner = "/**\n * An album.\n *\n * @generated from `x`\n */\nfinal class Album\n{\n    public function title(): string\n    {\n        return '';\n    }\n}\n";
+
+        $files = Assembler::assemble([
+            new Contribution('Album', 20, ['@phpstan-type AlbumSortToken \'title\''], "    public const array SORT_TOKENS = ['title'];\n"),
+            new ClassUnit('Album', UnitKind::FinalClass, FileKey::resource('albums'), $owner, primary: true),
+            new Contribution('Album', 10, ['@phpstan-type AlbumCreateShape array{title: string}'], "    public const array WRITABLE = ['title'];\n", ['haddowg\\JsonApiClient\\Support\\Identifier']),
+        ], self::config(), 'h');
+
+        self::assertStringContainsString(
+            " * An album.\n *\n * @phpstan-type AlbumCreateShape array{title: string}\n * @phpstan-type AlbumSortToken 'title'\n *\n * @generated from `x`\n */\nfinal class Album\n{\n    public const array WRITABLE = ['title'];\n\n    public const array SORT_TOKENS = ['title'];\n\n    public function title(): string",
+            $files['resource-albums.php'],
+        );
+        self::assertStringContainsString("use haddowg\\JsonApiClient\\Support\\Identifier;\n", $files['resource-albums.php']);
+    }
+
+    public function testAContributionToAnUngeneratedDeclarationIsRejected(): void
+    {
+        $this->expectException(\LogicException::class);
+        $this->expectExceptionMessage('targets "Ghost"');
+
+        Assembler::assemble([new Contribution('Ghost', 1, ['@phpstan-type X int'])], self::config(), 'h');
     }
 
     private static function config(): GeneratorConfig

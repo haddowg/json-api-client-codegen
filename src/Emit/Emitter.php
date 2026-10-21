@@ -15,7 +15,7 @@ use haddowg\JsonApiCodegen\Descriptor\ApiDescriptor;
 interface Emitter
 {
     /**
-     * @return iterable<ClassUnit>
+     * @return iterable<ClassUnit|Contribution>
      */
     public function emit(ApiDescriptor $api, GeneratorConfig $config): iterable;
 }

@@ -14,12 +14,23 @@ namespace haddowg\JsonApiCodegen\Emit;
 final class Assembler
 {
     /**
-     * @param iterable<ClassUnit> $units
+     * @param iterable<ClassUnit|Contribution> $emitted
      *
      * @return array<string, string> file contents keyed by path relative to the output directory
      */
-    public static function assemble(iterable $units, GeneratorConfig $config, string $specHash): array
+    public static function assemble(iterable $emitted, GeneratorConfig $config, string $specHash): array
     {
+        $units = [];
+        $contributions = [];
+        foreach ($emitted as $item) {
+            if ($item instanceof Contribution) {
+                $contributions[] = $item;
+            } else {
+                $units[] = $item;
+            }
+        }
+        $units = self::merge($units, $contributions);
+
         $byFile = [];
         $seen = [];
 
@@ -49,6 +60,108 @@ final class Assembler
         $files[FileKey::AUTOLOAD] = self::autoload($map, $config, $specHash);
 
         return $files;
+    }
+
+    /**
+     * Fold every contribution into the declaration it targets, in contribution order.
+     *
+     * @param list<ClassUnit>    $units
+     * @param list<Contribution> $contributions
+     *
+     * @return list<ClassUnit>
+     */
+    private static function merge(array $units, array $contributions): array
+    {
+        $byTarget = [];
+        foreach ($contributions as $index => $contribution) {
+            $byTarget[$contribution->target][] = ['order' => $contribution->order, 'index' => $index, 'contribution' => $contribution];
+        }
+
+        $known = \array_map(static fn(ClassUnit $unit): string => $unit->name, $units);
+        foreach (\array_keys($byTarget) as $target) {
+            if (!\in_array((string) $target, $known, true)) {
+                throw new \LogicException(\sprintf('A contribution targets "%s", which no emitter generates.', $target));
+            }
+        }
+
+        $out = [];
+        foreach ($units as $unit) {
+            $own = $byTarget[$unit->name] ?? [];
+            if ($own === []) {
+                $out[] = $unit;
+                continue;
+            }
+            \usort($own, static fn(array $a, array $b): int => [$a['order'], $a['index']] <=> [$b['order'], $b['index']]);
+
+            $tags = [];
+            $members = [];
+            $imports = $unit->imports;
+            foreach ($own as $entry) {
+                $contribution = $entry['contribution'];
+                \array_push($tags, ...$contribution->tags);
+                if (\trim($contribution->members) !== '') {
+                    $members[] = \rtrim($contribution->members) . "\n";
+                }
+                \array_push($imports, ...$contribution->imports);
+            }
+
+            $out[] = new ClassUnit(
+                $unit->name,
+                $unit->kind,
+                $unit->file,
+                self::withMembers(self::withTags($unit, $tags), $members),
+                $imports,
+                $unit->primary,
+            );
+        }
+
+        return $out;
+    }
+
+    /**
+     * Insert tag lines into the owner's docblock, above its `@generated` line, with a blank line
+     * either side of the block.
+     *
+     * @param list<string> $tags
+     */
+    private static function withTags(ClassUnit $unit, array $tags): string
+    {
+        if ($tags === []) {
+            return $unit->source;
+        }
+
+        $marker = \strpos($unit->source, "\n * @generated");
+        if ($marker === false) {
+            throw new \LogicException(\sprintf('%s receives contributed tags but its docblock has no @generated line to place them above.', $unit->name));
+        }
+
+        $before = \substr($unit->source, 0, $marker);
+        $separator = \str_ends_with($before, "\n *") || \str_ends_with($before, '/**') ? '' : "\n *";
+        $block = \implode('', \array_map(static fn(string $tag): string => "\n * " . $tag, $tags)) . "\n *";
+
+        return $before . $separator . $block . \substr($unit->source, $marker);
+    }
+
+    /**
+     * Insert contributed members at the top of the owner's body, a blank line between each and
+     * before whatever the owner declares itself.
+     *
+     * @param list<string> $members
+     */
+    private static function withMembers(string $source, array $members): string
+    {
+        if ($members === []) {
+            return $source;
+        }
+
+        $open = \strpos($source, "\n{\n");
+        if ($open === false) {
+            throw new \LogicException('A declaration receiving contributed members has no body opening on its own line.');
+        }
+        $open += 3;
+        $rest = \substr($source, $open);
+
+        return \substr($source, 0, $open) . \implode("\n", $members) . (\str_starts_with($rest, '}') ? '' : "\n") . $rest;
     }
 
     /**

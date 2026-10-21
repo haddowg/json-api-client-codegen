@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace haddowg\JsonApiCodegen\Tests\Support;
 
+use haddowg\JsonApiCodegen\Emit\Enums\EnumEmitter;
 use haddowg\JsonApiCodegen\Emit\Generator;
 use haddowg\JsonApiCodegen\Emit\GeneratorConfig;
 use haddowg\JsonApiCodegen\Emit\PhpTarget;
+use haddowg\JsonApiCodegen\Emit\Writes\WritesEmitter;
 
 /**
  * The music-catalog fixture's generated output, built once per process.
@@ -22,6 +24,16 @@ final class Generated
     /** @var array<string, string>|null */
     private static ?array $files = null;
 
+    /**
+     * Every shipped emitter, plus a stand-in for the read model this branch does not have yet:
+     * the write emitter contributes to the resource class, and a contribution with no target is
+     * rejected.
+     */
+    public static function generator(): Generator
+    {
+        return new Generator([new EnumEmitter(), new WritesEmitter(), new ReadModelStandIn()]);
+    }
+
     public static function config(): GeneratorConfig
     {
         return new GeneratorConfig(self::NAMESPACE, 'MusicCatalog', PhpTarget::Php84);
@@ -32,7 +44,7 @@ final class Generated
      */
     public static function musicCatalog(): array
     {
-        return self::$files ??= Generator::default()->generate(
+        return self::$files ??= self::generator()->generate(
             Fixtures::musicCatalogDescriptor(),
             self::config(),
             \hash_file('sha256', Fixtures::path('music-catalog.openapi.json')) ?: '',

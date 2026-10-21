@@ -118,6 +118,7 @@ final class DescriptorSerializer
             'input' => $action->input->value,
             'inputType' => $action->inputType,
             'contentType' => $action->contentType,
+            'bodyRequired' => $action->bodyRequired,
             'output' => $action->output->value,
             'outputType' => $action->outputType,
             'outputCardinality' => $action->outputCardinality?->value,

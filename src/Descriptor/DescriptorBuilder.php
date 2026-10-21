@@ -1068,6 +1068,7 @@ final class DescriptorBuilder
             $contentType,
             $this->errorStatuses($operation),
             $this->projection($operation),
+            $input === ActionInput::None || $operation->path('requestBody', 'required')?->bool() === true,
         );
     }
 

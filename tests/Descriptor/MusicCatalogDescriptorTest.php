@@ -537,6 +537,8 @@ final class MusicCatalogDescriptorTest extends TestCase
         self::assertSame(ActionInput::Raw, $actions['artwork']->input);
         self::assertSame('application/octet-stream', $actions['artwork']->contentType);
         self::assertSame(ActionOutput::None, $actions['artwork']->output);
+        self::assertFalse($actions['artwork']->bodyRequired, 'artwork declares its body `required: false`');
+        self::assertTrue($actions['reissue']->bodyRequired);
 
         self::assertSame(ActionInput::Document, $actions['reissue']->input);
         self::assertSame('albums', $actions['reissue']->inputType);

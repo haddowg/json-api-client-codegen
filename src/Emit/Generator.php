@@ -23,6 +23,7 @@ final class Generator
             new Enums\EnumEmitter(),
             new ReadModel\ReadModelEmitter(),
             new Writes\WritesEmitter(),
+            new Reads\ReadsEmitter(),
         ]);
     }
 

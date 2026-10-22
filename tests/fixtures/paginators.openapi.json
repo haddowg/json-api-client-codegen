@@ -1,0 +1,1073 @@
+{
+    "openapi": "3.1.0",
+    "info": {
+        "title": "Paginators",
+        "version": "1.0.0",
+        "description": "Hand-built: one collection per pagination strategy, renamed keys, a strategy menu, an unstamped fallback and an unknown strategy.",
+        "x-generator": {
+            "contract": 3
+        }
+    },
+    "paths": {
+        "/chapters": {
+            "get": {
+                "operationId": "fetchCollection.chapters",
+                "summary": "List chapters",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Pagination parameters.",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "p": {
+                                    "type": "integer",
+                                    "minimum": 1
+                                }
+                            },
+                            "x-paginator": {
+                                "strategy": "fixed",
+                                "keys": {
+                                    "number": "p"
+                                }
+                            }
+                        },
+                        "style": "deepObject",
+                        "explode": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "A collection of chapters.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ChaptersCollection"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/comments": {
+            "get": {
+                "operationId": "fetchCollection.comments",
+                "summary": "List comments",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Pagination parameters.",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "after": {
+                                    "type": "string"
+                                },
+                                "before": {
+                                    "type": "string"
+                                },
+                                "limit": {
+                                    "type": "integer",
+                                    "minimum": 1
+                                }
+                            },
+                            "x-paginator": {
+                                "strategy": "cursor",
+                                "keys": {
+                                    "after": "after",
+                                    "before": "before",
+                                    "size": "limit"
+                                }
+                            }
+                        },
+                        "style": "deepObject",
+                        "explode": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "A collection of comments.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/CommentsCollection"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/events": {
+            "get": {
+                "operationId": "fetchCollection.events",
+                "summary": "List events",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Pagination parameters.",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "skip": {
+                                    "type": "integer",
+                                    "minimum": 1
+                                },
+                                "take": {
+                                    "type": "integer",
+                                    "minimum": 1
+                                }
+                            },
+                            "x-paginator": {
+                                "strategy": "offset",
+                                "keys": {
+                                    "offset": "skip",
+                                    "limit": "take"
+                                }
+                            }
+                        },
+                        "style": "deepObject",
+                        "explode": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "A collection of events.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/EventsCollection"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/logs": {
+            "get": {
+                "operationId": "fetchCollection.logs",
+                "summary": "List logs",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Pagination parameters.",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "seek": {
+                                    "type": "integer",
+                                    "minimum": 1
+                                }
+                            },
+                            "x-paginator": {
+                                "strategy": "keyset",
+                                "keys": {
+                                    "seek": "seek"
+                                }
+                            }
+                        },
+                        "style": "deepObject",
+                        "explode": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "A collection of logs.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/LogsCollection"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/posts": {
+            "get": {
+                "operationId": "fetchCollection.posts",
+                "summary": "List posts",
+                "parameters": [
+                    {
+                        "name": "include",
+                        "in": "query",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string",
+                                "enum": [
+                                    "author",
+                                    "comments"
+                                ]
+                            }
+                        },
+                        "style": "form",
+                        "explode": false
+                    },
+                    {
+                        "name": "fields[posts]",
+                        "in": "query",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string",
+                                "enum": [
+                                    "title",
+                                    "author",
+                                    "comments"
+                                ]
+                            }
+                        },
+                        "style": "form",
+                        "explode": false
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Pagination parameters.",
+                        "schema": {
+                            "oneOf": [
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "number": {
+                                            "type": "integer",
+                                            "minimum": 1
+                                        },
+                                        "size": {
+                                            "type": "integer",
+                                            "minimum": 1
+                                        },
+                                        "kind": {
+                                            "type": "string",
+                                            "description": "Selects the pagination strategy.",
+                                            "const": "numbered"
+                                        }
+                                    },
+                                    "x-paginator": {
+                                        "strategy": "page",
+                                        "keys": {
+                                            "number": "number",
+                                            "size": "size"
+                                        }
+                                    },
+                                    "additionalProperties": false
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "offset": {
+                                            "type": "integer",
+                                            "minimum": 1
+                                        },
+                                        "limit": {
+                                            "type": "integer",
+                                            "minimum": 1
+                                        },
+                                        "kind": {
+                                            "type": "string",
+                                            "description": "Selects the pagination strategy.",
+                                            "const": "offset"
+                                        }
+                                    },
+                                    "x-paginator": {
+                                        "strategy": "offset",
+                                        "keys": {
+                                            "offset": "offset",
+                                            "limit": "limit"
+                                        }
+                                    },
+                                    "additionalProperties": false
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "after": {
+                                            "type": "string"
+                                        },
+                                        "before": {
+                                            "type": "string"
+                                        },
+                                        "size": {
+                                            "type": "integer",
+                                            "minimum": 1
+                                        },
+                                        "kind": {
+                                            "type": "string",
+                                            "description": "Selects the pagination strategy.",
+                                            "const": "cursor"
+                                        }
+                                    },
+                                    "x-paginator": {
+                                        "strategy": "cursor",
+                                        "keys": {
+                                            "after": "after",
+                                            "before": "before",
+                                            "size": "size"
+                                        }
+                                    },
+                                    "additionalProperties": false
+                                }
+                            ],
+                            "discriminator": {
+                                "propertyName": "kind"
+                            },
+                            "x-paginator": {
+                                "strategy": "multi",
+                                "default": "cursor"
+                            }
+                        },
+                        "style": "deepObject",
+                        "explode": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "A collection of posts.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PostsCollection"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/posts/{id}": {
+            "get": {
+                "operationId": "fetchOne.posts",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "include",
+                        "in": "query",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string",
+                                "enum": [
+                                    "author",
+                                    "comments"
+                                ]
+                            }
+                        },
+                        "style": "form",
+                        "explode": false
+                    },
+                    {
+                        "name": "fields[posts]",
+                        "in": "query",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string",
+                                "enum": [
+                                    "title",
+                                    "author",
+                                    "comments"
+                                ]
+                            }
+                        },
+                        "style": "form",
+                        "explode": false
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "One post.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PostsDocument"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/posts/{id}/comments": {
+            "get": {
+                "operationId": "fetchRelated.posts.comments",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Pagination parameters.",
+                        "schema": {
+                            "oneOf": [
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "number": {
+                                            "type": "integer",
+                                            "minimum": 1
+                                        },
+                                        "size": {
+                                            "type": "integer",
+                                            "minimum": 1
+                                        },
+                                        "kind": {
+                                            "type": "string",
+                                            "description": "Selects the pagination strategy.",
+                                            "const": "numbered"
+                                        }
+                                    },
+                                    "x-paginator": {
+                                        "strategy": "page",
+                                        "keys": {
+                                            "number": "number",
+                                            "size": "size"
+                                        }
+                                    },
+                                    "additionalProperties": false
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "offset": {
+                                            "type": "integer",
+                                            "minimum": 1
+                                        },
+                                        "limit": {
+                                            "type": "integer",
+                                            "minimum": 1
+                                        },
+                                        "kind": {
+                                            "type": "string",
+                                            "description": "Selects the pagination strategy.",
+                                            "const": "offset"
+                                        }
+                                    },
+                                    "x-paginator": {
+                                        "strategy": "offset",
+                                        "keys": {
+                                            "offset": "offset",
+                                            "limit": "limit"
+                                        }
+                                    },
+                                    "additionalProperties": false
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "after": {
+                                            "type": "string"
+                                        },
+                                        "before": {
+                                            "type": "string"
+                                        },
+                                        "size": {
+                                            "type": "integer",
+                                            "minimum": 1
+                                        },
+                                        "kind": {
+                                            "type": "string",
+                                            "description": "Selects the pagination strategy.",
+                                            "const": "cursor"
+                                        }
+                                    },
+                                    "x-paginator": {
+                                        "strategy": "cursor",
+                                        "keys": {
+                                            "after": "after",
+                                            "before": "before",
+                                            "size": "size"
+                                        }
+                                    },
+                                    "additionalProperties": false
+                                }
+                            ],
+                            "discriminator": {
+                                "propertyName": "kind"
+                            },
+                            "x-paginator": {
+                                "strategy": "multi",
+                                "default": "cursor"
+                            }
+                        },
+                        "style": "deepObject",
+                        "explode": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The comments of a post.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/CommentsCollection"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/tags": {
+            "get": {
+                "operationId": "fetchCollection.tags",
+                "summary": "List tags",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Pagination parameters.",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "number": {
+                                    "type": "integer",
+                                    "minimum": 1
+                                },
+                                "size": {
+                                    "type": "integer",
+                                    "minimum": 1
+                                }
+                            }
+                        },
+                        "style": "deepObject",
+                        "explode": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "A collection of tags.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/TagsCollection"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/writers": {
+            "get": {
+                "operationId": "fetchCollection.writers",
+                "summary": "List writers",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Pagination parameters.",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "p": {
+                                    "type": "integer",
+                                    "minimum": 1
+                                },
+                                "per": {
+                                    "type": "integer",
+                                    "minimum": 1
+                                }
+                            },
+                            "x-paginator": {
+                                "strategy": "page",
+                                "keys": {
+                                    "number": "p",
+                                    "size": "per"
+                                }
+                            }
+                        },
+                        "style": "deepObject",
+                        "explode": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "A collection of writers.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/WritersCollection"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "ChaptersCollection": {
+                "type": "object",
+                "properties": {
+                    "data": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ChaptersResource"
+                        }
+                    }
+                }
+            },
+            "ChaptersDocument": {
+                "type": "object",
+                "properties": {
+                    "data": {
+                        "$ref": "#/components/schemas/ChaptersResource"
+                    }
+                }
+            },
+            "ChaptersResource": {
+                "type": "object",
+                "required": [
+                    "type",
+                    "id"
+                ],
+                "properties": {
+                    "type": {
+                        "type": "string",
+                        "const": "chapters"
+                    },
+                    "id": {
+                        "type": "string"
+                    },
+                    "attributes": {
+                        "type": "object",
+                        "properties": {
+                            "heading": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "ChaptersResourceIdentifier": {
+                "type": "object",
+                "required": [
+                    "type",
+                    "id"
+                ],
+                "properties": {
+                    "type": {
+                        "type": "string",
+                        "const": "chapters"
+                    },
+                    "id": {
+                        "type": "string"
+                    }
+                }
+            },
+            "CommentsCollection": {
+                "type": "object",
+                "properties": {
+                    "data": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/CommentsResource"
+                        }
+                    }
+                }
+            },
+            "CommentsDocument": {
+                "type": "object",
+                "properties": {
+                    "data": {
+                        "$ref": "#/components/schemas/CommentsResource"
+                    }
+                }
+            },
+            "CommentsResource": {
+                "type": "object",
+                "required": [
+                    "type",
+                    "id"
+                ],
+                "properties": {
+                    "type": {
+                        "type": "string",
+                        "const": "comments"
+                    },
+                    "id": {
+                        "type": "string"
+                    },
+                    "attributes": {
+                        "type": "object",
+                        "properties": {
+                            "body": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "CommentsResourceIdentifier": {
+                "type": "object",
+                "required": [
+                    "type",
+                    "id"
+                ],
+                "properties": {
+                    "type": {
+                        "type": "string",
+                        "const": "comments"
+                    },
+                    "id": {
+                        "type": "string"
+                    }
+                }
+            },
+            "EventsCollection": {
+                "type": "object",
+                "properties": {
+                    "data": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/EventsResource"
+                        }
+                    }
+                }
+            },
+            "EventsDocument": {
+                "type": "object",
+                "properties": {
+                    "data": {
+                        "$ref": "#/components/schemas/EventsResource"
+                    }
+                }
+            },
+            "EventsResource": {
+                "type": "object",
+                "required": [
+                    "type",
+                    "id"
+                ],
+                "properties": {
+                    "type": {
+                        "type": "string",
+                        "const": "events"
+                    },
+                    "id": {
+                        "type": "string"
+                    },
+                    "attributes": {
+                        "type": "object",
+                        "properties": {
+                            "name": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "EventsResourceIdentifier": {
+                "type": "object",
+                "required": [
+                    "type",
+                    "id"
+                ],
+                "properties": {
+                    "type": {
+                        "type": "string",
+                        "const": "events"
+                    },
+                    "id": {
+                        "type": "string"
+                    }
+                }
+            },
+            "LogsCollection": {
+                "type": "object",
+                "properties": {
+                    "data": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/LogsResource"
+                        }
+                    }
+                }
+            },
+            "LogsDocument": {
+                "type": "object",
+                "properties": {
+                    "data": {
+                        "$ref": "#/components/schemas/LogsResource"
+                    }
+                }
+            },
+            "LogsResource": {
+                "type": "object",
+                "required": [
+                    "type",
+                    "id"
+                ],
+                "properties": {
+                    "type": {
+                        "type": "string",
+                        "const": "logs"
+                    },
+                    "id": {
+                        "type": "string"
+                    },
+                    "attributes": {
+                        "type": "object",
+                        "properties": {
+                            "line": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "LogsResourceIdentifier": {
+                "type": "object",
+                "required": [
+                    "type",
+                    "id"
+                ],
+                "properties": {
+                    "type": {
+                        "type": "string",
+                        "const": "logs"
+                    },
+                    "id": {
+                        "type": "string"
+                    }
+                }
+            },
+            "PostsAuthorRelationship": {
+                "type": "object",
+                "properties": {
+                    "data": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/WritersResourceIdentifier"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    }
+                }
+            },
+            "PostsCollection": {
+                "type": "object",
+                "properties": {
+                    "data": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/PostsResource"
+                        }
+                    }
+                }
+            },
+            "PostsCommentsRelationship": {
+                "type": "object",
+                "properties": {
+                    "data": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/CommentsResourceIdentifier"
+                        }
+                    }
+                }
+            },
+            "PostsDocument": {
+                "type": "object",
+                "properties": {
+                    "data": {
+                        "$ref": "#/components/schemas/PostsResource"
+                    }
+                }
+            },
+            "PostsResource": {
+                "type": "object",
+                "required": [
+                    "type",
+                    "id"
+                ],
+                "properties": {
+                    "type": {
+                        "type": "string",
+                        "const": "posts"
+                    },
+                    "id": {
+                        "type": "string"
+                    },
+                    "attributes": {
+                        "type": "object",
+                        "properties": {
+                            "title": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "relationships": {
+                        "type": "object",
+                        "properties": {
+                            "author": {
+                                "$ref": "#/components/schemas/PostsAuthorRelationship"
+                            },
+                            "comments": {
+                                "$ref": "#/components/schemas/PostsCommentsRelationship"
+                            }
+                        }
+                    }
+                }
+            },
+            "PostsResourceIdentifier": {
+                "type": "object",
+                "required": [
+                    "type",
+                    "id"
+                ],
+                "properties": {
+                    "type": {
+                        "type": "string",
+                        "const": "posts"
+                    },
+                    "id": {
+                        "type": "string"
+                    }
+                }
+            },
+            "TagsCollection": {
+                "type": "object",
+                "properties": {
+                    "data": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/TagsResource"
+                        }
+                    }
+                }
+            },
+            "TagsDocument": {
+                "type": "object",
+                "properties": {
+                    "data": {
+                        "$ref": "#/components/schemas/TagsResource"
+                    }
+                }
+            },
+            "TagsResource": {
+                "type": "object",
+                "required": [
+                    "type",
+                    "id"
+                ],
+                "properties": {
+                    "type": {
+                        "type": "string",
+                        "const": "tags"
+                    },
+                    "id": {
+                        "type": "string"
+                    },
+                    "attributes": {
+                        "type": "object",
+                        "properties": {
+                            "label": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "TagsResourceIdentifier": {
+                "type": "object",
+                "required": [
+                    "type",
+                    "id"
+                ],
+                "properties": {
+                    "type": {
+                        "type": "string",
+                        "const": "tags"
+                    },
+                    "id": {
+                        "type": "string"
+                    }
+                }
+            },
+            "WritersCollection": {
+                "type": "object",
+                "properties": {
+                    "data": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/WritersResource"
+                        }
+                    }
+                }
+            },
+            "WritersDocument": {
+                "type": "object",
+                "properties": {
+                    "data": {
+                        "$ref": "#/components/schemas/WritersResource"
+                    }
+                }
+            },
+            "WritersResource": {
+                "type": "object",
+                "required": [
+                    "type",
+                    "id"
+                ],
+                "properties": {
+                    "type": {
+                        "type": "string",
+                        "const": "writers"
+                    },
+                    "id": {
+                        "type": "string"
+                    },
+                    "attributes": {
+                        "type": "object",
+                        "properties": {
+                            "name": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "WritersResourceIdentifier": {
+                "type": "object",
+                "required": [
+                    "type",
+                    "id"
+                ],
+                "properties": {
+                    "type": {
+                        "type": "string",
+                        "const": "writers"
+                    },
+                    "id": {
+                        "type": "string"
+                    }
+                }
+            }
+        }
+    }
+}

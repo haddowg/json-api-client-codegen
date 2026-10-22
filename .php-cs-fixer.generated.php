@@ -9,5 +9,5 @@ declare(strict_types=1);
 $config = require __DIR__ . '/.php-cs-fixer.dist.php';
 
 return $config
-    ->setFinder(PhpCsFixer\Finder::create()->in(__DIR__ . '/tests/golden/generated')->name('*.php'))
+    ->setFinder(PhpCsFixer\Finder::create()->in([__DIR__ . '/tests/golden/generated', __DIR__ . '/tests/golden/paginators'])->name('*.php'))
     ->setCacheFile(__DIR__ . '/.php-cs-fixer.generated.cache');

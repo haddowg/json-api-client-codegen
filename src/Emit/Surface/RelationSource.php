@@ -91,7 +91,7 @@ final class RelationSource
 
         $page = null;
         if (!$toOne) {
-            $page = TypeSurface::pageClass($type->relationPaginator($relation->paginator, $relation->types[0] ?? '')->kind);
+            $page = TypeSurface::pageClass($type->relationPaginator($relation->paginator, $relation->types[0] ?? ''));
         }
 
         if ($relation->relationshipRead !== null) {

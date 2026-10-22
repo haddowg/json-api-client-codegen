@@ -9,6 +9,7 @@ use haddowg\JsonApiCodegen\Descriptor\CountableDescriptor;
 use haddowg\JsonApiCodegen\Descriptor\OperationDescriptor;
 use haddowg\JsonApiCodegen\Descriptor\OperationKind;
 use haddowg\JsonApiCodegen\Descriptor\PaginatorDescriptor;
+use haddowg\JsonApiCodegen\Descriptor\PaginatorKind;
 use haddowg\JsonApiCodegen\Descriptor\ProjectionDescriptor;
 use haddowg\JsonApiCodegen\Descriptor\ResourceDescriptor;
 use haddowg\JsonApiCodegen\Emit\FileKey;
@@ -62,7 +63,10 @@ final class ReadSurface
 
     public readonly PaginatorDescriptor $paginator;
 
-    /** @var list<string> build-time warnings: filter method collisions */
+    /** @var array<string, string> picker method => the menu arm's kind, in declaration order; empty unless the collection pages by a menu */
+    public readonly array $pickers;
+
+    /** @var list<string> build-time warnings: filter method and picker collisions */
     public readonly array $warnings;
 
     public function __construct(ApiDescriptor $api, public readonly ResourceDescriptor $descriptor)
@@ -106,17 +110,60 @@ final class ReadSurface
 
         $this->sortable = $this->collection === null ? [] : $descriptor->sortable;
         $this->countable = $this->collection === null || $descriptor->countable?->tokens === [] ? null : $descriptor->countable;
-        $this->paginator = $descriptor->paginator;
+        $this->paginator = $this->collection === null ? PaginatorDescriptor::none() : $descriptor->paginator;
+        [$this->pickers, $pickerWarnings] = self::pickers($this->paginator, $this->collection === null ? $type : $this->collection->method . ' ' . $this->collection->path);
 
-        [$this->filters, $this->shapes, $this->warnings] = $this->collection === null
+        [$this->filters, $this->shapes, $filterWarnings] = $this->collection === null
             ? [[], [], []]
             : self::filters($descriptor, self::declaresDateInput($descriptor));
+        $this->warnings = [...$filterWarnings, ...$pickerWarnings];
+    }
+
+    /** Whether the collection pages by a menu the caller picks a strategy from. */
+    public function menu(): bool
+    {
+        return $this->paginator->kind === PaginatorKind::Multi;
+    }
+
+    /**
+     * One `pageBy<Kind>()` per arm of a menu. A kind is server-chosen, so two that normalise to
+     * one method name (`by-date` and `by_date`) cannot both be generated: the later arm is left to
+     * `pageRaw()`, with a warning.
+     *
+     * @return array{array<string, string>, list<string>}
+     */
+    private static function pickers(PaginatorDescriptor $paginator, string $label): array
+    {
+        $pickers = [];
+        $warnings = [];
+
+        foreach (\array_keys($paginator->arms) as $kind) {
+            $method = 'pageBy' . Naming::pascal($kind);
+            if ($method === 'pageBy' || isset($pickers[$method])) {
+                $warnings[] = \sprintf('the `%s` strategy of `%s` has no picker of its own, because its kind gives the method name `%s()` %s. Select it through pageRaw().', $kind, $label, $method, $method === 'pageBy' ? 'and no more' : 'that another strategy already has');
+
+                continue;
+            }
+            $pickers[$method] = $kind;
+        }
+
+        return [$pickers, $warnings];
     }
 
     /** Whether the projecting trait has anything to carry. */
     public function trait(): bool
     {
-        return ($this->projection || $this->queryProjects) && ($this->narrowing !== [] || $this->fields !== null);
+        return ($this->projection || $this->queryProjects && !$this->menu()) && $this->projects();
+    }
+
+    /**
+     * Whether there are `withX()` or `fields()` methods to generate at all. A menu query writes
+     * them inline rather than through the trait, because its second template is one the trait's
+     * `static<TProj&Marker>` cannot carry.
+     */
+    public function projects(): bool
+    {
+        return $this->narrowing !== [] || $this->fields !== null;
     }
 
     public function name(string $suffix): string

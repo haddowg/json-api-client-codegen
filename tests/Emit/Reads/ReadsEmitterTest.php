@@ -145,14 +145,14 @@ final class ReadsEmitterTest extends TestCase
     }
 
     /**
-     * @param list<string> $parameters
-     * @param list<string> $present
-     * @param list<string> $absent
+     * @param array<string, string> $keys    role => wire key
+     * @param list<string>          $present
+     * @param list<string>          $absent
      */
     #[DataProvider('paginators')]
-    public function testEachPaginatorGetsItsOwnPagingMethods(PaginatorKind $kind, array $parameters, string $page, string $first, array $present, array $absent): void
+    public function testEachPaginatorGetsItsOwnPagingMethods(PaginatorKind $kind, array $keys, string $page, string $first, array $present, array $absent): void
     {
-        $api = self::with(null, static fn(): array => ['paginator' => new PaginatorDescriptor($kind, $parameters)]);
+        $api = self::with(null, static fn(): array => ['paginator' => new PaginatorDescriptor($kind, $keys)]);
         $query = self::unit($api, 'AlbumQuery')->source;
 
         self::assertStringContainsString('@return PaginatedCollection<TProj, ' . $page . '>', $query);
@@ -167,14 +167,30 @@ final class ReadsEmitterTest extends TestCase
     }
 
     /**
-     * @return iterable<string, array{PaginatorKind, list<string>, string, string, list<string>, list<string>}>
+     * @return iterable<string, array{PaginatorKind, array<string, string>, string, string, list<string>, list<string>}>
      */
     public static function paginators(): iterable
     {
-        yield 'fixed' => [PaginatorKind::Fixed, ['p'], 'FixedPage', '$this->page(1)->get()->first()', ["public function page(int \$number): static\n    {\n        return \$this->paging(['p' => \$number]);"], ['$size']];
-        yield 'offset' => [PaginatorKind::Offset, ['limit', 'offset'], 'Offset', '$this->page(0, 1)->get()->first()', ['public function page(int $offset, ?int $limit = null): static', '@param int<0, max>'], ['function after(']];
-        yield 'cursor' => [PaginatorKind::Cursor, ['after', 'before', 'size'], 'Cursor', '$this->size(1)->get()->first()', ['public function after(string $cursor): static', 'public function before(string $cursor): static', 'public function size(int $size): static'], ['function page(']];
-        yield 'cursor with one bound and no size' => [PaginatorKind::Cursor, ['after'], 'Cursor', '$this->get()->first()', ['public function after(string $cursor): static'], ['function before(', 'function size(', 'function page(']];
+        yield 'fixed' => [PaginatorKind::Fixed, ['number' => 'p'], 'FixedPage', '$this->page(1)->get()->first()', ["public function page(int \$number): static\n    {\n        return \$this->paging(['p' => \$number]);"], ['$size']];
+        yield 'page with renamed keys' => [PaginatorKind::Page, ['number' => 'p', 'size' => 'per'], 'PageNumber', '$this->page(1, 1)->get()->first()', ["public function page(int \$number, ?int \$size = null): static\n    {\n        return \$this->paging(\$size === null ? ['p' => \$number] : ['p' => \$number, 'per' => \$size]);"], ["'number' =>", "'size' =>"]];
+        yield 'offset' => [PaginatorKind::Offset, ['limit' => 'limit', 'offset' => 'offset'], 'Offset', '$this->page(0, 1)->get()->first()', ['public function page(int $offset, ?int $limit = null): static', '@param int<0, max>'], ['function after(']];
+        yield 'offset with renamed keys' => [PaginatorKind::Offset, ['limit' => 'take', 'offset' => 'skip'], 'Offset', '$this->page(0, 1)->get()->first()', ["return \$this->paging(\$limit === null ? ['skip' => \$offset] : ['skip' => \$offset, 'take' => \$limit]);"], ["'offset' =>", "'limit' =>"]];
+        yield 'cursor' => [PaginatorKind::Cursor, ['after' => 'after', 'before' => 'before', 'size' => 'size'], 'Cursor', '$this->size(1)->get()->first()', ['public function after(string $cursor): static', 'public function before(string $cursor): static', 'public function size(int $size): static'], ['function page(']];
+        yield 'cursor with a renamed size' => [PaginatorKind::Cursor, ['after' => 'after', 'before' => 'before', 'size' => 'limit'], 'Cursor', '$this->size(1)->get()->first()', ["public function size(int \$size): static\n    {\n        return \$this->paging(['limit' => \$size]);"], ["'size' =>"]];
+        yield 'cursor with one bound and no size' => [PaginatorKind::Cursor, ['after' => 'after'], 'Cursor', '$this->get()->first()', ['public function after(string $cursor): static'], ['function before(', 'function size(', 'function page(']];
+    }
+
+    public function testTwoMenuKindsThatNormaliseToOnePickerKeepTheFirstAndWarn(): void
+    {
+        $page = new PaginatorDescriptor(PaginatorKind::Page, ['number' => 'number', 'size' => 'size']);
+        $cursor = new PaginatorDescriptor(PaginatorKind::Cursor, ['after' => 'after']);
+        $api = self::with(null, static fn(): array => ['paginator' => PaginatorDescriptor::menu(['by-date' => $page, 'by_date' => $cursor], 'by-date', 'kind')]);
+        $emitter = new ReadsEmitter();
+        $query = self::find([...$emitter->emit($api, Generated::config())], 'AlbumQuery')->source ?? '';
+
+        self::assertStringContainsString("return \$this->choose(['kind' => 'by-date', 'number' => \$number, 'size' => \$size], PageNumber::read(...));", $query);
+        self::assertSame(1, \substr_count($query, 'public function pageByByDate('));
+        self::assertSame(['the `by_date` strategy of `GET /albums` has no picker of its own, because its kind gives the method name `pageByByDate()` that another strategy already has. Select it through pageRaw().'], $emitter->warnings());
     }
 
     public function testWithCountExistsOnlyWhereTheCollectionCounts(): void

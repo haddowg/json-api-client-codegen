@@ -39,7 +39,7 @@ final class Generator
     public function generate(ApiDescriptor $api, GeneratorConfig $config, string $specHash): array
     {
         $units = [];
-        $this->warnings = [];
+        $this->warnings = $api->warnings;
         foreach ($this->emitters as $emitter) {
             foreach ($emitter->emit($api, $config) as $unit) {
                 $units[] = $unit;
@@ -53,7 +53,8 @@ final class Generator
     }
 
     /**
-     * What the last {@see generate()} run had to tell the user, in emitter order.
+     * What the last {@see generate()} run had to tell the user: the descriptor's own warnings
+     * first, then each emitter's in emitter order.
      *
      * @return list<string>
      */

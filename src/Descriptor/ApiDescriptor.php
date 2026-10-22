@@ -13,6 +13,9 @@ namespace haddowg\JsonApiCodegen\Descriptor;
  *
  * `$errors` is the document's error catalogue. It is open: a code missing from it is still a
  * valid error and must fall back, never fail.
+ *
+ * `$warnings` are what the builder read around rather than generated, such as a pagination
+ * strategy it does not know. They reach the user through {@see \haddowg\JsonApiCodegen\Emit\Generator::warnings()}.
  */
 final class ApiDescriptor
 {
@@ -20,6 +23,7 @@ final class ApiDescriptor
      * @param array<string, ResourceDescriptor> $resources keyed and sorted by JSON:API type
      * @param array<string, EnumDescriptor>     $enums     keyed and sorted by component name
      * @param array<string, ErrorCodeDescriptor> $errors  keyed and sorted by error code
+     * @param list<string>                      $warnings
      */
     public function __construct(
         public readonly array $resources,
@@ -27,6 +31,7 @@ final class ApiDescriptor
         public readonly ?AtomicDescriptor $atomic,
         public readonly ?int $contract,
         public readonly array $errors,
+        public readonly array $warnings = [],
     ) {}
 
     public function resource(string $type): ?ResourceDescriptor

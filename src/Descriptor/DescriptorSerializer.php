@@ -142,7 +142,16 @@ final class DescriptorSerializer
     /** @return array<string, mixed> */
     private static function paginator(PaginatorDescriptor $paginator): array
     {
-        return ['kind' => $paginator->kind->value, 'parameters' => $paginator->parameters];
+        if ($paginator->kind === PaginatorKind::Multi) {
+            return [
+                'kind' => $paginator->kind->value,
+                'default' => $paginator->default,
+                'discriminator' => $paginator->discriminator,
+                'arms' => \array_map(self::paginator(...), $paginator->arms),
+            ];
+        }
+
+        return ['kind' => $paginator->kind->value, 'keys' => (object) $paginator->keys];
     }
 
     /** @return ($operation is null ? null : array<string, mixed>) */

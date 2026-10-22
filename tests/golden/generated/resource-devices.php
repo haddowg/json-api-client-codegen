@@ -487,10 +487,7 @@ final class DeviceProjection extends Projection
 /**
  * A read of `GET /devices`: the projection, plus everything only a read can carry.
  *
- * Every door the endpoint advertises is here and nothing it does not. Filters come in three doors:
- * a `whereX()` per filter, the typed `filter()` shape, and the loose `filterRaw()`. They are
- * separate methods because a parameter typed as the shape or any array would accept anything. Both
- * array doors still check names at runtime.
+ * Every door the endpoint advertises is here and nothing it does not.
  *
  * @template TProj of object
  *
@@ -515,6 +512,19 @@ final class DeviceQuery extends Query
     public function page(int $number, ?int $size = null): static
     {
         return $this->paging($size === null ? ['number' => $number] : ['number' => $number, 'size' => $size]);
+    }
+
+    /**
+     * Paginator parameters assembled at runtime. Public here because `GET /devices` is paginated;
+     * the runtime keeps it protected.
+     *
+     * @param array<string, mixed> $page
+     *
+     * @return static
+     */
+    public function pageRaw(array $page): static
+    {
+        return parent::pageRaw($page);
     }
 
     /**

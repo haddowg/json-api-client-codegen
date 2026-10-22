@@ -102,13 +102,13 @@ final class TypeSurface
     /**
      * The runtime page class a paginator kind reads into, or null when it does not paginate.
      *
-     * A fixed-size paginator reads the same `meta.page` members as a page-number one and differs
-     * only in having no size control, which is a request-side concern.
+     * A fixed-size paginator has its own page class, which carries no size: the server fixes it.
      */
     public static function pageClass(PaginatorKind $kind): ?string
     {
         return match ($kind) {
-            PaginatorKind::Page, PaginatorKind::Fixed => 'PageNumber',
+            PaginatorKind::Page => 'PageNumber',
+            PaginatorKind::Fixed => 'FixedPage',
             PaginatorKind::Offset => 'Offset',
             PaginatorKind::Cursor => 'Cursor',
             PaginatorKind::None => null,

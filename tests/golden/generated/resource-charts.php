@@ -146,10 +146,7 @@ final class ChartHandle
 /**
  * A read of `GET /charts`: the projection, plus everything only a read can carry.
  *
- * Every door the endpoint advertises is here and nothing it does not. Filters come in three doors:
- * a `whereX()` per filter, the typed `filter()` shape, and the loose `filterRaw()`. They are
- * separate methods because a parameter typed as the shape or any array would accept anything. Both
- * array doors still check names at runtime.
+ * Every door the endpoint advertises is here and nothing it does not.
  *
  * @template TProj of object
  *

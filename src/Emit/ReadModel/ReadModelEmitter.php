@@ -557,14 +557,11 @@ final class ReadModelEmitter implements Emitter, Warns
         }
 
         $reader = match ($json) {
-            'integer' => $nullable ? null : '_int',
+            'integer' => $nullable ? '_nullableInt' : '_int',
             'number' => $nullable ? '_nullableFloat' : '_float',
-            'boolean' => $nullable ? null : '_bool',
+            'boolean' => $nullable ? '_nullableBool' : '_bool',
             default => $nullable ? '_nullableString' : '_string',
         };
-        if ($reader === null) {
-            throw self::unreadable($resource, $attribute, 'a nullable ' . $json);
-        }
 
         return new AttributeRead($attribute->name, $method, self::nullable(Shape::scalarType($json), $nullable), null, ['return $this->' . $reader . '(' . $field . ');']);
     }
@@ -572,33 +569,72 @@ final class ReadModelEmitter implements Emitter, Warns
     private function list(ResourceDescriptor $resource, AttributeDescriptor $attribute, Shape $shape, string $method): AttributeRead
     {
         $items = $shape->items;
-        if ($shape->nullable || $items === null || $items->kind !== ShapeKind::Scalar || $items->scalar !== 'string' || $items->nullable) {
-            throw self::unreadable($resource, $attribute, 'a ' . ($shape->nullable ? 'nullable ' : '') . $shape->wireType() . ' list');
+        if ($items === null || $items->kind !== ShapeKind::Scalar) {
+            throw self::unreadable($resource, $attribute, 'a list of ' . ($items === null ? 'unknown members' : $items->wireType() . ' values'));
+        }
+        $field = Php::string($attribute->name);
+
+        if (!$shape->nullable && $items->scalar === 'string' && !$items->nullable) {
+            return new AttributeRead($attribute->name, $method, 'array', 'list<string>', ['return $this->_stringList(' . $field . ');']);
         }
 
-        return new AttributeRead($attribute->name, $method, 'array', 'list<string>', ['return $this->_stringList(' . Php::string($attribute->name) . ');']);
+        $json = (string) $items->scalar;
+        $type = Shape::scalarType($json);
+        $check = match ($json) {
+            'integer' => '\\is_int($member)',
+            'number' => '\\is_int($member) || \\is_float($member)',
+            'boolean' => '\\is_bool($member)',
+            default => '\\is_string($member)',
+        };
+        if ($items->nullable) {
+            $check = '$member === null || ' . $check;
+        }
+        $value = $json === 'number' ? ($items->nullable ? '$member === null ? null : (float) $member' : '(float) $member') : '$member';
+        $memberType = $items->nullable ? $type . '|null' : $type;
+        $subject = 'The "' . $attribute->name . '" attribute of ' . self::article($resource->type) . ' "' . $resource->type . '" resource';
+
+        return new AttributeRead(
+            $attribute->name,
+            $method,
+            $shape->nullable ? '?array' : 'array',
+            'list<' . $memberType . '>' . ($shape->nullable ? '|null' : ''),
+            [
+                '$raw = $this->' . ($shape->nullable ? '_nullableList' : '_list') . '(' . $field . ');',
+                '',
+                ...($shape->nullable ? ['if ($raw === null) {', '    return null;', '}', ''] : []),
+                '$list = [];',
+                'foreach ($raw as $member) {',
+                '    if (!(' . $check . ')) {',
+                '        throw MalformedDocument::unexpectedMember(' . Php::string($subject) . ', ' . $field . ', ' . Php::string('a list of ' . $memberType . ' values') . ');',
+                '    }',
+                '    $list[] = ' . $value . ';',
+                '}',
+                '',
+                'return $list;',
+            ],
+            [],
+            null,
+            null,
+            [self::MALFORMED],
+        );
     }
 
     private function object(ResourceDescriptor $resource, AttributeDescriptor $attribute, Shape $shape, string $method): AttributeRead
     {
-        if (!$shape->nullable) {
-            throw self::unreadable($resource, $attribute, 'a non-nullable object');
-        }
+        $nullable = $shape->nullable;
+        $reader = $nullable ? '_nullableMap' : '_map';
         $field = Php::string($attribute->name);
 
         if ($shape->members === []) {
-            return new AttributeRead($attribute->name, $method, '?array', 'array<string, mixed>|null', ['return $this->_nullableMap(' . $field . ');']);
+            return new AttributeRead($attribute->name, $method, $nullable ? '?array' : 'array', 'array<string, mixed>' . ($nullable ? '|null' : ''), ['return $this->' . $reader . '(' . $field . ');']);
         }
 
         $alias = self::alias($resource, $method);
         $guard = new Guard('The "' . $attribute->name . '" attribute of ' . self::article($resource->type) . ' "' . $resource->type . '" resource', ['raw', 'shape']);
         $body = [
-            '$raw = $this->_nullableMap(' . $field . ');',
+            '$raw = $this->' . $reader . '(' . $field . ');',
             '',
-            'if ($raw === null) {',
-            '    return null;',
-            '}',
-            '',
+            ...($nullable ? ['if ($raw === null) {', '    return null;', '}', ''] : []),
             ...$guard->object($shape->members, 'raw', 'shape', ''),
             '',
             'return $shape;',
@@ -608,8 +644,8 @@ final class ReadModelEmitter implements Emitter, Warns
         return new AttributeRead(
             $attribute->name,
             $method,
-            '?array',
-            $alias . '|null',
+            $nullable ? '?array' : 'array',
+            $alias . ($nullable ? '|null' : ''),
             $body,
             Php::wrap($required === []
                 ? 'A nested object attribute, narrowed member by member: a member of the wrong type is dropped rather than trusted.'
@@ -622,9 +658,7 @@ final class ReadModelEmitter implements Emitter, Warns
 
     private function tagged(ResourceDescriptor $resource, AttributeDescriptor $attribute, Shape $shape, string $method): AttributeRead
     {
-        if (!$shape->nullable) {
-            throw self::unreadable($resource, $attribute, 'a non-nullable tagged union');
-        }
+        $nullable = $shape->nullable;
         $discriminator = (string) $shape->discriminator;
         $constant = \strtoupper((string) \preg_replace('/(?<=[a-z0-9])(?=[A-Z])/', '_', Naming::pascal($discriminator)));
         $file = FileKey::resource($resource->type);
@@ -641,12 +675,9 @@ final class ReadModelEmitter implements Emitter, Warns
         $names = \array_map(static fn(ClassUnit $unit): string => $unit->name, $classes);
 
         $body = [
-            '$raw = $this->_nullableMap(' . Php::string($attribute->name) . ');',
+            '$raw = $this->' . ($nullable ? '_nullableMap' : '_map') . '(' . Php::string($attribute->name) . ');',
             '',
-            'if ($raw === null) {',
-            '    return null;',
-            '}',
-            '',
+            ...($nullable ? ['if ($raw === null) {', '    return null;', '}', ''] : []),
             'return match ($raw[' . Php::string($discriminator) . '] ?? null) {',
             ...$arms,
             '    default => throw MalformedDocument::unexpectedMember(' . Php::string('The "' . $attribute->name . '" attribute of ' . self::article($resource->type) . ' "' . $resource->type . '" resource') . ', ' . Php::string($discriminator) . ', ' . Php::string('one of ' . \implode(', ', $values)) . '),',
@@ -656,7 +687,7 @@ final class ReadModelEmitter implements Emitter, Warns
         return new AttributeRead(
             $attribute->name,
             $method,
-            \implode('|', $names) . '|null',
+            \implode('|', $names) . ($nullable ? '|null' : ''),
             null,
             $body,
             Php::wrap('A tagged union, one class per branch, selected by `' . $discriminator . '`. Narrow it with `instanceof` or `match`.', 4),
@@ -755,7 +786,7 @@ final class ReadModelEmitter implements Emitter, Warns
 
     private static function unreadable(ResourceDescriptor $resource, AttributeDescriptor $attribute, string $what): \LogicException
     {
-        return new \LogicException(\sprintf('The "%s" attribute of %s is %s, which the json-api-client runtime has no reader for.', $attribute->name, $resource->type, $what));
+        return new \LogicException(\sprintf('The "%s" attribute of %s is %s, which this codegen cannot generate a reader for yet.', $attribute->name, $resource->type, $what));
     }
 
     /** The JSON type a format hint stands for. Formats the descriptor passes through are string ones unless they say otherwise. */

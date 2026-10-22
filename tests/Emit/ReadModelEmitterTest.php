@@ -12,6 +12,7 @@ use haddowg\JsonApiCodegen\Descriptor\OperationKind;
 use haddowg\JsonApiCodegen\Descriptor\PaginatorDescriptor;
 use haddowg\JsonApiCodegen\Descriptor\PaginatorKind;
 use haddowg\JsonApiCodegen\Descriptor\ResourceDescriptor;
+use haddowg\JsonApiCodegen\Descriptor\ValueSchema;
 use haddowg\JsonApiCodegen\Emit\ClassUnit;
 use haddowg\JsonApiCodegen\Emit\Contribution;
 use haddowg\JsonApiCodegen\Emit\GeneratorConfig;
@@ -104,6 +105,32 @@ final class ReadModelEmitterTest extends TestCase
             }
         }
         self::assertSame(['@phpstan-type WidgetFilterAttributeShape array{label?: string, catalogueNumber?: string}'], $tags);
+    }
+
+    public function testShapesTheRuntimeNowReadsAreGeneratedRatherThanRefused(): void
+    {
+        $integer = new ValueSchema(['integer'], null, [], null, [], [], [], [], [], null);
+        $number = new ValueSchema(['number', 'null'], null, [], null, [], [], [], [], [], null);
+        $string = new ValueSchema(['string'], null, [], null, [], [], [], [], [], null);
+        $units = [...(new ReadModelEmitter())->emit($this->widgets([
+            'rank' => new AttributeDescriptor('rank', 'integer', null, true, null),
+            'active' => new AttributeDescriptor('active', 'boolean', null, true, null),
+            'sizes' => new AttributeDescriptor('sizes', 'array', null, false, new ValueSchema(['array'], null, [], $integer, [], [], [], [], [], null)),
+            'weights' => new AttributeDescriptor('weights', 'array', null, true, new ValueSchema(['array', 'null'], null, [], $number, [], [], [], [], [], null)),
+            'dims' => new AttributeDescriptor('dims', 'object', null, false, new ValueSchema(['object'], null, ['unit' => $string], null, ['unit'], [], [], [], [], null)),
+        ]), Generated::config())];
+        $base = self::unit($units, 'WidgetBase');
+
+        self::assertStringContainsString("public function rank(): ?int\n    {\n        return \$this->_nullableInt('rank');", $base);
+        self::assertStringContainsString("public function active(): ?bool\n    {\n        return \$this->_nullableBool('active');", $base);
+        self::assertStringContainsString("public function sizes(): array\n    {\n        \$raw = \$this->_list('sizes');", $base);
+        self::assertStringContainsString('@return list<int>', $base);
+        self::assertStringContainsString('if (!(\\is_int($member))) {', $base);
+        self::assertStringContainsString("public function weights(): ?array\n    {\n        \$raw = \$this->_nullableList('weights');", $base);
+        self::assertStringContainsString('@return list<float|null>|null', $base);
+        self::assertStringContainsString('$list[] = $member === null ? null : (float) $member;', $base);
+        self::assertStringContainsString("public function dims(): array\n    {\n        \$raw = \$this->_map('dims');", $base);
+        self::assertStringNotContainsString('return null;', \substr($base, (int) \strpos($base, 'function dims()')), 'a non-nullable object has no null branch');
     }
 
     /**

@@ -84,6 +84,18 @@ trait ProductProjecting
     }
 
     /**
+     * Include paths assembled at runtime, or deeper than one hop. Nothing is narrowed, so a
+     * relation is reached through its always-safe companions or after a runtime check. The runtime
+     * keeps this protected; it is public here because an operation declares `include`.
+     *
+     * @return static
+     */
+    public function with(string ...$paths): static
+    {
+        return parent::with(...$paths);
+    }
+
+    /**
      * Sparse fieldsets, with the `products` members checked against the descriptor. Other types'
      * fieldsets pass through unchecked.
      *
@@ -671,10 +683,7 @@ final class ProductProjection extends Projection
 /**
  * A read of `GET /products`: the projection, plus everything only a read can carry.
  *
- * Every door the endpoint advertises is here and nothing it does not. Filters come in three doors:
- * a `whereX()` per filter, the typed `filter()` shape, and the loose `filterRaw()`. They are
- * separate methods because a parameter typed as the shape or any array would accept anything. Both
- * array doors still check names at runtime.
+ * Every door the endpoint advertises is here and nothing it does not.
  *
  * @template TProj of object
  *
@@ -701,6 +710,19 @@ final class ProductQuery extends Query
     public function page(int $number, ?int $size = null): static
     {
         return $this->paging($size === null ? ['number' => $number] : ['number' => $number, 'size' => $size]);
+    }
+
+    /**
+     * Paginator parameters assembled at runtime. Public here because `GET /products` is paginated;
+     * the runtime keeps it protected.
+     *
+     * @param array<string, mixed> $page
+     *
+     * @return static
+     */
+    public function pageRaw(array $page): static
+    {
+        return parent::pageRaw($page);
     }
 
     /**

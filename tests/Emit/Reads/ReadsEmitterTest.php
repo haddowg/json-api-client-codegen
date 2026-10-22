@@ -171,7 +171,7 @@ final class ReadsEmitterTest extends TestCase
      */
     public static function paginators(): iterable
     {
-        yield 'fixed' => [PaginatorKind::Fixed, ['p'], 'PageNumber', '$this->page(1)->get()->first()', ["public function page(int \$number): static\n    {\n        return \$this->paging(['p' => \$number]);"], ['$size']];
+        yield 'fixed' => [PaginatorKind::Fixed, ['p'], 'FixedPage', '$this->page(1)->get()->first()', ["public function page(int \$number): static\n    {\n        return \$this->paging(['p' => \$number]);"], ['$size']];
         yield 'offset' => [PaginatorKind::Offset, ['limit', 'offset'], 'Offset', '$this->page(0, 1)->get()->first()', ['public function page(int $offset, ?int $limit = null): static', '@param int<0, max>'], ['function after(']];
         yield 'cursor' => [PaginatorKind::Cursor, ['after', 'before', 'size'], 'Cursor', '$this->size(1)->get()->first()', ['public function after(string $cursor): static', 'public function before(string $cursor): static', 'public function size(int $size): static'], ['function page(']];
         yield 'cursor with one bound and no size' => [PaginatorKind::Cursor, ['after'], 'Cursor', '$this->get()->first()', ['public function after(string $cursor): static'], ['function before(', 'function size(', 'function page(']];
@@ -237,12 +237,12 @@ final class ReadsEmitterTest extends TestCase
         $query = new $class($fetcher);
         self::assertInstanceOf(\haddowg\JsonApiClient\Query\Query::class, $query);
 
-        $read = $query->filterRaw(['rating' => ['min' => 4.5]])->sortRaw(['-releasedAt'])->toReadQuery();
+        $read = self::door(self::door($query, 'filterRaw', ['rating' => ['min' => 4.5]]), 'sortRaw', ['-releasedAt'])->toReadQuery();
         self::assertSame('filter[rating][min]=4.5&sort=-releasedAt', $read->toQueryString());
 
         foreach ([
-            static fn() => $query->filterRaw(['titel' => 'x']),
-            static fn() => $query->filterRaw(['rating' => ['minimum' => 4.0]]),
+            static fn() => self::door($query, 'filterRaw', ['titel' => 'x']),
+            static fn() => self::door($query, 'filterRaw', ['rating' => ['minimum' => 4.0]]),
         ] as $call) {
             try {
                 $call();
@@ -253,7 +253,24 @@ final class ReadsEmitterTest extends TestCase
         }
 
         $this->expectException(\haddowg\JsonApiClient\Exceptions\UnknownSortException::class);
-        $query->sortRaw(['+title']);
+        self::door($query, 'sortRaw', ['+title']);
+    }
+
+    /**
+     * Call a loose door on a generated query. The runtime keeps the doors protected, so this also
+     * proves the generated class opened the one it calls.
+     *
+     * @param array<array-key, mixed> $argument
+     *
+     * @return \haddowg\JsonApiClient\Query\Query<object>
+     */
+    private static function door(object $query, string $method, array $argument): \haddowg\JsonApiClient\Query\Query
+    {
+        self::assertTrue((new \ReflectionMethod($query, $method))->isPublic(), $method . '() is open on the generated query');
+        $result = $query->{$method}($argument);
+        self::assertInstanceOf(\haddowg\JsonApiClient\Query\Query::class, $result);
+
+        return $result;
     }
 
     /**

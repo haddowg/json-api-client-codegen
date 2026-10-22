@@ -67,6 +67,18 @@ final class ReadSources
                 . "    }\n";
         }
 
+        if ($s->includable !== []) {
+            $methods[] = Php::docblock([
+                ...Php::wrap('Include paths assembled at runtime, or deeper than one hop. Nothing is narrowed, so a relation is reached through its always-safe companions or after a runtime check. The runtime keeps this protected; it is public here because an operation declares `include`.', 4),
+                '',
+                '@return static',
+            ], 4)
+                . "    public function with(string ...\$paths): static\n"
+                . "    {\n"
+                . "        return parent::with(...\$paths);\n"
+                . "    }\n";
+        }
+
         $imports = [self::RUNTIME . 'Query\\Projection'];
         if ($s->fields !== null) {
             $imports[] = self::RUNTIME . 'Exceptions\\UnknownFieldException';
@@ -198,7 +210,7 @@ final class ReadSources
         if ($s->queryProjects && $s->includable !== []) {
             $aliases[] = $s->alias('IncludePath');
         }
-        \array_push($members, ...$this->paging());
+        \array_push($members, ...$this->paging(), ...$this->pageRaw());
 
         $throws = Throws::for($collection->errorStatuses);
         \array_push($imports, ...Throws::imports($throws));
@@ -217,7 +229,7 @@ final class ReadSources
         $doc = [
             ...Php::wrap(\sprintf('A read of `%s %s`: the projection, plus everything only a read can carry.', $collection->method, $collection->path)),
             '',
-            ...Php::wrap('Every door the endpoint advertises is here and nothing it does not. Filters come in three doors: a `whereX()` per filter, the typed `filter()` shape, and the loose `filterRaw()`. They are separate methods because a parameter typed as the shape or any array would accept anything. Both array doors still check names at runtime.'),
+            ...Php::wrap('Every door the endpoint advertises is here and nothing it does not.' . ($s->filters === [] ? '' : ' Filters come in three doors: a `whereX()` per filter, the typed `filter()` shape, and the loose `filterRaw()`. They are separate methods because a parameter typed as the shape or any array would accept anything. Both array doors still check names at runtime.')),
             '',
             '@template TProj of object',
             '',
@@ -473,6 +485,33 @@ final class ReadSources
     }
 
     /**
+     * The loose paging door, generated only where the endpoint is paginated: the runtime keeps
+     * it protected so an unpaginated type has none.
+     *
+     * @return list<string>
+     */
+    private function pageRaw(): array
+    {
+        if ($this->surface->paginator->kind === PaginatorKind::None) {
+            return [];
+        }
+
+        return [
+            Php::docblock([
+                ...Php::wrap(\sprintf('Paginator parameters assembled at runtime. Public here because `%s` is paginated; the runtime keeps it protected.', $this->collectionLabel()), 4),
+                '',
+                '@param array<string, mixed> $page',
+                '',
+                '@return static',
+            ], 4)
+            . "    public function pageRaw(array \$page): static\n"
+            . "    {\n"
+            . "        return parent::pageRaw(\$page);\n"
+            . "    }\n",
+        ];
+    }
+
+    /**
      * @return list<string>
      */
     private function cursorPaging(): array
@@ -692,7 +731,8 @@ final class ReadSources
     private function pageClass(): ?string
     {
         return match ($this->surface->paginator->kind) {
-            PaginatorKind::Page, PaginatorKind::Fixed => 'PageNumber',
+            PaginatorKind::Page => 'PageNumber',
+            PaginatorKind::Fixed => 'FixedPage',
             PaginatorKind::Offset => 'Offset',
             PaginatorKind::Cursor => 'Cursor',
             PaginatorKind::None => null,

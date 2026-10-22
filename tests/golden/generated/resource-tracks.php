@@ -119,6 +119,18 @@ trait TrackProjecting
     }
 
     /**
+     * Include paths assembled at runtime, or deeper than one hop. Nothing is narrowed, so a
+     * relation is reached through its always-safe companions or after a runtime check. The runtime
+     * keeps this protected; it is public here because an operation declares `include`.
+     *
+     * @return static
+     */
+    public function with(string ...$paths): static
+    {
+        return parent::with(...$paths);
+    }
+
+    /**
      * Sparse fieldsets, with the `tracks` members checked against the descriptor. Other types'
      * fieldsets pass through unchecked.
      *
@@ -1288,6 +1300,19 @@ final class TrackQuery extends Query
     public function page(int $number, ?int $size = null): static
     {
         return $this->paging($size === null ? ['number' => $number] : ['number' => $number, 'size' => $size]);
+    }
+
+    /**
+     * Paginator parameters assembled at runtime. Public here because `GET /tracks` is paginated;
+     * the runtime keeps it protected.
+     *
+     * @param array<string, mixed> $page
+     *
+     * @return static
+     */
+    public function pageRaw(array $page): static
+    {
+        return parent::pageRaw($page);
     }
 
     /**

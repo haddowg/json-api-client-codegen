@@ -135,6 +135,19 @@ trait AlbumProjecting
     }
 
     /**
+     * Include paths assembled at runtime, or deeper than one hop (`tracks.album`). Nothing is
+     * narrowed, so a relation is reached through its always-safe companions or after a runtime
+     * check. The runtime keeps this protected; it is public here because `albums` has relations
+     * to include.
+     *
+     * @return static
+     */
+    public function with(string ...$paths): static
+    {
+        return parent::with(...$paths);
+    }
+
+    /**
      * Sparse fieldsets, with the primary type's tokens checked against the descriptor.
      *
      * Overriding the runtime method rather than adding a typed twin keeps one name for one
@@ -1509,6 +1522,19 @@ final class AlbumQuery extends Query
     public function page(int $number, ?int $size = null): static
     {
         return $this->paging($size === null ? ['number' => $number] : ['number' => $number, 'size' => $size]);
+    }
+
+    /**
+     * Paginator parameters assembled at runtime (`['number' => 2, 'size' => 50]`). Public here
+     * because `GET /albums` is paginated; the runtime keeps it protected.
+     *
+     * @param array<string, mixed> $page
+     *
+     * @return static
+     */
+    public function pageRaw(array $page): static
+    {
+        return parent::pageRaw($page);
     }
 
     /**

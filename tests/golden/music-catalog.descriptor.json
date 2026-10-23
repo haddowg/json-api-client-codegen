@@ -32,301 +32,401 @@
             "status": 403,
             "schema": "AdditionProhibitedError",
             "title": "Addition is prohibited",
-            "source": "pointer"
+            "source": "pointer",
+            "description": null,
+            "exampleDetail": null
         },
         "APPLICATION_ERROR": {
             "status": 500,
             "schema": "ApplicationError",
             "title": "Application error",
-            "source": null
+            "source": null,
+            "description": null,
+            "exampleDetail": null
         },
         "ATOMIC_OPERATIONS_INVALID": {
             "status": 400,
             "schema": "AtomicOperationsInvalidError",
             "title": "Atomic operations request is invalid",
-            "source": "pointer"
+            "source": "pointer",
+            "description": null,
+            "exampleDetail": null
         },
         "ATTRIBUTE_VALUE_INVALID": {
             "status": 422,
             "schema": "AttributeValueInvalidError",
             "title": "Attribute value is invalid",
-            "source": "pointer"
+            "source": "pointer",
+            "description": null,
+            "exampleDetail": null
         },
         "CLIENT_GENERATED_ID_ALREADY_EXISTS": {
             "status": 409,
             "schema": "ClientGeneratedIdAlreadyExistsError",
             "title": "Client generated ID already exists",
-            "source": "pointer"
+            "source": "pointer",
+            "description": null,
+            "exampleDetail": null
         },
         "CLIENT_GENERATED_ID_NOT_SUPPORTED": {
             "status": 403,
             "schema": "ClientGeneratedIdNotSupportedError",
             "title": "Client generated ID is not supported",
-            "source": "pointer"
+            "source": "pointer",
+            "description": null,
+            "exampleDetail": null
         },
         "CLIENT_GENERATED_ID_REQUIRED": {
             "status": 403,
             "schema": "ClientGeneratedIdRequiredError",
             "title": "Required client generated ID",
-            "source": "pointer"
+            "source": "pointer",
+            "description": null,
+            "exampleDetail": null
         },
         "DATA_MEMBER_MISSING": {
             "status": 400,
             "schema": "DataMemberMissingError",
             "title": "Missing `data` member at the document's top level",
-            "source": null
+            "source": null,
+            "description": null,
+            "exampleDetail": null
         },
         "FIELDSET_MEMBER_UNRECOGNIZED": {
             "status": 400,
             "schema": "FieldsetMemberUnrecognizedError",
             "title": "Fieldset member is unrecognized",
-            "source": "parameter"
+            "source": "parameter",
+            "description": null,
+            "exampleDetail": null
         },
         "FILTERING_UNRECOGNIZED": {
             "status": 400,
             "schema": "FilteringUnrecognizedError",
             "title": "Filtering parameter is unrecognized",
-            "source": "parameter"
+            "source": "parameter",
+            "description": null,
+            "exampleDetail": null
         },
         "FILTER_VALUE_INVALID": {
             "status": 400,
             "schema": "FilterValueInvalidError",
             "title": "Filter value is invalid",
-            "source": "parameter"
+            "source": "parameter",
+            "description": null,
+            "exampleDetail": null
         },
         "FULL_REPLACEMENT_PROHIBITED": {
             "status": 403,
             "schema": "FullReplacementProhibitedError",
             "title": "Full replacement is prohibited",
-            "source": "pointer"
+            "source": "pointer",
+            "description": null,
+            "exampleDetail": null
         },
         "INCLUSION_DEPTH_EXCEEDED": {
             "status": 400,
             "schema": "InclusionDepthExceededError",
             "title": "Inclusion depth exceeded",
-            "source": "parameter"
+            "source": "parameter",
+            "description": null,
+            "exampleDetail": null
         },
         "INCLUSION_NOT_ALLOWED": {
             "status": 400,
             "schema": "InclusionNotAllowedError",
             "title": "Inclusion is not allowed",
-            "source": "parameter"
+            "source": "parameter",
+            "description": null,
+            "exampleDetail": null
         },
         "INCLUSION_UNRECOGNIZED": {
             "status": 400,
             "schema": "InclusionUnrecognizedError",
             "title": "Inclusion is unrecognized",
-            "source": "parameter"
+            "source": "parameter",
+            "description": null,
+            "exampleDetail": null
         },
         "INCLUSION_UNSUPPORTED": {
             "status": 400,
             "schema": "InclusionUnsupportedError",
             "title": "Inclusion is unsupported",
-            "source": "parameter"
+            "source": "parameter",
+            "description": null,
+            "exampleDetail": null
         },
         "LOCAL_ID_CONFLICT": {
             "status": 400,
             "schema": "LocalIdConflictError",
             "title": "Local id conflict",
-            "source": null
+            "source": null,
+            "description": null,
+            "exampleDetail": null
         },
         "LOCAL_ID_NOT_FOUND": {
             "status": 400,
             "schema": "LocalIdNotFoundError",
             "title": "Local id not found",
-            "source": null
+            "source": null,
+            "description": null,
+            "exampleDetail": null
         },
         "LOCAL_ID_NOT_SUPPORTED": {
             "status": 400,
             "schema": "LocalIdNotSupportedError",
             "title": "Local id is not supported",
-            "source": "pointer"
+            "source": "pointer",
+            "description": null,
+            "exampleDetail": null
         },
         "MEDIA_TYPE_UNACCEPTABLE": {
             "status": 406,
             "schema": "MediaTypeUnacceptableError",
             "title": "The provided media type is unacceptable",
-            "source": "parameter"
+            "source": "parameter",
+            "description": null,
+            "exampleDetail": null
         },
         "MEDIA_TYPE_UNSUPPORTED": {
             "status": 415,
             "schema": "MediaTypeUnsupportedError",
             "title": "The provided media type is unsupported",
-            "source": "parameter"
+            "source": "parameter",
+            "description": null,
+            "exampleDetail": null
         },
         "NO_RESOURCE_REGISTERED": {
             "status": 500,
             "schema": "NoResourceRegisteredError",
             "title": "No resource registered",
-            "source": null
+            "source": null,
+            "description": null,
+            "exampleDetail": null
         },
         "QUERY_PARAM_MALFORMED": {
             "status": 400,
             "schema": "QueryParamMalformedError",
             "title": "Query parameter is malformed",
-            "source": "parameter"
+            "source": "parameter",
+            "description": null,
+            "exampleDetail": null
         },
         "QUERY_PARAM_UNRECOGNIZED": {
             "status": 400,
             "schema": "QueryParamUnrecognizedError",
             "title": "Query parameter is unrecognized",
-            "source": "parameter"
+            "source": "parameter",
+            "description": null,
+            "exampleDetail": null
         },
         "RELATED_ATTRIBUTE_OWNER_MISSING": {
             "status": 422,
             "schema": "RelatedAttributeOwnerMissingError",
             "title": "Related attribute owner missing",
-            "source": "pointer"
+            "source": "pointer",
+            "description": null,
+            "exampleDetail": null
         },
         "RELATIONSHIP_COUNT_NOT_ALLOWED": {
             "status": 400,
             "schema": "RelationshipCountNotAllowedError",
             "title": "Relationship count is not allowed",
-            "source": "parameter"
+            "source": "parameter",
+            "description": null,
+            "exampleDetail": null
         },
         "RELATIONSHIP_NOT_EXISTS": {
             "status": 404,
             "schema": "RelationshipNotExistsError",
             "title": "The requested relationship does not exist!",
-            "source": null
+            "source": null,
+            "description": null,
+            "exampleDetail": null
         },
         "RELATIONSHIP_TYPE_INAPPROPRIATE": {
             "status": 400,
             "schema": "RelationshipTypeInappropriateError",
             "title": "Relationship type is inappropriate",
-            "source": "pointer"
+            "source": "pointer",
+            "description": null,
+            "exampleDetail": null
         },
         "REMOVAL_PROHIBITED": {
             "status": 403,
             "schema": "RemovalProhibitedError",
             "title": "Removal is prohibited",
-            "source": "pointer"
+            "source": "pointer",
+            "description": null,
+            "exampleDetail": null
         },
         "REQUEST_BODY_INVALID_JSON": {
             "status": 400,
             "schema": "RequestBodyInvalidJsonError",
             "title": "Request body is an invalid JSON document",
-            "source": null
+            "source": null,
+            "description": null,
+            "exampleDetail": null
         },
         "REQUEST_BODY_INVALID_JSON_API": {
             "status": 400,
             "schema": "RequestBodyInvalidJsonApiError",
             "title": "Request body is an invalid JSON:API document",
-            "source": null
+            "source": null,
+            "description": null,
+            "exampleDetail": null
         },
         "REQUIRED_TOP_LEVEL_MEMBERS_MISSING": {
             "status": 400,
             "schema": "RequiredTopLevelMembersMissingError",
             "title": "Required top-level members are missing",
-            "source": null
+            "source": null,
+            "description": null,
+            "exampleDetail": null
         },
         "RESOURCE_IDENTIFIER_ID_INVALID": {
             "status": 400,
             "schema": "ResourceIdentifierIdInvalidError",
             "title": "Resource identifier ID is invalid",
-            "source": null
+            "source": null,
+            "description": null,
+            "exampleDetail": null
         },
         "RESOURCE_IDENTIFIER_ID_MISSING": {
             "status": 400,
             "schema": "ResourceIdentifierIdMissingError",
             "title": "An ID for the resource identifier is missing",
-            "source": null
+            "source": null,
+            "description": null,
+            "exampleDetail": null
         },
         "RESOURCE_IDENTIFIER_LID_INVALID": {
             "status": 400,
             "schema": "ResourceIdentifierLidInvalidError",
             "title": "Resource identifier local ID is invalid",
-            "source": null
+            "source": null,
+            "description": null,
+            "exampleDetail": null
         },
         "RESOURCE_IDENTIFIER_TYPE_INVALID": {
             "status": 400,
             "schema": "ResourceIdentifierTypeInvalidError",
             "title": "Resource identifier type is invalid",
-            "source": null
+            "source": null,
+            "description": null,
+            "exampleDetail": null
         },
         "RESOURCE_IDENTIFIER_TYPE_MISSING": {
             "status": 400,
             "schema": "ResourceIdentifierTypeMissingError",
             "title": "A type for the resource identifier is missing",
-            "source": null
+            "source": null,
+            "description": null,
+            "exampleDetail": null
         },
         "RESOURCE_ID_CONFLICT": {
             "status": 409,
             "schema": "ResourceIdConflictError",
             "title": "Resource id conflict",
-            "source": "pointer"
+            "source": "pointer",
+            "description": null,
+            "exampleDetail": null
         },
         "RESOURCE_ID_INVALID": {
             "status": 400,
             "schema": "ResourceIdInvalidError",
             "title": "Resource ID is invalid",
-            "source": "pointer"
+            "source": "pointer",
+            "description": null,
+            "exampleDetail": null
         },
         "RESOURCE_ID_MISSING": {
             "status": 400,
             "schema": "ResourceIdMissingError",
             "title": "Resource ID is missing",
-            "source": "pointer"
+            "source": "pointer",
+            "description": null,
+            "exampleDetail": null
         },
         "RESOURCE_ID_UNDECODABLE": {
             "status": 422,
             "schema": "ResourceIdUndecodableError",
             "title": "Resource ID is undecodable",
-            "source": "pointer"
+            "source": "pointer",
+            "description": null,
+            "exampleDetail": null
         },
         "RESOURCE_NOT_FOUND": {
             "status": 404,
             "schema": "ResourceNotFoundError",
             "title": "Resource not found",
-            "source": null
+            "source": null,
+            "description": null,
+            "exampleDetail": null
         },
         "RESOURCE_TYPE_MISSING": {
             "status": 400,
             "schema": "ResourceTypeMissingError",
             "title": "Resource type is missing",
-            "source": "pointer"
+            "source": "pointer",
+            "description": null,
+            "exampleDetail": null
         },
         "RESOURCE_TYPE_UNACCEPTABLE": {
             "status": 409,
             "schema": "ResourceTypeUnacceptableError",
             "title": "Resource type is unacceptable",
-            "source": "pointer"
+            "source": "pointer",
+            "description": null,
+            "exampleDetail": null
         },
         "RESPONSE_BODY_INVALID_JSON": {
             "status": 500,
             "schema": "ResponseBodyInvalidJsonError",
             "title": "Response body is an invalid JSON document",
-            "source": null
+            "source": null,
+            "description": null,
+            "exampleDetail": null
         },
         "RESPONSE_BODY_INVALID_JSON_API": {
             "status": 500,
             "schema": "ResponseBodyInvalidJsonApiError",
             "title": "Response body is an invalid JSON:API document",
-            "source": null
+            "source": null,
+            "description": null,
+            "exampleDetail": null
         },
         "SORTING_UNRECOGNIZED": {
             "status": 400,
             "schema": "SortingUnrecognizedError",
             "title": "Sorting parameter is unrecognized",
-            "source": "parameter"
+            "source": "parameter",
+            "description": null,
+            "exampleDetail": null
         },
         "SORTING_UNSUPPORTED": {
             "status": 400,
             "schema": "SortingUnsupportedError",
             "title": "Sorting is unsupported",
-            "source": "parameter"
+            "source": "parameter",
+            "description": null,
+            "exampleDetail": null
         },
         "TOP_LEVEL_MEMBERS_INCOMPATIBLE": {
             "status": 400,
             "schema": "TopLevelMembersIncompatibleError",
             "title": "Top-level members are incompatible",
-            "source": null
+            "source": null,
+            "description": null,
+            "exampleDetail": null
         },
         "TOP_LEVEL_MEMBER_NOT_ALLOWED": {
             "status": 400,
             "schema": "TopLevelMemberNotAllowedError",
             "title": "Top-level member is not allowed",
-            "source": null
+            "source": null,
+            "description": null,
+            "exampleDetail": null
         }
     },
     "resources": {

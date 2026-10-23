@@ -6,7 +6,8 @@ namespace haddowg\JsonApiCodegen\Descriptor;
 
 /**
  * One code from the document's error catalogue: a named `<Name>Error` schema narrowing `code`
- * and `status` to constants, and possibly requiring one `source` member.
+ * and `status` to constants, and possibly requiring one `source` member. Its `description` says
+ * what the code means to a consumer, and its narrowed `detail` may carry an example.
  *
  * The catalogue is open. An error carrying a code not listed here is still a valid error, so
  * nothing generated from these may assume the list is complete.
@@ -19,5 +20,7 @@ final class ErrorCodeDescriptor
         public readonly string $schema,
         public readonly string $title,
         public readonly ?ErrorSourceKind $source,
+        public readonly ?string $description = null,
+        public readonly ?string $exampleDetail = null,
     ) {}
 }

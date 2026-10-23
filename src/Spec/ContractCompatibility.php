@@ -17,6 +17,9 @@ namespace haddowg\JsonApiCodegen\Spec;
  *
  * Contract 3 adds `x-paginator` on page schemas. It is read where present; a contract-2 document
  * still generates, with pagination inferred from canonical member names.
+ *
+ * Contract 4 gives each error code's component a `description` and, for some codes, an example
+ * `detail`. Both are read into the code's descriptor and written into its class docblock.
  */
 final class ContractCompatibility
 {
@@ -24,7 +27,7 @@ final class ContractCompatibility
     public const int MINIMUM = 1;
 
     /** Above this the document carries structures this codegen does not read. */
-    public const int MAXIMUM = 3;
+    public const int MAXIMUM = 4;
 
     /**
      * Check a document's declared contract against the supported range.

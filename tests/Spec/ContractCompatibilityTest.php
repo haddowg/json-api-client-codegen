@@ -31,13 +31,15 @@ final class ContractCompatibilityTest extends TestCase
         self::assertNull(ContractCompatibility::check(ContractCompatibility::MAXIMUM));
     }
 
-    public function testContractThreeIsReadAndFourIsNot(): void
+    public function testContractFourIsReadAndFiveIsNot(): void
     {
-        // Contract 3 adds `x-paginator`, which the descriptor reads; whatever 4 adds, it does not.
+        // Contract 4 adds an error code's example detail, which the descriptor reads; whatever 5
+        // adds, it does not.
         self::assertNull(ContractCompatibility::check(3));
+        self::assertNull(ContractCompatibility::check(4));
 
-        $warning = ContractCompatibility::check(4);
-        self::assertSame('the document declares contract 4 and this codegen reads up to 3. It describes capabilities that were not generated; upgrade the codegen to pick them up.', $warning);
+        $warning = ContractCompatibility::check(5);
+        self::assertSame('the document declares contract 5 and this codegen reads up to 4. It describes capabilities that were not generated; upgrade the codegen to pick them up.', $warning);
     }
 
     public function testANewerContractWarnsThatCapabilitiesWereNotGenerated(): void

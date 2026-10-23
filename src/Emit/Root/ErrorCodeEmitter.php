@@ -22,7 +22,8 @@ use haddowg\JsonApiCodegen\Emit\UnitKind;
  * the codes an application contributes and those a server newer than the installed runtime
  * already emits. Each class has the shape the runtime's own generator writes: it extends the class
  * its status maps to, carries `CODE`, carries `STATUS` and a constructor where the parent takes
- * the status as an argument, and uses the source trait its variant requires. When every code is
+ * the status as an argument, and uses the source trait its variant requires. Its docblock carries
+ * the code's description and example detail, as the runtime's do. When every code is
  * already covered nothing is emitted, so no `errors.php` is written.
  */
 final class ErrorCodeEmitter implements Emitter
@@ -138,7 +139,14 @@ final class ErrorCodeEmitter implements Emitter
             . "        return new self(\$errors, \$message, \$previous);\n"
             . "    }\n";
 
-        $doc = [...Php::wrap('`' . $error->code . '`: ' . \rtrim($error->title, '.') . '.'), '', '@generated from `components.schemas.' . $error->schema . '`'];
+        $doc = [...Php::wrap('`' . $error->code . '`: ' . \rtrim($error->title, '.') . '.'), ''];
+        if ($error->description !== null) {
+            $doc = [...$doc, ...Php::wrap($error->description), ''];
+        }
+        if ($error->exampleDetail !== null) {
+            $doc = [...$doc, ...Php::wrap('Example detail: ' . $error->exampleDetail), ''];
+        }
+        $doc[] = '@generated from `components.schemas.' . $error->schema . '`';
 
         return new ClassUnit(
             $error->schema,

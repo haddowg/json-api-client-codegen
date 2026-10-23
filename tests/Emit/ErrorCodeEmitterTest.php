@@ -97,14 +97,34 @@ final class ErrorCodeEmitterTest extends TestCase
         $files = self::generate([
             'APPLICATION_ERROR' => new ErrorCodeDescriptor('APPLICATION_ERROR', 500, 'ApplicationError', 'Application error', null),
             'PAYMENT_REQUIRED' => new ErrorCodeDescriptor('PAYMENT_REQUIRED', 402, 'PaymentRequiredError', 'Payment is required', null),
-            'TRACK_LOCKED' => new ErrorCodeDescriptor('TRACK_LOCKED', 409, 'TrackLockedError', 'Track is locked.', ErrorSourceKind::Pointer),
+            'TRACK_LOCKED' => new ErrorCodeDescriptor(
+                'TRACK_LOCKED',
+                409,
+                'TrackLockedError',
+                'Track is locked.',
+                ErrorSourceKind::Pointer,
+                'Another editor holds the lock on this track, so the write was refused. Wait for the lock to lapse, which takes at most five minutes, then send the request again. Matching */ on its own must not end the docblock.',
+                'Track 42 is locked by ada@example.com until 14:05.',
+            ),
             'UPSTREAM_UNAVAILABLE' => new ErrorCodeDescriptor('UPSTREAM_UNAVAILABLE', 503, 'UpstreamUnavailableError', 'Upstream is unavailable', null),
         ], $config, ['APPLICATION_ERROR']);
 
         self::assertSame([FileKey::ERRORS, FileKey::AUTOLOAD], \array_keys($files));
         $source = $files[FileKey::ERRORS];
         self::assertStringNotContainsString('class ApplicationError', $source, 'a code the runtime ships is not emitted');
-        self::assertStringContainsString(" * `TRACK_LOCKED`: Track is locked.\n", $source);
+        self::assertStringContainsString(
+            " * `TRACK_LOCKED`: Track is locked.\n"
+            . " *\n"
+            . " * Another editor holds the lock on this track, so the write was refused. Wait for the lock to\n"
+            . " * lapse, which takes at most five minutes, then send the request again. Matching *\\/ on its own\n"
+            . " * must not end the docblock.\n"
+            . " *\n"
+            . " * Example detail: Track 42 is locked by ada@example.com until 14:05.\n"
+            . " *\n"
+            . " * @generated from `components.schemas.TrackLockedError`\n",
+            $source,
+        );
+        self::assertStringContainsString(" * `PAYMENT_REQUIRED`: Payment is required.\n *\n * @generated from", $source, 'a code without a description or example renders as before');
         self::assertStringContainsString("final class ShopErrorCodes\n", $source);
 
         $path = \sys_get_temp_dir() . '/json-api-codegen-errors-' . \getmypid() . '.php';

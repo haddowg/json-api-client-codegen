@@ -914,6 +914,8 @@ final class DescriptorBuilder
 
             $code = $narrowing->get('code')->get('const')->string();
             $required = $narrowing->path('source', 'required')?->strings() ?? [];
+            $description = $schema->find('description')?->string();
+            $example = $narrowing->path('detail', 'example')?->string();
 
             $out[$code] = new ErrorCodeDescriptor(
                 $code,
@@ -925,6 +927,8 @@ final class DescriptorBuilder
                     \in_array('parameter', $required, true) => ErrorSourceKind::Parameter,
                     default => null,
                 },
+                $description === '' ? null : $description,
+                $example === '' ? null : $example,
             );
         }
         \ksort($out, \SORT_STRING);

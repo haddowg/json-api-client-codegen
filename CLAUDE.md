@@ -61,12 +61,14 @@ the projector whenever the emitted structure changes. This codegen declares a su
 this is the only thing that catches it. A feature-token list was rejected: it names what
 changed, at the cost of two hand-maintained lists that must agree.
 
-The supported range is `[1, 3]`. Contract 2 (json-api 1.1.0) added the error catalogue, shared
+The supported range is `[1, 4]`. Contract 2 (json-api 1.1.0) added the error catalogue, shared
 error responses and write-side `include`/`fields`; the descriptor reads the first into `errors`,
 and the last into each operation's `projection`. Contract 3 added `x-paginator` on page schemas,
 which the descriptor reads into each `PaginatorDescriptor`: the strategy, its role-to-key map, and
-for a menu its arms and default (ADR 0002). Raise `MAXIMUM` only in the change that teaches the
-descriptor to read whatever the next contract adds.
+for a menu its arms and default (ADR 0002). Contract 4 (json-api 1.3.0) gave each error code a
+`description` and sometimes an example `detail`; both are read into its `ErrorCodeDescriptor` and
+written into the docblock of any code class this codegen emits. Raise `MAXIMUM` only in the
+change that teaches the descriptor to read whatever the next contract adds.
 
 **Pagination warns rather than errors.** An unknown strategy, an unstamped member set outside the
 canonical names, or an unstamped menu generates the endpoint unpaginated and reports a warning

@@ -1,5 +1,5 @@
 {
-    "contract": 2,
+    "contract": 4,
     "atomic": {
         "path": "/operations",
         "mediaType": "application/vnd.api+json; ext=\"https://jsonapi.org/ext/atomic\""
@@ -28,12 +28,20 @@
         }
     },
     "errors": {
+        "ACCESS_DENIED": {
+            "status": 403,
+            "schema": "AccessDeniedError",
+            "title": "Forbidden",
+            "source": null,
+            "description": "The caller is authenticated but not permitted to do what the request asks. Retrying with the same credentials will fail the same way; act as a user who holds the permission, or don't make the request.",
+            "exampleDetail": null
+        },
         "ADDITION_PROHIBITED": {
             "status": 403,
             "schema": "AdditionProhibitedError",
             "title": "Addition is prohibited",
             "source": "pointer",
-            "description": null,
+            "description": "This relationship does not let a client add members to it. Don't retry the request; the relationship changes only in the ways the API documents for it.",
             "exampleDetail": null
         },
         "APPLICATION_ERROR": {
@@ -41,7 +49,7 @@
             "schema": "ApplicationError",
             "title": "Application error",
             "source": null,
-            "description": null,
+            "description": "The server failed to handle the request because of a fault on its side, not because of anything in the request. Retrying won't help; report it to the API's maintainers.",
             "exampleDetail": null
         },
         "ATOMIC_OPERATIONS_INVALID": {
@@ -49,15 +57,23 @@
             "schema": "AtomicOperationsInvalidError",
             "title": "Atomic operations request is invalid",
             "source": "pointer",
-            "description": null,
-            "exampleDetail": null
+            "description": "An operation in the Atomic Operations request is malformed: a missing or unknown `op`, or a broken `ref`, `href` or `data`. The server applied none of the batch; fix the operation at `source.pointer` and send the whole batch again.",
+            "exampleDetail": "Unknown atomic operation code 'upsert'."
         },
         "ATTRIBUTE_VALUE_INVALID": {
             "status": 422,
             "schema": "AttributeValueInvalidError",
             "title": "Attribute value is invalid",
             "source": "pointer",
-            "description": null,
+            "description": "The server could not accept the value of the attribute at `source.pointer`, for example a date-time it cannot parse. Correct the value and send the request again.",
+            "exampleDetail": "The value for attribute \"publishedAt\" is invalid: Failed to parse time string (next blursday) at position 0 (n): The timezone could not be found in the database"
+        },
+        "AUTHENTICATION_REQUIRED": {
+            "status": 401,
+            "schema": "AuthenticationRequiredError",
+            "title": "Unauthorized",
+            "source": null,
+            "description": "The request carried no credentials, or credentials the server rejected, such as an expired token. Authenticate, then send the request again with valid credentials.",
             "exampleDetail": null
         },
         "CLIENT_GENERATED_ID_ALREADY_EXISTS": {
@@ -65,7 +81,7 @@
             "schema": "ClientGeneratedIdAlreadyExistsError",
             "title": "Client generated ID already exists",
             "source": "pointer",
-            "description": null,
+            "description": "A resource of this type already has the `id` the create request supplied. Generate a new id and send the request again, or update the existing resource instead.",
             "exampleDetail": null
         },
         "CLIENT_GENERATED_ID_NOT_SUPPORTED": {
@@ -73,7 +89,7 @@
             "schema": "ClientGeneratedIdNotSupportedError",
             "title": "Client generated ID is not supported",
             "source": "pointer",
-            "description": null,
+            "description": "The create request supplied an `id`, but this resource type assigns its own ids. Leave `data.id` out and the server generates one.",
             "exampleDetail": null
         },
         "CLIENT_GENERATED_ID_REQUIRED": {
@@ -81,7 +97,23 @@
             "schema": "ClientGeneratedIdRequiredError",
             "title": "Required client generated ID",
             "source": "pointer",
-            "description": null,
+            "description": "This resource type expects the client to choose the id, and the create request supplied none. Add `data.id` in the format the API documents and send the request again.",
+            "exampleDetail": null
+        },
+        "CURSOR_MALFORMED": {
+            "status": 400,
+            "schema": "CursorMalformedError",
+            "title": "Cursor is malformed",
+            "source": "parameter",
+            "description": "The cursor in the named `page` parameter could not be decoded. Use cursors exactly as the server returned them in a previous page's `links`; never build or edit one.",
+            "exampleDetail": null
+        },
+        "CURSOR_STALE": {
+            "status": 400,
+            "schema": "CursorStaleError",
+            "title": "Cursor is stale",
+            "source": "parameter",
+            "description": "The cursor was issued for a different sort order than this request asks for, so it no longer marks a position in these results. Keep `sort` unchanged while paging, or start again from the first page.",
             "exampleDetail": null
         },
         "DATA_MEMBER_MISSING": {
@@ -89,7 +121,7 @@
             "schema": "DataMemberMissingError",
             "title": "Missing `data` member at the document's top level",
             "source": null,
-            "description": null,
+            "description": "The request document has no top-level `data` member, which this request needs. Send the resource object or relationship linkage under `data`.",
             "exampleDetail": null
         },
         "FIELDSET_MEMBER_UNRECOGNIZED": {
@@ -97,23 +129,23 @@
             "schema": "FieldsetMemberUnrecognizedError",
             "title": "Fieldset member is unrecognized",
             "source": "parameter",
-            "description": null,
-            "exampleDetail": null
+            "description": "A `fields[TYPE]` parameter names a member that type does not have. Request only the attributes and relationships the type declares.",
+            "exampleDetail": "Fields 'colour' requested for type 'articles' can't be recognized by the endpoint!"
         },
         "FILTERING_UNRECOGNIZED": {
             "status": 400,
             "schema": "FilteringUnrecognizedError",
             "title": "Filtering parameter is unrecognized",
             "source": "parameter",
-            "description": null,
-            "exampleDetail": null
+            "description": "The request filtered on a key this endpoint does not declare. Filter only on the keys the API documents for this resource type.",
+            "exampleDetail": "Filtering parameter 'colour' can't be recognized by the endpoint!"
         },
         "FILTER_VALUE_INVALID": {
             "status": 400,
             "schema": "FilterValueInvalidError",
             "title": "Filter value is invalid",
             "source": "parameter",
-            "description": null,
+            "description": "A `filter[...]` value fails the constraints that filter declares, for example text where a number is expected. Correct the value of the parameter named in `source.parameter`; each failed constraint is its own error.",
             "exampleDetail": null
         },
         "FULL_REPLACEMENT_PROHIBITED": {
@@ -121,7 +153,7 @@
             "schema": "FullReplacementProhibitedError",
             "title": "Full replacement is prohibited",
             "source": "pointer",
-            "description": null,
+            "description": "This relationship cannot be replaced as a whole, for example by a `PATCH` to its relationship endpoint. Add or remove individual members instead, if the relationship allows that.",
             "exampleDetail": null
         },
         "INCLUSION_DEPTH_EXCEEDED": {
@@ -129,15 +161,15 @@
             "schema": "InclusionDepthExceededError",
             "title": "Inclusion depth exceeded",
             "source": "parameter",
-            "description": null,
-            "exampleDetail": null
+            "description": "An `include` path nests more relationships than the server allows. Shorten the path and fetch the deeper resources with a separate request.",
+            "exampleDetail": "Included paths 'author.publisher.country' exceed the maximum include depth of 2 permitted by the endpoint!"
         },
         "INCLUSION_NOT_ALLOWED": {
             "status": 400,
             "schema": "InclusionNotAllowedError",
             "title": "Inclusion is not allowed",
             "source": "parameter",
-            "description": null,
+            "description": "An `include` path names a relationship that exists but may not be included from this request. Remove the path and fetch the related resources with a separate request.",
             "exampleDetail": null
         },
         "INCLUSION_UNRECOGNIZED": {
@@ -145,15 +177,15 @@
             "schema": "InclusionUnrecognizedError",
             "title": "Inclusion is unrecognized",
             "source": "parameter",
-            "description": null,
-            "exampleDetail": null
+            "description": "An `include` path names a relationship the resource type does not have. Check each path against the relationships the type documents.",
+            "exampleDetail": "Included paths 'auther' can't be recognized by the endpoint!"
         },
         "INCLUSION_UNSUPPORTED": {
             "status": 400,
             "schema": "InclusionUnsupportedError",
             "title": "Inclusion is unsupported",
             "source": "parameter",
-            "description": null,
+            "description": "This endpoint does not support the `include` parameter. Remove it and fetch related resources with separate requests.",
             "exampleDetail": null
         },
         "LOCAL_ID_CONFLICT": {
@@ -161,7 +193,7 @@
             "schema": "LocalIdConflictError",
             "title": "Local id conflict",
             "source": null,
-            "description": null,
+            "description": "Two operations in the Atomic Operations request create resources of the same type under the same `lid`. Give each resource a batch creates its own `lid`.",
             "exampleDetail": null
         },
         "LOCAL_ID_NOT_FOUND": {
@@ -169,7 +201,7 @@
             "schema": "LocalIdNotFoundError",
             "title": "Local id not found",
             "source": null,
-            "description": null,
+            "description": "An operation refers to a `lid` that no earlier operation in the batch created. Create the resource under that `lid` in an earlier operation, or refer to an existing resource by `id`.",
             "exampleDetail": null
         },
         "LOCAL_ID_NOT_SUPPORTED": {
@@ -177,7 +209,7 @@
             "schema": "LocalIdNotSupportedError",
             "title": "Local id is not supported",
             "source": "pointer",
-            "description": null,
+            "description": "The request used a `lid`, which only means something inside an Atomic Operations request. Identify the resource by `id`, or send the dependent writes together as one atomic batch if the API offers the extension.",
             "exampleDetail": null
         },
         "MEDIA_TYPE_UNACCEPTABLE": {
@@ -185,31 +217,39 @@
             "schema": "MediaTypeUnacceptableError",
             "title": "The provided media type is unacceptable",
             "source": "parameter",
-            "description": null,
-            "exampleDetail": null
+            "description": "Every `application/vnd.api+json` entry in the `Accept` header carries a parameter other than `ext` or `profile`, or asks for an `ext` the server does not support. Accept `application/vnd.api+json` with no other parameters.",
+            "exampleDetail": "The media type 'application/vnd.api+json; version=2' is unacceptable in the 'Accept' header!"
         },
         "MEDIA_TYPE_UNSUPPORTED": {
             "status": 415,
             "schema": "MediaTypeUnsupportedError",
             "title": "The provided media type is unsupported",
             "source": "parameter",
-            "description": null,
-            "exampleDetail": null
+            "description": "The `Content-Type` is `application/vnd.api+json` with a media type parameter other than `ext` or `profile`, or with an `ext` the server does not support. Send `Content-Type: application/vnd.api+json` with only the parameters the server supports.",
+            "exampleDetail": "The media type 'application/vnd.api+json; charset=utf-8' is unsupported in the 'Content-Type' header!"
         },
         "NO_RESOURCE_REGISTERED": {
             "status": 500,
             "schema": "NoResourceRegisteredError",
             "title": "No resource registered",
             "source": null,
-            "description": null,
+            "description": "The server tried to use a resource type it has nothing registered for, which is a configuration fault on its side. Retrying won't help; report it to the API's maintainers.",
             "exampleDetail": null
+        },
+        "PAGINATION_KIND_UNKNOWN": {
+            "status": 400,
+            "schema": "PaginationKindUnknownError",
+            "title": "Pagination kind is not supported",
+            "source": "parameter",
+            "description": "`page[kind]` names a pagination strategy this collection does not offer. Use one of the strategies the `detail` lists, or leave `page[kind]` out.",
+            "exampleDetail": "The pagination strategy 'page[kind]=offset' is not supported; use one of: page, cursor."
         },
         "QUERY_PARAM_MALFORMED": {
             "status": 400,
             "schema": "QueryParamMalformedError",
             "title": "Query parameter is malformed",
             "source": "parameter",
-            "description": null,
+            "description": "A query parameter has the wrong shape, such as `fields` sent without a type key or `include` sent as a list instead of a comma-separated string. Fix the parameter named in `source.parameter`.",
             "exampleDetail": null
         },
         "QUERY_PARAM_UNRECOGNIZED": {
@@ -217,7 +257,7 @@
             "schema": "QueryParamUnrecognizedError",
             "title": "Query parameter is unrecognized",
             "source": "parameter",
-            "description": null,
+            "description": "The request used a query parameter this endpoint does not recognize. Remove it, or check its spelling against the parameters the API documents.",
             "exampleDetail": null
         },
         "RELATED_ATTRIBUTE_OWNER_MISSING": {
@@ -225,15 +265,15 @@
             "schema": "RelatedAttributeOwnerMissingError",
             "title": "Related attribute owner missing",
             "source": "pointer",
-            "description": null,
-            "exampleDetail": null
+            "description": "The request wrote an attribute the server stores on a related resource, and that related resource does not exist. Set the relationship first, or leave the attribute out.",
+            "exampleDetail": "Cannot write attribute \"city\": its related \"address\" is not present."
         },
         "RELATIONSHIP_COUNT_NOT_ALLOWED": {
             "status": 400,
             "schema": "RelationshipCountNotAllowedError",
             "title": "Relationship count is not allowed",
             "source": "parameter",
-            "description": null,
+            "description": "`withCount` names a relationship that is not a countable to-many relationship of this resource. Ask for counts only on the relationships the API marks as countable.",
             "exampleDetail": null
         },
         "RELATIONSHIP_NOT_EXISTS": {
@@ -241,7 +281,7 @@
             "schema": "RelationshipNotExistsError",
             "title": "The requested relationship does not exist!",
             "source": null,
-            "description": null,
+            "description": "The request names a relationship this resource type does not have, or one whose endpoint the API does not expose. Check the relationship name against the ones the type documents.",
             "exampleDetail": null
         },
         "RELATIONSHIP_TYPE_INAPPROPRIATE": {
@@ -249,15 +289,15 @@
             "schema": "RelationshipTypeInappropriateError",
             "title": "Relationship type is inappropriate",
             "source": "pointer",
-            "description": null,
-            "exampleDetail": null
+            "description": "The relationship data has the wrong cardinality: a list for a to-one relationship, a single identifier for a to-many one, or a `POST` or `DELETE` to a to-one relationship endpoint. Send linkage that matches the relationship.",
+            "exampleDetail": "The provided relationship 'author' is of type of to-many, but to-one is expected!"
         },
         "REMOVAL_PROHIBITED": {
             "status": 403,
             "schema": "RemovalProhibitedError",
             "title": "Removal is prohibited",
             "source": "pointer",
-            "description": null,
+            "description": "This relationship does not let a client remove members from it or clear it. Don't retry the request; the relationship changes only in the ways the API documents for it.",
             "exampleDetail": null
         },
         "REQUEST_BODY_INVALID_JSON": {
@@ -265,7 +305,7 @@
             "schema": "RequestBodyInvalidJsonError",
             "title": "Request body is an invalid JSON document",
             "source": null,
-            "description": null,
+            "description": "The request body is not well-formed JSON. Fix the syntax the `detail` reports and send the request again.",
             "exampleDetail": null
         },
         "REQUEST_BODY_INVALID_JSON_API": {
@@ -273,7 +313,7 @@
             "schema": "RequestBodyInvalidJsonApiError",
             "title": "Request body is an invalid JSON:API document",
             "source": null,
-            "description": null,
+            "description": "The request body is JSON but breaks the JSON:API document structure or the schema the server validates this resource against. Each violation is its own error, with `source.pointer` set where the server could locate it.",
             "exampleDetail": null
         },
         "REQUIRED_TOP_LEVEL_MEMBERS_MISSING": {
@@ -281,7 +321,7 @@
             "schema": "RequiredTopLevelMembersMissingError",
             "title": "Required top-level members are missing",
             "source": null,
-            "description": null,
+            "description": "The request body is not a JSON object, or has none of the top-level members `data`, `errors` and `meta`. Send a JSON object with the resource under `data`.",
             "exampleDetail": null
         },
         "RESOURCE_IDENTIFIER_ID_INVALID": {
@@ -289,7 +329,7 @@
             "schema": "ResourceIdentifierIdInvalidError",
             "title": "Resource identifier ID is invalid",
             "source": null,
-            "description": null,
+            "description": "A resource identifier in the request carries an `id` that is not a string, such as a number. Send every `id` as a JSON string.",
             "exampleDetail": null
         },
         "RESOURCE_IDENTIFIER_ID_MISSING": {
@@ -297,7 +337,7 @@
             "schema": "ResourceIdentifierIdMissingError",
             "title": "An ID for the resource identifier is missing",
             "source": null,
-            "description": null,
+            "description": "A resource identifier in the request has neither an `id` nor a `lid`. Identify each related resource by its `id`, or by a `lid` inside an Atomic Operations request.",
             "exampleDetail": null
         },
         "RESOURCE_IDENTIFIER_LID_INVALID": {
@@ -305,7 +345,7 @@
             "schema": "ResourceIdentifierLidInvalidError",
             "title": "Resource identifier local ID is invalid",
             "source": null,
-            "description": null,
+            "description": "A resource identifier in the request carries a `lid` that is not a string. Send every `lid` as a JSON string.",
             "exampleDetail": null
         },
         "RESOURCE_IDENTIFIER_TYPE_INVALID": {
@@ -313,7 +353,7 @@
             "schema": "ResourceIdentifierTypeInvalidError",
             "title": "Resource identifier type is invalid",
             "source": null,
-            "description": null,
+            "description": "A resource identifier in the request carries a `type` that is not a string. Send every `type` as a JSON string.",
             "exampleDetail": null
         },
         "RESOURCE_IDENTIFIER_TYPE_MISSING": {
@@ -321,7 +361,7 @@
             "schema": "ResourceIdentifierTypeMissingError",
             "title": "A type for the resource identifier is missing",
             "source": null,
-            "description": null,
+            "description": "A resource identifier in the request has no `type`. Add the related resource's `type` to every identifier.",
             "exampleDetail": null
         },
         "RESOURCE_ID_CONFLICT": {
@@ -329,15 +369,15 @@
             "schema": "ResourceIdConflictError",
             "title": "Resource id conflict",
             "source": "pointer",
-            "description": null,
-            "exampleDetail": null
+            "description": "The `id` in the update body is not the `id` in the URL. Send the id of the resource the URL addresses as `data.id`.",
+            "exampleDetail": "Resource id '12' does not match the endpoint id '7'!"
         },
         "RESOURCE_ID_INVALID": {
             "status": 400,
             "schema": "ResourceIdInvalidError",
             "title": "Resource ID is invalid",
             "source": "pointer",
-            "description": null,
+            "description": "The resource object's `id` is not a string, such as a number. Send `data.id` as a JSON string.",
             "exampleDetail": null
         },
         "RESOURCE_ID_MISSING": {
@@ -345,7 +385,7 @@
             "schema": "ResourceIdMissingError",
             "title": "Resource ID is missing",
             "source": "pointer",
-            "description": null,
+            "description": "The update request's resource object has no `id`. Include the id of the resource being updated as `data.id`.",
             "exampleDetail": null
         },
         "RESOURCE_ID_UNDECODABLE": {
@@ -353,7 +393,7 @@
             "schema": "ResourceIdUndecodableError",
             "title": "Resource ID is undecodable",
             "source": "pointer",
-            "description": null,
+            "description": "The client-generated `id` is not in a format the server can decode into one of its own ids. Send an `id` in the format the API documents for this resource type.",
             "exampleDetail": null
         },
         "RESOURCE_NOT_FOUND": {
@@ -361,7 +401,7 @@
             "schema": "ResourceNotFoundError",
             "title": "Resource not found",
             "source": null,
-            "description": null,
+            "description": "The resource the request addresses does not exist. Check the type and id in the URL; a deleted resource stays not found.",
             "exampleDetail": null
         },
         "RESOURCE_TYPE_MISSING": {
@@ -369,7 +409,7 @@
             "schema": "ResourceTypeMissingError",
             "title": "Resource type is missing",
             "source": "pointer",
-            "description": null,
+            "description": "The resource object in `data` has no `type`. Add the type of the resource the endpoint serves.",
             "exampleDetail": null
         },
         "RESOURCE_TYPE_UNACCEPTABLE": {
@@ -377,7 +417,7 @@
             "schema": "ResourceTypeUnacceptableError",
             "title": "Resource type is unacceptable",
             "source": "pointer",
-            "description": null,
+            "description": "The `type` in the request is not one this endpoint or relationship accepts. Send the type the endpoint serves, or one the relationship documents for its related resources.",
             "exampleDetail": null
         },
         "RESPONSE_BODY_INVALID_JSON": {
@@ -385,7 +425,7 @@
             "schema": "ResponseBodyInvalidJsonError",
             "title": "Response body is an invalid JSON document",
             "source": null,
-            "description": null,
+            "description": "The server produced a response body that is not valid JSON, which is a fault on its side. Retrying won't help; report it to the API's maintainers.",
             "exampleDetail": null
         },
         "RESPONSE_BODY_INVALID_JSON_API": {
@@ -393,7 +433,7 @@
             "schema": "ResponseBodyInvalidJsonApiError",
             "title": "Response body is an invalid JSON:API document",
             "source": null,
-            "description": null,
+            "description": "The server produced a response that breaks the JSON:API document structure, which is a fault on its side. Retrying won't help; report it to the API's maintainers.",
             "exampleDetail": null
         },
         "SORTING_UNRECOGNIZED": {
@@ -401,15 +441,15 @@
             "schema": "SortingUnrecognizedError",
             "title": "Sorting parameter is unrecognized",
             "source": "parameter",
-            "description": null,
-            "exampleDetail": null
+            "description": "The `sort` parameter names a field this endpoint cannot sort by. Sort only on the fields the API documents for this resource type.",
+            "exampleDetail": "Sorting parameter 'popularity' can't be recognized by the endpoint!"
         },
         "SORTING_UNSUPPORTED": {
             "status": 400,
             "schema": "SortingUnsupportedError",
             "title": "Sorting is unsupported",
             "source": "parameter",
-            "description": null,
+            "description": "This endpoint does not support sorting. Remove the `sort` parameter.",
             "exampleDetail": null
         },
         "TOP_LEVEL_MEMBERS_INCOMPATIBLE": {
@@ -417,7 +457,7 @@
             "schema": "TopLevelMembersIncompatibleError",
             "title": "Top-level members are incompatible",
             "source": null,
-            "description": null,
+            "description": "The request body has both `data` and `errors` at the top level, which JSON:API forbids. Send the resource under `data` alone.",
             "exampleDetail": null
         },
         "TOP_LEVEL_MEMBER_NOT_ALLOWED": {
@@ -425,7 +465,7 @@
             "schema": "TopLevelMemberNotAllowedError",
             "title": "Top-level member is not allowed",
             "source": null,
-            "description": null,
+            "description": "The request body has a top-level `included` member but no `data`. Remove `included`, or send it alongside `data`.",
             "exampleDetail": null
         }
     },
@@ -977,7 +1017,13 @@
                             "projection": null
                         }
                     },
-                    "paginator": null,
+                    "paginator": {
+                        "kind": "page",
+                        "keys": {
+                            "number": "number",
+                            "size": "size"
+                        }
+                    },
                     "countable": {
                         "tokens": [
                             "_self_",
@@ -3285,7 +3331,13 @@
                             "projection": null
                         }
                     },
-                    "paginator": null,
+                    "paginator": {
+                        "kind": "page",
+                        "keys": {
+                            "number": "number",
+                            "size": "size"
+                        }
+                    },
                     "countable": null,
                     "pivot": false,
                     "pivotFields": []
@@ -3886,7 +3938,13 @@
                             "projection": null
                         }
                     },
-                    "paginator": null,
+                    "paginator": {
+                        "kind": "page",
+                        "keys": {
+                            "number": "number",
+                            "size": "size"
+                        }
+                    },
                     "countable": {
                         "tokens": [
                             "playlists"
@@ -4163,7 +4221,13 @@
                             "projection": null
                         }
                     },
-                    "paginator": null,
+                    "paginator": {
+                        "kind": "page",
+                        "keys": {
+                            "number": "number",
+                            "size": "size"
+                        }
+                    },
                     "countable": {
                         "tokens": [
                             "_self_",
@@ -6832,10 +6896,32 @@
         "tracks": {
             "type": "tracks",
             "paginator": {
-                "kind": "page",
-                "keys": {
-                    "number": "number",
-                    "size": "size"
+                "kind": "multi",
+                "default": "page",
+                "discriminator": "kind",
+                "arms": {
+                    "page": {
+                        "kind": "page",
+                        "keys": {
+                            "number": "number",
+                            "size": "size"
+                        }
+                    },
+                    "cursor": {
+                        "kind": "cursor",
+                        "keys": {
+                            "after": "after",
+                            "before": "before",
+                            "size": "size"
+                        }
+                    },
+                    "offset": {
+                        "kind": "offset",
+                        "keys": {
+                            "limit": "limit",
+                            "offset": "offset"
+                        }
+                    }
                 }
             },
             "clientId": "forbidden",

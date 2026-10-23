@@ -400,13 +400,32 @@ final class MusicCatalogDescriptorTest extends TestCase
         self::assertFalse($this->resource('countries')->paginator->paginated());
     }
 
-    public function testNoRelationDivergesFromItsRelatedTypesPaginator(): void
+    /**
+     * `GET /tracks` offers a page/cursor/offset menu, while every related endpoint reaching tracks
+     * pages by number alone. Those relations carry their own paginator; every other relation agrees
+     * with its related type and carries none. `libraries.items` is polymorphic and compared
+     * against its first type, `tracks`.
+     */
+    public function testOnlyTheRelationsReachingTheTracksMenuDivergeFromItsPaginator(): void
     {
+        self::assertSame(PaginatorKind::Multi, $this->resource('tracks')->paginator->kind);
+
+        $diverging = [];
         foreach (Fixtures::musicCatalogDescriptor()->resources as $resource) {
             foreach ($resource->relations as $relation) {
-                self::assertNull($relation->paginator, $resource->type . '.' . $relation->name);
+                if ($relation->paginator !== null) {
+                    $diverging[$resource->type . '.' . $relation->name] = [$relation->paginator->kind, $relation->paginator->keys];
+                }
             }
         }
+
+        $page = [PaginatorKind::Page, ['number' => 'number', 'size' => 'size']];
+        self::assertSame([
+            'albums.tracks' => $page,
+            'libraries.items' => $page,
+            'playlists.orderedTracks' => $page,
+            'playlists.tracks' => $page,
+        ], $diverging);
     }
 
     public function testClientIdPolicyFollowsTheCreateDocument(): void
@@ -506,7 +525,7 @@ final class MusicCatalogDescriptorTest extends TestCase
     {
         $errors = Fixtures::musicCatalogDescriptor()->errors;
 
-        self::assertCount(50, $errors);
+        self::assertCount(55, $errors);
         self::assertSame(\array_keys($errors), (static function (array $codes): array {
             \sort($codes, \SORT_STRING);
 

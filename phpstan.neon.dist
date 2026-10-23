@@ -6,7 +6,10 @@ parameters:
         - bin/json-api-client-codegen
     excludePaths:
         - tests/fixtures
-        # Generated output targets PHP 8.4 and has its own analysis, phpstan.generated.neon.
+        # Generated output targets PHP 8.4 and has its own analysis, phpstan.generated.neon, as
+        # do the type assertions made against it.
         - tests/golden/generated
+        - tests/golden/paginators
+        - tests/GeneratedTypes
     tmpDir: .phpstan.cache
     treatPhpDocTypesAsCertain: false

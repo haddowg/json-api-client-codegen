@@ -334,10 +334,10 @@
             "type": "albums",
             "paginator": {
                 "kind": "page",
-                "parameters": [
-                    "number",
-                    "size"
-                ]
+                "keys": {
+                    "number": "number",
+                    "size": "size"
+                }
             },
             "clientId": "forbidden",
             "countable": {
@@ -1529,10 +1529,10 @@
             "type": "artists",
             "paginator": {
                 "kind": "page",
-                "parameters": [
-                    "number",
-                    "size"
-                ]
+                "keys": {
+                    "number": "number",
+                    "size": "size"
+                }
             },
             "clientId": "forbidden",
             "countable": null,
@@ -2113,10 +2113,10 @@
             "type": "catalog-exports",
             "paginator": {
                 "kind": "page",
-                "parameters": [
-                    "number",
-                    "size"
-                ]
+                "keys": {
+                    "number": "number",
+                    "size": "size"
+                }
             },
             "clientId": "forbidden",
             "countable": null,
@@ -2232,7 +2232,7 @@
             "type": "charts",
             "paginator": {
                 "kind": "none",
-                "parameters": []
+                "keys": {}
             },
             "clientId": "forbidden",
             "countable": null,
@@ -2279,7 +2279,7 @@
             "type": "countries",
             "paginator": {
                 "kind": "none",
-                "parameters": []
+                "keys": {}
             },
             "clientId": "forbidden",
             "countable": null,
@@ -2326,10 +2326,10 @@
             "type": "devices",
             "paginator": {
                 "kind": "page",
-                "parameters": [
-                    "number",
-                    "size"
-                ]
+                "keys": {
+                    "number": "number",
+                    "size": "size"
+                }
             },
             "clientId": "forbidden",
             "countable": null,
@@ -2474,10 +2474,10 @@
             "type": "export-jobs",
             "paginator": {
                 "kind": "page",
-                "parameters": [
-                    "number",
-                    "size"
-                ]
+                "keys": {
+                    "number": "number",
+                    "size": "size"
+                }
             },
             "clientId": "forbidden",
             "countable": null,
@@ -2547,10 +2547,10 @@
             "type": "favorites",
             "paginator": {
                 "kind": "page",
-                "parameters": [
-                    "number",
-                    "size"
-                ]
+                "keys": {
+                    "number": "number",
+                    "size": "size"
+                }
             },
             "clientId": "forbidden",
             "countable": null,
@@ -2906,10 +2906,10 @@
             "type": "genres",
             "paginator": {
                 "kind": "page",
-                "parameters": [
-                    "number",
-                    "size"
-                ]
+                "keys": {
+                    "number": "number",
+                    "size": "size"
+                }
             },
             "clientId": "required",
             "countable": null,
@@ -3054,10 +3054,10 @@
             "type": "libraries",
             "paginator": {
                 "kind": "page",
-                "parameters": [
-                    "number",
-                    "size"
-                ]
+                "keys": {
+                    "number": "number",
+                    "size": "size"
+                }
             },
             "clientId": "forbidden",
             "countable": null,
@@ -3562,10 +3562,10 @@
             "type": "playlists",
             "paginator": {
                 "kind": "page",
-                "parameters": [
-                    "number",
-                    "size"
-                ]
+                "keys": {
+                    "number": "number",
+                    "size": "size"
+                }
             },
             "clientId": "forbidden",
             "countable": {
@@ -4408,10 +4408,10 @@
             "type": "products",
             "paginator": {
                 "kind": "page",
-                "parameters": [
-                    "number",
-                    "size"
-                ]
+                "keys": {
+                    "number": "number",
+                    "size": "size"
+                }
             },
             "clientId": "forbidden",
             "countable": null,
@@ -4666,10 +4666,10 @@
             "type": "public-profiles",
             "paginator": {
                 "kind": "page",
-                "parameters": [
-                    "number",
-                    "size"
-                ]
+                "keys": {
+                    "number": "number",
+                    "size": "size"
+                }
             },
             "clientId": "forbidden",
             "countable": null,
@@ -4742,10 +4742,10 @@
             "type": "releases",
             "paginator": {
                 "kind": "page",
-                "parameters": [
-                    "number",
-                    "size"
-                ]
+                "keys": {
+                    "number": "number",
+                    "size": "size"
+                }
             },
             "clientId": "forbidden",
             "countable": null,
@@ -6733,10 +6733,10 @@
             "type": "tracks",
             "paginator": {
                 "kind": "page",
-                "parameters": [
-                    "number",
-                    "size"
-                ]
+                "keys": {
+                    "number": "number",
+                    "size": "size"
+                }
             },
             "clientId": "forbidden",
             "countable": {

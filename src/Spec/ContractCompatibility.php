@@ -14,6 +14,9 @@ namespace haddowg\JsonApiCodegen\Spec;
  * comes out missing capabilities the server offers. That is the case the warning exists for.
  *
  * Documents from `json-api` before 1.1.0 carry no contract, which is "no signal, proceed".
+ *
+ * Contract 3 adds `x-paginator` on page schemas. It is read where present; a contract-2 document
+ * still generates, with pagination inferred from canonical member names.
  */
 final class ContractCompatibility
 {
@@ -21,7 +24,7 @@ final class ContractCompatibility
     public const int MINIMUM = 1;
 
     /** Above this the document carries structures this codegen does not read. */
-    public const int MAXIMUM = 2;
+    public const int MAXIMUM = 3;
 
     /**
      * Check a document's declared contract against the supported range.

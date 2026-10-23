@@ -28,6 +28,17 @@ final class DescriptorBuilder
 
     private const string META_DOCUMENT = 'MetaDocument';
 
+    /**
+     * The roles each single strategy's `x-paginator.keys` may name. A key under any other role is
+     * not one this codegen generates a parameter for.
+     */
+    private const array ROLES = [
+        'page' => ['number', 'size'],
+        'offset' => ['offset', 'limit'],
+        'cursor' => ['after', 'before', 'size'],
+        'fixed' => ['number'],
+    ];
+
     /** The methods an action may be advertised under, in the order one is picked. */
     private const array ACTION_METHODS = ['post', 'get', 'put', 'patch', 'delete'];
 
@@ -42,6 +53,9 @@ final class DescriptorBuilder
 
     /** @var array<string, PaginatorDescriptor> JSON:API type => its collection's pagination */
     private array $typePaginators = [];
+
+    /** @var list<string> what the document says that this codegen read around rather than generated */
+    private array $warnings = [];
 
     private function __construct(private readonly SpecDocument $document) {}
 
@@ -68,6 +82,7 @@ final class DescriptorBuilder
             $this->atomic(),
             $this->document->contract(),
             $this->errorCodes(),
+            $this->warnings,
         );
     }
 
@@ -581,17 +596,22 @@ final class DescriptorBuilder
     }
 
     /**
-     * The pagination an operation advertises, read from the `page[…]` members it accepts.
+     * The pagination an operation advertises.
      *
-     * Two wire forms carry those members and both are read. The current projector emits a single
-     * `page` object parameter (`style: deepObject`) whose schema declares the members; older
-     * documents — the committed fixture among them — flatten the same members into one parameter
-     * each (`page[number]`). Normalising to member keys means the kinds below are written once.
+     * A page schema stamped with `x-paginator` (contract 3) names its strategy and the key that
+     * fills each role, and that stamp is the whole answer: names are never consulted beside it.
+     * Without one, the strategy is inferred from the member names, and only from the canonical
+     * sets (see {@see inferred()}), because a renamed key is exactly what the stamp exists to
+     * describe.
      *
-     * `number` + `size` is page, `offset` + `limit` is offset, either cursor bound is cursor
-     * (navigation is link-driven, so one is enough). A lone member is fixed-page: the server
-     * fixes the size and advertises only the selector, which is the one shape that cannot be
-     * recognised by name, since every key is server-configurable.
+     * Two wire forms carry unstamped members and both are read. The current projector emits a
+     * single `page` object parameter (`style: deepObject`) whose schema declares them; older
+     * documents flatten them into one parameter each (`page[number]`).
+     *
+     * Nothing here throws for a shape it does not recognise. An unknown strategy, an unknown
+     * member set or an unstamped menu is a warning, and the endpoint generates unpaginated: a
+     * client that cannot page is still a working client, where a codegen that refuses the whole
+     * document is not.
      */
     private function paginator(?Node $operation): PaginatorDescriptor
     {
@@ -599,37 +619,7 @@ final class DescriptorBuilder
             return PaginatorDescriptor::none();
         }
 
-        $members = $this->pageMembers($operation);
-        if ($members === []) {
-            return PaginatorDescriptor::none();
-        }
-
-        $has = static fn(string $member): bool => \in_array($member, $members, true);
-        $kind = match (true) {
-            $has('number') && $has('size') => PaginatorKind::Page,
-            $has('offset') && $has('limit') => PaginatorKind::Offset,
-            $has('after') || $has('before') => PaginatorKind::Cursor,
-            \count($members) === 1 => PaginatorKind::Fixed,
-            default => throw SpecException::malformed(
-                $operation->pointer() . '.parameters',
-                'to declare page members matching a known paginator, got ' . \implode(', ', $members),
-            ),
-        };
-
-        return new PaginatorDescriptor($kind, $members);
-    }
-
-    /**
-     * The `page[…]` member keys an operation accepts, sorted, from either wire form.
-     *
-     * A `oneOf` on the page schema is a client-selectable strategy menu. It is a real server
-     * configuration this codegen has not been taught to project onto a generated surface, so it
-     * errors by name rather than being read as one arbitrary arm of the menu.
-     *
-     * @return list<string>
-     */
-    private function pageMembers(Node $operation): array
-    {
+        $label = self::label($operation);
         $members = [];
 
         foreach ($operation->find('parameters')?->items() ?? [] as $parameter) {
@@ -643,11 +633,13 @@ final class DescriptorBuilder
                 if ($schema === null) {
                     continue;
                 }
+                if ($schema->find('x-paginator') !== null) {
+                    return $this->stamped($schema, $label) ?? PaginatorDescriptor::none();
+                }
                 if ($schema->find('oneOf') !== null) {
-                    throw SpecException::malformed(
-                        $schema->pointer() . '.oneOf',
-                        'to declare one pagination strategy; a selectable strategy menu is not yet generated',
-                    );
+                    $this->warn(\sprintf('%s offers a menu of pagination strategies with no `x-paginator` naming its default, so its reads are generated unpaginated. A server on generator contract 3 or later stamps it.', $label));
+
+                    return PaginatorDescriptor::none();
                 }
                 foreach (\array_keys($schema->find('properties')?->members() ?? []) as $member) {
                     $members[] = (string) $member;
@@ -661,10 +653,165 @@ final class DescriptorBuilder
             }
         }
 
+        if ($members === []) {
+            return PaginatorDescriptor::none();
+        }
+
+        return $this->inferred($members, $label) ?? PaginatorDescriptor::none();
+    }
+
+    /**
+     * A strategy read from the `x-paginator` stamp on a page schema, or null (having warned)
+     * when it is one this codegen cannot generate.
+     */
+    private function stamped(Node $schema, string $label, ?string $arm = null): ?PaginatorDescriptor
+    {
+        $stamp = $schema->get('x-paginator');
+        $strategy = $stamp->get('strategy')->string();
+        $where = $arm === null ? $label : \sprintf('the `%s` strategy of %s', $arm, $label);
+
+        if ($strategy === PaginatorKind::Multi->value && $arm === null) {
+            return $this->menu($schema, $stamp->get('default')->string(), $label);
+        }
+
+        $kind = PaginatorKind::tryFrom($strategy);
+        $roles = $kind === null ? null : self::ROLES[$kind->value] ?? null;
+        if ($kind === null || $roles === null) {
+            $this->warn(\sprintf('%s paginates by the `%s` strategy, which this codegen does not know, so %s generated unpaginated.', $where, $strategy, $arm === null ? 'its reads are' : 'it cannot be picked and is'));
+
+            return null;
+        }
+
+        $keys = [];
+        foreach ($stamp->find('keys')?->members() ?? [] as $role => $key) {
+            if (\in_array((string) $role, $roles, true)) {
+                $keys[(string) $role] = $key->string();
+            }
+        }
+
+        return $this->strategy($kind, $keys, $where);
+    }
+
+    /**
+     * A `MultiPaginator` menu: one arm per `oneOf` member, each selected by the const its
+     * discriminator member declares.
+     *
+     * An arm this codegen cannot read is dropped with a warning, and the rest stay pickable. The
+     * default arm cannot be dropped that way: an unchosen read is typed as its page, so without
+     * it the whole collection generates unpaginated.
+     */
+    private function menu(Node $schema, string $default, string $label): ?PaginatorDescriptor
+    {
+        $discriminator = $schema->path('discriminator', 'propertyName')?->string() ?? 'kind';
+        $arms = [];
+
+        foreach ($schema->get('oneOf')->items() as $branch) {
+            $kind = $branch->get('properties')->get($discriminator)->get('const')->string();
+            if ($branch->find('x-paginator') !== null) {
+                $arm = $this->stamped($branch, $label, $kind);
+            } else {
+                $members = \array_values(\array_filter(
+                    \array_map('strval', \array_keys($branch->find('properties')?->members() ?? [])),
+                    static fn(string $member): bool => $member !== $discriminator,
+                ));
+                $arm = $this->inferred($members, \sprintf('the `%s` strategy of %s', $kind, $label));
+            }
+
+            if ($arm !== null) {
+                $arms[$kind] = $arm;
+            }
+        }
+
+        if (!isset($arms[$default])) {
+            $this->warn(\sprintf('%s defaults to the `%s` strategy, which is not one this codegen can read, so its reads are generated unpaginated.', $label, $default));
+
+            return null;
+        }
+
+        return PaginatorDescriptor::menu($arms, $default, $discriminator);
+    }
+
+    /**
+     * A strategy inferred from unstamped member names, or null (having warned) when they are not
+     * one of the canonical sets: `number` and `size`, `offset` and `limit`, a cursor bound with
+     * an optional `size`, or a lone `number`.
+     *
+     * Only the canonical names are recognised. A renamed key cannot be told apart from a custom
+     * paginator's own, and guessing wrong puts the wrong parameter on the wire, so a server that
+     * renames keys has to say so with `x-paginator`.
+     *
+     * @param list<string> $members
+     */
+    private function inferred(array $members, string $where): ?PaginatorDescriptor
+    {
         $members = \array_values(\array_unique($members));
         \sort($members, \SORT_STRING);
 
-        return $members;
+        $cursor = \array_diff($members, ['after', 'before', 'size']) === [] && \array_intersect($members, ['after', 'before']) !== [];
+        $kind = match (true) {
+            $members === ['number', 'size'] => PaginatorKind::Page,
+            $members === ['limit', 'offset'] => PaginatorKind::Offset,
+            $members === ['number'] => PaginatorKind::Fixed,
+            $cursor => PaginatorKind::Cursor,
+            default => null,
+        };
+
+        if ($kind === null) {
+            $this->warn(\sprintf(
+                '%s pages by %s, which match no paginator this codegen recognises by name, and carries no `x-paginator`; %s generated unpaginated.',
+                $where,
+                \implode(', ', \array_map(static fn(string $member): string => '`' . $member . '`', $members)),
+                \str_starts_with($where, 'the `') ? 'it cannot be picked and is' : 'its reads are',
+            ));
+
+            return null;
+        }
+
+        return new PaginatorDescriptor($kind, \array_combine($members, $members));
+    }
+
+    /**
+     * A single strategy from its role-to-key map, or null (having warned) when a role it cannot
+     * page without is missing.
+     *
+     * @param array<string, string> $keys
+     */
+    private function strategy(PaginatorKind $kind, array $keys, string $where): ?PaginatorDescriptor
+    {
+        $required = match ($kind) {
+            PaginatorKind::Page, PaginatorKind::Fixed => isset($keys['number']),
+            PaginatorKind::Offset => isset($keys['offset']),
+            PaginatorKind::Cursor => isset($keys['after']) || isset($keys['before']),
+            default => false,
+        };
+
+        if (!$required) {
+            $this->warn(\sprintf('%s declares the `%s` strategy without the key it pages by, so %s generated unpaginated.', $where, $kind->value, \str_starts_with($where, 'the `') ? 'it cannot be picked and is' : 'its reads are'));
+
+            return null;
+        }
+
+        \ksort($keys, \SORT_STRING);
+
+        return new PaginatorDescriptor($kind, $keys);
+    }
+
+    private function warn(string $warning): void
+    {
+        if (!\in_array($warning, $this->warnings, true)) {
+            $this->warnings[] = $warning;
+        }
+    }
+
+    /** `GET /albums`, from the operation's pointer (`paths./albums.get`). */
+    private static function label(Node $operation): string
+    {
+        $pointer = $operation->pointer();
+        if (\preg_match('/^paths\.(.+)\.([a-z]+)$/', $pointer, $matches) === 1) {
+            return '`' . \strtoupper($matches[2]) . ' ' . $matches[1] . '`';
+        }
+
+        return '`' . $pointer . '`';
     }
 
     /**

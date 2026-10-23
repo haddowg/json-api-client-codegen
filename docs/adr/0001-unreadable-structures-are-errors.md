@@ -48,3 +48,6 @@ far, and its absence is treated as no signal rather than a failure.
 Optional structures are read with the optional accessors and stay optional. Erroring is for
 structures the codegen must have in order to describe the endpoint at all, not for every member
 the projector happens not to emit.
+
+Pagination is the exception: a paginator the codegen cannot read warns and generates unpaginated.
+See ADR 0002.

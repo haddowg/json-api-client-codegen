@@ -107,35 +107,6 @@ final class DescriptorBuilderErrorTest extends TestCase
         DescriptorBuilder::build($document);
     }
 
-    public function testPageParametersMatchingNoKnownPaginatorAreAnErrorRatherThanSilentlyUnpaginated(): void
-    {
-        $document = SpecDocument::fromDecoded([
-            'components' => [
-                'schemas' => [
-                    'AlbumsResource' => ['properties' => ['type' => ['const' => 'albums']]],
-                    'AlbumsCollection' => [
-                        'properties' => ['data' => ['type' => 'array', 'items' => ['$ref' => '#/components/schemas/AlbumsResource']]],
-                    ],
-                ],
-            ],
-            'paths' => [
-                '/albums' => [
-                    'get' => [
-                        'parameters' => [['name' => 'page[token]'], ['name' => 'page[window]']],
-                        'responses' => [
-                            '200' => ['content' => ['application/vnd.api+json' => ['schema' => ['$ref' => '#/components/schemas/AlbumsCollection']]]],
-                        ],
-                    ],
-                ],
-            ],
-        ]);
-
-        $this->expectException(SpecException::class);
-        $this->expectExceptionMessage('expected paths./albums.get.parameters to declare page members matching a known paginator, got token, window');
-
-        DescriptorBuilder::build($document);
-    }
-
     /**
      * @param array<string, mixed> $schemas
      */

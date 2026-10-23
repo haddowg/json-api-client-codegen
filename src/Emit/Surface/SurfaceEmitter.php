@@ -8,6 +8,7 @@ use haddowg\JsonApiCodegen\Descriptor\ActionScope;
 use haddowg\JsonApiCodegen\Descriptor\ApiDescriptor;
 use haddowg\JsonApiCodegen\Descriptor\ClientIdPolicy;
 use haddowg\JsonApiCodegen\Descriptor\OperationKind;
+use haddowg\JsonApiCodegen\Descriptor\PaginatorKind;
 use haddowg\JsonApiCodegen\Emit\ClassUnit;
 use haddowg\JsonApiCodegen\Emit\Emitter;
 use haddowg\JsonApiCodegen\Emit\GeneratorConfig;
@@ -73,14 +74,24 @@ final class SurfaceEmitter implements Emitter
 
         if ($type->operation(OperationKind::FetchMany) !== null) {
             $query = $type->named('Query');
+            $paginator = $type->resource->paginator;
+            $generic = $query . '<' . $type->base() . '>';
+            $arguments = '$this->fetcher';
+            $prose = ['A read of the ' . $type->type() . ' collection, not yet sent: unprojected, unfiltered and unsorted.'];
+            if ($paginator->kind === PaginatorKind::Multi) {
+                $page = $imports->runtime('Pagination\\' . (TypeSurface::pageClass($paginator) ?? 'Page'));
+                $generic = $query . '<' . $type->base() . ', ' . $page . '>';
+                $arguments .= ', ' . $page . '::read(...)';
+                $prose = Php::wrap($prose[0] . ' Until a picker chooses a strategy, it reads the server\'s default, `' . ($paginator->default ?? '') . '`.', 4);
+            }
             $members[] = Php::docblock([
-                'A read of the ' . $type->type() . ' collection, not yet sent: unprojected, unfiltered and unsorted.',
+                ...$prose,
                 '',
-                '@return ' . $query . '<' . $type->base() . '>',
+                '@return ' . $generic,
             ], 4, false)
                 . '    public function query(): ' . $query . "\n    {\n"
-                . '        /** @var ' . $query . '<' . $type->base() . "> */\n"
-                . '        return new ' . $query . "(\$this->fetcher);\n    }\n";
+                . '        /** @var ' . $generic . " */\n"
+                . '        return new ' . $query . '(' . $arguments . ");\n    }\n";
         }
 
         if ($hasHandle) {

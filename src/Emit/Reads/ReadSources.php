@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace haddowg\JsonApiCodegen\Emit\Reads;
 
+use haddowg\JsonApiCodegen\Descriptor\PaginatorDescriptor;
 use haddowg\JsonApiCodegen\Descriptor\PaginatorKind;
 use haddowg\JsonApiCodegen\Emit\ClassUnit;
 use haddowg\JsonApiCodegen\Emit\Contribution;
 use haddowg\JsonApiCodegen\Emit\Naming;
 use haddowg\JsonApiCodegen\Emit\Php;
+use haddowg\JsonApiCodegen\Emit\Surface\TypeSurface;
 use haddowg\JsonApiCodegen\Emit\UnitKind;
 
 /**
@@ -17,6 +19,17 @@ use haddowg\JsonApiCodegen\Emit\UnitKind;
 final class ReadSources
 {
     private const string RUNTIME = 'haddowg\\JsonApiClient\\';
+
+    /**
+     * The roles a picker takes per strategy, in parameter order, with each one's native type and
+     * its PHPDoc type.
+     */
+    private const array PICKER_ROLES = [
+        'page' => ['number' => ['int', 'positive-int|null'], 'size' => ['int', 'positive-int|null']],
+        'fixed' => ['number' => ['int', 'positive-int|null']],
+        'offset' => ['offset' => ['int', 'int<0, max>|null'], 'limit' => ['int', 'positive-int|null']],
+        'cursor' => ['after' => ['string', 'string|null'], 'before' => ['string', 'string|null'], 'size' => ['int', 'positive-int|null']],
+    ];
 
     /** Local names the generated read methods use, which a type's collection variable must avoid. */
     private const array RESERVED_LOCALS = ['context', 'document', 'query', 'raw', 'request', 'url', 'this'];
@@ -34,9 +47,8 @@ final class ReadSources
         $name = $s->name('Projecting');
         $users = \array_values(\array_filter([
             $s->projection ? $s->name('Projection') : null,
-            $s->collection !== null && $s->queryProjects ? $s->name('Query') : null,
+            $s->collection !== null && $s->queryProjects && !$s->menu() ? $s->name('Query') : null,
         ]));
-        $value = '$' . $this->variable(false);
 
         $doc = [
             ...Php::wrap(\sprintf(
@@ -54,12 +66,37 @@ final class ReadSources
             '@generated from the `include` and `fields` parameters of the `' . $this->type . '` read operations',
         ];
 
+        $methods = $this->projectingMethods('');
+        $imports = [self::RUNTIME . 'Query\\Projection'];
+        if ($s->fields !== null) {
+            $imports[] = self::RUNTIME . 'Exceptions\\UnknownFieldException';
+        }
+
+        return new ClassUnit(
+            $name,
+            UnitKind::Trait,
+            $s->file,
+            Php::docblock($doc, 0, false) . 'trait ' . $name . "\n{\n" . \implode("\n", $methods) . "}\n",
+            $imports,
+        );
+    }
+
+    /**
+     * The `withX()`, `with()` and `fields()` methods, for the trait or written inline into a menu
+     * query, whose page template follows the projection through every narrowing.
+     *
+     * @return list<string>
+     */
+    private function projectingMethods(string $template): array
+    {
+        $s = $this->surface;
+        $value = '$' . $this->variable(false);
         $methods = [];
         foreach ($s->narrowing as $relation) {
             $methods[] = Php::docblock([
                 ...Php::wrap(\sprintf('Include the `%s` relation, narrowing the projection so `%s->%s` type-checks.', $relation, $value, Naming::member($relation)), 4),
                 '',
-                '@return static<TProj&' . Naming::marker($this->type, $relation) . '>',
+                '@return static<TProj&' . Naming::marker($this->type, $relation) . $template . '>',
             ], 4)
                 . '    public function ' . Naming::includeMethod($relation) . "(): static\n"
                 . "    {\n"
@@ -79,9 +116,7 @@ final class ReadSources
                 . "    }\n";
         }
 
-        $imports = [self::RUNTIME . 'Query\\Projection'];
         if ($s->fields !== null) {
-            $imports[] = self::RUNTIME . 'Exceptions\\UnknownFieldException';
             $methods[] = Php::docblock([
                 ...Php::wrap(\sprintf('Sparse fieldsets, with the `%s` members checked against the descriptor. Other types\' fieldsets pass through unchecked.', $this->type), 4),
                 '',
@@ -103,13 +138,7 @@ final class ReadSources
                 . "    }\n";
         }
 
-        return new ClassUnit(
-            $name,
-            UnitKind::Trait,
-            $s->file,
-            Php::docblock($doc, 0, false) . 'trait ' . $name . "\n{\n" . \implode("\n", $methods) . "}\n",
-            $imports,
-        );
+        return $methods;
     }
 
     public function projection(): ClassUnit
@@ -168,7 +197,6 @@ final class ReadSources
         $collection = $s->collection ?? throw new \LogicException('A query builder needs a collection read.');
         $name = $s->name('Query');
         $paginated = $s->paginator->paginated();
-        $page = $this->pageClass();
 
         $imports = [
             self::RUNTIME . 'Http\\Request',
@@ -179,13 +207,21 @@ final class ReadSources
             self::RUNTIME . 'Support\\QueryConditionable',
             self::RUNTIME . 'Collections\\' . ($paginated ? 'PaginatedCollection' : 'ResourceCollection'),
         ];
-        if ($page !== null) {
+        foreach ($this->pageClasses() as $page) {
             $imports[] = self::RUNTIME . 'Pagination\\' . $page;
+        }
+        if ($paginated) {
             $imports[] = self::RUNTIME . 'Pagination\\PageLinks';
         }
 
         $aliases = [];
         $members = [];
+        if ($s->menu() && $s->queryProjects && $s->projects()) {
+            \array_push($members, ...$this->projectingMethods(', TPage'));
+            if ($s->fields !== null) {
+                $imports[] = self::RUNTIME . 'Exceptions\\UnknownFieldException';
+            }
+        }
         foreach ($s->filters as $filter) {
             if ($filter->method === null) {
                 continue;
@@ -231,7 +267,12 @@ final class ReadSources
             '',
             ...Php::wrap('Every door the endpoint advertises is here and nothing it does not.' . ($s->filters === [] ? '' : ' Filters come in three doors: a `whereX()` per filter, the typed `filter()` shape, and the loose `filterRaw()`. They are separate methods because a parameter typed as the shape or any array would accept anything. Both array doors still check names at runtime.')),
             '',
+            ...($s->menu() ? [
+                ...Php::wrap(\sprintf('The endpoint offers a menu of pagination strategies. `TPage` is the page a read returns: the server\'s default, `%s`, until a `pageByX()` picker chooses another.', $s->paginator->default ?? '')),
+                '',
+            ] : []),
             '@template TProj of object',
+            ...($s->menu() ? ['', '@template TPage of Page'] : []),
             '',
             '@extends Query<TProj>',
         ];
@@ -244,10 +285,14 @@ final class ReadSources
         $doc[] = '';
         $doc[] = '@generated from `' . $collection->method . ' ' . $collection->path . '`';
 
-        $uses = $s->trait() && $s->queryProjects
+        $uses = $s->trait() && $s->queryProjects && !$s->menu()
             ? '    /** @use ' . $s->name('Projecting') . "<TProj> */\n    use " . $s->name('Projecting') . ";\n"
             : '';
-        $uses .= "    use QueryConditionable;\n\n    public function __construct(private readonly Fetcher \$fetcher) {}\n";
+        $uses .= "    use QueryConditionable;\n\n";
+        $uses .= $s->menu()
+            ? Php::docblock(['@param \\Closure(array<string, mixed>, PageLinks): TPage $reader'], 4, false)
+                . "    public function __construct(\n        private readonly Fetcher \$fetcher,\n        private \\Closure \$reader,\n    ) {}\n"
+            : "    public function __construct(private readonly Fetcher \$fetcher) {}\n";
 
         return new ClassUnit(
             $name,
@@ -451,6 +496,9 @@ final class ReadSources
     /**
      * The pagination methods of the endpoint's own paginator, and of no other.
      *
+     * Parameters are named by role and the body puts the server's configured key on the wire, so
+     * a renamed `page[p]` changes the request and not the call.
+     *
      * @return list<string>
      */
     private function paging(): array
@@ -458,30 +506,127 @@ final class ReadSources
         $paginator = $this->surface->paginator;
 
         return match ($paginator->kind) {
-            PaginatorKind::Page => [
-                Php::docblock(['@param positive-int      $number', '@param positive-int|null $size', '', '@return static'], 4)
-                . "    public function page(int \$number, ?int \$size = null): static\n"
-                . "    {\n"
-                . "        return \$this->paging(\$size === null ? ['number' => \$number] : ['number' => \$number, 'size' => \$size]);\n"
-                . "    }\n",
-            ],
-            PaginatorKind::Fixed => [
-                Php::docblock([...Php::wrap('Select a page. The server fixes the page size, so there is no size to set.', 4), '', '@param positive-int $number', '', '@return static'], 4)
-                . "    public function page(int \$number): static\n"
-                . "    {\n"
-                . '        return $this->paging([' . Php::string($paginator->parameters[0] ?? 'number') . " => \$number]);\n"
-                . "    }\n",
-            ],
-            PaginatorKind::Offset => [
-                Php::docblock(['@param int<0, max>       $offset', '@param positive-int|null $limit', '', '@return static'], 4)
-                . "    public function page(int \$offset, ?int \$limit = null): static\n"
-                . "    {\n"
-                . "        return \$this->paging(\$limit === null ? ['offset' => \$offset] : ['offset' => \$offset, 'limit' => \$limit]);\n"
-                . "    }\n",
-            ],
+            PaginatorKind::Page => [$this->numbered($paginator, 'number', 'size', 'positive-int', null)],
+            PaginatorKind::Fixed => [$this->numbered($paginator, 'number', 'size', 'positive-int', 'Select a page. The server fixes the page size, so there is no size to set.')],
+            PaginatorKind::Offset => [$this->numbered($paginator, 'offset', 'limit', 'int<0, max>', null)],
             PaginatorKind::Cursor => $this->cursorPaging(),
+            PaginatorKind::Multi => $this->pickers(),
             PaginatorKind::None => [],
         };
+    }
+
+    /**
+     * `page()` for a strategy addressed by one position and an optional size: page and fixed by
+     * `number`, offset by `offset`. The size parameter exists only where the server reads one.
+     */
+    private function numbered(PaginatorDescriptor $paginator, string $position, string $size, string $positionType, ?string $prose): string
+    {
+        $positionKey = Php::string($paginator->key($position) ?? $position);
+        $sizeKey = $paginator->key($size);
+        $doc = $prose === null ? [] : [...Php::wrap($prose, 4), ''];
+
+        if ($sizeKey === null) {
+            return Php::docblock([...$doc, '@param ' . $positionType . ' $' . $position, '', '@return static'], 4)
+                . '    public function page(int $' . $position . "): static\n"
+                . "    {\n"
+                . '        return $this->paging([' . $positionKey . ' => $' . $position . "]);\n"
+                . "    }\n";
+        }
+
+        $width = \max(\strlen($positionType), \strlen('positive-int|null'));
+
+        return Php::docblock([
+            ...$doc,
+            '@param ' . \str_pad($positionType, $width) . ' $' . $position,
+            '@param ' . \str_pad('positive-int|null', $width) . ' $' . $size,
+            '',
+            '@return static',
+        ], 4)
+            . '    public function page(int $' . $position . ', ?int $' . $size . " = null): static\n"
+            . "    {\n"
+            . '        return $this->paging($' . $size . ' === null ? [' . $positionKey . ' => $' . $position . '] : [' . $positionKey . ' => $' . $position . ', ' . Php::string($sizeKey) . ' => $' . $size . "]);\n"
+            . "    }\n";
+    }
+
+    /**
+     * One picker per arm of a menu, and the private `choose()` they share.
+     *
+     * Every parameter is optional: picking a strategy is meaningful on its own, and the server
+     * fills in whatever a request leaves out. The discriminator goes on the wire even for the
+     * default arm, because picking says so explicitly.
+     *
+     * @return list<string>
+     */
+    private function pickers(): array
+    {
+        $s = $this->surface;
+        $menu = $s->paginator;
+        $methods = [];
+
+        foreach ($s->pickers as $method => $kind) {
+            $arm = $menu->arms[$kind];
+            $page = TypeSurface::pageClass($arm) ?? throw new \LogicException('A menu arm always paginates.');
+            $members = [Php::string($menu->discriminator) . ' => ' . Php::string($kind)];
+            $params = [];
+            $signature = [];
+
+            foreach (self::PICKER_ROLES[$arm->kind->value] ?? [] as $role => [$native, $doc]) {
+                $key = $arm->key($role);
+                if ($key === null) {
+                    continue;
+                }
+                $members[] = Php::string($key) . ' => $' . $role;
+                $params[] = [$doc, '$' . $role];
+                $signature[] = '?' . $native . ' $' . $role . ' = null';
+            }
+
+            $width = \max([0, ...\array_map(static fn(array $param): int => \strlen($param[0]), $params)]);
+            $doc = [
+                ...Php::wrap(\sprintf(
+                    'Page by the `%s` strategy%s. Sends `page[%s]=%s` with whichever members are given, replacing whatever an earlier picker set, and reads `%s` pages.',
+                    $kind,
+                    $kind === $menu->default ? ', the one the server uses when a read picks none' : '',
+                    $menu->discriminator,
+                    $kind,
+                    $page,
+                ), 4),
+                '',
+            ];
+            foreach ($params as [$type, $name]) {
+                $doc[] = '@param ' . \str_pad($type, $width) . ' ' . $name;
+            }
+            if ($params !== []) {
+                $doc[] = '';
+            }
+            $doc[] = '@return self<TProj, ' . $page . '>';
+
+            $methods[] = Php::docblock($doc, 4)
+                . '    public function ' . $method . '(' . \implode(', ', $signature) . "): self\n"
+                . "    {\n"
+                . '        return $this->choose([' . \implode(', ', $members) . '], ' . $page . "::read(...));\n"
+                . "    }\n";
+        }
+
+        $methods[] = Php::docblock([
+            ...Php::wrap('Choose a strategy: replace the page parameters with its own, dropping those left null, and re-type the query to read its page. The runtime hands the replaced query back as the base `Query`, which is what makes narrowing it to the new page type legal.', 4),
+            '',
+            '@template TNext of Page',
+            '',
+            '@param array<string, mixed>                              $page',
+            '@param \\Closure(array<string, mixed>, PageLinks): TNext $reader',
+            '',
+            '@return self<TProj, TNext>',
+        ], 4)
+            . "    private function choose(array \$page, \\Closure \$reader): self\n"
+            . "    {\n"
+            . "        /** @var self<TProj, TNext> \$chosen */\n"
+            . "        \$chosen = \$this->repaging(\\array_filter(\$page, static fn(mixed \$value): bool => \$value !== null));\n"
+            . "        \$chosen->reader = \$reader;\n"
+            . "\n"
+            . "        return \$chosen;\n"
+            . "    }\n";
+
+        return $methods;
     }
 
     /**
@@ -520,11 +665,12 @@ final class ReadSources
         $methods = [];
 
         foreach (['after' => 'Resume after a cursor, as a page\'s `_page()->after` hands it back.', 'before' => 'Resume before a cursor, as a page\'s `_page()->before` hands it back.'] as $bound => $prose) {
-            if ($paginator->accepts($bound)) {
+            $key = $paginator->key($bound);
+            if ($key !== null) {
                 $methods[] = Php::docblock([...Php::wrap($prose, 4), '', '@return static'], 4)
                     . '    public function ' . $bound . "(string \$cursor): static\n"
                     . "    {\n"
-                    . '        return $this->paging([' . Php::string($bound) . " => \$cursor]);\n"
+                    . '        return $this->paging([' . Php::string($key) . " => \$cursor]);\n"
                     . "    }\n";
             }
         }
@@ -543,13 +689,7 @@ final class ReadSources
 
     private function cursorSizeKey(): ?string
     {
-        foreach ($this->surface->paginator->parameters as $parameter) {
-            if ($parameter !== 'after' && $parameter !== 'before') {
-                return $parameter;
-            }
-        }
-
-        return null;
+        return $this->surface->paginator->key('size');
     }
 
     /**
@@ -559,16 +699,16 @@ final class ReadSources
     {
         $s = $this->surface;
         $paginated = $s->paginator->paginated();
-        $page = $this->pageClass();
-        $collection = $paginated ? 'PaginatedCollection<TProj, ' . $page . '>' : 'ResourceCollection<TProj>';
+        $collection = $paginated ? 'PaginatedCollection<TProj, ' . $this->pageType() . '>' : 'ResourceCollection<TProj>';
         $collect = $paginated ? '$this->collect($this->fetcher->read($this->request($query), $query), $query)' : '$this->collect($this->fetcher->read($this->request($query), $query))';
 
+        $sizes = static fn(string $role): bool => $s->paginator->key($role) !== null;
         [$first, $sized] = match ($s->paginator->kind) {
-            PaginatorKind::Page => ['$this->page(1, 1)->get()->first()', true],
+            PaginatorKind::Page => $sizes('size') ? ['$this->page(1, 1)->get()->first()', true] : ['$this->page(1)->get()->first()', false],
             PaginatorKind::Fixed => ['$this->page(1)->get()->first()', false],
-            PaginatorKind::Offset => ['$this->page(0, 1)->get()->first()', true],
-            PaginatorKind::Cursor => $this->cursorSizeKey() !== null ? ['$this->size(1)->get()->first()', true] : ['$this->get()->first()', false],
-            PaginatorKind::None => ['$this->get()->first()', false],
+            PaginatorKind::Offset => $sizes('limit') ? ['$this->page(0, 1)->get()->first()', true] : ['$this->page(0)->get()->first()', false],
+            PaginatorKind::Cursor => $sizes('size') ? ['$this->size(1)->get()->first()', true] : ['$this->get()->first()', false],
+            PaginatorKind::Multi, PaginatorKind::None => ['$this->get()->first()', false],
         };
 
         $singular = Naming::singular($this->type);
@@ -673,7 +813,7 @@ final class ReadSources
     private function collect(): string
     {
         $variable = '$' . $this->variable(true);
-        $page = $this->pageClass();
+        $page = $this->surface->paginator->paginated() ? $this->pageType() : null;
 
         $loop = "        \$document = \$context->document();\n"
             . '        ' . $variable . " = [];\n"
@@ -698,7 +838,7 @@ final class ReadSources
             . $loop
             . "        return new PaginatedCollection(\n"
             . '            ' . $variable . ",\n"
-            . '            ' . $page . "::read(\$document->pageMeta(), PageLinks::fromArray(\$document->links())),\n"
+            . '            ' . ($this->surface->menu() ? '($this->reader)' : $page . '::read') . "(\$document->pageMeta(), PageLinks::fromArray(\$document->links())),\n"
             . "            \$document->meta(),\n"
             . "            \$document->links(),\n"
             . "            fn(string \$url): PaginatedCollection => \$this->collect(\$this->fetcher->readUrl(\$url, \$query), \$query),\n"
@@ -727,16 +867,35 @@ final class ReadSources
             . "    }\n";
     }
 
-    /** The runtime page class for the endpoint's paginator, null when it is not paginated. */
-    private function pageClass(): ?string
+    /**
+     * The page type a read is declared to return: the runtime page class, or a menu's `TPage`.
+     */
+    private function pageType(): string
     {
-        return match ($this->surface->paginator->kind) {
-            PaginatorKind::Page => 'PageNumber',
-            PaginatorKind::Fixed => 'FixedPage',
-            PaginatorKind::Offset => 'Offset',
-            PaginatorKind::Cursor => 'Cursor',
-            PaginatorKind::None => null,
-        };
+        return $this->surface->menu() ? 'TPage' : TypeSurface::pageClass($this->surface->paginator) ?? 'Page';
+    }
+
+    /**
+     * Every runtime page class the query names: its paginator's, or, for a menu, the template's
+     * bound and each pickable arm's.
+     *
+     * @return list<string>
+     */
+    private function pageClasses(): array
+    {
+        $s = $this->surface;
+        if (!$s->menu()) {
+            $page = TypeSurface::pageClass($s->paginator);
+
+            return $page === null ? [] : [$page];
+        }
+
+        $classes = ['Page'];
+        foreach ($s->pickers as $kind) {
+            $classes[] = TypeSurface::pageClass($s->paginator->arms[$kind]) ?? 'Page';
+        }
+
+        return \array_values(\array_unique($classes));
     }
 
     private function collectionLabel(): string

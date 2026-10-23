@@ -100,18 +100,21 @@ final class TypeSurface
     }
 
     /**
-     * The runtime page class a paginator kind reads into, or null when it does not paginate.
+     * The runtime page class a paginator reads into, or null when it does not paginate.
      *
      * A fixed-size paginator has its own page class, which carries no size: the server fixes it.
+     * A menu reads into its default arm's page wherever nothing picks an arm, which is every
+     * relation read.
      */
-    public static function pageClass(PaginatorKind $kind): ?string
+    public static function pageClass(PaginatorDescriptor $paginator): ?string
     {
-        return match ($kind) {
+        return match ($paginator->unchosen()->kind) {
             PaginatorKind::Page => 'PageNumber',
             PaginatorKind::Fixed => 'FixedPage',
             PaginatorKind::Offset => 'Offset',
             PaginatorKind::Cursor => 'Cursor',
             PaginatorKind::None => null,
+            PaginatorKind::Multi => throw new \LogicException('A paginator menu has no default arm.'),
         };
     }
 

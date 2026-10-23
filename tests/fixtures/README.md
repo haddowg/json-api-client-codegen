@@ -9,8 +9,9 @@ the two codegens are kept consistent.
 | --- | --- |
 | `music-catalog.openapi.json` | The OpenAPI 3.1 document for the music-catalog API. 63 paths, 248 component schemas, 15 resource types, generator contract 2. |
 | `music-catalog.schemas.json` | The sidecar JSON Schema map, one draft-2020-12 schema per resource type, keyed by type. |
+| `paginators.openapi.json` | Hand-built, generator contract 3. One collection per pagination strategy, each with renamed keys under `x-paginator`, a `MultiPaginator` menu on `posts` (and on its related `comments` read), an unstamped canonical `tags`, and a strategy no codegen knows on `logs`. Shaped after core's projection; not exported from a server. |
 
-This is the canonical codegen input. Golden-file tests generate from it and diff the committed
+`music-catalog.openapi.json` is the canonical codegen input. Golden-file tests generate from it and diff the committed
 expected output, so treat both files as frozen: regenerating them changes every golden file at
 once and makes the diff unreadable. Replace them only when the emitted document structure
 itself changes, and say so in the commit.
@@ -39,6 +40,11 @@ one `page[number]`-style parameter each, and `json-api-ts` still has such a docu
 The reader normalises both, and `tests/Descriptor/PaginatorDetectionTest.php` pins every
 strategy against hand-built documents in both forms. Do not "simplify" it to the current form
 alone.
+
+Neither form carries `x-paginator`, which only contract 3 stamps, so this document exercises
+the name-based fallback. `paginators.openapi.json` covers the stamp. Its generated output is
+committed under `tests/golden/paginators`, analysed by `composer phpstan-generated` together with
+the page-type assertions in `tests/GeneratedTypes`, and run by `PaginationBehaviourTest`.
 
 ## The reference artefact
 

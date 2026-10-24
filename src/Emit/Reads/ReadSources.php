@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace haddowg\JsonApiCodegen\Emit\Reads;
 
+use haddowg\JsonApiCodegen\Descriptor\Constraints;
 use haddowg\JsonApiCodegen\Descriptor\PaginatorDescriptor;
 use haddowg\JsonApiCodegen\Descriptor\PaginatorKind;
 use haddowg\JsonApiCodegen\Emit\ClassUnit;
 use haddowg\JsonApiCodegen\Emit\Contribution;
 use haddowg\JsonApiCodegen\Emit\Naming;
+use haddowg\JsonApiCodegen\Emit\Narrowing;
 use haddowg\JsonApiCodegen\Emit\Php;
 use haddowg\JsonApiCodegen\Emit\Surface\TypeSurface;
 use haddowg\JsonApiCodegen\Emit\UnitKind;
@@ -20,16 +22,19 @@ final class ReadSources
 {
     private const string RUNTIME = 'haddowg\\JsonApiClient\\';
 
-    /**
-     * The roles a picker takes per strategy, in parameter order, with each one's native type and
-     * its PHPDoc type.
-     */
+    /** The roles a picker takes per strategy, in parameter order, with each one's native type. */
     private const array PICKER_ROLES = [
-        'page' => ['number' => ['int', 'positive-int|null'], 'size' => ['int', 'positive-int|null']],
-        'fixed' => ['number' => ['int', 'positive-int|null']],
-        'offset' => ['offset' => ['int', 'int<0, max>|null'], 'limit' => ['int', 'positive-int|null']],
-        'cursor' => ['after' => ['string', 'string|null'], 'before' => ['string', 'string|null'], 'size' => ['int', 'positive-int|null']],
+        'page' => ['number' => 'int', 'size' => 'int'],
+        'fixed' => ['number' => 'int'],
+        'offset' => ['offset' => 'int', 'limit' => 'int'],
+        'cursor' => ['after' => 'string', 'before' => 'string', 'size' => 'int'],
     ];
+
+    /**
+     * The smallest value each integer role takes, which the paginator enforces whether or not
+     * the document states it. A page schema's own bounds narrow it further.
+     */
+    private const array ROLE_FLOORS = ['number' => 1, 'size' => 1, 'limit' => 1, 'offset' => 0];
 
     /** Local names the generated read methods use, which a type's collection variable must avoid. */
     private const array RESERVED_LOCALS = ['context', 'document', 'query', 'raw', 'request', 'url', 'this'];
@@ -506,9 +511,9 @@ final class ReadSources
         $paginator = $this->surface->paginator;
 
         return match ($paginator->kind) {
-            PaginatorKind::Page => [$this->numbered($paginator, 'number', 'size', 'positive-int', null)],
-            PaginatorKind::Fixed => [$this->numbered($paginator, 'number', 'size', 'positive-int', 'Select a page. The server fixes the page size, so there is no size to set.')],
-            PaginatorKind::Offset => [$this->numbered($paginator, 'offset', 'limit', 'int<0, max>', null)],
+            PaginatorKind::Page => [$this->numbered($paginator, 'number', 'size', null)],
+            PaginatorKind::Fixed => [$this->numbered($paginator, 'number', 'size', 'Select a page. The server fixes the page size, so there is no size to set.')],
+            PaginatorKind::Offset => [$this->numbered($paginator, 'offset', 'limit', null)],
             PaginatorKind::Cursor => $this->cursorPaging(),
             PaginatorKind::Multi => $this->pickers(),
             PaginatorKind::None => [],
@@ -519,10 +524,14 @@ final class ReadSources
      * `page()` for a strategy addressed by one position and an optional size: page and fixed by
      * `number`, offset by `offset`. The size parameter exists only where the server reads one.
      */
-    private function numbered(PaginatorDescriptor $paginator, string $position, string $size, string $positionType, ?string $prose): string
+    private function numbered(PaginatorDescriptor $paginator, string $position, string $size, ?string $prose): string
     {
         $positionKey = Php::string($paginator->key($position) ?? $position);
         $sizeKey = $paginator->key($size);
+        $positionType = self::roleType($paginator, $position);
+        $sizeType = self::roleType($paginator, $size) . '|null';
+        $defaults = self::defaults($paginator, $sizeKey === null ? [$position] : [$position, $size]);
+        $prose = $prose === null ? $defaults : ($defaults === null ? $prose : $prose . ' ' . $defaults);
         $doc = $prose === null ? [] : [...Php::wrap($prose, 4), ''];
 
         if ($sizeKey === null) {
@@ -533,12 +542,12 @@ final class ReadSources
                 . "    }\n";
         }
 
-        $width = \max(\strlen($positionType), \strlen('positive-int|null'));
+        $width = \max(\strlen($positionType), \strlen($sizeType));
 
         return Php::docblock([
             ...$doc,
             '@param ' . \str_pad($positionType, $width) . ' $' . $position,
-            '@param ' . \str_pad('positive-int|null', $width) . ' $' . $size,
+            '@param ' . \str_pad($sizeType, $width) . ' $' . $size,
             '',
             '@return static',
         ], 4)
@@ -570,15 +579,18 @@ final class ReadSources
             $params = [];
             $signature = [];
 
-            foreach (self::PICKER_ROLES[$arm->kind->value] ?? [] as $role => [$native, $doc]) {
+            $roles = [];
+            foreach (self::PICKER_ROLES[$arm->kind->value] ?? [] as $role => $native) {
                 $key = $arm->key($role);
                 if ($key === null) {
                     continue;
                 }
+                $roles[] = $role;
                 $members[] = Php::string($key) . ' => $' . $role;
-                $params[] = [$doc, '$' . $role];
+                $params[] = [self::roleType($arm, $role) . '|null', '$' . $role];
                 $signature[] = '?' . $native . ' $' . $role . ' = null';
             }
+            $defaults = self::defaults($arm, $roles);
 
             $width = \max([0, ...\array_map(static fn(array $param): int => \strlen($param[0]), $params)]);
             $doc = [
@@ -589,7 +601,7 @@ final class ReadSources
                     $menu->discriminator,
                     $kind,
                     $page,
-                ), 4),
+                ) . ($defaults === null ? '' : ' ' . $defaults), 4),
                 '',
             ];
             foreach ($params as [$type, $name]) {
@@ -677,7 +689,8 @@ final class ReadSources
 
         $size = $this->cursorSizeKey();
         if ($size !== null) {
-            $methods[] = Php::docblock(['@param positive-int $size', '', '@return static'], 4)
+            $defaults = self::defaults($paginator, ['size']);
+            $methods[] = Php::docblock([...($defaults === null ? [] : [...Php::wrap($defaults, 4), '']), '@param ' . self::roleType($paginator, 'size') . ' $size', '', '@return static'], 4)
                 . "    public function size(int \$size): static\n"
                 . "    {\n"
                 . '        return $this->paging([' . Php::string($size) . " => \$size]);\n"
@@ -685,6 +698,36 @@ final class ReadSources
         }
 
         return $methods;
+    }
+
+    /**
+     * A role's PHPDoc type: its floor, narrowed by whatever bounds its page schema declares, such
+     * as the cap on a page size.
+     */
+    private static function roleType(PaginatorDescriptor $paginator, string $role): string
+    {
+        $floor = self::ROLE_FLOORS[$role] ?? null;
+
+        return $floor === null ? 'string' : Narrowing::integer($paginator->bounds($role)->orElse(new Constraints(minimum: $floor)));
+    }
+
+    /**
+     * The values the server gives the roles a request leaves out, as a sentence, or null when
+     * the document states none.
+     *
+     * @param list<string> $roles
+     */
+    private static function defaults(PaginatorDescriptor $paginator, array $roles): ?string
+    {
+        $parts = [];
+        foreach ($roles as $role) {
+            $default = $paginator->bounds($role)->default;
+            if ($default !== null && !\is_bool($default)) {
+                $parts[] = '`$' . $role . '` defaults to ' . $default;
+            }
+        }
+
+        return $parts === [] ? null : \ucfirst(\implode(' and ', $parts)) . '.';
     }
 
     private function cursorSizeKey(): ?string

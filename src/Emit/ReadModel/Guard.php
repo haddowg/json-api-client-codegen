@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace haddowg\JsonApiCodegen\Emit\ReadModel;
 
+use haddowg\JsonApiCodegen\Descriptor\Constraints;
 use haddowg\JsonApiCodegen\Emit\Naming;
 use haddowg\JsonApiCodegen\Emit\Php;
 
@@ -14,6 +15,10 @@ use haddowg\JsonApiCodegen\Emit\Php;
  * An optional member of the wrong type is dropped rather than asserted, so a server sending the
  * wrong thing loses that member instead of poisoning the type. A required member of the wrong
  * type throws `MalformedDocument`, because dropping it would make the declared shape a lie.
+ *
+ * Constraints are asserted, not checked: a narrowed member gets an inline `@var` once its JSON
+ * type is known, because the server guarantees the bound and a client that rejected data over it
+ * would be rejecting real responses.
  */
 final class Guard
 {
@@ -114,7 +119,10 @@ final class Guard
         };
 
         $body = match ($shape->kind) {
-            ShapeKind::Scalar => [$out . ' = ' . ($shape->scalar === 'number' ? '(float) ' . $var : $var) . ';'],
+            ShapeKind::Scalar => [
+                ...($shape->narrowed() ? ['/** @var ' . $shape->wireType() . ' ' . $var . ' */'] : []),
+                $out . ' = ' . ($shape->scalar === 'number' ? '(float) ' . $var : $var) . ';',
+            ],
             ShapeKind::List => $this->list($shape, $in, $out),
             default => $this->nested($shape, $in, $out),
         };
@@ -157,8 +165,15 @@ final class Guard
             ...self::indent($this->value($items, $item, '$' . $list . '[]', false, null, $item)),
             '}',
             '',
+            ...(self::narrowsItself($shape) ? ['/** @var ' . $shape->wireType() . ' $' . $list . ' */'] : []),
             $out . ' = $' . $list . ';',
         ];
+    }
+
+    /** Whether a shape's own constraints narrow it, as opposed to those of its items. */
+    private static function narrowsItself(Shape $shape): bool
+    {
+        return $shape->wireType() !== $shape->constrained(Constraints::none())->wireType();
     }
 
     /** @return array{string, string} the condition, and the expected kind for a failure message */

@@ -92,6 +92,7 @@ abstract class DeviceBase extends ResourceObject
 
     public string $type { get => $this->type(); }
 
+    /** @var non-empty-string */
     public string $label { get => $this->label(); }
 
     public function id(): string
@@ -108,11 +109,16 @@ abstract class DeviceBase extends ResourceObject
     }
 
     /**
+     * @return non-empty-string
+     *
      * @throws FieldNotSelectedException when a sparse fieldset excluded `label`
      */
     public function label(): string
     {
-        return $this->_string('label');
+        /** @var non-empty-string $value */
+        $value = $this->_string('label');
+
+        return $value;
     }
 }
 
@@ -127,8 +133,8 @@ abstract class DeviceBase extends ResourceObject
  * runtime guards check against. `@phpstan-type` aliases are class-local, so every other class using
  * one imports it from here.
  *
- * @phpstan-type DeviceCreateShape array{label: string}
- * @phpstan-type DeviceUpdateShape array{label?: string}
+ * @phpstan-type DeviceCreateShape array{label: non-empty-string}
+ * @phpstan-type DeviceUpdateShape array{label?: non-empty-string}
  * @phpstan-type DeviceFieldToken 'label'
  *
  * @generated from `components.schemas.DevicesResource`
@@ -240,6 +246,9 @@ final class Device extends DeviceBase
  */
 final class DeviceCreate
 {
+    /**
+     * @param non-empty-string $label
+     */
     public function __construct(
         public readonly string $label,
     ) {}
@@ -292,8 +301,14 @@ final class DeviceCreateBuilder
 {
     use Conditionable;
 
+    /**
+     * @var non-empty-string|Missing
+     */
     private string|Missing $label = Missing::Value;
 
+    /**
+     * @param non-empty-string $label
+     */
     public function label(string $label): self
     {
         $this->label = $label;
@@ -504,8 +519,10 @@ final class DeviceQuery extends Query
     public function __construct(private readonly Fetcher $fetcher) {}
 
     /**
-     * @param positive-int      $number
-     * @param positive-int|null $size
+     * `$number` defaults to 1 and `$size` defaults to 15.
+     *
+     * @param positive-int    $number
+     * @param int<1, 50>|null $size
      *
      * @return static
      */
@@ -619,6 +636,8 @@ final class DeviceUpdate
     use ImmutableConditionable;
 
     /**
+     * @param non-empty-string|Missing $label
+     *
      * @phpstan-pure
      */
     public function __construct(
@@ -626,6 +645,8 @@ final class DeviceUpdate
     ) {}
 
     /**
+     * @param non-empty-string $label
+     *
      * @phpstan-pure
      */
     public function label(string $label): self

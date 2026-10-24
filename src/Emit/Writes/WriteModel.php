@@ -11,6 +11,7 @@ use haddowg\JsonApiCodegen\Descriptor\OperationKind;
 use haddowg\JsonApiCodegen\Descriptor\ResourceDescriptor;
 use haddowg\JsonApiCodegen\Descriptor\WriteAttributeDescriptor;
 use haddowg\JsonApiCodegen\Emit\Naming;
+use haddowg\JsonApiCodegen\Emit\Narrowing;
 
 /**
  * The write surface of one resource type: its create and update members, in the order the
@@ -105,7 +106,7 @@ final class WriteModel
         }
 
         foreach ($relations as $name) {
-            $relation = $resource->relation($name);
+            $relation = $resource->writableRelation($name);
             if ($relation === null) {
                 continue;
             }
@@ -198,7 +199,28 @@ final class WriteModel
             $enum,
             $dateFormat,
             false,
+            $enum === null && $dateFormat === null ? self::prose($attribute) : null,
         );
+    }
+
+    /** The constraints of a write attribute that its narrowed type cannot state. */
+    private static function prose(WriteAttributeDescriptor $attribute): ?string
+    {
+        $json = null;
+        foreach ($attribute->schema->types ?? [] as $type) {
+            if ($type !== 'null') {
+                $json = $type;
+                break;
+            }
+        }
+        $json ??= match ($attribute->format) {
+            'integer', 'int32', 'int64' => 'integer',
+            'number', 'float', 'double' => 'number',
+            'boolean', 'object', 'array', 'unknown' => $attribute->format,
+            default => 'string',
+        };
+
+        return Narrowing::prose($json, $attribute->constraints, $attribute->format);
     }
 
     /**
@@ -213,13 +235,13 @@ final class WriteModel
         }
 
         return match ($attribute->format) {
-            'integer', 'int32', 'int64' => ['int', 'int'],
+            'integer', 'int32', 'int64' => ['int', Narrowing::scalar('integer', $attribute->constraints)],
             'number', 'float', 'double' => ['float', 'float'],
             'boolean' => ['bool', 'bool'],
             'object' => ['array', 'array<string, mixed>'],
             'array' => ['array', 'list<mixed>'],
             'unknown' => ['mixed', 'mixed'],
-            default => ['string', 'string'],
+            default => ['string', Narrowing::scalar('string', $attribute->constraints)],
         };
     }
 

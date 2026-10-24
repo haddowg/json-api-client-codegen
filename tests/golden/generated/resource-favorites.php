@@ -136,7 +136,7 @@ abstract class FavoriteBase extends ResourceObject
 
     public string $type { get => $this->type(); }
 
-    public \DateTimeImmutable $favoritedAt { get => $this->favoritedAt(); }
+    public ?\DateTimeImmutable $favoritedAt { get => $this->favoritedAt(); }
 
     public function id(): string
     {
@@ -154,9 +154,9 @@ abstract class FavoriteBase extends ResourceObject
     /**
      * @throws FieldNotSelectedException when a sparse fieldset excluded `favoritedAt`
      */
-    public function favoritedAt(): \DateTimeImmutable
+    public function favoritedAt(): ?\DateTimeImmutable
     {
-        return $this->_dateTime('favoritedAt');
+        return $this->_nullableDateTime('favoritedAt');
     }
 
     /**
@@ -768,8 +768,10 @@ final class FavoriteQuery extends Query
     public function __construct(private readonly Fetcher $fetcher) {}
 
     /**
-     * @param positive-int      $number
-     * @param positive-int|null $size
+     * `$number` defaults to 1 and `$size` defaults to 15.
+     *
+     * @param positive-int    $number
+     * @param int<1, 50>|null $size
      *
      * @return static
      */

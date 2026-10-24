@@ -174,17 +174,18 @@ abstract class AlbumBase extends ResourceObject
 
     public string $type { get => $this->type(); }
 
+    /** @var non-empty-string */
     public string $title { get => $this->title(); }
 
     public ?float $averageRating { get => $this->averageRating(); }
 
     public ?string $artwork { get => $this->artwork(); }
 
-    public \DateTimeImmutable $releasedAt { get => $this->releasedAt(); }
+    public ?\DateTimeImmutable $releasedAt { get => $this->releasedAt(); }
 
-    public bool $explicit { get => $this->explicit(); }
+    public ?bool $explicit { get => $this->explicit(); }
 
-    public AlbumStatus $status { get => $this->status(); }
+    public ?AlbumStatus $status { get => $this->status(); }
 
     public ?\DateTimeImmutable $availableFrom { get => $this->availableFrom(); }
 
@@ -207,11 +208,18 @@ abstract class AlbumBase extends ResourceObject
     }
 
     /**
+     * At most 200 characters.
+     *
+     * @return non-empty-string
+     *
      * @throws FieldNotSelectedException when a sparse fieldset excluded `title`
      */
     public function title(): string
     {
-        return $this->_string('title');
+        /** @var non-empty-string $value */
+        $value = $this->_string('title');
+
+        return $value;
     }
 
     /**
@@ -237,25 +245,25 @@ abstract class AlbumBase extends ResourceObject
     /**
      * @throws FieldNotSelectedException when a sparse fieldset excluded `releasedAt`
      */
-    public function releasedAt(): \DateTimeImmutable
+    public function releasedAt(): ?\DateTimeImmutable
     {
-        return $this->_dateTime('releasedAt');
+        return $this->_nullableDateTime('releasedAt');
     }
 
     /**
      * @throws FieldNotSelectedException when a sparse fieldset excluded `explicit`
      */
-    public function explicit(): bool
+    public function explicit(): ?bool
     {
-        return $this->_bool('explicit');
+        return $this->_nullableBool('explicit');
     }
 
     /**
      * @throws FieldNotSelectedException when a sparse fieldset excluded `status`
      */
-    public function status(): AlbumStatus
+    public function status(): ?AlbumStatus
     {
-        return $this->_enum('status', AlbumStatus::class);
+        return $this->_nullableEnum('status', AlbumStatus::class);
     }
 
     /**
@@ -294,8 +302,16 @@ abstract class AlbumBase extends ResourceObject
         $label = $raw['label'] ?? null;
         $catalogueNumber = $raw['catalogueNumber'] ?? null;
 
+        if ($label === null && \array_key_exists('label', $raw)) {
+            $shape['label'] = null;
+        }
+
         if (\is_string($label)) {
             $shape['label'] = $label;
+        }
+
+        if ($catalogueNumber === null && \array_key_exists('catalogueNumber', $raw)) {
+            $shape['catalogueNumber'] = null;
         }
 
         if (\is_string($catalogueNumber)) {
@@ -362,13 +378,13 @@ abstract class AlbumBase extends ResourceObject
  * runtime guards check against. `@phpstan-type` aliases are class-local, so every other class using
  * one imports it from here.
  *
- * @phpstan-type AlbumReleaseInfoShape array{label?: string, catalogueNumber?: string}
+ * @phpstan-type AlbumReleaseInfoShape array{label?: string|null, catalogueNumber?: string|null}
  * @phpstan-type AlbumStatusInput AlbumStatus|'released'|'upcoming'|'withdrawn'
  * @phpstan-type AlbumDateInput \DateTimeImmutable|string
  * @phpstan-type AlbumArtistInput Artist|Identifier|null
  * @phpstan-type AlbumTracksInput list<Identifier|Track>
- * @phpstan-type AlbumCreateShape array{title: string, releasedAt?: AlbumDateInput, explicit?: bool, status?: AlbumStatusInput, availableFrom?: AlbumDateInput|null, availableUntil?: AlbumDateInput|null, releaseInfo?: AlbumReleaseInfoShape|null, artist?: AlbumArtistInput, tracks?: AlbumTracksInput}
- * @phpstan-type AlbumUpdateShape array{title?: string, releasedAt?: AlbumDateInput, explicit?: bool, status?: AlbumStatusInput, availableFrom?: AlbumDateInput|null, availableUntil?: AlbumDateInput|null, releaseInfo?: AlbumReleaseInfoShape|null, artist?: AlbumArtistInput, tracks?: AlbumTracksInput}
+ * @phpstan-type AlbumCreateShape array{title: non-empty-string, releasedAt?: AlbumDateInput, explicit?: bool, status?: AlbumStatusInput, availableFrom?: AlbumDateInput|null, availableUntil?: AlbumDateInput|null, releaseInfo?: array{label?: string, catalogueNumber?: string}|null, artist?: AlbumArtistInput, tracks?: AlbumTracksInput}
+ * @phpstan-type AlbumUpdateShape array{title?: non-empty-string, releasedAt?: AlbumDateInput, explicit?: bool, status?: AlbumStatusInput, availableFrom?: AlbumDateInput|null, availableUntil?: AlbumDateInput|null, releaseInfo?: array{label?: string, catalogueNumber?: string}|null, artist?: AlbumArtistInput, tracks?: AlbumTracksInput}
  * @phpstan-type AlbumRangeShape array{min?: float, max?: float}
  * @phpstan-type AlbumDateRangeShape array{min?: AlbumDateInput, max?: AlbumDateInput}
  * @phpstan-type AlbumFilterShape array{tracks?: string, 'artist.name'?: string, title?: string, rating?: AlbumRangeShape, releasedAt?: AlbumDateRangeShape, q?: string}
@@ -776,14 +792,14 @@ final class AlbumCollectionActions
  * keeps an absent member distinct from an explicit `null`.
  *
  * @phpstan-import-type AlbumCreateShape from Album
- * @phpstan-import-type AlbumReleaseInfoShape from Album
  *
  * @generated from `POST /albums`
  */
 final class AlbumCreate
 {
     /**
-     * @param AlbumReleaseInfoShape|Missing|null $releaseInfo
+     * @param non-empty-string $title
+     * @param array{label?: string, catalogueNumber?: string}|Missing|null $releaseInfo
      * @param Artist|Identifier|Missing|null $artist
      * @param list<Identifier|Track>|Missing $tracks
      */
@@ -893,6 +909,9 @@ final class AlbumCreateBuilder
 {
     use Conditionable;
 
+    /**
+     * @var non-empty-string|Missing
+     */
     private string|Missing $title = Missing::Value;
 
     private \DateTimeImmutable|Missing $releasedAt = Missing::Value;
@@ -917,6 +936,11 @@ final class AlbumCreateBuilder
      */
     private array|Missing $tracks = Missing::Value;
 
+    /**
+     * At most 200 characters.
+     *
+     * @param non-empty-string $title
+     */
     public function title(string $title): self
     {
         $this->title = $title;
@@ -1374,8 +1398,10 @@ final class AlbumQuery extends Query
     }
 
     /**
-     * @param positive-int      $number
-     * @param positive-int|null $size
+     * `$number` defaults to 1 and `$size` defaults to 15.
+     *
+     * @param positive-int    $number
+     * @param int<1, 50>|null $size
      *
      * @return static
      */
@@ -1687,7 +1713,6 @@ final class AlbumTracksRelation
  * is. The id is not a member; it comes from the handle the update is called on, so it cannot
  * disagree with the URL.
  *
- * @phpstan-import-type AlbumReleaseInfoShape from Album
  * @phpstan-import-type AlbumUpdateShape from Album
  *
  * @generated from `PATCH /albums/{id}`
@@ -1697,7 +1722,8 @@ final class AlbumUpdate
     use ImmutableConditionable;
 
     /**
-     * @param AlbumReleaseInfoShape|Missing|null $releaseInfo
+     * @param non-empty-string|Missing $title
+     * @param array{label?: string, catalogueNumber?: string}|Missing|null $releaseInfo
      * @param Artist|Identifier|Missing|null $artist
      * @param list<Identifier|Track>|Missing $tracks
      *
@@ -1716,6 +1742,10 @@ final class AlbumUpdate
     ) {}
 
     /**
+     * At most 200 characters.
+     *
+     * @param non-empty-string $title
+     *
      * @phpstan-pure
      */
     public function title(string $title): self
@@ -1824,7 +1854,7 @@ final class AlbumUpdate
     }
 
     /**
-     * @param AlbumReleaseInfoShape|null $releaseInfo
+     * @param array{label?: string, catalogueNumber?: string}|null $releaseInfo
      *
      * @phpstan-pure
      */

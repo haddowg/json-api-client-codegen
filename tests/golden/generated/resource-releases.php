@@ -143,6 +143,7 @@ abstract class ReleaseBase extends ResourceObject
 
     public string $type { get => $this->type(); }
 
+    /** @var non-empty-string */
     public string $catalogNumber { get => $this->catalogNumber(); }
 
     public ReleaseFormatVinyl|ReleaseFormatCd|ReleaseFormatDigital|null $format { get => $this->format(); }
@@ -170,11 +171,18 @@ abstract class ReleaseBase extends ResourceObject
     }
 
     /**
+     * At most 40 characters.
+     *
+     * @return non-empty-string
+     *
      * @throws FieldNotSelectedException when a sparse fieldset excluded `catalogNumber`
      */
     public function catalogNumber(): string
     {
-        return $this->_string('catalogNumber');
+        /** @var non-empty-string $value */
+        $value = $this->_string('catalogNumber');
+
+        return $value;
     }
 
     /**
@@ -220,7 +228,12 @@ abstract class ReleaseBase extends ResourceObject
         $gatefold = $raw['gatefold'] ?? null;
 
         if (\is_string($material)) {
+            /** @var non-empty-string $material */
             $shape['material'] = $material;
+        }
+
+        if ($gatefold === null && \array_key_exists('gatefold', $raw)) {
+            $shape['gatefold'] = null;
         }
 
         if (\is_bool($gatefold)) {
@@ -263,6 +276,7 @@ abstract class ReleaseBase extends ResourceObject
                 }
             }
 
+            /** @var non-empty-list<string> $regionsList */
             $shape['regions'] = $regionsList;
         }
 
@@ -348,13 +362,13 @@ abstract class ReleaseBase extends ResourceObject
  * the runtime guards check against. `@phpstan-type` aliases are class-local, so every other class
  * using one imports it from here.
  *
- * @phpstan-type ReleaseFormatShape array{rpm?: int, coloured?: bool, medium: 'vinyl'}|array{discs?: int, medium: 'cd'}|array{codec?: string, bitrateKbps?: int, medium: 'digital'}
- * @phpstan-type ReleasePackagingShape array{material?: string, gatefold?: bool}
- * @phpstan-type ReleaseAvailabilityShape array{worldwide?: bool, regions?: list<string>}
+ * @phpstan-type ReleaseFormatShape array{rpm?: int<16, 78>, coloured?: bool|null, medium: 'vinyl'}|array{discs?: positive-int, medium: 'cd'}|array{codec?: non-empty-string, bitrateKbps?: int<32, max>|null, medium: 'digital'}
+ * @phpstan-type ReleasePackagingShape array{material?: non-empty-string, gatefold?: bool|null}
+ * @phpstan-type ReleaseAvailabilityShape array{worldwide?: bool, regions?: non-empty-list<string>}
  * @phpstan-type ReleaseDimensionsShape array{widthMm: float, heightMm: float, depthMm?: float}
  * @phpstan-type ReleaseAlbumInput Album|Identifier|null
- * @phpstan-type ReleaseCreateShape array{catalogNumber: string, format?: array{rpm: int, coloured?: bool, medium: string}|array{discs: int, medium: string}|array{codec: string, bitrateKbps?: int, medium: string}|null, packaging?: array{material: string, gatefold?: bool}|null, availability?: array{worldwide?: bool, regions?: list<string>}|null, dimensions?: array{widthMm: float, heightMm: float, depthMm?: float}|null, album?: ReleaseAlbumInput}
- * @phpstan-type ReleaseUpdateShape array{catalogNumber?: string, format?: array{rpm?: int, coloured?: bool, medium?: string}|array{discs?: int, medium?: string}|array{codec?: string, bitrateKbps?: int, medium?: string}|null, packaging?: ReleasePackagingShape|null, availability?: array{worldwide?: bool, regions?: list<string>}|null, dimensions?: array{widthMm: float, heightMm: float, depthMm?: float}|null, album?: ReleaseAlbumInput}
+ * @phpstan-type ReleaseCreateShape array{catalogNumber: non-empty-string, format?: array{rpm: int<16, 78>, coloured?: bool, medium: string}|array{discs: positive-int, medium: string}|array{codec: non-empty-string, bitrateKbps?: int<32, max>, medium: string}|null, packaging?: array{material: non-empty-string, gatefold?: bool}|null, availability?: array{worldwide?: bool, regions?: non-empty-list<string>}|null, dimensions?: array{widthMm: float, heightMm: float, depthMm?: float}|null, album?: ReleaseAlbumInput}
+ * @phpstan-type ReleaseUpdateShape array{catalogNumber?: non-empty-string, format?: array{rpm?: int<16, 78>, coloured?: bool, medium?: string}|array{discs?: positive-int, medium?: string}|array{codec?: non-empty-string, bitrateKbps?: int<32, max>, medium?: string}|null, packaging?: array{material?: non-empty-string, gatefold?: bool}|null, availability?: array{worldwide?: bool, regions?: non-empty-list<string>}|null, dimensions?: array{widthMm: float, heightMm: float, depthMm?: float}|null, album?: ReleaseAlbumInput}
  * @phpstan-type ReleaseSortToken '-catalogNumber'|'catalogNumber'
  * @phpstan-type ReleaseIncludePath 'album'|'album.artist'|'album.tracks'
  * @phpstan-type ReleaseFieldToken 'album'|'availability'|'catalogNumber'|'dimensions'|'format'|'packaging'
@@ -572,9 +586,10 @@ final class ReleaseAlbumRelation
 final class ReleaseCreate
 {
     /**
-     * @param array{rpm: int, coloured?: bool, medium: string}|array{discs: int, medium: string}|array{codec: string, bitrateKbps?: int, medium: string}|Missing|null $format
-     * @param array{material: string, gatefold?: bool}|Missing|null $packaging
-     * @param array{worldwide?: bool, regions?: list<string>}|Missing|null $availability
+     * @param non-empty-string $catalogNumber
+     * @param array{rpm: int<16, 78>, coloured?: bool, medium: string}|array{discs: positive-int, medium: string}|array{codec: non-empty-string, bitrateKbps?: int<32, max>, medium: string}|Missing|null $format
+     * @param array{material: non-empty-string, gatefold?: bool}|Missing|null $packaging
+     * @param array{worldwide?: bool, regions?: non-empty-list<string>}|Missing|null $availability
      * @param array{widthMm: float, heightMm: float, depthMm?: float}|Missing|null $dimensions
      * @param Album|Identifier|Missing|null $album
      */
@@ -666,20 +681,23 @@ final class ReleaseCreateBuilder
 {
     use Conditionable;
 
+    /**
+     * @var non-empty-string|Missing
+     */
     private string|Missing $catalogNumber = Missing::Value;
 
     /**
-     * @var array{rpm: int, coloured?: bool, medium: string}|array{discs: int, medium: string}|array{codec: string, bitrateKbps?: int, medium: string}|Missing|null
+     * @var array{rpm: int<16, 78>, coloured?: bool, medium: string}|array{discs: positive-int, medium: string}|array{codec: non-empty-string, bitrateKbps?: int<32, max>, medium: string}|Missing|null
      */
     private array|Missing|null $format = Missing::Value;
 
     /**
-     * @var array{material: string, gatefold?: bool}|Missing|null
+     * @var array{material: non-empty-string, gatefold?: bool}|Missing|null
      */
     private array|Missing|null $packaging = Missing::Value;
 
     /**
-     * @var array{worldwide?: bool, regions?: list<string>}|Missing|null
+     * @var array{worldwide?: bool, regions?: non-empty-list<string>}|Missing|null
      */
     private array|Missing|null $availability = Missing::Value;
 
@@ -690,6 +708,11 @@ final class ReleaseCreateBuilder
 
     private Album|Identifier|Missing|null $album = Missing::Value;
 
+    /**
+     * At most 40 characters.
+     *
+     * @param non-empty-string $catalogNumber
+     */
     public function catalogNumber(string $catalogNumber): self
     {
         $this->catalogNumber = $catalogNumber;
@@ -698,7 +721,7 @@ final class ReleaseCreateBuilder
     }
 
     /**
-     * @param array{rpm: int, coloured?: bool, medium: string}|array{discs: int, medium: string}|array{codec: string, bitrateKbps?: int, medium: string}|null $format
+     * @param array{rpm: int<16, 78>, coloured?: bool, medium: string}|array{discs: positive-int, medium: string}|array{codec: non-empty-string, bitrateKbps?: int<32, max>, medium: string}|null $format
      */
     public function format(?array $format): self
     {
@@ -708,7 +731,7 @@ final class ReleaseCreateBuilder
     }
 
     /**
-     * @param array{material: string, gatefold?: bool}|null $packaging
+     * @param array{material: non-empty-string, gatefold?: bool}|null $packaging
      */
     public function packaging(?array $packaging): self
     {
@@ -718,7 +741,7 @@ final class ReleaseCreateBuilder
     }
 
     /**
-     * @param array{worldwide?: bool, regions?: list<string>}|null $availability
+     * @param array{worldwide?: bool, regions?: non-empty-list<string>}|null $availability
      */
     public function availability(?array $availability): self
     {
@@ -778,6 +801,9 @@ final class ReleaseFormatCd
      */
     public const string MEDIUM = 'cd';
 
+    /**
+     * @param positive-int|null $discs
+     */
     public function __construct(
         public readonly ?int $discs = null,
     ) {}
@@ -791,6 +817,7 @@ final class ReleaseFormatCd
 
         $discsValue = null;
         if (\is_int($discs)) {
+            /** @var positive-int $discs */
             $discsValue = $discs;
         }
 
@@ -810,6 +837,10 @@ final class ReleaseFormatDigital
      */
     public const string MEDIUM = 'digital';
 
+    /**
+     * @param non-empty-string|null $codec
+     * @param int<32, max>|null $bitrateKbps
+     */
     public function __construct(
         public readonly ?string $codec = null,
         public readonly ?int $bitrateKbps = null,
@@ -825,11 +856,17 @@ final class ReleaseFormatDigital
 
         $codecValue = null;
         if (\is_string($codec)) {
+            /** @var non-empty-string $codec */
             $codecValue = $codec;
         }
 
         $bitrateKbpsValue = null;
+        if ($bitrateKbps === null) {
+            $bitrateKbpsValue = null;
+        }
+
         if (\is_int($bitrateKbps)) {
+            /** @var int<32, max> $bitrateKbps */
             $bitrateKbpsValue = $bitrateKbps;
         }
 
@@ -849,6 +886,9 @@ final class ReleaseFormatVinyl
      */
     public const string MEDIUM = 'vinyl';
 
+    /**
+     * @param int<16, 78>|null $rpm
+     */
     public function __construct(
         public readonly ?int $rpm = null,
         public readonly ?bool $coloured = null,
@@ -864,10 +904,15 @@ final class ReleaseFormatVinyl
 
         $rpmValue = null;
         if (\is_int($rpm)) {
+            /** @var int<16, 78> $rpm */
             $rpmValue = $rpm;
         }
 
         $colouredValue = null;
+        if ($coloured === null) {
+            $colouredValue = null;
+        }
+
         if (\is_bool($coloured)) {
             $colouredValue = $coloured;
         }
@@ -1106,8 +1151,10 @@ final class ReleaseQuery extends Query
     }
 
     /**
-     * @param positive-int      $number
-     * @param positive-int|null $size
+     * `$number` defaults to 1 and `$size` defaults to 15.
+     *
+     * @param positive-int    $number
+     * @param int<1, 50>|null $size
      *
      * @return static
      */
@@ -1212,7 +1259,6 @@ final class ReleaseQuery extends Query
  * `PATCH` is. The id is not a member; it comes from the handle the update is called on, so it
  * cannot disagree with the URL.
  *
- * @phpstan-import-type ReleasePackagingShape from Release
  * @phpstan-import-type ReleaseUpdateShape from Release
  *
  * @generated from `PATCH /releases/{id}`
@@ -1222,9 +1268,10 @@ final class ReleaseUpdate
     use ImmutableConditionable;
 
     /**
-     * @param array{rpm?: int, coloured?: bool, medium?: string}|array{discs?: int, medium?: string}|array{codec?: string, bitrateKbps?: int, medium?: string}|Missing|null $format
-     * @param ReleasePackagingShape|Missing|null $packaging
-     * @param array{worldwide?: bool, regions?: list<string>}|Missing|null $availability
+     * @param non-empty-string|Missing $catalogNumber
+     * @param array{rpm?: int<16, 78>, coloured?: bool, medium?: string}|array{discs?: positive-int, medium?: string}|array{codec?: non-empty-string, bitrateKbps?: int<32, max>, medium?: string}|Missing|null $format
+     * @param array{material?: non-empty-string, gatefold?: bool}|Missing|null $packaging
+     * @param array{worldwide?: bool, regions?: non-empty-list<string>}|Missing|null $availability
      * @param array{widthMm: float, heightMm: float, depthMm?: float}|Missing|null $dimensions
      * @param Album|Identifier|Missing|null $album
      *
@@ -1240,6 +1287,10 @@ final class ReleaseUpdate
     ) {}
 
     /**
+     * At most 40 characters.
+     *
+     * @param non-empty-string $catalogNumber
+     *
      * @phpstan-pure
      */
     public function catalogNumber(string $catalogNumber): self
@@ -1255,7 +1306,7 @@ final class ReleaseUpdate
     }
 
     /**
-     * @param array{rpm?: int, coloured?: bool, medium?: string}|array{discs?: int, medium?: string}|array{codec?: string, bitrateKbps?: int, medium?: string}|null $format
+     * @param array{rpm?: int<16, 78>, coloured?: bool, medium?: string}|array{discs?: positive-int, medium?: string}|array{codec?: non-empty-string, bitrateKbps?: int<32, max>, medium?: string}|null $format
      *
      * @phpstan-pure
      */
@@ -1272,7 +1323,7 @@ final class ReleaseUpdate
     }
 
     /**
-     * @param ReleasePackagingShape|null $packaging
+     * @param array{material?: non-empty-string, gatefold?: bool}|null $packaging
      *
      * @phpstan-pure
      */
@@ -1289,7 +1340,7 @@ final class ReleaseUpdate
     }
 
     /**
-     * @param array{worldwide?: bool, regions?: list<string>}|null $availability
+     * @param array{worldwide?: bool, regions?: non-empty-list<string>}|null $availability
      *
      * @phpstan-pure
      */

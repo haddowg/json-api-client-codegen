@@ -15,6 +15,11 @@ namespace haddowg\JsonApiCodegen\Descriptor;
  * A {@see PaginatorKind::Multi} menu carries no keys of its own. It carries its arms, keyed by
  * the `kind` that selects each one, the discriminator member that carries that kind, and the
  * arm the server uses when a request names none.
+ *
+ * `$bounds` carries each role's own schema keywords: from contract 5 a page member states its
+ * `default` and, for a size, the cap the server serves. They narrow the generated parameters and
+ * are not part of {@see matches()}, which decides whether two endpoints page the same way on the
+ * wire.
  */
 final class PaginatorDescriptor
 {
@@ -22,8 +27,9 @@ final class PaginatorDescriptor
     public readonly array $parameters;
 
     /**
-     * @param array<string, string>              $keys role => wire key
-     * @param array<string, PaginatorDescriptor> $arms kind => strategy, in declaration order
+     * @param array<string, string>              $keys   role => wire key
+     * @param array<string, PaginatorDescriptor> $arms   kind => strategy, in declaration order
+     * @param array<string, Constraints>         $bounds role => the keywords its schema declares
      */
     public function __construct(
         public readonly PaginatorKind $kind,
@@ -31,6 +37,7 @@ final class PaginatorDescriptor
         public readonly array $arms = [],
         public readonly ?string $default = null,
         public readonly string $discriminator = 'kind',
+        public readonly array $bounds = [],
     ) {
         $parameters = \array_values($keys);
         \sort($parameters, \SORT_STRING);
@@ -48,6 +55,31 @@ final class PaginatorDescriptor
     public static function menu(array $arms, string $default, string $discriminator): self
     {
         return new self(PaginatorKind::Multi, [], $arms, $default, $discriminator);
+    }
+
+    /**
+     * The same strategy with each role's keywords, read from the schema of its wire key.
+     *
+     * @param array<string, Constraints> $byKey wire key => the keywords its schema declares
+     */
+    public function bounded(array $byKey): self
+    {
+        $bounds = [];
+        foreach ($this->keys as $role => $key) {
+            $constraints = $byKey[$key] ?? null;
+            if ($constraints !== null && !$constraints->isEmpty()) {
+                $bounds[$role] = $constraints;
+            }
+        }
+        \ksort($bounds, \SORT_STRING);
+
+        return new self($this->kind, $this->keys, $this->arms, $this->default, $this->discriminator, $bounds);
+    }
+
+    /** The keywords a role's schema declares, empty when it declares none. */
+    public function bounds(string $role): Constraints
+    {
+        return $this->bounds[$role] ?? Constraints::none();
     }
 
     public function paginated(): bool

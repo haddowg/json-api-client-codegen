@@ -49,7 +49,7 @@ final class UpdateSource
                 $members,
             );
             $parameter = $member->presentNative() . ' $' . $member->variable . ($member->native === 'bool' && !$member->nullable ? ' = true' : '');
-            $doc = $member->needsDoc(true) ? ['@param ' . $member->presentDoc(true) . ' $' . $member->variable, '', '@phpstan-pure'] : ['@phpstan-pure'];
+            $doc = $member->setterDoc($member->needsDoc(true) ? ['@param ' . $member->presentDoc(true) . ' $' . $member->variable, '', '@phpstan-pure'] : ['@phpstan-pure']);
 
             $setters[] = Php::docblock($doc, 4, false)
                 . '    public function ' . $member->setter . '(' . $parameter . "): self\n    {\n"

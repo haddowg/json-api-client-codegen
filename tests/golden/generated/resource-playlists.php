@@ -203,11 +203,12 @@ abstract class PlaylistBase extends ResourceObject
 
     public string $type { get => $this->type(); }
 
+    /** @var non-empty-string */
     public string $title { get => $this->title(); }
 
-    public string $slug { get => $this->slug(); }
+    public ?string $slug { get => $this->slug(); }
 
-    public bool $public { get => $this->public(); }
+    public ?bool $public { get => $this->public(); }
 
     public ?string $externalId { get => $this->externalId(); }
 
@@ -225,32 +226,41 @@ abstract class PlaylistBase extends ResourceObject
     }
 
     /**
+     * @return non-empty-string
+     *
      * @throws FieldNotSelectedException when a sparse fieldset excluded `title`
      */
     public function title(): string
     {
-        return $this->_string('title');
+        /** @var non-empty-string $value */
+        $value = $this->_string('title');
+
+        return $value;
     }
 
     /**
      * Read-only: present on the resource, absent from every write shape.
      *
+     * Matches `^[a-z0-9]+(?:-[a-z0-9]+)*$`.
+     *
      * @throws FieldNotSelectedException when a sparse fieldset excluded `slug`
      */
-    public function slug(): string
+    public function slug(): ?string
     {
-        return $this->_string('slug');
+        return $this->_nullableString('slug');
     }
 
     /**
      * @throws FieldNotSelectedException when a sparse fieldset excluded `public`
      */
-    public function public(): bool
+    public function public(): ?bool
     {
-        return $this->_bool('public');
+        return $this->_nullableBool('public');
     }
 
     /**
+     * In `uuid` format.
+     *
      * @throws FieldNotSelectedException when a sparse fieldset excluded `externalId`
      */
     public function externalId(): ?string
@@ -353,8 +363,8 @@ abstract class PlaylistBase extends ResourceObject
  * @phpstan-type PlaylistPublicOwnerInput Identifier|PublicProfile|null
  * @phpstan-type PlaylistTracksInput list<Identifier|Track>
  * @phpstan-type PlaylistOrderedTracksInput list<Identifier|Track>
- * @phpstan-type PlaylistCreateShape array{title: string, public?: bool, externalId?: string|null, owner?: PlaylistOwnerInput, publicOwner?: PlaylistPublicOwnerInput, tracks?: PlaylistTracksInput, orderedTracks?: PlaylistOrderedTracksInput}
- * @phpstan-type PlaylistUpdateShape array{title?: string, public?: bool, externalId?: string|null, owner?: PlaylistOwnerInput, publicOwner?: PlaylistPublicOwnerInput, tracks?: PlaylistTracksInput, orderedTracks?: PlaylistOrderedTracksInput}
+ * @phpstan-type PlaylistCreateShape array{title: non-empty-string, public?: bool, externalId?: string|null, owner?: PlaylistOwnerInput, publicOwner?: PlaylistPublicOwnerInput, tracks?: PlaylistTracksInput, orderedTracks?: PlaylistOrderedTracksInput}
+ * @phpstan-type PlaylistUpdateShape array{title?: non-empty-string, public?: bool, externalId?: string|null, owner?: PlaylistOwnerInput, publicOwner?: PlaylistPublicOwnerInput, tracks?: PlaylistTracksInput, orderedTracks?: PlaylistOrderedTracksInput}
  * @phpstan-type PlaylistIncludePath 'orderedTracks'|'orderedTracks.album'|'orderedTracks.playlists'|'publicOwner'|'tracks'|'tracks.album'|'tracks.playlists'
  * @phpstan-type PlaylistFieldToken 'externalId'|'orderedTracks'|'owner'|'public'|'publicOwner'|'slug'|'title'|'tracks'
  * @phpstan-type PlaylistCountToken 'tracks'
@@ -544,6 +554,7 @@ final class Playlist extends PlaylistBase implements PlaylistHasPublicOwner, Pla
 final class PlaylistCreate
 {
     /**
+     * @param non-empty-string $title
      * @param Identifier|Missing|null $owner
      * @param Identifier|PublicProfile|Missing|null $publicOwner
      * @param list<Identifier|Track>|Missing $tracks
@@ -643,6 +654,9 @@ final class PlaylistCreateBuilder
 {
     use Conditionable;
 
+    /**
+     * @var non-empty-string|Missing
+     */
     private string|Missing $title = Missing::Value;
 
     private bool|Missing $public = Missing::Value;
@@ -663,6 +677,9 @@ final class PlaylistCreateBuilder
      */
     private array|Missing $orderedTracks = Missing::Value;
 
+    /**
+     * @param non-empty-string $title
+     */
     public function title(string $title): self
     {
         $this->title = $title;
@@ -677,6 +694,9 @@ final class PlaylistCreateBuilder
         return $this;
     }
 
+    /**
+     * In `uuid` format.
+     */
     public function externalId(?string $externalId): self
     {
         $this->externalId = $externalId;
@@ -1325,8 +1345,10 @@ final class PlaylistQuery extends Query
     }
 
     /**
-     * @param positive-int      $number
-     * @param positive-int|null $size
+     * `$number` defaults to 1 and `$size` defaults to 15.
+     *
+     * @param positive-int    $number
+     * @param int<1, 50>|null $size
      *
      * @return static
      */
@@ -1613,6 +1635,7 @@ final class PlaylistUpdate
     use ImmutableConditionable;
 
     /**
+     * @param non-empty-string|Missing $title
      * @param Identifier|Missing|null $owner
      * @param Identifier|PublicProfile|Missing|null $publicOwner
      * @param list<Identifier|Track>|Missing $tracks
@@ -1631,6 +1654,8 @@ final class PlaylistUpdate
     ) {}
 
     /**
+     * @param non-empty-string $title
+     *
      * @phpstan-pure
      */
     public function title(string $title): self
@@ -1663,6 +1688,8 @@ final class PlaylistUpdate
     }
 
     /**
+     * In `uuid` format.
+     *
      * @phpstan-pure
      */
     public function externalId(?string $externalId): self

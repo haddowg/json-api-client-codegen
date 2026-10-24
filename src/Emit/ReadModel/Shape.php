@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace haddowg\JsonApiCodegen\Emit\ReadModel;
 
+use haddowg\JsonApiCodegen\Descriptor\Constraints;
 use haddowg\JsonApiCodegen\Descriptor\ValueSchema;
+use haddowg\JsonApiCodegen\Emit\Narrowing;
 
 /**
  * A value schema reduced to the shape generated code reads it as.
@@ -15,6 +17,9 @@ use haddowg\JsonApiCodegen\Descriptor\ValueSchema;
  * flattened and keeps its branches' required members; and a `{"type": "null"}` branch makes the
  * value nullable rather than becoming a branch of its own. Anything else with no declared type
  * is `mixed`, which is honest: the branches are the whole description.
+ *
+ * A scalar or a list keeps its schema's constraints, and its wire type is narrowed by them (see
+ * {@see Narrowing}). The native type never is.
  */
 final class Shape
 {
@@ -30,6 +35,7 @@ final class Shape
         public readonly ?self $items = null,
         public readonly ?string $discriminator = null,
         public readonly array $branches = [],
+        public readonly Constraints $constraints = new Constraints(),
     ) {}
 
     public static function of(ValueSchema $schema): self
@@ -63,6 +69,10 @@ final class Shape
             default => $composed,
         };
 
+        if ($composed !== null && \in_array($shape->kind, [ShapeKind::Scalar, ShapeKind::List], true)) {
+            $shape = $shape->constrained($schema->constraints->orElse($shape->constraints));
+        }
+
         return $shape->nullable($nullable || $shape->nullable);
     }
 
@@ -78,7 +88,19 @@ final class Shape
 
     public function nullable(bool $nullable): self
     {
-        return new self($this->kind, $nullable, $this->scalar, $this->members, $this->items, $this->discriminator, $this->branches);
+        return new self($this->kind, $nullable, $this->scalar, $this->members, $this->items, $this->discriminator, $this->branches, $this->constraints);
+    }
+
+    public function constrained(Constraints $constraints): self
+    {
+        return new self($this->kind, $this->nullable, $this->scalar, $this->members, $this->items, $this->discriminator, $this->branches, $constraints);
+    }
+
+    /** Whether the constraints narrow the wire type past what the JSON type alone says. */
+    public function narrowed(): bool
+    {
+        return $this->wireType() !== $this->constrained(Constraints::none())->wireType()
+            || ($this->kind === ShapeKind::List && ($this->items ?? self::unknown())->merged()->narrowed());
     }
 
     /**
@@ -89,8 +111,10 @@ final class Shape
     {
         $type = match ($this->kind) {
             ShapeKind::Mixed => 'mixed',
-            ShapeKind::Scalar => self::scalarType((string) $this->scalar),
-            ShapeKind::List => 'list<' . ($this->items ?? self::unknown())->merged()->wireType() . '>',
+            ShapeKind::Scalar => \in_array($this->scalar, ['integer', 'string'], true)
+                ? Narrowing::scalar((string) $this->scalar, $this->constraints)
+                : self::scalarType((string) $this->scalar),
+            ShapeKind::List => Narrowing::list(($this->items ?? self::unknown())->merged()->wireType(), $this->constraints),
             ShapeKind::Object => $this->members === [] ? 'array<string, mixed>' : self::objectType($this->members, []),
             ShapeKind::Tagged => \implode('|', \array_map(
                 fn(array $branch): string => self::objectType($branch['shape']->members, [(string) $this->discriminator => '\'' . \addcslashes($branch['value'], "'\\") . '\'']),
@@ -170,8 +194,8 @@ final class Shape
         return match ($type) {
             null => null,
             'object' => new self(ShapeKind::Object, false, members: self::members($schema)),
-            'array' => new self(ShapeKind::List, false, items: $schema->items === null ? self::unknown() : self::of($schema->items)),
-            default => new self(ShapeKind::Scalar, false, scalar: $type),
+            'array' => new self(ShapeKind::List, false, items: $schema->items === null ? self::unknown() : self::of($schema->items), constraints: $schema->constraints),
+            default => new self(ShapeKind::Scalar, false, scalar: $type, constraints: $schema->constraints),
         };
     }
 

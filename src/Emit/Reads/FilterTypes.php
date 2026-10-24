@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace haddowg\JsonApiCodegen\Emit\Reads;
 
 use haddowg\JsonApiCodegen\Descriptor\ValueSchema;
+use haddowg\JsonApiCodegen\Emit\Narrowing;
 
 /**
  * Turns a filter's value schema into the PHP types its builder methods take.
@@ -13,7 +14,8 @@ use haddowg\JsonApiCodegen\Descriptor\ValueSchema;
  * `\DateTimeImmutable` or an ISO string, `number` is `float` and `integer` is `int`. A schema the
  * document leaves empty, or one built only from composition keywords, is `mixed`: the filter's
  * value type is genuinely unknown, and guessing it from the field it filters would be inventing
- * a contract the document does not state.
+ * a contract the document does not state. A filter schema's constraints narrow the doc type the
+ * way they narrow an attribute's (see {@see Narrowing}).
  */
 final class FilterTypes
 {
@@ -142,10 +144,10 @@ final class FilterTypes
     {
         return match ($type) {
             'string' => $this->string($schema),
-            'integer' => new ValueType('int', 'int'),
+            'integer' => new ValueType(Narrowing::scalar('integer', $schema->constraints), 'int'),
             'number' => new ValueType('float', 'float'),
             'boolean' => new ValueType('bool', 'bool'),
-            'array' => $this->list($schema->items),
+            'array' => $this->list($schema),
             'object' => $this->object($schema),
             default => ValueType::mixed(),
         };
@@ -161,14 +163,14 @@ final class FilterTypes
             return new ValueType(\implode('|', \array_map(static fn(string $case): string => "'" . \str_replace("'", "\\'", $case) . "'", $schema->enum)), 'string');
         }
 
-        return new ValueType('string', 'string');
+        return new ValueType(Narrowing::scalar('string', $schema->constraints), 'string');
     }
 
-    private function list(?ValueSchema $items): ValueType
+    private function list(ValueSchema $schema): ValueType
     {
-        $item = $this->type($items);
+        $item = $this->type($schema->items);
 
-        return new ValueType('list<' . $item->doc . '>', 'array', $item->aliases);
+        return new ValueType(Narrowing::list($item->doc, $schema->constraints), 'array', $item->aliases);
     }
 
     private function object(ValueSchema $schema): ValueType

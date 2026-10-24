@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace haddowg\JsonApiCodegen\Emit\ReadModel;
 
 use haddowg\JsonApiCodegen\Emit\ClassUnit;
+use haddowg\JsonApiCodegen\Emit\Php;
 
 /**
  * How one attribute is read: the accessor's name and types, its body, and whatever it needs
@@ -32,4 +33,28 @@ final class AttributeRead
         public readonly array $imports = [],
         public readonly array $classes = [],
     ) {}
+
+    /**
+     * The same read with a sentence added to its docblock summary: the constraints its type
+     * cannot state.
+     */
+    public function withProse(?string $sentence): self
+    {
+        if ($sentence === null) {
+            return $this;
+        }
+
+        return new self(
+            $this->name,
+            $this->method,
+            $this->nativeType,
+            $this->docType,
+            $this->body,
+            [...$this->prose, ...($this->prose === [] ? [] : ['']), ...Php::wrap($sentence, 4)],
+            $this->alias,
+            $this->aliasType,
+            $this->imports,
+            $this->classes,
+        );
+    }
 }

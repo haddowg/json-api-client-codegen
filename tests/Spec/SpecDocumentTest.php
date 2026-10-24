@@ -35,7 +35,7 @@ final class SpecDocumentTest extends TestCase
 
     public function testTheMusicCatalogDocumentDeclaresItsContract(): void
     {
-        self::assertSame(8, Fixtures::musicCatalog()->contract());
+        self::assertSame(9, Fixtures::musicCatalog()->contract());
     }
 
     public function testAContractIsReadFromTheGeneratorBlock(): void
@@ -91,6 +91,31 @@ final class SpecDocumentTest extends TestCase
         $inline = Node::root(['type' => 'object']);
 
         self::assertSame($inline, $document->dereference($inline));
+    }
+
+    public function testASingleEntryAllOfHoldingOnlyARefIsThatRef(): void
+    {
+        $document = SpecDocument::fromDecoded(['components' => ['schemas' => ['AlbumStatus' => ['type' => 'string', 'enum' => ['draft']]]]]);
+        $wrapped = Node::root([
+            'description' => 'Where the album sits in its release lifecycle.',
+            'allOf' => [['$ref' => '#/components/schemas/AlbumStatus']],
+            'example' => 'draft',
+            'default' => 'draft',
+        ], 'attributes.status');
+
+        self::assertSame('AlbumStatus', $document->refName($wrapped));
+        self::assertSame('components.schemas.AlbumStatus', $document->dereference($wrapped)->pointer());
+        self::assertSame('attributes.status.allOf.0.$ref', $document->reference($wrapped)?->pointer());
+    }
+
+    public function testAnAllOfThatComposesIsNotARef(): void
+    {
+        $document = SpecDocument::fromDecoded(['components' => ['schemas' => []]]);
+        $ref = ['$ref' => '#/components/schemas/AlbumsIdentifier'];
+
+        self::assertNull($document->refName(Node::root(['allOf' => [$ref, ['type' => 'object']]])), 'two entries');
+        self::assertNull($document->refName(Node::root(['allOf' => [[...$ref, 'description' => 'narrowed']]])), 'an entry with more than the ref');
+        self::assertNull($document->refName(Node::root(['allOf' => [$ref], 'anyOf' => [['type' => 'null']]])), 'beside another combinator');
     }
 
     public function testUnparseableJsonReportsItsSource(): void

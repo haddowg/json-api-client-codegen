@@ -144,6 +144,7 @@ abstract class ArtistBase extends ResourceObject
     /** @var non-empty-string */
     public string $name { get => $this->name(); }
 
+    /** @var non-empty-string */
     public string $slug { get => $this->slug(); }
 
     public ?string $website { get => $this->website(); }
@@ -183,11 +184,16 @@ abstract class ArtistBase extends ResourceObject
     }
 
     /**
+     * @return non-empty-string
+     *
      * @throws FieldNotSelectedException when a sparse fieldset excluded `slug`
      */
     public function slug(): string
     {
-        return $this->_string('slug');
+        /** @var non-empty-string $value */
+        $value = $this->_string('slug');
+
+        return $value;
     }
 
     /**
@@ -271,8 +277,8 @@ abstract class ArtistBase extends ResourceObject
  *
  * @phpstan-type ArtistDateInput \DateTimeImmutable|string
  * @phpstan-type ArtistAlbumsInput list<Album|Identifier>
- * @phpstan-type ArtistCreateShape array{name: non-empty-string, slug?: string, website?: string|null, bio?: string|null, createdAt?: ArtistDateInput, albums?: ArtistAlbumsInput}
- * @phpstan-type ArtistUpdateShape array{name?: non-empty-string, slug?: string, website?: string|null, bio?: string|null, albums?: ArtistAlbumsInput}
+ * @phpstan-type ArtistCreateShape array{name: non-empty-string, slug?: non-empty-string, website?: string|null, bio?: string|null, createdAt?: ArtistDateInput, albums?: ArtistAlbumsInput}
+ * @phpstan-type ArtistUpdateShape array{name?: non-empty-string, slug?: non-empty-string, website?: string|null, bio?: string|null, albums?: ArtistAlbumsInput}
  * @phpstan-type ArtistFilterShape array{slug?: string, q?: string}
  * @phpstan-type ArtistSortToken '-createdAt'|'-name'|'-slug'|'createdAt'|'name'|'slug'
  * @phpstan-type ArtistIncludePath 'albums'|'albums.artist'|'albums.tracks'
@@ -606,6 +612,7 @@ final class ArtistCreate
 {
     /**
      * @param non-empty-string $name
+     * @param non-empty-string|Missing $slug
      * @param list<Album|Identifier>|Missing $albums
      */
     public function __construct(
@@ -701,6 +708,9 @@ final class ArtistCreateBuilder
      */
     private string|Missing $name = Missing::Value;
 
+    /**
+     * @var non-empty-string|Missing
+     */
     private string|Missing $slug = Missing::Value;
 
     private string|Missing|null $website = Missing::Value;
@@ -726,6 +736,9 @@ final class ArtistCreateBuilder
         return $this;
     }
 
+    /**
+     * @param non-empty-string $slug
+     */
     public function slug(string $slug): self
     {
         $this->slug = $slug;
@@ -1212,6 +1225,7 @@ final class ArtistUpdate
 
     /**
      * @param non-empty-string|Missing $name
+     * @param non-empty-string|Missing $slug
      * @param list<Album|Identifier>|Missing $albums
      *
      * @phpstan-pure
@@ -1243,6 +1257,8 @@ final class ArtistUpdate
     }
 
     /**
+     * @param non-empty-string $slug
+     *
      * @phpstan-pure
      */
     public function slug(string $slug): self

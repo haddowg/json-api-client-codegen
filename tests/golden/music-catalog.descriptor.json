@@ -1,5 +1,5 @@
 {
-    "contract": 8,
+    "contract": 9,
     "atomic": {
         "path": "/operations",
         "mediaType": "application/vnd.api+json; ext=\"https://jsonapi.org/ext/atomic\""
@@ -1803,7 +1803,9 @@
                     "nullable": false,
                     "enum": null,
                     "schema": null,
-                    "constraints": {}
+                    "constraints": {
+                        "minLength": 1
+                    }
                 },
                 "trackCount": {
                     "format": "integer",
@@ -1856,7 +1858,9 @@
                     "enum": null,
                     "required": false,
                     "schema": null,
-                    "constraints": {}
+                    "constraints": {
+                        "minLength": 1
+                    }
                 },
                 "website": {
                     "format": "uri",
@@ -1895,7 +1899,9 @@
                     "enum": null,
                     "required": false,
                     "schema": null,
-                    "constraints": {}
+                    "constraints": {
+                        "minLength": 1
+                    }
                 },
                 "website": {
                     "format": "uri",
@@ -4339,7 +4345,7 @@
                         "public-profiles"
                     ],
                     "related": {
-                        "path": "/playlists/{id}/publicOwner",
+                        "path": "/playlists/{id}/public-owner",
                         "method": "GET",
                         "errorStatuses": [
                             400,
@@ -4359,7 +4365,7 @@
                         }
                     },
                     "relationship": {
-                        "path": "/playlists/{id}/relationships/publicOwner",
+                        "path": "/playlists/{id}/relationships/public-owner",
                         "method": "GET",
                         "errorStatuses": [
                             400,
@@ -4373,7 +4379,7 @@
                     },
                     "mutations": {
                         "set": {
-                            "path": "/playlists/{id}/relationships/publicOwner",
+                            "path": "/playlists/{id}/relationships/public-owner",
                             "method": "PATCH",
                             "errorStatuses": [
                                 400,

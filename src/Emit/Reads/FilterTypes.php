@@ -6,6 +6,7 @@ namespace haddowg\JsonApiCodegen\Emit\Reads;
 
 use haddowg\JsonApiCodegen\Descriptor\ValueSchema;
 use haddowg\JsonApiCodegen\Emit\Narrowing;
+use haddowg\JsonApiCodegen\Emit\Php;
 
 /**
  * Turns a filter's value schema into the PHP types its builder methods take.
@@ -137,7 +138,7 @@ final class FilterTypes
     /** An array-shape key, quoted where it is not a bare identifier (`'artist.name'`). */
     public static function key(string $name): string
     {
-        return \preg_match('/^[A-Za-z_][A-Za-z0-9_]*$/', $name) === 1 ? $name : "'" . \str_replace("'", "\\'", $name) . "'";
+        return Php::docKey($name);
     }
 
     private function single(string $type, ValueSchema $schema): ValueType
@@ -160,7 +161,7 @@ final class FilterTypes
         }
 
         if ($schema->enum !== []) {
-            return new ValueType(\implode('|', \array_map(static fn(string $case): string => "'" . \str_replace("'", "\\'", $case) . "'", $schema->enum)), 'string');
+            return new ValueType(\implode('|', \array_map(Php::docString(...), $schema->enum)), 'string');
         }
 
         return new ValueType(Narrowing::scalar('string', $schema->constraints), 'string');

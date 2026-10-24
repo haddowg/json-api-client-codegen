@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace haddowg\JsonApiCodegen\Descriptor;
 
+use haddowg\JsonApiCodegen\Emit\Identifier;
 use haddowg\JsonApiCodegen\Spec\Node;
 use haddowg\JsonApiCodegen\Spec\SpecDocument;
 use haddowg\JsonApiCodegen\Spec\SpecException;
@@ -401,6 +402,10 @@ final class DescriptorBuilder
         $format = $target->find('format')?->string()
             ?? $this->jsonType($target)
             ?? ($isEnum ? 'string' : 'unknown');
+
+        if ($isEnum && $reference !== null) {
+            self::assertClassName($reference);
+        }
 
         return [
             'format' => $format,
@@ -1069,6 +1074,14 @@ final class DescriptorBuilder
         return $out;
     }
 
+    /** A component whose name the generated code declares as a class or enum. */
+    private static function assertClassName(string $component): void
+    {
+        if (!Identifier::isClassName($component)) {
+            throw SpecException::unusableName('components.schemas.' . $component, $component, 'class name');
+        }
+    }
+
     private function warn(string $warning): void
     {
         if (!\in_array($warning, $this->warnings, true)) {
@@ -1185,6 +1198,7 @@ final class DescriptorBuilder
             }
             $narrowing ??= $schema->get('properties');
 
+            self::assertClassName($name);
             $code = $narrowing->get('code')->get('const')->string();
             $required = $narrowing->path('source', 'required')?->strings() ?? [];
             $description = $schema->find('description')?->string();
@@ -1585,12 +1599,23 @@ final class DescriptorBuilder
                 continue;
             }
 
+            self::assertClassName($name);
             $varNames = $schema->find('x-enum-varnames')?->strings() ?? [];
             $descriptions = $schema->find('x-enum-descriptions')?->strings() ?? [];
 
             $cases = [];
             foreach ($values->strings() as $index => $value) {
-                $cases[] = new EnumCase($value, $varNames[$index] ?? null, $descriptions[$index] ?? null);
+                $varName = $varNames[$index] ?? null;
+                if ($varName !== null && !Identifier::isConstantName($varName)) {
+                    $this->warn(\sprintf(
+                        'components.schemas.%s.x-enum-varnames.%d is %s, which cannot name a PHP enum case, so the case is named from its value instead.',
+                        $name,
+                        $index,
+                        \json_encode($varName, \JSON_UNESCAPED_SLASHES | \JSON_UNESCAPED_UNICODE | \JSON_INVALID_UTF8_SUBSTITUTE),
+                    ));
+                    $varName = null;
+                }
+                $cases[] = new EnumCase($value, $varName, $descriptions[$index] ?? null);
             }
 
             $out[$name] = new EnumDescriptor($name, $cases, $schema->find('description')?->string());

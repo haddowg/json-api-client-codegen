@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace haddowg\JsonApiCodegen\Emit\ReadModel;
 
 use haddowg\JsonApiCodegen\Descriptor\Constraints;
+use haddowg\JsonApiCodegen\Emit\Identifier;
 use haddowg\JsonApiCodegen\Emit\Naming;
 use haddowg\JsonApiCodegen\Emit\Php;
 
@@ -38,7 +39,7 @@ final class Guard
      */
     public function variable(string $base): string
     {
-        $base = $base === '' || \ctype_digit($base[0]) ? 'member' . \ucfirst($base) : $base;
+        $base = Identifier::isMemberName($base) ? $base : 'member' . \ucfirst($base);
         $name = $base;
         for ($i = 2; isset($this->taken[\strtolower($name)]); $i++) {
             $name = $base . $i;
@@ -59,7 +60,7 @@ final class Guard
     {
         $locals = [];
         foreach (\array_keys($members) as $name) {
-            $locals[$name] = $this->variable($prefix === '' ? Naming::member((string) $name) : $prefix . Naming::pascal((string) $name));
+            $locals[$name] = $this->variable($prefix === '' ? Naming::camel((string) $name) : $prefix . Naming::pascal((string) $name));
         }
 
         $lines = ['$' . $shape . ' = [];'];
@@ -120,7 +121,7 @@ final class Guard
 
         $body = match ($shape->kind) {
             ShapeKind::Scalar => [
-                ...($shape->narrowed() ? ['/** @var ' . $shape->wireType() . ' ' . $var . ' */'] : []),
+                ...($shape->narrowed() ? [Php::comment('@var ' . $shape->wireType() . ' ' . $var)] : []),
                 $out . ' = ' . ($shape->scalar === 'number' ? '(float) ' . $var : $var) . ';',
             ],
             ShapeKind::List => $this->list($shape, $in, $out),
@@ -165,7 +166,7 @@ final class Guard
             ...self::indent($this->value($items, $item, '$' . $list . '[]', false, null, $item)),
             '}',
             '',
-            ...(self::narrowsItself($shape) ? ['/** @var ' . $shape->wireType() . ' $' . $list . ' */'] : []),
+            ...(self::narrowsItself($shape) ? [Php::comment('@var ' . $shape->wireType() . ' $' . $list)] : []),
             $out . ' = $' . $list . ';',
         ];
     }

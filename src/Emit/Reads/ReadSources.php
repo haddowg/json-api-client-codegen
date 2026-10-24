@@ -995,6 +995,6 @@ final class ReadSources
         $values = \array_values(\array_unique($values));
         \sort($values, \SORT_STRING);
 
-        return \implode('|', \array_map(Php::string(...), $values));
+        return \implode('|', \array_map(Php::docString(...), $values));
     }
 }

@@ -66,7 +66,7 @@ final class WritesEmitter implements Emitter
         $relations = [];
         foreach ($members as $member) {
             if ($member->enum !== null && !isset($enums[$member->name])) {
-                $values = \array_map(static fn(EnumCase $case): string => Php::string($case->value), $api->enum($member->enum)->cases ?? []);
+                $values = \array_map(static fn(EnumCase $case): string => Php::docString($case->value), $api->enum($member->enum)->cases ?? []);
                 \sort($values, \SORT_STRING);
                 $enums[$member->name] = '@phpstan-type ' . Naming::alias($type, Naming::pascal($member->name) . 'Input') . ' ' . \implode('|', [$member->enum, ...$values]);
             }
@@ -148,7 +148,7 @@ final class WritesEmitter implements Emitter
         }
         foreach ($model->resource->inDocumentOrder(\array_keys($byName)) as $name) {
             $member = $byName[$name];
-            $key = \preg_match('/^[A-Za-z_][A-Za-z0-9_]*$/', $name) === 1 ? $name : Php::string($name);
+            $key = Php::docKey($name);
             $entries[] = $key . ($member->required ? '' : '?') . ': ' . $member->input;
         }
 

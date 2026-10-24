@@ -6,6 +6,7 @@ namespace haddowg\JsonApiCodegen\Emit\Writes;
 
 use haddowg\JsonApiCodegen\Descriptor\ValueSchema;
 use haddowg\JsonApiCodegen\Emit\Narrowing;
+use haddowg\JsonApiCodegen\Emit\Php;
 
 /**
  * A JSON Schema fragment as a PHPStan type and the native type that holds it.
@@ -151,7 +152,7 @@ final class Shape
     {
         $members = [];
         foreach ($fields as $name => $field) {
-            $key = \preg_match('/^[A-Za-z_][A-Za-z0-9_]*$/', $name) === 1 ? $name : "'" . \str_replace("'", "\\'", $name) . "'";
+            $key = Php::docKey($name);
             $members[] = $key . ($field['required'] ? '' : '?') . ': ' . self::nullable($field['schema']);
         }
 

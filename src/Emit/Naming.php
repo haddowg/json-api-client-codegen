@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace haddowg\JsonApiCodegen\Emit;
 
+use haddowg\JsonApiCodegen\Spec\SpecException;
+
 /**
  * Every generated name, in one place, so emitters built separately agree on what to call things.
  *
@@ -16,13 +18,13 @@ final class Naming
     /** `albums` → `Album`: the concrete resource class, and the prefix of every per-type class. */
     public static function resource(string $type): string
     {
-        return self::pascal(self::singular($type));
+        return self::className($type, self::pascal(self::singular($type)));
     }
 
     /** `albums` → `Albums`: the type accessor on the client. */
     public static function accessor(string $type): string
     {
-        return self::pascal($type);
+        return self::className($type, self::pascal($type));
     }
 
     /** `albums` → `AlbumBase`. */
@@ -76,9 +78,34 @@ final class Naming
     /** A JSON:API member as a PHP method or property name: `release-info` → `releaseInfo`. */
     public static function member(string $name): string
     {
-        $pascal = self::pascal($name);
+        $member = self::camel($name);
+        if (!Identifier::isMemberName($member)) {
+            throw SpecException::unusableName(\sprintf('the member %s', \json_encode($name, \JSON_UNESCAPED_SLASHES | \JSON_UNESCAPED_UNICODE | \JSON_INVALID_UTF8_SUBSTITUTE)), $member, 'method or property name');
+        }
 
-        return \lcfirst($pascal);
+        return $member;
+    }
+
+    /**
+     * `release-info` → `releaseInfo`, unchecked, for a caller that makes its own identifier of
+     * the result, such as a local variable that takes a prefix when it would start with a digit.
+     */
+    public static function camel(string $name): string
+    {
+        return \lcfirst(self::pascal($name));
+    }
+
+    /**
+     * Every per-type class name starts with a type's resource or accessor name, so checking those
+     * two checks them all: what follows is letters and digits.
+     */
+    private static function className(string $type, string $class): string
+    {
+        if (!Identifier::isClassName($class)) {
+            throw SpecException::unusableName(\sprintf('the type %s', \json_encode($type, \JSON_UNESCAPED_SLASHES | \JSON_UNESCAPED_UNICODE | \JSON_INVALID_UTF8_SUBSTITUTE)), $class, 'class name');
+        }
+
+        return $class;
     }
 
     /** Separators become word breaks: `artist.name`, `artist_name` and `artist-name` all give `ArtistName`. */

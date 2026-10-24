@@ -39,4 +39,20 @@ final class EnumEmitterTest extends TestCase
         self::assertStringContainsString("case Case2fa = '2fa';", $source);
         self::assertStringContainsString(' * Who can see it.', $source, 'a description that is not the case table is the summary');
     }
+
+    public function testADerivedCaseNameAvoidsReservedAndTakenNames(): void
+    {
+        $api = new ApiDescriptor([], ['Keyword' => new EnumDescriptor('Keyword', [
+            new EnumCase('class', null, null),
+            new EnumCase('a-b', null, null),
+            new EnumCase('a_b', null, null),
+        ], null)], null, 2, []);
+
+        $unit = [...(new EnumEmitter())->emit($api, Generated::config())][0];
+        self::assertInstanceOf(ClassUnit::class, $unit);
+
+        self::assertStringContainsString("case CaseClass = 'class';", $unit->source);
+        self::assertStringContainsString("case AB = 'a-b';", $unit->source);
+        self::assertStringContainsString("case AB2 = 'a_b';", $unit->source);
+    }
 }

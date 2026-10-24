@@ -17,6 +17,7 @@ use haddowg\JsonApiCodegen\Emit\Contribution;
 use haddowg\JsonApiCodegen\Emit\Emitter;
 use haddowg\JsonApiCodegen\Emit\FileKey;
 use haddowg\JsonApiCodegen\Emit\GeneratorConfig;
+use haddowg\JsonApiCodegen\Emit\Identifier;
 use haddowg\JsonApiCodegen\Emit\Naming;
 use haddowg\JsonApiCodegen\Emit\Narrowing;
 use haddowg\JsonApiCodegen\Emit\Php;
@@ -282,7 +283,7 @@ final class ReadModelEmitter implements Emitter, Warns
             $members[] = '    public string $id { get => $this->id(); }' . "\n";
             $members[] = '    public string $type { get => $this->type(); }' . "\n";
             foreach ($reads as $read) {
-                $members[] = ($read->docType === null ? '' : '    /** @var ' . $read->docType . " */\n")
+                $members[] = ($read->docType === null ? '' : '    ' . Php::comment('@var ' . $read->docType) . "\n")
                     . '    public ' . $read->nativeType . ' $' . $read->method . ' { get => $this->' . $read->method . "(); }\n";
             }
         }
@@ -344,7 +345,7 @@ final class ReadModelEmitter implements Emitter, Warns
             $members[] = Php::docblock([
                 ...Php::wrap('A relationship object: linkage, links, and the `meta.total` a `withCount` read leaves behind. This is the door to a relation that carries no value.', 4),
                 '',
-                '@param ' . \implode('|', \array_map(Php::string(...), $names)) . ' $name',
+                '@param ' . \implode('|', \array_map(Php::docString(...), $names)) . ' $name',
             ], 4, false)
                 . "    public function _rel(string \$name): Relationship\n    {\n        return \$this->_relationship(\$name, " . $isToOne . ");\n    }\n";
         }
@@ -595,7 +596,7 @@ final class ReadModelEmitter implements Emitter, Warns
 
         $doc = $narrowed . ($nullable ? '|null' : '');
 
-        return new AttributeRead($attribute->name, $method, $native, $doc, ['/** @var ' . $doc . ' $value */', '$value = ' . $call . ';', '', 'return $value;']);
+        return new AttributeRead($attribute->name, $method, $native, $doc, [Php::comment('@var ' . $doc . ' $value'), '$value = ' . $call . ';', '', 'return $value;']);
     }
 
     private function list(ResourceDescriptor $resource, AttributeDescriptor $attribute, Shape $shape, string $method): AttributeRead
@@ -611,7 +612,7 @@ final class ReadModelEmitter implements Emitter, Warns
                 return new AttributeRead($attribute->name, $method, 'array', 'list<string>', ['return $this->_stringList(' . $field . ');']);
             }
 
-            return new AttributeRead($attribute->name, $method, 'array', $shape->wireType(), ['/** @var ' . $shape->wireType() . ' $value */', '$value = $this->_stringList(' . $field . ');', '', 'return $value;']);
+            return new AttributeRead($attribute->name, $method, 'array', $shape->wireType(), [Php::comment('@var ' . $shape->wireType() . ' $value'), '$value = $this->_stringList(' . $field . ');', '', 'return $value;']);
         }
 
         $json = (string) $items->scalar;
@@ -647,7 +648,7 @@ final class ReadModelEmitter implements Emitter, Warns
                 '    $list[] = ' . $value . ';',
                 '}',
                 '',
-                ...($shape->narrowed() ? ['/** @var ' . $listType . ' $list */'] : []),
+                ...($shape->narrowed() ? [Php::comment('@var ' . $listType . ' $list')] : []),
                 'return $list;',
             ],
             [],
@@ -699,6 +700,10 @@ final class ReadModelEmitter implements Emitter, Warns
         $nullable = $shape->nullable;
         $discriminator = (string) $shape->discriminator;
         $constant = \strtoupper((string) \preg_replace('/(?<=[a-z0-9])(?=[A-Z])/', '_', Naming::pascal($discriminator)));
+        if (!Identifier::isConstantName($constant)) {
+            $this->warnings[] = \sprintf('The discriminator %s of %s.%s cannot name a PHP constant; each branch class carries its value as DISCRIMINATOR instead.', \json_encode($discriminator, \JSON_UNESCAPED_SLASHES | \JSON_UNESCAPED_UNICODE | \JSON_INVALID_UTF8_SUBSTITUTE), $resource->type, $attribute->name);
+            $constant = 'DISCRIMINATOR';
+        }
         $file = FileKey::resource($resource->type);
 
         $classes = [];
@@ -883,7 +888,7 @@ final class ReadModelEmitter implements Emitter, Warns
             $methods[] = ($lines === [] ? '' : Php::docblock($lines, 4, false))
                 . '    public function ' . $method . '(): ' . $read->nativeType . "\n    {\n"
                 . \implode("\n", Guard::indent($read->body, 8)) . "\n    }\n";
-            $hooked .= ($read->docType === null ? '' : '    /** @var ' . $read->docType . " */\n")
+            $hooked .= ($read->docType === null ? '' : '    ' . Php::comment('@var ' . $read->docType) . "\n")
                 . '    public ' . $read->nativeType . ' $' . $method . ' { get => $this->' . $method . "(); }\n";
             \array_push($imports, ...$read->imports);
         }

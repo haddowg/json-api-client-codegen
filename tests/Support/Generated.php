@@ -22,9 +22,6 @@ final class Generated
     /** @var array<string, string>|null */
     private static ?array $files = null;
 
-    /** @var array<string, string>|null */
-    private static ?array $artefactFiles = null;
-
     public static function config(): GeneratorConfig
     {
         return new GeneratorConfig(self::NAMESPACE, 'MusicCatalog', PhpTarget::Php84);
@@ -40,21 +37,6 @@ final class Generated
             self::config(),
             \hash_file('sha256', Fixtures::path('music-catalog.openapi.json')) ?: '',
         );
-    }
-
-    /**
-     * A file generated from the document the reference artefact describes, which is what an
-     * artefact parity check compares.
-     */
-    public static function artefactFile(string $path): string
-    {
-        $files = self::$artefactFiles ??= Generator::default()->generate(
-            Fixtures::artefactDescriptor(),
-            self::config(),
-            \hash_file('sha256', Fixtures::path(Fixtures::ARTEFACT_DOCUMENT)) ?: '',
-        );
-
-        return $files[$path] ?? throw new \RuntimeException(\sprintf('The artefact document\'s output has no %s.', $path));
     }
 
     public static function file(string $path): string

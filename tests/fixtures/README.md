@@ -9,7 +9,6 @@ the two codegens read different documents of the same API.
 | File | What it is |
 | --- | --- |
 | `music-catalog.openapi.json` | The OpenAPI 3.1 document for the music-catalog API. 63 paths, 315 component schemas, 15 resource types, generator contract 7 (`haddowg/json-api` 1.6.0). |
-| `music-catalog-1.3.openapi.json` | The same API exported from `haddowg/json-api` 1.3.0, generator contract 4. The reference artefact was written against it, so artefact parity is checked against this document. See [The reference artefact](#the-reference-artefact). |
 | `music-catalog.schemas.json` | The sidecar JSON Schema map, one draft-2020-12 schema per resource type, keyed by type. |
 | `paginators.openapi.json` | Hand-built, generator contract 3, with an offset floor of 0 as core projects it. One collection per pagination strategy, each with renamed keys under `x-paginator`, a `MultiPaginator` menu on `posts` (and on its related `comments` read), an unstamped canonical `tags`, and a strategy no codegen knows on `logs`. Shaped after core's projection; not exported from a server. |
 
@@ -66,14 +65,12 @@ the page-type assertions in `tests/GeneratedTypes`, and run by `PaginationBehavi
 ## The reference artefact
 
 `artefact/` is a snapshot of `json-api-client/tests/Generated/MusicCatalog`, the hand-written
-output for the `albums` type that every emitter targets. Copied at json-api-client `2dc1277`.
+output for the `albums` type that every emitter targets. Copied at json-api-client `066ad3a`, where
+it was refreshed against generator contract 7.
 
-`ArtefactParity` compares a declaration generated from `music-catalog-1.3.openapi.json` against it
-on code tokens and type-bearing PHPDoc only, because the artefact's prose explains the design to a
-reader and is not derivable from the document. It uses the 1.3.0 document because the artefact
-predates contract 5, whose read nullability and constraints change the `albums` read model and its
-write shapes; against the current document it would only measure that drift. Move parity back to
-`music-catalog.openapi.json` once the artefact is refreshed upstream.
+`ArtefactParity` compares a declaration generated from `music-catalog.openapi.json` against it on
+code tokens and type-bearing PHPDoc only, because the artefact's prose explains the design to a
+reader and is not derivable from the document.
 
 `artists` and `tracks` there are trimmed companions, so only `Album*` declarations and
 `AlbumStatus` are compared. Re-copy it when the artefact changes upstream, and say so in the

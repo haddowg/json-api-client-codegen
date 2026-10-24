@@ -41,12 +41,16 @@ interface ArtistHasAlbums
  */
 abstract class ArtistBase extends ResourceObject
 {
+    /**
+     * The resource type, which is a constant for a generated class and not a wire read.
+     */
     public const string TYPE = 'artists';
 
     public string $id { get => $this->id(); }
 
     public string $type { get => $this->type(); }
 
+    /** @var non-empty-string */
     public string $name { get => $this->name(); }
 
     public string $slug { get => $this->slug(); }
@@ -57,7 +61,7 @@ abstract class ArtistBase extends ResourceObject
 
     public int $trackCount { get => $this->trackCount(); }
 
-    public \DateTimeImmutable $createdAt { get => $this->createdAt(); }
+    public ?\DateTimeImmutable $createdAt { get => $this->createdAt(); }
 
     public function id(): string
     {
@@ -73,11 +77,18 @@ abstract class ArtistBase extends ResourceObject
     }
 
     /**
+     * At most 120 characters.
+     *
+     * @return non-empty-string
+     *
      * @throws FieldNotSelectedException when a sparse fieldset excluded `name`
      */
     public function name(): string
     {
-        return $this->_string('name');
+        /** @var non-empty-string $value */
+        $value = $this->_string('name');
+
+        return $value;
     }
 
     /**
@@ -89,6 +100,8 @@ abstract class ArtistBase extends ResourceObject
     }
 
     /**
+     * In `uri` format.
+     *
      * @throws FieldNotSelectedException when a sparse fieldset excluded `website`
      */
     public function website(): ?string
@@ -97,6 +110,8 @@ abstract class ArtistBase extends ResourceObject
     }
 
     /**
+     * At most 1000 characters.
+     *
      * @throws FieldNotSelectedException when a sparse fieldset excluded `bio`
      */
     public function bio(): ?string
@@ -105,6 +120,8 @@ abstract class ArtistBase extends ResourceObject
     }
 
     /**
+     * Read-only: present on the resource, absent from every write shape.
+     *
      * @throws FieldNotSelectedException when a sparse fieldset excluded `trackCount`
      */
     public function trackCount(): int
@@ -115,12 +132,14 @@ abstract class ArtistBase extends ResourceObject
     /**
      * @throws FieldNotSelectedException when a sparse fieldset excluded `createdAt`
      */
-    public function createdAt(): \DateTimeImmutable
+    public function createdAt(): ?\DateTimeImmutable
     {
-        return $this->_dateTime('createdAt');
+        return $this->_nullableDateTime('createdAt');
     }
 
     /**
+     * The `albums` linkage, without hydrating anything. Never throws.
+     *
      * @return list<Identifier>
      */
     public function albumsRef(): array
@@ -128,12 +147,18 @@ abstract class ArtistBase extends ResourceObject
         return $this->_relationship('albums', false)->identifiers();
     }
 
+    /**
+     * Whether the `albums` linkage points at anything. Never throws.
+     */
     public function hasAlbums(): bool
     {
         return !$this->_relationship('albums', false)->isEmpty();
     }
 
     /**
+     * A relationship object: linkage, links, and the `meta.total` a `withCount` read leaves behind.
+     * This is the door to a relation that carries no value.
+     *
      * @param 'albums' $name
      */
     public function _rel(string $name): Relationship

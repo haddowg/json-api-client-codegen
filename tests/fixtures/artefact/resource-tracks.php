@@ -45,21 +45,26 @@ interface TrackHasAlbum
  */
 abstract class TrackBase extends ResourceObject
 {
+    /**
+     * The resource type, which is a constant for a generated class and not a wire read.
+     */
     public const string TYPE = 'tracks';
 
     public string $id { get => $this->id(); }
 
     public string $type { get => $this->type(); }
 
+    /** @var non-empty-string */
     public string $title { get => $this->title(); }
 
+    /** @var positive-int */
     public int $trackNumber { get => $this->trackNumber(); }
 
     public int $durationSeconds { get => $this->durationSeconds(); }
 
     public bool $explicit { get => $this->explicit(); }
 
-    /** @var list<string> */
+    /** @var non-empty-list<non-empty-string> */
     public array $genres { get => $this->genres(); }
 
     public ?string $previewOffset { get => $this->previewOffset(); }
@@ -80,19 +85,29 @@ abstract class TrackBase extends ResourceObject
     }
 
     /**
+     * @return non-empty-string
+     *
      * @throws FieldNotSelectedException when a sparse fieldset excluded `title`
      */
     public function title(): string
     {
-        return $this->_string('title');
+        /** @var non-empty-string $value */
+        $value = $this->_string('title');
+
+        return $value;
     }
 
     /**
+     * @return positive-int
+     *
      * @throws FieldNotSelectedException when a sparse fieldset excluded `trackNumber`
      */
     public function trackNumber(): int
     {
-        return $this->_int('trackNumber');
+        /** @var positive-int $value */
+        $value = $this->_int('trackNumber');
+
+        return $value;
     }
 
     /**
@@ -112,13 +127,18 @@ abstract class TrackBase extends ResourceObject
     }
 
     /**
-     * @return list<string>
+     * No duplicate items.
+     *
+     * @return non-empty-list<non-empty-string>
      *
      * @throws FieldNotSelectedException when a sparse fieldset excluded `genres`
      */
     public function genres(): array
     {
-        return $this->_stringList('genres');
+        /** @var non-empty-list<non-empty-string> $value */
+        $value = $this->_stringList('genres');
+
+        return $value;
     }
 
     /**
@@ -139,17 +159,25 @@ abstract class TrackBase extends ResourceObject
         return $this->_string('displayTitle');
     }
 
+    /**
+     * The `album` linkage, without hydrating anything. Never throws.
+     */
     public function albumRef(): ?Identifier
     {
         return $this->_relationship('album', true)->identifier();
     }
 
+    /**
+     * Whether the `album` linkage points at anything. Never throws.
+     */
     public function hasAlbum(): bool
     {
         return !$this->_relationship('album', true)->isEmpty();
     }
 
     /**
+     * The `playlists` linkage, without hydrating anything. Never throws.
+     *
      * @return list<Identifier>
      */
     public function playlistsRef(): array
@@ -157,12 +185,18 @@ abstract class TrackBase extends ResourceObject
         return $this->_relationship('playlists', false)->identifiers();
     }
 
+    /**
+     * Whether the `playlists` linkage points at anything. Never throws.
+     */
     public function hasPlaylists(): bool
     {
         return !$this->_relationship('playlists', false)->isEmpty();
     }
 
     /**
+     * A relationship object: linkage, links, and the `meta.total` a `withCount` read leaves behind.
+     * This is the door to a relation that carries no value.
+     *
      * @param 'album'|'playlists' $name
      */
     public function _rel(string $name): Relationship

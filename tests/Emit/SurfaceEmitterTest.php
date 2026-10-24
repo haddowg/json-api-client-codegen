@@ -46,7 +46,7 @@ final class SurfaceEmitterTest extends TestCase
     #[DataProvider('artefactClasses')]
     public function testMatchesTheArtefact(string $class): void
     {
-        ArtefactParity::assertMatches($class, 'resource-albums.php', Generated::artefactFile('resource-albums.php'));
+        ArtefactParity::assertMatches($class, 'resource-albums.php', Generated::file('resource-albums.php'));
     }
 
     public function testEveryThrowsListFollowsTheOperationsDeclaredStatuses(): void

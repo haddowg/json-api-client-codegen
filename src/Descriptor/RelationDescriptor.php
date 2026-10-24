@@ -19,13 +19,17 @@ namespace haddowg\JsonApiCodegen\Descriptor;
  *
  * `$paginator` is set only when this relation's own related endpoint paginates differently from
  * the related type's collection. Null means the two agree and the related type's kind applies.
+ *
+ * The related and relationship reads carry their own paths, which from contract 8 use the
+ * relation's URI field name and so may differ from `$name` (core ADR 0161).
  */
 final class RelationDescriptor
 {
     /**
-     * @param list<string>                        $types       related JSON:API types; more than one is polymorphic
-     * @param array<string, PivotFieldDescriptor> $pivotFields keyed and sorted by field name
-     * @param array<string, OperationDescriptor>  $mutations   keyed by {@see RelationVerb} value
+     * @param list<string>                        $types            related JSON:API types; more than one is polymorphic
+     * @param array<string, PivotFieldDescriptor> $pivotFields      the `meta.pivot` a read renders, keyed and sorted by field name
+     * @param array<string, OperationDescriptor>  $mutations        keyed by {@see RelationVerb} value
+     * @param array<string, PivotFieldDescriptor> $writePivotFields the `meta.pivot` a write may send, keyed and sorted by field name
      */
     public function __construct(
         public readonly string $name,
@@ -38,6 +42,7 @@ final class RelationDescriptor
         public readonly array $mutations,
         public readonly ?CountableDescriptor $countable,
         public readonly ?PaginatorDescriptor $paginator,
+        public readonly array $writePivotFields = [],
     ) {}
 
     /** False when the related-resources read is suppressed (`withoutRelatedEndpoint()`). */

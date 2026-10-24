@@ -99,14 +99,22 @@ final class DescriptorSerializer
             'paginator' => $relation->paginator === null ? null : self::paginator($relation->paginator),
             'countable' => self::countable($relation->countable),
             'pivot' => $relation->pivot,
-            'pivotFields' => \array_map(static fn(PivotFieldDescriptor $field): array => [
-                'format' => $field->format,
-                'nullable' => $field->nullable,
-                'enum' => $field->enum,
-                'schema' => self::valueSchema($field->schema),
-                'readOnly' => $field->readOnly,
-                'required' => $field->required,
-            ], $relation->pivotFields),
+            'pivotFields' => \array_map(self::pivotField(...), $relation->pivotFields),
+            'writePivotFields' => \array_map(self::pivotField(...), $relation->writePivotFields),
+        ];
+    }
+
+    /** @return array<string, mixed> */
+    private static function pivotField(PivotFieldDescriptor $field): array
+    {
+        return [
+            'format' => $field->format,
+            'nullable' => $field->nullable,
+            'enum' => $field->enum,
+            'schema' => self::valueSchema($field->schema),
+            'readOnly' => $field->readOnly,
+            'required' => $field->required,
+            'constraints' => (object) $field->constraints->toArray(),
         ];
     }
 

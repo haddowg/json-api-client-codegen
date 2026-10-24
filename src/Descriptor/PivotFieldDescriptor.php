@@ -7,12 +7,13 @@ namespace haddowg\JsonApiCodegen\Descriptor;
 /**
  * One field on a pivot relation member's `meta.pivot`.
  *
- * `$readOnly` and `$required` come straight from the spec's own `readOnly` flag and the pivot
- * object's `required` list. They are what a generated edge builder needs: a read-only field
- * must not appear on the write surface at all, and a required one must be enforced.
+ * A relation carries two sets of these. The read set describes the `meta.pivot` a response
+ * renders, where `$required` means the server always renders the field. The write set describes
+ * what a relationship write may send, where `$required` means a write must send it. Before
+ * contract 8 one schema served both, and `$readOnly` is how it marked a field no write can set.
  *
- * `$format`, `$enum`, `$nullable` and `$schema` mean what they do on {@see AttributeDescriptor}
- * — a pivot field is an attribute that happens to live on the edge.
+ * `$format`, `$enum`, `$nullable`, `$schema` and `$constraints` mean what they do on
+ * {@see AttributeDescriptor}: a pivot field is an attribute that happens to live on the edge.
  */
 final class PivotFieldDescriptor
 {
@@ -24,5 +25,6 @@ final class PivotFieldDescriptor
         public readonly ?ValueSchema $schema,
         public readonly bool $readOnly,
         public readonly bool $required,
+        public readonly Constraints $constraints = new Constraints(),
     ) {}
 }

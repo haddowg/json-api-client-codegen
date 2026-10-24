@@ -54,6 +54,9 @@ final class DescriptorBuilder
     /** @var array<string, PaginatorDescriptor> JSON:API type => its collection's pagination */
     private array $typePaginators = [];
 
+    /** @var array<string, string> operationId => the path it is advertised under */
+    private array $operationPaths = [];
+
     /** @var list<string> what the document says that this codegen read around rather than generated */
     private array $warnings = [];
 
@@ -67,6 +70,7 @@ final class DescriptorBuilder
     private function descriptor(): ApiDescriptor
     {
         $this->collectResourceSchemas();
+        $this->indexOperationIds();
         $this->resolveCollectionPaths();
 
         $resources = [];
@@ -101,6 +105,23 @@ final class DescriptorBuilder
 
             $this->resourceSchemas[$name] = $schema;
             $this->wireTypes[$name] = $schema->get('properties')->get('type')->get('const')->string();
+        }
+    }
+
+    /**
+     * The path each operationId is advertised under. A relation's endpoints are found by it,
+     * because from contract 8 their segment is the relation's URI field name, which need not be
+     * the relation's name.
+     */
+    private function indexOperationIds(): void
+    {
+        foreach ($this->document->paths() as $key => $item) {
+            foreach ($item->members() as $operation) {
+                $id = $operation->find('operationId');
+                if ($id !== null && !isset($this->operationPaths[$id->string()])) {
+                    $this->operationPaths[$id->string()] = (string) $key;
+                }
+            }
         }
     }
 
@@ -155,53 +176,81 @@ final class DescriptorBuilder
         $list = $collection === null ? null : $this->document->pathItem($collection)?->find('get');
 
         $single = $collection === null ? null : $this->document->pathItem($collection . '/{id}');
-        $relations = $this->relations($schema, $collection);
         $create = $collection === null ? null : $this->document->pathItem($collection)?->find('post');
         $update = $single?->find('patch');
+        $writeOnly = $this->markedWriteOnly($create, $update);
+        $relations = $this->relations($type, $schema, $collection, $writeOnly, $create, $update);
 
         return new ResourceDescriptor(
             $type,
             $this->attributes($schema),
-            $this->writeAttributes($collection === null ? null : $this->document->pathItem($collection)?->find('post')),
-            $this->writeAttributes($single?->find('patch')),
+            $this->writeAttributes($create),
+            $this->writeAttributes($update),
             $relations,
             $collection === null ? [] : $this->operations($collection),
             $this->typePaginators[$type] ?? PaginatorDescriptor::none(),
             $this->clientIdPolicy($collection),
             $this->countable($list),
-            $this->tokenEnum($list, 'include'),
+            \array_values(\array_diff($this->tokenEnum($list, 'include'), $writeOnly)),
             $this->tokenEnum($list, 'sort'),
             $this->filterable($list),
             $collection === null ? [] : $this->actions($collection),
-            $this->writeRelations($collection === null ? null : $this->document->pathItem($collection)?->find('post')),
-            $this->writeRelations($single?->find('patch')),
-            $this->memberOrder($schema),
-            $this->writeOnlyRelations($relations, $collection, $create, $update),
+            $this->writeRelations($create),
+            $this->writeRelations($update),
+            \array_values(\array_diff($this->memberOrder($schema), $writeOnly)),
+            $this->writeOnlyRelations($type, $relations, $collection, $create, $update),
         );
     }
 
     /**
-     * The relations a write accepts that the resource schema does not show. Contract 5 drops a
-     * write-only relation from every read schema (core ADR 0153), so its cardinality and types
-     * are read from the write document's own relationship schema instead.
+     * The relations a write body marks `writeOnly`. Contract 8 puts the keyword beside the `$ref`
+     * of a write-only relation's `relationships` member (core ADR 0162), so such a relation is
+     * kept off the read model even if a read schema were to show it.
+     *
+     * @return list<string>
+     */
+    private function markedWriteOnly(?Node ...$operations): array
+    {
+        $out = [];
+        foreach ($operations as $operation) {
+            foreach ($this->writeRelationships($operation)?->members() ?? [] as $key => $property) {
+                if ($property->find('writeOnly')?->bool() === true) {
+                    $out[] = (string) $key;
+                }
+            }
+        }
+
+        return \array_values(\array_unique($out));
+    }
+
+    /** The `properties` of a write body's `relationships` member, or null when it declares none. */
+    private function writeRelationships(?Node $operation): ?Node
+    {
+        $relationships = $operation === null
+            ? null
+            : $this->requestBodySchema($operation)?->path('properties', 'data', 'properties', 'relationships');
+
+        return $relationships === null ? null : $this->document->dereference($relationships)->find('properties');
+    }
+
+    /**
+     * The relations a write accepts that the resource schema does not show: the ones a contract-8
+     * write body marks `writeOnly`, and on an older document, any the read schema leaves out.
+     * Contract 5 drops a write-only relation from every read schema (core ADR 0153), so its
+     * cardinality and types are read from the write document's own relationship schema.
      *
      * @param array<string, RelationDescriptor> $readable
      *
      * @return array<string, RelationDescriptor>
      */
-    private function writeOnlyRelations(array $readable, ?string $collection, ?Node ...$operations): array
+    private function writeOnlyRelations(string $type, array $readable, ?string $collection, ?Node ...$operations): array
     {
         $out = [];
         foreach ($operations as $operation) {
-            $relationships = $operation === null
-                ? null
-                : $this->requestBodySchema($operation)?->path('properties', 'data', 'properties', 'relationships');
-            $properties = $relationships === null ? null : $this->document->dereference($relationships)->find('properties');
-
-            foreach ($properties?->members() ?? [] as $key => $property) {
+            foreach ($this->writeRelationships($operation)?->members() ?? [] as $key => $property) {
                 $name = (string) $key;
                 if (!isset($readable[$name]) && !isset($out[$name])) {
-                    $out[$name] = $this->relation($name, $this->document->dereference($property), $collection);
+                    $out[$name] = $this->relation($type, $name, $this->document->dereference($property), $collection, $property);
                 }
             }
         }
@@ -501,8 +550,12 @@ final class DescriptorBuilder
         return null;
     }
 
-    /** @return array<string, RelationDescriptor> */
-    private function relations(Node $schema, ?string $collection): array
+    /**
+     * @param list<string> $writeOnly relations a write body marks `writeOnly`, which no read shows
+     *
+     * @return array<string, RelationDescriptor>
+     */
+    private function relations(string $type, Node $schema, ?string $collection, array $writeOnly, ?Node $create, ?Node $update): array
     {
         $properties = $schema->path('properties', 'relationships', 'properties');
         if ($properties === null) {
@@ -512,23 +565,39 @@ final class DescriptorBuilder
         $out = [];
         foreach ($properties->members() as $key => $property) {
             $name = (string) $key;
-            $out[$name] = $this->relation($name, $this->document->dereference($property), $collection);
+            if (\in_array($name, $writeOnly, true)) {
+                continue;
+            }
+            $written = $this->writeRelationships($update)?->find($name) ?? $this->writeRelationships($create)?->find($name);
+            $out[$name] = $this->relation($type, $name, $this->document->dereference($property), $collection, $written);
         }
         \ksort($out, \SORT_STRING);
 
         return $out;
     }
 
-    private function relation(string $name, Node $component, ?string $collection): RelationDescriptor
+    /**
+     * @param Node|null $written the relation's member in a create or update body, which carries the
+     *                           pivot a write sends when no relationship endpoint does
+     */
+    private function relation(string $type, string $name, Node $component, ?string $collection, ?Node $written): RelationDescriptor
     {
         $data = $component->get('properties')->get('data');
         $cardinality = $data->find('type')?->string() === 'array' ? Cardinality::Many : Cardinality::One;
-        $linkage = $this->linkage($cardinality === Cardinality::Many ? $data->get('items') : $data);
+        $linkage = $this->linkage($cardinality === Cardinality::Many ? $data->get('items') : $data, $this->readsHoldConstraints());
 
-        $relatedPath = $collection . '/{id}/' . $name;
-        $relationshipPath = $collection . '/{id}/relationships/' . $name;
-        $related = $collection === null ? null : $this->document->pathItem($relatedPath);
-        $relationship = $collection === null ? null : $this->document->pathItem($relationshipPath);
+        $relatedPath = $collection === null ? null : $this->relationPath($type, $name, $collection . '/{id}/' . $name, 'fetchRelated');
+        $relationshipPath = $collection === null ? null : $this->relationPath(
+            $type,
+            $name,
+            $collection . '/{id}/relationships/' . $name,
+            'fetchRelationship',
+            'updateRelationship',
+            'addRelationship',
+            'removeRelationship',
+        );
+        $related = $relatedPath === null ? null : $this->document->pathItem($relatedPath);
+        $relationship = $relationshipPath === null ? null : $this->document->pathItem($relationshipPath);
         $relatedGet = $related?->find('get');
         $relationshipGet = $relationship?->find('get');
 
@@ -538,12 +607,70 @@ final class DescriptorBuilder
             $linkage['types'],
             $linkage['pivot'],
             $linkage['pivotFields'],
-            $this->operationAt($related, 'get', $relatedPath),
-            $this->operationAt($relationship, 'get', $relationshipPath),
-            $this->relationMutations($relationship, $cardinality, $relationshipPath),
+            $this->operationAt($related, 'get', (string) $relatedPath),
+            $this->operationAt($relationship, 'get', (string) $relationshipPath),
+            $this->relationMutations($relationship, $cardinality, (string) $relationshipPath),
             $this->countable($relatedGet) ?? $this->countable($relationshipGet),
             $this->relationPaginator($cardinality, $linkage['types'], $relatedGet, $relationshipGet),
+            $linkage['pivot'] ? $this->writePivotFields($relationship, $written, $linkage['pivotFields']) : [],
         );
+    }
+
+    /**
+     * The path of one of a relation's endpoints, found by its operationId (`fetchRelated.<type>.<rel>`
+     * and so on), because from contract 8 the segment is the relation's URI field name. A document
+     * without operationIds is read by the relation's name instead, as long as the path there does
+     * not belong to a different relation. Null when the relation has no such endpoint.
+     */
+    private function relationPath(string $type, string $name, string $byName, string ...$operations): ?string
+    {
+        $expected = \array_map(static fn(string $operation): string => $operation . '.' . $type . '.' . $name, $operations);
+        foreach ($expected as $id) {
+            if (isset($this->operationPaths[$id])) {
+                return $this->operationPaths[$id];
+            }
+        }
+
+        $item = $this->document->pathItem($byName);
+        foreach ($item?->members() ?? [] as $operation) {
+            $id = $operation->find('operationId');
+            if ($id !== null && !\in_array($id->string(), $expected, true)) {
+                return null;
+            }
+        }
+
+        return $byName;
+    }
+
+    /**
+     * The pivot fields a write sends, read from the request body of the relationship endpoint, or
+     * of a create or update when the relation has no mutation endpoint. From contract 8 that body
+     * names its own `<Type><Rel>WritePivot`, which leaves out what no write can set. An older
+     * document shares one pivot schema between both directions and flags those `readOnly`, so
+     * they are dropped here either way.
+     *
+     * @param array<string, PivotFieldDescriptor> $read
+     *
+     * @return array<string, PivotFieldDescriptor>
+     */
+    private function writePivotFields(?Node $relationship, ?Node $written, array $read): array
+    {
+        $data = null;
+        foreach (['patch', 'post'] as $method) {
+            $operation = $relationship?->find($method);
+            $data = $operation === null ? null : $this->requestBodySchema($operation)?->path('properties', 'data');
+            if ($data !== null) {
+                break;
+            }
+        }
+        $data ??= $written === null ? null : $this->document->dereference($written)->path('properties', 'data');
+
+        $fields = $read;
+        if ($data !== null) {
+            $fields = $this->linkage($data->find('type')?->string() === 'array' ? $data->get('items') : $data, true)['pivotFields'];
+        }
+
+        return \array_filter($fields, static fn(PivotFieldDescriptor $field): bool => !$field->readOnly);
     }
 
     /**
@@ -556,7 +683,7 @@ final class DescriptorBuilder
      *
      * @return array{types: list<string>, pivot: bool, pivotFields: array<string, PivotFieldDescriptor>}
      */
-    private function linkage(Node $node): array
+    private function linkage(Node $node, bool $constrained): array
     {
         if ($this->document->refName($node) !== null) {
             return ['types' => [$this->identifierType($node)], 'pivot' => false, 'pivotFields' => []];
@@ -572,7 +699,7 @@ final class DescriptorBuilder
 
                     continue;
                 }
-                $fields = [...$fields, ...$this->pivotFields($entry)];
+                $fields = [...$fields, ...$this->pivotFields($entry, $constrained)];
             }
             if ($types === []) {
                 throw SpecException::malformed($allOf->pointer(), 'to reference a resource identifier');
@@ -591,7 +718,7 @@ final class DescriptorBuilder
                 if ($entry->find('type')?->string() === 'null') {
                     continue;
                 }
-                $nested = $this->linkage($entry);
+                $nested = $this->linkage($entry, $constrained);
                 $types = [...$types, ...$nested['types']];
                 $pivot = $pivot || $nested['pivot'];
                 $fields = [...$fields, ...$nested['pivotFields']];
@@ -620,13 +747,18 @@ final class DescriptorBuilder
 
     /**
      * The `meta.pivot` field shape carried by one `allOf` entry, with each field's `readOnly`
-     * flag and its membership of the pivot object's `required` list.
+     * flag and its membership of the pivot object's `required` list. From contract 8 the pivot is
+     * a `$ref` to `<Type><Rel>Pivot` on a read and `<Type><Rel>WritePivot` on a write (core ADR
+     * 0160), where a read's `required` lists every field the server always renders.
+     *
+     * @param bool $constrained whether the schema's constraints hold for every value it describes
      *
      * @return array<string, PivotFieldDescriptor>
      */
-    private function pivotFields(Node $entry): array
+    private function pivotFields(Node $entry, bool $constrained): array
     {
         $pivot = $entry->path('properties', 'meta', 'properties', 'pivot');
+        $pivot = $pivot === null ? null : $this->document->dereference($pivot);
         $properties = $pivot?->find('properties');
         if ($pivot === null || $properties === null) {
             return [];
@@ -643,9 +775,10 @@ final class DescriptorBuilder
                 $hint['format'],
                 $hint['enum'],
                 $hint['nullable'],
-                $this->compositeSchema($field, $hint['format'], $this->readsHoldConstraints()),
+                $this->compositeSchema($field, $hint['format'], $constrained),
                 $field->find('readOnly')?->bool() === true,
                 \in_array($name, $required, true),
+                $constrained ? $this->attributeConstraints($field) : Constraints::none(),
             );
         }
 

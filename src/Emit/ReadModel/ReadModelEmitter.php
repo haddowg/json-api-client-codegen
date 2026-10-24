@@ -161,6 +161,11 @@ final class ReadModelEmitter implements Emitter, Warns
         }
         $out[] = self::base($resource, $reads, $relations, $file, $hooks);
         $out[] = self::concrete($resource, $hydrated, $file, $hooks);
+        foreach ($relations as $relation) {
+            if (self::readsPivot($relation)) {
+                $out[] = $this->pivot($api, $resource, $relation, $file, $hooks);
+            }
+        }
 
         $tags = [];
         foreach ($reads as $read) {
@@ -201,6 +206,9 @@ final class ReadModelEmitter implements Emitter, Warns
             $claim(self::accessor($relation->name, true), 'relation "' . $relation->name . '"');
             $claim(Naming::member($relation->name) . 'Ref', 'the linkage of relation "' . $relation->name . '"');
             $claim('has' . Naming::pascal($relation->name), 'the linkage test of relation "' . $relation->name . '"');
+            if (self::readsPivot($relation)) {
+                $claim(self::pivotAccessor($relation), 'the pivot of relation "' . $relation->name . '"');
+            }
         }
     }
 
@@ -314,6 +322,9 @@ final class ReadModelEmitter implements Emitter, Warns
                     . '    public function ' . $member . "Ref(): array\n    {\n        return " . $call . "->identifiers();\n    }\n";
                 $members[] = Php::docblock(['Whether the `' . $relation->name . '` linkage points at anything. Never throws.'], 4, false)
                     . '    public function has' . Naming::pascal($relation->name) . "(): bool\n    {\n        return !" . $call . "->isEmpty();\n    }\n";
+            }
+            if (self::readsPivot($relation)) {
+                $members[] = self::pivotsAccessor($relation, $call, $type);
             }
         }
 
@@ -791,6 +802,107 @@ final class ReadModelEmitter implements Emitter, Warns
         $required = \array_filter($members, static fn(array $member): bool => $member['required']);
 
         return new ClassUnit($class, UnitKind::FinalClass, $file, $source, $required === [] ? [] : [self::MALFORMED]);
+    }
+
+    /** Whether a relation's linkage renders a `meta.pivot` with fields to read. */
+    private static function readsPivot(RelationDescriptor $relation): bool
+    {
+        return $relation->pivot && $relation->pivotFields !== [];
+    }
+
+    /** `orderedTracksPivots` for a to-many, `ownerPivot` for a to-one. */
+    private static function pivotAccessor(RelationDescriptor $relation): string
+    {
+        return Naming::member($relation->name) . ($relation->cardinality === Cardinality::Many ? 'Pivots' : 'Pivot');
+    }
+
+    /** The accessor on the resource base that wraps each linkage member's `meta.pivot`. */
+    private static function pivotsAccessor(RelationDescriptor $relation, string $call, string $type): string
+    {
+        $class = Naming::perType($type, Naming::pascal($relation->name) . 'Pivot');
+        $method = self::pivotAccessor($relation);
+        $ref = Naming::member($relation->name) . 'Ref()';
+
+        if ($relation->cardinality === Cardinality::One) {
+            return Php::docblock(Php::wrap('The `meta.pivot` of the `' . $relation->name . '` linkage member, or null when the linkage is empty. Never throws: each field is checked when it is read.', 4), 4, false)
+                . '    public function ' . $method . '(): ?' . $class . "\n    {\n"
+                . '        $member = ' . $call . "->identifier();\n\n"
+                . '        return $member === null ? null : new ' . $class . "(\$member);\n    }\n";
+        }
+
+        return Php::docblock([
+            ...Php::wrap('The `meta.pivot` of each `' . $relation->name . '` linkage member, in linkage order, so the nth belongs to the nth member of `' . $ref . '`. Never throws: each field is checked when it is read.', 4),
+            '',
+            '@return list<' . $class . '>',
+        ], 4, false)
+            . '    public function ' . $method . "(): array\n    {\n"
+            . "        \$pivots = [];\n\n"
+            . '        foreach (' . $call . "->identifiers() as \$member) {\n"
+            . '            $pivots[] = new ' . $class . "(\$member);\n"
+            . "        }\n\n"
+            . "        return \$pivots;\n    }\n";
+    }
+
+    /**
+     * The read of one linkage member's `meta.pivot`, an accessor per field the response schema
+     * renders. A field the server always renders reads strictly; any other is nullable, because a
+     * pivot field the response leaves out is absent rather than excluded by a fieldset.
+     */
+    private function pivot(ApiDescriptor $api, ResourceDescriptor $resource, RelationDescriptor $relation, string $file, bool $hooks): ClassUnit
+    {
+        $type = $resource->type;
+        $class = Naming::perType($type, Naming::pascal($relation->name) . 'Pivot');
+        $imports = [self::RUNTIME . 'Resources\\Pivot'];
+
+        $hooked = '';
+        $methods = [];
+        $properties = [];
+        foreach ($relation->pivotFields as $field) {
+            $attribute = new AttributeDescriptor(
+                $field->name,
+                $field->format,
+                $field->enum,
+                $field->nullable || !$field->required,
+                $field->schema,
+                $field->constraints,
+            );
+            $shape = $field->schema === null ? null : Shape::of($field->schema)->kind;
+            $read = \in_array($shape, [ShapeKind::Object, ShapeKind::Tagged], true)
+                ? new AttributeRead($field->name, Naming::member($field->name), $attribute->nullable ? '?array' : 'array', 'array<string, mixed>' . ($attribute->nullable ? '|null' : ''), ['return $this->' . ($attribute->nullable ? '_nullableMap' : '_map') . '(' . Php::string($field->name) . ');'])
+                : $this->attribute($api, $resource, $attribute);
+            $method = Naming::member($field->name);
+            if (isset($properties[\strtolower($method)])) {
+                throw new \LogicException(\sprintf('The pivot fields "%s" and "%s" of "%s.%s" would both generate %s().', $properties[\strtolower($method)], $field->name, $type, $relation->name, $method));
+            }
+            $properties[\strtolower($method)] = $field->name;
+
+            $lines = $read->prose;
+            if ($read->docType !== null) {
+                $lines = [...$lines, ...($lines === [] ? [] : ['']), '@return ' . $read->docType];
+            }
+            $methods[] = ($lines === [] ? '' : Php::docblock($lines, 4, false))
+                . '    public function ' . $method . '(): ' . $read->nativeType . "\n    {\n"
+                . \implode("\n", Guard::indent($read->body, 8)) . "\n    }\n";
+            $hooked .= ($read->docType === null ? '' : '    /** @var ' . $read->docType . " */\n")
+                . '    public ' . $read->nativeType . ' $' . $method . ' { get => $this->' . $method . "(); }\n";
+            \array_push($imports, ...$read->imports);
+        }
+        $members = $hooks ? [$hooked, ...$methods] : $methods;
+
+        $doc = [
+            ...Php::wrap('The `meta.pivot` of one `' . $relation->name . '` linkage member of ' . self::article($type) . ' `' . $type . '` resource.'),
+            '',
+            ...Php::wrap('A field the server always renders reads as its type. Any other field reads as nullable, because a pivot takes no sparse fieldset and a field the response leaves out is simply absent.'),
+            '',
+            '@generated from the `meta.pivot` of `' . $type . '.' . $relation->name . '` linkage',
+        ];
+
+        $source = Php::docblock($doc, 0, false)
+            . 'final class ' . $class . " extends Pivot\n{\n"
+            . \implode("\n", $members)
+            . "}\n";
+
+        return new ClassUnit($class, UnitKind::FinalClass, $file, $source, \array_values(\array_unique($imports)));
     }
 
     private static function native(Shape $shape): string

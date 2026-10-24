@@ -7,7 +7,7 @@ declare(strict_types=1);
  * so this map is how each one is found. Register it once through composer.json's
  * `autoload.files`; regenerating rewrites it, so a new type never needs a `dump-autoload`.
  *
- * @generated from an OpenAPI document with sha256 93185482541652e9247d461bec0fa56a2206119c1394a9b0eaa6ec83957b0f6c
+ * @generated from an OpenAPI document with sha256 fdd6b3c869c17ddb34dde979c75653adf4e634347c9326d8984bad3849fa31e9
  */
 
 \spl_autoload_register(static function (string $class): void {
@@ -124,6 +124,7 @@ declare(strict_types=1);
         'haddowg\\JsonApiClient\\Tests\\Generated\\MusicCatalog\\PlaylistHasPublicOwner' => 'resource-playlists.php',
         'haddowg\\JsonApiClient\\Tests\\Generated\\MusicCatalog\\PlaylistHasTracks' => 'resource-playlists.php',
         'haddowg\\JsonApiClient\\Tests\\Generated\\MusicCatalog\\PlaylistOrderedTracksEdge' => 'resource-playlists.php',
+        'haddowg\\JsonApiClient\\Tests\\Generated\\MusicCatalog\\PlaylistOrderedTracksPivot' => 'resource-playlists.php',
         'haddowg\\JsonApiClient\\Tests\\Generated\\MusicCatalog\\PlaylistOrderedTracksRelation' => 'resource-playlists.php',
         'haddowg\\JsonApiClient\\Tests\\Generated\\MusicCatalog\\PlaylistOwnerRelation' => 'resource-playlists.php',
         'haddowg\\JsonApiClient\\Tests\\Generated\\MusicCatalog\\PlaylistProjecting' => 'resource-playlists.php',

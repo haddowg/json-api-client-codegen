@@ -1,5 +1,5 @@
 {
-    "contract": 7,
+    "contract": 8,
     "atomic": {
         "path": "/operations",
         "mediaType": "application/vnd.api+json; ext=\"https://jsonapi.org/ext/atomic\""
@@ -930,7 +930,8 @@
                     "paginator": null,
                     "countable": null,
                     "pivot": false,
-                    "pivotFields": []
+                    "pivotFields": [],
+                    "writePivotFields": []
                 },
                 "tracks": {
                     "cardinality": "many",
@@ -1097,7 +1098,8 @@
                         "profile": "https://haddowg.github.io/json-api/profiles/countable/"
                     },
                     "pivot": false,
-                    "pivotFields": []
+                    "pivotFields": [],
+                    "writePivotFields": []
                 }
             },
             "operations": {
@@ -2045,7 +2047,8 @@
                         "profile": "https://haddowg.github.io/json-api/profiles/countable/"
                     },
                     "pivot": false,
-                    "pivotFields": []
+                    "pivotFields": [],
+                    "writePivotFields": []
                 }
             },
             "operations": {
@@ -3002,7 +3005,8 @@
                     "paginator": null,
                     "countable": null,
                     "pivot": false,
-                    "pivotFields": []
+                    "pivotFields": [],
+                    "writePivotFields": []
                 },
                 "user": {
                     "cardinality": "one",
@@ -3063,7 +3067,8 @@
                     "paginator": null,
                     "countable": null,
                     "pivot": false,
-                    "pivotFields": []
+                    "pivotFields": [],
+                    "writePivotFields": []
                 }
             },
             "operations": {
@@ -3576,7 +3581,8 @@
                     },
                     "countable": null,
                     "pivot": false,
-                    "pivotFields": []
+                    "pivotFields": [],
+                    "writePivotFields": []
                 },
                 "owner": {
                     "cardinality": "one",
@@ -3637,7 +3643,8 @@
                     "paginator": null,
                     "countable": null,
                     "pivot": false,
-                    "pivotFields": []
+                    "pivotFields": [],
+                    "writePivotFields": []
                 }
             },
             "operations": {
@@ -4235,8 +4242,9 @@
                             "nullable": false,
                             "enum": null,
                             "schema": null,
-                            "readOnly": true,
-                            "required": false
+                            "readOnly": false,
+                            "required": true,
+                            "constraints": {}
                         },
                         "position": {
                             "format": "integer",
@@ -4244,7 +4252,32 @@
                             "enum": null,
                             "schema": null,
                             "readOnly": false,
-                            "required": true
+                            "required": true,
+                            "constraints": {
+                                "minimum": 1
+                            }
+                        },
+                        "weight": {
+                            "format": "integer",
+                            "nullable": true,
+                            "enum": null,
+                            "schema": null,
+                            "readOnly": false,
+                            "required": true,
+                            "constraints": {}
+                        }
+                    },
+                    "writePivotFields": {
+                        "position": {
+                            "format": "integer",
+                            "nullable": false,
+                            "enum": null,
+                            "schema": null,
+                            "readOnly": false,
+                            "required": true,
+                            "constraints": {
+                                "minimum": 1
+                            }
                         },
                         "weight": {
                             "format": "integer",
@@ -4252,7 +4285,8 @@
                             "enum": null,
                             "schema": null,
                             "readOnly": false,
-                            "required": false
+                            "required": false,
+                            "constraints": {}
                         }
                     }
                 },
@@ -4296,7 +4330,8 @@
                     "paginator": null,
                     "countable": null,
                     "pivot": false,
-                    "pivotFields": []
+                    "pivotFields": [],
+                    "writePivotFields": []
                 },
                 "publicOwner": {
                     "cardinality": "one",
@@ -4357,7 +4392,8 @@
                     "paginator": null,
                     "countable": null,
                     "pivot": false,
-                    "pivotFields": []
+                    "pivotFields": [],
+                    "writePivotFields": []
                 },
                 "tracks": {
                     "cardinality": "many",
@@ -4524,7 +4560,8 @@
                         "profile": "https://haddowg.github.io/json-api/profiles/countable/"
                     },
                     "pivot": false,
-                    "pivotFields": []
+                    "pivotFields": [],
+                    "writePivotFields": []
                 }
             },
             "operations": {
@@ -4977,7 +5014,8 @@
                     "paginator": null,
                     "countable": null,
                     "pivot": false,
-                    "pivotFields": []
+                    "pivotFields": [],
+                    "writePivotFields": []
                 }
             },
             "operations": {
@@ -7083,7 +7121,8 @@
                     "paginator": null,
                     "countable": null,
                     "pivot": false,
-                    "pivotFields": []
+                    "pivotFields": [],
+                    "writePivotFields": []
                 }
             },
             "operations": {
@@ -7857,7 +7896,8 @@
                     "paginator": null,
                     "countable": null,
                     "pivot": false,
-                    "pivotFields": []
+                    "pivotFields": [],
+                    "writePivotFields": []
                 },
                 "playlists": {
                     "cardinality": "many",
@@ -7982,7 +8022,8 @@
                         "profile": "https://haddowg.github.io/json-api/profiles/countable/"
                     },
                     "pivot": false,
-                    "pivotFields": []
+                    "pivotFields": [],
+                    "writePivotFields": []
                 }
             },
             "operations": {

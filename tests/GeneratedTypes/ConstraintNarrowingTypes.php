@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace haddowg\JsonApiCodegen\Tests\GeneratedTypes;
 
 use haddowg\JsonApiClient\Tests\Generated\MusicCatalog\Album;
+use haddowg\JsonApiClient\Tests\Generated\MusicCatalog\Playlist;
 use haddowg\JsonApiClient\Tests\Generated\MusicCatalog\Release;
 use haddowg\JsonApiClient\Tests\Generated\MusicCatalog\ReleaseFormatVinyl;
 use haddowg\JsonApiClient\Tests\Generated\MusicCatalog\Track;
@@ -45,6 +46,21 @@ final class ConstraintNarrowingTypes
         assertType('array{material: non-empty-string, gatefold: bool|null}|null', $release->packaging());
         // A hook renders `releaseInfo`, so none of its members is listed as required.
         assertType('array{label?: string|null, catalogueNumber?: string|null}|null', $album->releaseInfo());
+    }
+
+    public function aPivotReadsFromItsResponseSchema(Playlist $playlist): void
+    {
+        $pivots = $playlist->orderedTracksPivots();
+        assertType('list<haddowg\JsonApiClient\Tests\Generated\MusicCatalog\PlaylistOrderedTracksPivot>', $pivots);
+
+        foreach ($pivots as $pivot) {
+            assertType('int<1, max>', $pivot->position());
+            assertType('int<1, max>', $pivot->position);
+            // Always rendered, and may be null.
+            assertType('int|null', $pivot->weight());
+            assertType('DateTimeImmutable', $pivot->addedAt());
+            assertType('haddowg\JsonApiClient\Support\Identifier', $pivot->_identifier());
+        }
     }
 
     public function writesTakeTheNarrowedTypes(TrackCreate $create): void

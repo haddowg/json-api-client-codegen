@@ -86,7 +86,7 @@ abstract class PublicProfileBase extends ResourceObject
 
     public string $type { get => $this->type(); }
 
-    public ?string $displayName { get => $this->displayName(); }
+    public string $displayName { get => $this->displayName(); }
 
     public function id(): string
     {
@@ -106,9 +106,9 @@ abstract class PublicProfileBase extends ResourceObject
      *
      * @throws FieldNotSelectedException when a sparse fieldset excluded `displayName`
      */
-    public function displayName(): ?string
+    public function displayName(): string
     {
-        return $this->_nullableString('displayName');
+        return $this->_string('displayName');
     }
 }
 

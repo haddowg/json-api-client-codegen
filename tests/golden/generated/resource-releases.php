@@ -208,8 +208,8 @@ abstract class ReleaseBase extends ResourceObject
     }
 
     /**
-     * A nested object attribute, narrowed member by member: a member of the wrong type is dropped
-     * rather than trusted.
+     * A nested object attribute, narrowed member by member: an optional member of the wrong type is
+     * dropped rather than trusted, and a required one throws.
      *
      * @return ReleasePackagingShape|null
      *
@@ -227,16 +227,20 @@ abstract class ReleaseBase extends ResourceObject
         $material = $raw['material'] ?? null;
         $gatefold = $raw['gatefold'] ?? null;
 
-        if (\is_string($material)) {
-            /** @var non-empty-string $material */
-            $shape['material'] = $material;
+        if (!\is_string($material)) {
+            throw MalformedDocument::unexpectedMember('The "packaging" attribute of a "releases" resource', 'material', 'a string');
         }
 
-        if ($gatefold === null && \array_key_exists('gatefold', $raw)) {
+        /** @var non-empty-string $material */
+        $shape['material'] = $material;
+
+        if ($gatefold === null) {
             $shape['gatefold'] = null;
-        }
+        } else {
+            if (!\is_bool($gatefold)) {
+                throw MalformedDocument::unexpectedMember('The "packaging" attribute of a "releases" resource', 'gatefold', 'a boolean');
+            }
 
-        if (\is_bool($gatefold)) {
             $shape['gatefold'] = $gatefold;
         }
 
@@ -362,8 +366,8 @@ abstract class ReleaseBase extends ResourceObject
  * the runtime guards check against. `@phpstan-type` aliases are class-local, so every other class
  * using one imports it from here.
  *
- * @phpstan-type ReleaseFormatShape array{rpm?: int<16, 78>, coloured?: bool|null, medium: 'vinyl'}|array{discs?: positive-int, medium: 'cd'}|array{codec?: non-empty-string, bitrateKbps?: int<32, max>|null, medium: 'digital'}
- * @phpstan-type ReleasePackagingShape array{material?: non-empty-string, gatefold?: bool|null}
+ * @phpstan-type ReleaseFormatShape array{rpm: int<16, 78>, coloured: bool|null, medium: 'vinyl'}|array{discs: positive-int, medium: 'cd'}|array{codec: non-empty-string, bitrateKbps: int<32, max>|null, medium: 'digital'}
+ * @phpstan-type ReleasePackagingShape array{material: non-empty-string, gatefold: bool|null}
  * @phpstan-type ReleaseAvailabilityShape array{worldwide?: bool, regions?: non-empty-list<string>}
  * @phpstan-type ReleaseDimensionsShape array{widthMm: float, heightMm: float, depthMm?: float}
  * @phpstan-type ReleaseAlbumInput Album|Identifier|null
@@ -802,10 +806,10 @@ final class ReleaseFormatCd
     public const string MEDIUM = 'cd';
 
     /**
-     * @param positive-int|null $discs
+     * @param positive-int $discs
      */
     public function __construct(
-        public readonly ?int $discs = null,
+        public readonly int $discs,
     ) {}
 
     /**
@@ -816,10 +820,12 @@ final class ReleaseFormatCd
         $discs = $raw['discs'] ?? null;
 
         $discsValue = null;
-        if (\is_int($discs)) {
-            /** @var positive-int $discs */
-            $discsValue = $discs;
+        if (!\is_int($discs)) {
+            throw MalformedDocument::unexpectedMember('The "format" attribute of a "releases" resource', 'discs', 'an integer');
         }
+
+        /** @var positive-int $discs */
+        $discsValue = $discs;
 
         return new self($discsValue);
     }
@@ -838,12 +844,12 @@ final class ReleaseFormatDigital
     public const string MEDIUM = 'digital';
 
     /**
-     * @param non-empty-string|null $codec
+     * @param non-empty-string $codec
      * @param int<32, max>|null $bitrateKbps
      */
     public function __construct(
-        public readonly ?string $codec = null,
-        public readonly ?int $bitrateKbps = null,
+        public readonly string $codec,
+        public readonly ?int $bitrateKbps,
     ) {}
 
     /**
@@ -855,17 +861,21 @@ final class ReleaseFormatDigital
         $bitrateKbps = $raw['bitrateKbps'] ?? null;
 
         $codecValue = null;
-        if (\is_string($codec)) {
-            /** @var non-empty-string $codec */
-            $codecValue = $codec;
+        if (!\is_string($codec)) {
+            throw MalformedDocument::unexpectedMember('The "format" attribute of a "releases" resource', 'codec', 'a string');
         }
+
+        /** @var non-empty-string $codec */
+        $codecValue = $codec;
 
         $bitrateKbpsValue = null;
         if ($bitrateKbps === null) {
             $bitrateKbpsValue = null;
-        }
+        } else {
+            if (!\is_int($bitrateKbps)) {
+                throw MalformedDocument::unexpectedMember('The "format" attribute of a "releases" resource', 'bitrateKbps', 'an integer');
+            }
 
-        if (\is_int($bitrateKbps)) {
             /** @var int<32, max> $bitrateKbps */
             $bitrateKbpsValue = $bitrateKbps;
         }
@@ -887,11 +897,11 @@ final class ReleaseFormatVinyl
     public const string MEDIUM = 'vinyl';
 
     /**
-     * @param int<16, 78>|null $rpm
+     * @param int<16, 78> $rpm
      */
     public function __construct(
-        public readonly ?int $rpm = null,
-        public readonly ?bool $coloured = null,
+        public readonly int $rpm,
+        public readonly ?bool $coloured,
     ) {}
 
     /**
@@ -903,17 +913,21 @@ final class ReleaseFormatVinyl
         $coloured = $raw['coloured'] ?? null;
 
         $rpmValue = null;
-        if (\is_int($rpm)) {
-            /** @var int<16, 78> $rpm */
-            $rpmValue = $rpm;
+        if (!\is_int($rpm)) {
+            throw MalformedDocument::unexpectedMember('The "format" attribute of a "releases" resource', 'rpm', 'an integer');
         }
+
+        /** @var int<16, 78> $rpm */
+        $rpmValue = $rpm;
 
         $colouredValue = null;
         if ($coloured === null) {
             $colouredValue = null;
-        }
+        } else {
+            if (!\is_bool($coloured)) {
+                throw MalformedDocument::unexpectedMember('The "format" attribute of a "releases" resource', 'coloured', 'a boolean');
+            }
 
-        if (\is_bool($coloured)) {
             $colouredValue = $coloured;
         }
 

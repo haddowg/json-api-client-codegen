@@ -61,7 +61,7 @@ the projector whenever the emitted structure changes. This codegen declares a su
 this is the only thing that catches it. A feature-token list was rejected: it names what
 changed, at the cost of two hand-maintained lists that must agree.
 
-The supported range is `[1, 5]`. Contract 2 (json-api 1.1.0) added the error catalogue, shared
+The supported range is `[1, 7]`. Contract 2 (json-api 1.1.0) added the error catalogue, shared
 error responses and write-side `include`/`fields`; the descriptor reads the first into `errors`,
 and the last into each operation's `projection`. Contract 3 added `x-paginator` on page schemas,
 which the descriptor reads into each `PaginatorDescriptor`: the strategy, its role-to-key map, and
@@ -72,7 +72,12 @@ projects each constraint only into the schemas it holds for, admits `null` on a 
 unless the server guarantees a value, puts a `default` and a size cap on page members, and drops
 write-only relations from the read schemas. The descriptor reads the constraints of every
 attribute, value schema and page member, and the write-only relations from the write documents;
-the emitters narrow PHPDoc types from them (ADR 0003). Raise `MAXIMUM` only in the change that
+the emitters narrow PHPDoc types from them (ADR 0003). Contract 6 (json-api 1.5.1) lists the
+members a nested read object always renders in its `required`, which the nested shapes already
+honoured, so nested read members lose their `?`. Contract 7 (json-api 1.6.0) renders built links as
+link objects described per context; generated code passes `links` to the runtime, which reads
+`href` from either form, so no links component is read, and an action body naming a type the
+document does not describe is an error by pointer (ADR 0004). Raise `MAXIMUM` only in the change that
 teaches the descriptor to read whatever the next contract adds.
 
 **Pagination warns rather than errors.** An unknown strategy, an unstamped member set outside the

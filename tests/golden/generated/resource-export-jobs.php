@@ -84,7 +84,7 @@ abstract class ExportJobBase extends ResourceObject
 
     public string $type { get => $this->type(); }
 
-    public ?string $state { get => $this->state(); }
+    public string $state { get => $this->state(); }
 
     public function id(): string
     {
@@ -104,9 +104,9 @@ abstract class ExportJobBase extends ResourceObject
      *
      * @throws FieldNotSelectedException when a sparse fieldset excluded `state`
      */
-    public function state(): ?string
+    public function state(): string
     {
-        return $this->_nullableString('state');
+        return $this->_string('state');
     }
 }
 

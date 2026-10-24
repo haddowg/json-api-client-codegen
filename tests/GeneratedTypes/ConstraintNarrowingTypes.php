@@ -26,27 +26,32 @@ final class ConstraintNarrowingTypes
     {
         assertType('non-empty-string', $track->title());
         assertType('non-empty-string', $track->title);
-        assertType('int<1, max>|null', $track->trackNumber());
-        assertType('int<1, max>|null', $track->trackNumber);
-        assertType('non-empty-list<non-empty-string>|null', $track->genres());
-        assertType('int|null', $track->durationSeconds());
-        assertType('haddowg\JsonApiClient\Tests\Generated\MusicCatalog\AlbumStatus|null', $album->status());
+        assertType('int<1, max>', $track->trackNumber());
+        assertType('int<1, max>', $track->trackNumber);
+        assertType('non-empty-list<non-empty-string>', $track->genres());
+        assertType('int', $track->durationSeconds());
+        assertType('string|null', $track->previewOffset());
+        assertType('haddowg\JsonApiClient\Tests\Generated\MusicCatalog\AlbumStatus', $album->status());
     }
 
-    public function nestedMembersAreNarrowedToo(Release $release): void
+    public function nestedMembersAreNarrowedAndRequiredWhereTheServerRendersThem(Release $release, Album $album): void
     {
         $format = $release->format();
         if ($format instanceof ReleaseFormatVinyl) {
-            assertType('int<16, 78>|null', $format->rpm);
+            assertType('int<16, 78>', $format->rpm);
+            assertType('bool|null', $format->coloured);
         }
 
-        assertType('array{material?: non-empty-string, gatefold?: bool|null}|null', $release->packaging());
+        assertType('array{material: non-empty-string, gatefold: bool|null}|null', $release->packaging());
+        // A hook renders `releaseInfo`, so none of its members is listed as required.
+        assertType('array{label?: string|null, catalogueNumber?: string|null}|null', $album->releaseInfo());
     }
 
     public function writesTakeTheNarrowedTypes(TrackCreate $create): void
     {
         assertType('non-empty-string', $create->title);
-        assertType('haddowg\JsonApiClient\Support\Missing|int<1, max>', $create->trackNumber);
-        assertType('haddowg\JsonApiClient\Support\Missing|non-empty-list<non-empty-string>', $create->genres);
+        assertType('int<1, max>', $create->trackNumber);
+        assertType('non-empty-list<non-empty-string>', $create->genres);
+        assertType('haddowg\JsonApiClient\Support\Missing|int', $create->durationSeconds);
     }
 }

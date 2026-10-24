@@ -17,6 +17,7 @@ use haddowg\JsonApiCodegen\Descriptor\OperationKind;
 use haddowg\JsonApiCodegen\Descriptor\PaginatorKind;
 use haddowg\JsonApiCodegen\Descriptor\RelationVerb;
 use haddowg\JsonApiCodegen\Descriptor\ResourceDescriptor;
+use haddowg\JsonApiCodegen\Spec\SpecDocument;
 use haddowg\JsonApiCodegen\Tests\Support\Fixtures;
 use haddowg\JsonApiCodegen\Tests\Support\GoldenFile;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -71,19 +72,35 @@ final class MusicCatalogDescriptorTest extends TestCase
     {
         $albums = $this->resource('albums');
 
-        // Both are `integer`; only one of them is `?int`.
-        self::assertTrue($this->resource('tracks')->attributes['trackNumber']->nullable);
-        self::assertSame('integer', $this->resource('tracks')->attributes['trackNumber']->format);
-        self::assertFalse($this->resource('artists')->attributes['trackCount']->nullable);
-        self::assertSame('integer', $this->resource('artists')->attributes['trackCount']->format);
+        // Both are `string`; only one of them is `?string`.
+        self::assertTrue($albums->attributes['artwork']->nullable);
+        self::assertSame('string', $albums->attributes['artwork']->format);
+        self::assertFalse($albums->attributes['title']->nullable);
+        self::assertSame('string', $albums->attributes['title']->format);
 
         self::assertTrue($albums->attributes['availableFrom']->nullable);
         self::assertSame('date', $albums->attributes['availableFrom']->format);
+    }
+
+    public function testANullableEnumKeepsItsComponent(): void
+    {
+        $json = \file_get_contents(Fixtures::path('music-catalog.openapi.json'));
+        self::assertIsString($json);
+        /** @var array{components: array{schemas: array<string, array{properties: array<string, mixed>}>}} $document */
+        $document = \json_decode($json, true, flags: \JSON_THROW_ON_ERROR);
+        // The server guarantees `status`, so the fixture no longer has a nullable enum to read.
+        $document['components']['schemas']['AlbumsAttributes']['properties']['status'] = [
+            'description' => 'Where the album sits in its release lifecycle.',
+            'anyOf' => [['$ref' => '#/components/schemas/AlbumStatus'], ['type' => 'null']],
+        ];
+
+        $status = DescriptorBuilder::build(SpecDocument::fromDecoded($document))->resource('albums')?->attributes['status'];
 
         // A nullable enum is an `anyOf` of its component and null, and keeps both.
-        self::assertTrue($albums->attributes['status']->nullable);
-        self::assertSame('AlbumStatus', $albums->attributes['status']->enum);
-        self::assertNull($albums->attributes['status']->schema);
+        self::assertNotNull($status);
+        self::assertTrue($status->nullable);
+        self::assertSame('AlbumStatus', $status->enum);
+        self::assertNull($status->schema);
     }
 
     public function testEveryNullableAttributeInTheDocumentIsMarked(): void
@@ -100,15 +117,12 @@ final class MusicCatalogDescriptorTest extends TestCase
         // Contract 5 reads every attribute as nullable unless the server guarantees a value.
         self::assertSame([
             'albums.artwork', 'albums.availableFrom', 'albums.availableUntil',
-            'albums.averageRating', 'albums.explicit', 'albums.releaseInfo', 'albums.releasedAt', 'albums.status',
-            'artists.bio', 'artists.createdAt', 'artists.slug', 'artists.website',
-            'catalog-exports.status',
-            'export-jobs.state',
+            'albums.averageRating', 'albums.releaseInfo', 'albums.releasedAt',
+            'artists.bio', 'artists.createdAt', 'artists.website',
             'favorites.favoritedAt',
-            'playlists.externalId', 'playlists.public', 'playlists.slug',
-            'public-profiles.displayName',
+            'playlists.externalId',
             'releases.availability', 'releases.dimensions', 'releases.format', 'releases.packaging',
-            'tracks.durationSeconds', 'tracks.explicit', 'tracks.genres', 'tracks.previewOffset', 'tracks.trackNumber',
+            'tracks.previewOffset',
         ], $nullable);
     }
 

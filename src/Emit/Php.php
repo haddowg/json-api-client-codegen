@@ -49,6 +49,9 @@ final class Php
         $width = 100 - $indent - 3;
         $lines = [];
 
+        // Prose can come from the document, and a `*/` in it would close the docblock early.
+        $prose = \str_replace('*/', '*\\/', $prose);
+
         foreach (\preg_split('/\R/', \trim($prose)) ?: [] as $paragraph) {
             $paragraph = \trim($paragraph);
             if ($paragraph === '') {

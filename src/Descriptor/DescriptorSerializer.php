@@ -182,6 +182,8 @@ final class DescriptorSerializer
             'schema' => $error->schema,
             'title' => $error->title,
             'source' => $error->source?->value,
+            'description' => $error->description,
+            'exampleDetail' => $error->exampleDetail,
         ];
     }
 

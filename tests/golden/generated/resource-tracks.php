@@ -25,6 +25,9 @@ use haddowg\JsonApiClient\Exceptions\UnknownSortException;
 use haddowg\JsonApiClient\Exceptions\UnsupportedMediaType;
 use haddowg\JsonApiClient\Exceptions\ValidationFailed;
 use haddowg\JsonApiClient\Http\Request;
+use haddowg\JsonApiClient\Pagination\Cursor;
+use haddowg\JsonApiClient\Pagination\Offset;
+use haddowg\JsonApiClient\Pagination\Page;
 use haddowg\JsonApiClient\Pagination\PageLinks;
 use haddowg\JsonApiClient\Pagination\PageNumber;
 use haddowg\JsonApiClient\Query\Projection;
@@ -84,7 +87,7 @@ interface TrackHasPlaylists
 
 /**
  * The projection surface of `tracks`: the `withX()` include methods and the checked `fields()`,
- * shared by {@see TrackProjection} and {@see TrackQuery}.
+ * shared by {@see TrackProjection}.
  *
  * A trait used by final classes rather than a shared base class: `@return static<TProj&Marker>`
  * over a `static`-returning primitive resolves at level 9 only in a final class.
@@ -1153,7 +1156,12 @@ final class TrackProjection extends Projection
  * separate methods because a parameter typed as the shape or any array would accept anything. Both
  * array doors still check names at runtime.
  *
+ * The endpoint offers a menu of pagination strategies. `TPage` is the page a read returns: the
+ * server's default, `page`, until a `pageByX()` picker chooses another.
+ *
  * @template TProj of object
+ *
+ * @template TPage of Page
  *
  * @extends Query<TProj>
  *
@@ -1166,11 +1174,69 @@ final class TrackProjection extends Projection
  */
 final class TrackQuery extends Query
 {
-    /** @use TrackProjecting<TProj> */
-    use TrackProjecting;
     use QueryConditionable;
 
-    public function __construct(private readonly Fetcher $fetcher) {}
+    /**
+     * @param \Closure(array<string, mixed>, PageLinks): TPage $reader
+     */
+    public function __construct(
+        private readonly Fetcher $fetcher,
+        private \Closure $reader,
+    ) {}
+
+    /**
+     * Include the `album` relation, narrowing the projection so `$track->album` type-checks.
+     *
+     * @return static<TProj&TrackHasAlbum, TPage>
+     */
+    public function withAlbum(): static
+    {
+        return $this->including('album');
+    }
+
+    /**
+     * Include the `playlists` relation, narrowing the projection so `$track->playlists`
+     * type-checks.
+     *
+     * @return static<TProj&TrackHasPlaylists, TPage>
+     */
+    public function withPlaylists(): static
+    {
+        return $this->including('playlists');
+    }
+
+    /**
+     * Include paths assembled at runtime, or deeper than one hop. Nothing is narrowed, so a
+     * relation is reached through its always-safe companions or after a runtime check. The runtime
+     * keeps this protected; it is public here because an operation declares `include`.
+     *
+     * @return static
+     */
+    public function with(string ...$paths): static
+    {
+        return parent::with(...$paths);
+    }
+
+    /**
+     * Sparse fieldsets, with the `tracks` members checked against the descriptor. Other types'
+     * fieldsets pass through unchecked.
+     *
+     * @param array<string, list<string>> $fields
+     *
+     * @return static
+     *
+     * @throws UnknownFieldException when `fields[tracks]` names a member `tracks` does not have
+     */
+    public function fields(array $fields): static
+    {
+        foreach ($fields[TrackBase::TYPE] ?? [] as $field) {
+            if (!\in_array($field, Track::FIELDS, true)) {
+                throw UnknownFieldException::for(TrackBase::TYPE, $field, Track::FIELDS);
+            }
+        }
+
+        return parent::fields($fields);
+    }
 
     /**
      * Filter by `title`.
@@ -1292,14 +1358,68 @@ final class TrackQuery extends Query
     }
 
     /**
-     * @param positive-int      $number
+     * Page by the `page` strategy, the one the server uses when a read picks none. Sends
+     * `page[kind]=page` with whichever members are given, replacing whatever an earlier picker set,
+     * and reads `PageNumber` pages.
+     *
+     * @param positive-int|null $number
      * @param positive-int|null $size
      *
-     * @return static
+     * @return self<TProj, PageNumber>
      */
-    public function page(int $number, ?int $size = null): static
+    public function pageByPage(?int $number = null, ?int $size = null): self
     {
-        return $this->paging($size === null ? ['number' => $number] : ['number' => $number, 'size' => $size]);
+        return $this->choose(['kind' => 'page', 'number' => $number, 'size' => $size], PageNumber::read(...));
+    }
+
+    /**
+     * Page by the `cursor` strategy. Sends `page[kind]=cursor` with whichever members are given,
+     * replacing whatever an earlier picker set, and reads `Cursor` pages.
+     *
+     * @param string|null       $after
+     * @param string|null       $before
+     * @param positive-int|null $size
+     *
+     * @return self<TProj, Cursor>
+     */
+    public function pageByCursor(?string $after = null, ?string $before = null, ?int $size = null): self
+    {
+        return $this->choose(['kind' => 'cursor', 'after' => $after, 'before' => $before, 'size' => $size], Cursor::read(...));
+    }
+
+    /**
+     * Page by the `offset` strategy. Sends `page[kind]=offset` with whichever members are given,
+     * replacing whatever an earlier picker set, and reads `Offset` pages.
+     *
+     * @param int<0, max>|null  $offset
+     * @param positive-int|null $limit
+     *
+     * @return self<TProj, Offset>
+     */
+    public function pageByOffset(?int $offset = null, ?int $limit = null): self
+    {
+        return $this->choose(['kind' => 'offset', 'offset' => $offset, 'limit' => $limit], Offset::read(...));
+    }
+
+    /**
+     * Choose a strategy: replace the page parameters with its own, dropping those left null, and
+     * re-type the query to read its page. The runtime hands the replaced query back as the base
+     * `Query`, which is what makes narrowing it to the new page type legal.
+     *
+     * @template TNext of Page
+     *
+     * @param array<string, mixed>                              $page
+     * @param \Closure(array<string, mixed>, PageLinks): TNext $reader
+     *
+     * @return self<TProj, TNext>
+     */
+    private function choose(array $page, \Closure $reader): self
+    {
+        /** @var self<TProj, TNext> $chosen */
+        $chosen = $this->repaging(\array_filter($page, static fn(mixed $value): bool => $value !== null));
+        $chosen->reader = $reader;
+
+        return $chosen;
     }
 
     /**
@@ -1318,7 +1438,7 @@ final class TrackQuery extends Query
     /**
      * Run the read.
      *
-     * @return PaginatedCollection<TProj, PageNumber>
+     * @return PaginatedCollection<TProj, TPage>
      *
      * @throws BadRequest         when a query parameter is rejected
      * @throws Unauthorized       when credentials are missing or invalid
@@ -1335,7 +1455,7 @@ final class TrackQuery extends Query
     }
 
     /**
-     * The first track the read matches, fetching a single-resource page rather than a whole one.
+     * The first track the read matches.
      *
      * @return TProj|null
      *
@@ -1348,7 +1468,7 @@ final class TrackQuery extends Query
      */
     public function first(): ?object
     {
-        return $this->page(1, 1)->get()->first();
+        return $this->get()->first();
     }
 
     /**
@@ -1383,7 +1503,7 @@ final class TrackQuery extends Query
     }
 
     /**
-     * @return PaginatedCollection<TProj, PageNumber>
+     * @return PaginatedCollection<TProj, TPage>
      */
     private function collect(ResourceContext $context, ReadQuery $query): PaginatedCollection
     {
@@ -1396,7 +1516,7 @@ final class TrackQuery extends Query
 
         return new PaginatedCollection(
             $tracks,
-            PageNumber::read($document->pageMeta(), PageLinks::fromArray($document->links())),
+            ($this->reader)($document->pageMeta(), PageLinks::fromArray($document->links())),
             $document->meta(),
             $document->links(),
             fn(string $url): PaginatedCollection => $this->collect($this->fetcher->readUrl($url, $query), $query),
@@ -1666,14 +1786,15 @@ final class Tracks
     public function __construct(private readonly Fetcher $fetcher) {}
 
     /**
-     * A read of the tracks collection, not yet sent: unprojected, unfiltered and unsorted.
+     * A read of the tracks collection, not yet sent: unprojected, unfiltered and unsorted. Until a
+     * picker chooses a strategy, it reads the server's default, `page`.
      *
-     * @return TrackQuery<TrackBase>
+     * @return TrackQuery<TrackBase, PageNumber>
      */
     public function query(): TrackQuery
     {
-        /** @var TrackQuery<TrackBase> */
-        return new TrackQuery($this->fetcher);
+        /** @var TrackQuery<TrackBase, PageNumber> */
+        return new TrackQuery($this->fetcher, PageNumber::read(...));
     }
 
     /**

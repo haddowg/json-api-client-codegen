@@ -29,6 +29,7 @@ use haddowg\JsonApiClient\Query\Projection;
 use haddowg\JsonApiClient\Query\Query;
 use haddowg\JsonApiClient\Query\ReadQuery;
 use haddowg\JsonApiClient\Resources\Fetcher;
+use haddowg\JsonApiClient\Resources\Pivot;
 use haddowg\JsonApiClient\Resources\Relationship;
 use haddowg\JsonApiClient\Resources\ResourceContext;
 use haddowg\JsonApiClient\Resources\ResourceObject;
@@ -334,6 +335,24 @@ abstract class PlaylistBase extends ResourceObject
     public function hasOrderedTracks(): bool
     {
         return !$this->_relationship('orderedTracks', false)->isEmpty();
+    }
+
+    /**
+     * The `meta.pivot` of each `orderedTracks` linkage member, in linkage order, so the nth belongs
+     * to the nth member of `orderedTracksRef()`. Never throws: each field is checked when it is
+     * read.
+     *
+     * @return list<PlaylistOrderedTracksPivot>
+     */
+    public function orderedTracksPivots(): array
+    {
+        $pivots = [];
+
+        foreach ($this->_relationship('orderedTracks', false)->identifiers() as $member) {
+            $pivots[] = new PlaylistOrderedTracksPivot($member);
+        }
+
+        return $pivots;
     }
 
     /**
@@ -947,6 +966,43 @@ final class PlaylistOrderedTracksEdge
         $identifier = $this->target instanceof Identifier ? $this->target : $this->target->_identifier();
 
         return ['type' => $identifier->type, 'id' => $identifier->id, 'meta' => ['pivot' => $pivot]];
+    }
+}
+
+/**
+ * The `meta.pivot` of one `orderedTracks` linkage member of a `playlists` resource.
+ *
+ * A field the server always renders reads as its type. Any other field reads as nullable, because a
+ * pivot takes no sparse fieldset and a field the response leaves out is simply absent.
+ *
+ * @generated from the `meta.pivot` of `playlists.orderedTracks` linkage
+ */
+final class PlaylistOrderedTracksPivot extends Pivot
+{
+    public \DateTimeImmutable $addedAt { get => $this->addedAt(); }
+    /** @var positive-int */
+    public int $position { get => $this->position(); }
+    public ?int $weight { get => $this->weight(); }
+
+    public function addedAt(): \DateTimeImmutable
+    {
+        return $this->_dateTime('addedAt');
+    }
+
+    /**
+     * @return positive-int
+     */
+    public function position(): int
+    {
+        /** @var positive-int $value */
+        $value = $this->_int('position');
+
+        return $value;
+    }
+
+    public function weight(): ?int
+    {
+        return $this->_nullableInt('weight');
     }
 }
 

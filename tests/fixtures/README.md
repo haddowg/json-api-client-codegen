@@ -3,12 +3,13 @@
 The music-catalog pair started as copies of `json-api-ts/packages/codegen/test/fixtures/`, the
 TypeScript codegen's reference input, so a PHP and a TypeScript client generated from one
 document could be diffed against each other. They have since been re-exported from a
-`haddowg/json-api` 1.6.0 server, and `json-api-ts` keeps its own copies. Until it refreshes them,
-the two codegens read different documents of the same API.
+`haddowg/json-api` server on the 1.7.0 line (its main branch, before the release), and
+`json-api-ts` keeps its own copies. Until it refreshes them, the two codegens read different
+documents of the same API.
 
 | File | What it is |
 | --- | --- |
-| `music-catalog.openapi.json` | The OpenAPI 3.1 document for the music-catalog API. 63 paths, 315 component schemas, 15 resource types, generator contract 7 (`haddowg/json-api` 1.6.0). |
+| `music-catalog.openapi.json` | The OpenAPI 3.1 document for the music-catalog API. 63 paths, 319 component schemas, 15 resource types, generator contract 8 (`haddowg/json-api` 1.7.0). |
 | `music-catalog.schemas.json` | The sidecar JSON Schema map, one draft-2020-12 schema per resource type, keyed by type. |
 | `paginators.openapi.json` | Hand-built, generator contract 3, with an offset floor of 0 as core projects it. One collection per pagination strategy, each with renamed keys under `x-paginator`, a `MultiPaginator` menu on `posts` (and on its related `comments` read), an unstamped canonical `tags`, and a strategy no codegen knows on `logs`. Shaped after core's projection; not exported from a server. |
 
@@ -53,7 +54,7 @@ The reader normalises both, and `tests/Descriptor/PaginatorDetectionTest.php` pi
 strategy against hand-built documents in both forms. Do not "simplify" it to the current form
 alone.
 
-This document is contract 7, so every page schema carries `x-paginator` and states its members'
+This document is contract 8, so every page schema carries `x-paginator` and states its members'
 `default` and the size cap, and its `tracks` collection is a page/cursor/offset menu: the picker
 is generated from a real server's document.
 The name-based fallback for unstamped documents is pinned by `PaginatorDetectionTest`'s

@@ -439,7 +439,7 @@ final class RelationSource
 
         $readOnly = \array_values(\array_map(
             static fn(PivotFieldDescriptor $field): string => '`' . $field->name . '`',
-            \array_filter($relation->pivotFields, static fn(PivotFieldDescriptor $field): bool => $field->readOnly),
+            \array_diff_key($relation->pivotFields, $relation->writePivotFields),
         ));
         $doc = [...Php::wrap(
             'One `' . $relation->name . '` member and its pivot data, for a relationship write. Only the writable pivot fields are here'
@@ -479,7 +479,7 @@ final class RelationSource
         if (!$relation->pivot) {
             return [];
         }
-        $writable = \array_values(\array_filter($relation->pivotFields, static fn(PivotFieldDescriptor $field): bool => !$field->readOnly));
+        $writable = \array_values($relation->writePivotFields);
         \usort($writable, static fn(PivotFieldDescriptor $a, PivotFieldDescriptor $b): int => [$a->required ? 0 : 1, $a->name] <=> [$b->required ? 0 : 1, $b->name]);
 
         return $writable;

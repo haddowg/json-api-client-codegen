@@ -36,6 +36,12 @@ namespace haddowg\JsonApiCodegen\Spec;
  * Generated code never reads a link as a string: it hands `links` to the runtime, which takes the
  * `href` of either form. An action or `202` body naming a type the document does not describe is
  * now an inline document rather than a dangling `$ref`, and the reader rejects it by pointer.
+ *
+ * Contract 8 splits a pivot's `meta.pivot` into a response schema, `<Type><Rel>Pivot`, and a
+ * request schema, `<Type><Rel>WritePivot`; keys a relation's paths by its URI field name; and marks
+ * a write-only relation `writeOnly` in the write bodies. Pivot reads are generated from the first
+ * and the edge builder from the second. A relation's endpoints are found by operationId, and a
+ * relation marked `writeOnly` is kept off the read model.
  */
 final class ContractCompatibility
 {
@@ -43,7 +49,7 @@ final class ContractCompatibility
     public const int MINIMUM = 1;
 
     /** Above this the document carries structures this codegen does not read. */
-    public const int MAXIMUM = 7;
+    public const int MAXIMUM = 8;
 
     /**
      * Check a document's declared contract against the supported range.

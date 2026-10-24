@@ -378,7 +378,7 @@ final class MusicCatalogDescriptorTest extends TestCase
         self::assertSame(['tracks', 'albums', 'artists'], $favoritable->types);
     }
 
-    public function testPivotFieldsCarryWritabilityFromTheSpec(): void
+    public function testAPivotsReadFieldsComeFromItsResponseSchema(): void
     {
         $ordered = $this->resource('playlists')->relation('orderedTracks');
 
@@ -386,17 +386,28 @@ final class MusicCatalogDescriptorTest extends TestCase
         self::assertTrue($ordered->pivot);
         self::assertSame(['addedAt', 'position', 'weight'], \array_keys($ordered->pivotFields));
 
-        self::assertTrue($ordered->pivotFields['addedAt']->readOnly);
-        self::assertFalse($ordered->pivotFields['addedAt']->required);
+        // Contract 8's response schema lists every field the server always renders.
+        self::assertTrue($ordered->pivotFields['addedAt']->required);
         self::assertFalse($ordered->pivotFields['addedAt']->nullable);
         self::assertSame('date-time', $ordered->pivotFields['addedAt']->format);
 
-        self::assertFalse($ordered->pivotFields['position']->readOnly);
         self::assertTrue($ordered->pivotFields['position']->required);
         self::assertSame('integer', $ordered->pivotFields['position']->format);
+        self::assertSame(1, $ordered->pivotFields['position']->constraints->minimum);
 
-        self::assertFalse($ordered->pivotFields['weight']->readOnly);
-        self::assertFalse($ordered->pivotFields['weight']->required);
+        self::assertTrue($ordered->pivotFields['weight']->required);
+        self::assertTrue($ordered->pivotFields['weight']->nullable);
+    }
+
+    public function testAPivotsWriteFieldsComeFromItsRequestSchema(): void
+    {
+        $ordered = $this->resource('playlists')->relation('orderedTracks');
+
+        self::assertNotNull($ordered);
+        self::assertSame(['position', 'weight'], \array_keys($ordered->writePivotFields), 'addedAt is set by the server, so the write pivot leaves it out');
+        self::assertTrue($ordered->writePivotFields['position']->required);
+        self::assertFalse($ordered->writePivotFields['weight']->required);
+        self::assertFalse($ordered->writePivotFields['weight']->nullable);
     }
 
     public function testRelationsWithNoEndpointsHaveBothSuppressionFlagsOff(): void

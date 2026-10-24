@@ -21,7 +21,7 @@ final class ContractCompatibilityTest extends TestCase
 
     public function testTheMusicCatalogContractIsOneThisCodegenReads(): void
     {
-        self::assertSame(5, Fixtures::musicCatalog()->contract());
+        self::assertSame(7, Fixtures::musicCatalog()->contract());
         self::assertNull(ContractCompatibility::check(Fixtures::musicCatalog()->contract()));
     }
 
@@ -31,15 +31,16 @@ final class ContractCompatibilityTest extends TestCase
         self::assertNull(ContractCompatibility::check(ContractCompatibility::MAXIMUM));
     }
 
-    public function testContractFiveIsReadAndSixIsNot(): void
+    public function testContractSevenIsReadAndEightIsNot(): void
     {
-        // Contract 5 adds per-schema constraints, which the descriptor reads; whatever 6 adds,
-        // it does not.
-        self::assertNull(ContractCompatibility::check(4));
+        // Contract 6 lists a nested object's rendered members as required and contract 7 renders
+        // links as link objects, both of which this codegen reads; whatever 8 adds, it does not.
         self::assertNull(ContractCompatibility::check(5));
+        self::assertNull(ContractCompatibility::check(6));
+        self::assertNull(ContractCompatibility::check(7));
 
-        $warning = ContractCompatibility::check(6);
-        self::assertSame('the document declares contract 6 and this codegen reads up to 5. It describes capabilities that were not generated; upgrade the codegen to pick them up.', $warning);
+        $warning = ContractCompatibility::check(8);
+        self::assertSame('the document declares contract 8 and this codegen reads up to 7. It describes capabilities that were not generated; upgrade the codegen to pick them up.', $warning);
     }
 
     public function testANewerContractWarnsThatCapabilitiesWereNotGenerated(): void

@@ -206,9 +206,9 @@ abstract class PlaylistBase extends ResourceObject
     /** @var non-empty-string */
     public string $title { get => $this->title(); }
 
-    public ?string $slug { get => $this->slug(); }
+    public string $slug { get => $this->slug(); }
 
-    public ?bool $public { get => $this->public(); }
+    public bool $public { get => $this->public(); }
 
     public ?string $externalId { get => $this->externalId(); }
 
@@ -245,17 +245,17 @@ abstract class PlaylistBase extends ResourceObject
      *
      * @throws FieldNotSelectedException when a sparse fieldset excluded `slug`
      */
-    public function slug(): ?string
+    public function slug(): string
     {
-        return $this->_nullableString('slug');
+        return $this->_string('slug');
     }
 
     /**
      * @throws FieldNotSelectedException when a sparse fieldset excluded `public`
      */
-    public function public(): ?bool
+    public function public(): bool
     {
-        return $this->_nullableBool('public');
+        return $this->_bool('public');
     }
 
     /**

@@ -183,9 +183,9 @@ abstract class AlbumBase extends ResourceObject
 
     public ?\DateTimeImmutable $releasedAt { get => $this->releasedAt(); }
 
-    public ?bool $explicit { get => $this->explicit(); }
+    public bool $explicit { get => $this->explicit(); }
 
-    public ?AlbumStatus $status { get => $this->status(); }
+    public AlbumStatus $status { get => $this->status(); }
 
     public ?\DateTimeImmutable $availableFrom { get => $this->availableFrom(); }
 
@@ -253,17 +253,17 @@ abstract class AlbumBase extends ResourceObject
     /**
      * @throws FieldNotSelectedException when a sparse fieldset excluded `explicit`
      */
-    public function explicit(): ?bool
+    public function explicit(): bool
     {
-        return $this->_nullableBool('explicit');
+        return $this->_bool('explicit');
     }
 
     /**
      * @throws FieldNotSelectedException when a sparse fieldset excluded `status`
      */
-    public function status(): ?AlbumStatus
+    public function status(): AlbumStatus
     {
-        return $this->_nullableEnum('status', AlbumStatus::class);
+        return $this->_enum('status', AlbumStatus::class);
     }
 
     /**

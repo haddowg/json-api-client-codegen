@@ -26,6 +26,16 @@ namespace haddowg\JsonApiCodegen\Spec;
  * cap, and drops a write-only relation from the read schemas. The constraints are read per
  * schema and narrow the generated types; the rest needs no reader change, because nullability
  * and members were already read from the schema they appear in.
+ *
+ * Contract 6 lists every member a nested object always renders in its read schema's `required`.
+ * The nested shapes were already read from that `required`, so the read accessors, the array-shape
+ * aliases and the tagged-union branches drop the `?` on those members with no reader change. An
+ * older document lists none there, so its nested members stay optional.
+ *
+ * Contract 7 renders the links the server builds as link objects and describes them per context.
+ * Generated code never reads a link as a string: it hands `links` to the runtime, which takes the
+ * `href` of either form. An action or `202` body naming a type the document does not describe is
+ * now an inline document rather than a dangling `$ref`, and the reader rejects it by pointer.
  */
 final class ContractCompatibility
 {
@@ -33,7 +43,7 @@ final class ContractCompatibility
     public const int MINIMUM = 1;
 
     /** Above this the document carries structures this codegen does not read. */
-    public const int MAXIMUM = 5;
+    public const int MAXIMUM = 7;
 
     /**
      * Check a document's declared contract against the supported range.

@@ -96,7 +96,7 @@ abstract class CatalogExportBase extends ResourceObject
     /** @var non-empty-string */
     public string $format { get => $this->format(); }
 
-    public ?string $status { get => $this->status(); }
+    public string $status { get => $this->status(); }
 
     public function id(): string
     {
@@ -131,9 +131,9 @@ abstract class CatalogExportBase extends ResourceObject
      *
      * @throws FieldNotSelectedException when a sparse fieldset excluded `status`
      */
-    public function status(): ?string
+    public function status(): string
     {
-        return $this->_nullableString('status');
+        return $this->_string('status');
     }
 }
 

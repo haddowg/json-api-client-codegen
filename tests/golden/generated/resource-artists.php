@@ -144,7 +144,7 @@ abstract class ArtistBase extends ResourceObject
     /** @var non-empty-string */
     public string $name { get => $this->name(); }
 
-    public ?string $slug { get => $this->slug(); }
+    public string $slug { get => $this->slug(); }
 
     public ?string $website { get => $this->website(); }
 
@@ -185,9 +185,9 @@ abstract class ArtistBase extends ResourceObject
     /**
      * @throws FieldNotSelectedException when a sparse fieldset excluded `slug`
      */
-    public function slug(): ?string
+    public function slug(): string
     {
-        return $this->_nullableString('slug');
+        return $this->_string('slug');
     }
 
     /**

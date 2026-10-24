@@ -1338,6 +1338,21 @@ final class DescriptorBuilder
 
         $sent = $input === ActionInput::Document ? $this->documentPrimary($this->requestBodySchema($operation)) : null;
         $returned = $output === ActionOutput::Document ? $this->documentPrimary($response) : null;
+
+        // A body for a type the server doesn't register, or one with no create forms, is an open
+        // schema with nothing to generate a signature from.
+        if ($input === ActionInput::Document && ($sent === null || !\in_array($sent['type'], $this->wireTypes, true))) {
+            throw SpecException::malformed(
+                $operation->path('requestBody', 'content', self::JSON_API_MEDIA_TYPE, 'schema')?->pointer() ?? $path,
+                \sprintf('to be a create document of a type the document describes, as the body of the "%s" action', $name),
+            );
+        }
+        if ($output === ActionOutput::Document && ($returned === null || !\in_array($returned['type'], $this->wireTypes, true))) {
+            throw SpecException::malformed(
+                $response->pointer(),
+                \sprintf('to be a document of a type the document describes, as the response of the "%s" action', $name),
+            );
+        }
         $contentType = $input === ActionInput::Raw
             ? (\array_values(\array_filter($mediaTypes, static fn(string $media): bool => $media !== self::JSON_API_MEDIA_TYPE))[0] ?? null)
             : null;

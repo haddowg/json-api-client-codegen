@@ -36,8 +36,8 @@ final class ContractFiveTest extends TestCase
             return $document;
         })['resource-tracks.php'];
 
-        self::assertStringContainsString("@return positive-int|null\n", $tracks, 'the read admits null, which no write sets');
-        self::assertStringContainsString('@param positive-int|Missing $trackNumber', $tracks, 'the create keeps the read floor and no cap');
+        self::assertStringContainsString("@return positive-int\n", $tracks, 'the read keeps the floor and no cap');
+        self::assertStringContainsString('@param positive-int $trackNumber', $tracks, 'the create keeps the floor and no cap');
         self::assertStringContainsString('@param int<1, 99>|Missing $trackNumber', $tracks, 'the update carries its own cap');
     }
 

@@ -1,5 +1,5 @@
 {
-    "contract": 5,
+    "contract": 7,
     "atomic": {
         "path": "/operations",
         "mediaType": "application/vnd.api+json; ext=\"https://jsonapi.org/ext/atomic\""
@@ -528,7 +528,7 @@
                 },
                 "explicit": {
                     "format": "boolean",
-                    "nullable": true,
+                    "nullable": false,
                     "enum": null,
                     "schema": null,
                     "constraints": {}
@@ -600,7 +600,7 @@
                 },
                 "status": {
                     "format": "string",
-                    "nullable": true,
+                    "nullable": false,
                     "enum": "AlbumStatus",
                     "schema": null,
                     "constraints": {}
@@ -1798,7 +1798,7 @@
                 },
                 "slug": {
                     "format": "string",
-                    "nullable": true,
+                    "nullable": false,
                     "enum": null,
                     "schema": null,
                     "constraints": {}
@@ -2410,7 +2410,7 @@
                 },
                 "status": {
                     "format": "string",
-                    "nullable": true,
+                    "nullable": false,
                     "enum": null,
                     "schema": null,
                     "constraints": {}
@@ -2807,7 +2807,7 @@
             "attributes": {
                 "state": {
                     "format": "string",
-                    "nullable": true,
+                    "nullable": false,
                     "enum": null,
                     "schema": null,
                     "constraints": {}
@@ -3984,14 +3984,14 @@
                 },
                 "public": {
                     "format": "boolean",
-                    "nullable": true,
+                    "nullable": false,
                     "enum": null,
                     "schema": null,
                     "constraints": {}
                 },
                 "slug": {
                     "format": "string",
-                    "nullable": true,
+                    "nullable": false,
                     "enum": null,
                     "schema": null,
                     "constraints": {
@@ -5161,7 +5161,7 @@
             "attributes": {
                 "displayName": {
                     "format": "string",
-                    "nullable": true,
+                    "nullable": false,
                     "enum": null,
                     "schema": null,
                     "constraints": {}
@@ -5545,7 +5545,11 @@
                                 ],
                                 "format": null,
                                 "enum": [],
-                                "required": [],
+                                "required": [
+                                    "coloured",
+                                    "medium",
+                                    "rpm"
+                                ],
                                 "properties": {
                                     "rpm": {
                                         "types": [
@@ -5614,7 +5618,10 @@
                                 ],
                                 "format": null,
                                 "enum": [],
-                                "required": [],
+                                "required": [
+                                    "discs",
+                                    "medium"
+                                ],
                                 "properties": {
                                     "discs": {
                                         "types": [
@@ -5665,7 +5672,11 @@
                                 ],
                                 "format": null,
                                 "enum": [],
-                                "required": [],
+                                "required": [
+                                    "bitrateKbps",
+                                    "codec",
+                                    "medium"
+                                ],
                                 "properties": {
                                     "codec": {
                                         "types": [
@@ -5764,7 +5775,10 @@
                         ],
                         "format": null,
                         "enum": [],
-                        "required": [],
+                        "required": [
+                            "gatefold",
+                            "material"
+                        ],
                         "properties": {
                             "material": {
                                 "types": [
@@ -7470,26 +7484,25 @@
                 },
                 "durationSeconds": {
                     "format": "integer",
-                    "nullable": true,
+                    "nullable": false,
                     "enum": null,
                     "schema": null,
                     "constraints": {}
                 },
                 "explicit": {
                     "format": "boolean",
-                    "nullable": true,
+                    "nullable": false,
                     "enum": null,
                     "schema": null,
                     "constraints": {}
                 },
                 "genres": {
                     "format": "array",
-                    "nullable": true,
+                    "nullable": false,
                     "enum": null,
                     "schema": {
                         "types": [
-                            "array",
-                            "null"
+                            "array"
                         ],
                         "format": null,
                         "enum": [],
@@ -7546,7 +7559,7 @@
                 },
                 "trackNumber": {
                     "format": "integer",
-                    "nullable": true,
+                    "nullable": false,
                     "enum": null,
                     "schema": null,
                     "constraints": {
@@ -7575,7 +7588,7 @@
                     "format": "array",
                     "nullable": false,
                     "enum": null,
-                    "required": false,
+                    "required": true,
                     "schema": {
                         "types": [
                             "array"
@@ -7639,7 +7652,7 @@
                     "format": "integer",
                     "nullable": false,
                     "enum": null,
-                    "required": false,
+                    "required": true,
                     "schema": null,
                     "constraints": {
                         "minimum": 1

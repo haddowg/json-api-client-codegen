@@ -43,7 +43,7 @@ final class ReadModelEmitterTest extends TestCase
     #[DataProvider('albumDeclarations')]
     public function testAlbumDeclarationMatchesTheArtefact(string $declaration): void
     {
-        ArtefactParity::assertMatches($declaration, 'resource-albums.php', Generated::artefactFile('resource-albums.php'));
+        ArtefactParity::assertMatches($declaration, 'resource-albums.php', Generated::file('resource-albums.php'));
     }
 
     /**
@@ -53,7 +53,7 @@ final class ReadModelEmitterTest extends TestCase
      */
     public function testAlbumMatchesTheArtefactWithEveryEmittersContributions(): void
     {
-        ArtefactParity::assertMatches('Album', 'resource-albums.php', Generated::artefactFile('resource-albums.php'));
+        ArtefactParity::assertMatches('Album', 'resource-albums.php', Generated::file('resource-albums.php'));
     }
 
     public function testAn83TargetEmitsNoPropertyHooksOrInterfaceProperties(): void

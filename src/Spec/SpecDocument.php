@@ -130,13 +130,41 @@ final class SpecDocument
     }
 
     /**
-     * The component name a schema node's `$ref` member points at, or null when it carries none.
+     * The `$ref` member a schema node stands for, or null when it is not a reference.
+     *
+     * That is the node's own `$ref`, or the one inside a single-entry `allOf` that holds nothing
+     * else. Contract 9 writes a `$ref` carrying an `example`, `examples` or `default` that way
+     * (core ADR 0165), with those keywords beside the `allOf`, so both forms are one reference.
+     */
+    public function reference(Node $schema): ?Node
+    {
+        $ref = $schema->find('$ref');
+        if ($ref !== null) {
+            return $ref;
+        }
+
+        $allOf = $schema->find('allOf');
+        if ($allOf === null || !$allOf->isArray() || $schema->find('anyOf') !== null || $schema->find('oneOf') !== null) {
+            return null;
+        }
+
+        $entries = $allOf->items();
+        if (\count($entries) !== 1 || !$entries[0]->isObject() || \array_keys($entries[0]->members()) !== ['$ref']) {
+            return null;
+        }
+
+        return $entries[0]->get('$ref');
+    }
+
+    /**
+     * The component name a schema node's `$ref` points at, or null when it is not a reference.
+     * A single-entry `allOf` wrapping one `$ref` counts, see {@see reference()}.
      *
      * @throws SpecException when the ref is not a local `#/components/schemas/` reference
      */
     public function refName(Node $schema): ?string
     {
-        $ref = $schema->find('$ref');
+        $ref = $this->reference($schema);
         if ($ref === null) {
             return null;
         }
@@ -150,7 +178,7 @@ final class SpecDocument
     }
 
     /**
-     * The schema a node's `$ref` member points at, or null when the node carries no `$ref`.
+     * The schema a node's `$ref` points at, or null when the node is not a reference.
      *
      * @throws SpecException when the ref names a component the document does not declare
      */

@@ -1293,7 +1293,7 @@ final class PlaylistProjection extends Projection
  * the related resources; any read the server switched off is absent. The writes are `set()`, the
  * methods the relationship endpoint declares, and no others.
  *
- * @generated from `/playlists/{id}/publicOwner` and `/playlists/{id}/relationships/publicOwner`
+ * @generated from `/playlists/{id}/public-owner` and `/playlists/{id}/relationships/public-owner`
  */
 final class PlaylistPublicOwnerRelation
 {
@@ -1316,7 +1316,7 @@ final class PlaylistPublicOwnerRelation
     public function get(): ?Identifier
     {
         $raw = $this->fetcher
-            ->read(Request::get('/playlists/' . $this->id . '/relationships/publicOwner'))
+            ->read(Request::get('/playlists/' . $this->id . '/relationships/public-owner'))
             ->primary();
 
         return $raw === null ? null : Identifier::fromArray($raw, 'the "publicOwner" linkage');
@@ -1335,7 +1335,7 @@ final class PlaylistPublicOwnerRelation
      */
     public function related(): ?PublicProfile
     {
-        $context = $this->fetcher->read(Request::get('/playlists/' . $this->id . '/publicOwner'));
+        $context = $this->fetcher->read(Request::get('/playlists/' . $this->id . '/public-owner'));
         $raw = $context->primary();
 
         return $raw === null ? null : PublicProfile::_hydrate($raw, $context);
@@ -1358,7 +1358,7 @@ final class PlaylistPublicOwnerRelation
     public function set(Identifier|PublicProfile|null $target): void
     {
         $this->fetcher->send(Request::patch(
-            '/playlists/' . $this->id . '/relationships/publicOwner',
+            '/playlists/' . $this->id . '/relationships/public-owner',
             \json_encode(['data' => Coerce::linkage($target)], \JSON_THROW_ON_ERROR),
         ));
     }

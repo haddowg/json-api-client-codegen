@@ -444,7 +444,7 @@ final class DescriptorBuilder
      */
     private function unwrapNullable(Node $schema): Node
     {
-        if ($schema->find('type') !== null || $schema->find('$ref') !== null) {
+        if ($schema->find('type') !== null || $this->document->reference($schema) !== null) {
             return $schema;
         }
 
@@ -463,15 +463,20 @@ final class DescriptorBuilder
     }
 
     /**
-     * An attribute's constraints: the keywords on its own schema, then those on the schema it
-     * stands for when it is a `$ref` or a nullable union of one.
+     * An attribute's constraints: the keywords on its own schema, then those on a nullable
+     * union's branch, then those on the schema a `$ref` stands for. The nearer keyword wins, so
+     * a `default` beside a `$ref` (or beside the `allOf` that wraps one) outranks the target's.
      */
     private function attributeConstraints(Node $schema): Constraints
     {
         $own = $this->constraints($schema);
-        $unwrapped = $this->document->dereference($this->unwrapNullable($schema));
+        $branch = $this->unwrapNullable($schema);
+        if ($branch !== $schema) {
+            $own = $own->orElse($this->constraints($branch));
+        }
+        $target = $this->document->dereference($branch);
 
-        return $unwrapped === $schema ? $own : $own->orElse($this->constraints($unwrapped));
+        return $target === $branch ? $own : $own->orElse($this->constraints($target));
     }
 
     /**
@@ -1237,6 +1242,7 @@ final class DescriptorBuilder
 
     private function valueSchema(Node $schema, bool $constrained = true): ValueSchema
     {
+        $reference = $schema;
         $schema = $this->document->dereference($schema);
 
         $properties = [];
@@ -1262,7 +1268,11 @@ final class DescriptorBuilder
             $this->branches($schema, 'allOf', $constrained),
             $schema->path('discriminator', 'propertyName')?->string(),
             $const !== null && $const->isString() ? $const->string() : null,
-            $constrained ? $this->constraints($schema) : Constraints::none(),
+            match (true) {
+                !$constrained => Constraints::none(),
+                $reference === $schema => $this->constraints($schema),
+                default => $this->constraints($reference)->orElse($this->constraints($schema)),
+            },
         );
     }
 

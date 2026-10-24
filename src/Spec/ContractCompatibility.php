@@ -42,6 +42,13 @@ namespace haddowg\JsonApiCodegen\Spec;
  * a write-only relation `writeOnly` in the write bodies. Pivot reads are generated from the first
  * and the edge builder from the second. A relation's endpoints are found by operationId, and a
  * relation marked `writeOnly` is kept off the read model.
+ *
+ * Contract 9 writes a `$ref` that carries an `example`, `examples` or `default` as a single-entry
+ * `allOf` holding only the `$ref`, with those keywords beside it. The reader takes that wrapper as
+ * the `$ref` wherever it resolves a schema, so an enum attribute keeps its enum type and the
+ * wrapper's own `default` still reaches the docblock. The per-relation links components and the
+ * per-relation related collection need nothing new: links are not read, and a relation's
+ * endpoints are found by operationId and their pagination from their `page` parameter.
  */
 final class ContractCompatibility
 {
@@ -49,7 +56,7 @@ final class ContractCompatibility
     public const int MINIMUM = 1;
 
     /** Above this the document carries structures this codegen does not read. */
-    public const int MAXIMUM = 8;
+    public const int MAXIMUM = 9;
 
     /**
      * Check a document's declared contract against the supported range.

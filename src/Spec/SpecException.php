@@ -37,6 +37,20 @@ final class SpecException extends \RuntimeException
         return new self(\sprintf('expected %s %s', self::label($pointer), $detail));
     }
 
+    /**
+     * A name the document chooses that would be written into generated PHP as an identifier, but
+     * is not one PHP accepts there, and has no fallback that would not change the generated API.
+     */
+    public static function unusableName(string $pointer, string $name, string $as): self
+    {
+        return new self(\sprintf(
+            'expected %s to give a usable PHP %s, got %s',
+            self::label($pointer),
+            $as,
+            \json_encode($name, \JSON_UNESCAPED_SLASHES | \JSON_UNESCAPED_UNICODE | \JSON_INVALID_UTF8_SUBSTITUTE),
+        ));
+    }
+
     public static function unreadable(string $source, string $detail): self
     {
         return new self(\sprintf('could not read %s: %s', $source, $detail));

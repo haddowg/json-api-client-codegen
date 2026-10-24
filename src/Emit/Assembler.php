@@ -35,6 +35,9 @@ final class Assembler
         $seen = [];
 
         foreach ($units as $unit) {
+            if (!Identifier::isClassName($unit->name)) {
+                throw new \LogicException(\sprintf('A generated declaration is named %s, which PHP does not accept as a class name.', \json_encode($unit->name)));
+            }
             $key = \strtolower($unit->name);
             if (isset($seen[$key])) {
                 throw new \LogicException(\sprintf('Two generated declarations are named "%s" and "%s" (in %s and %s); PHP class names are case-insensitive.', $seen[$key]->name, $unit->name, $seen[$key]->file, $unit->file));
@@ -137,7 +140,7 @@ final class Assembler
 
         $before = \substr($unit->source, 0, $marker);
         $separator = \str_ends_with($before, "\n *") || \str_ends_with($before, '/**') ? '' : "\n *";
-        $block = \implode('', \array_map(static fn(string $tag): string => "\n * " . $tag, $tags)) . "\n *";
+        $block = \implode('', \array_map(static fn(string $tag): string => "\n * " . Php::docText($tag), $tags)) . "\n *";
 
         return $before . $separator . $block . \substr($unit->source, $marker);
     }
@@ -194,10 +197,9 @@ final class Assembler
      */
     private static function autoload(array $map, GeneratorConfig $config, string $specHash): string
     {
-        $prefix = \str_replace('\\', '\\\\', $config->namespace) . '\\\\';
         $entries = '';
         foreach ($map as $class => $file) {
-            $entries .= "        '" . $prefix . $class . "' => '" . $file . "',\n";
+            $entries .= '        ' . Php::string($config->namespace . '\\' . $class) . ' => ' . Php::string($file) . ",\n";
         }
 
         return "<?php\n\ndeclare(strict_types=1);\n\n"

@@ -7,6 +7,7 @@ namespace haddowg\JsonApiCodegen\Emit\ReadModel;
 use haddowg\JsonApiCodegen\Descriptor\Constraints;
 use haddowg\JsonApiCodegen\Descriptor\ValueSchema;
 use haddowg\JsonApiCodegen\Emit\Narrowing;
+use haddowg\JsonApiCodegen\Emit\Php;
 
 /**
  * A value schema reduced to the shape generated code reads it as.
@@ -117,7 +118,7 @@ final class Shape
             ShapeKind::List => Narrowing::list(($this->items ?? self::unknown())->merged()->wireType(), $this->constraints),
             ShapeKind::Object => $this->members === [] ? 'array<string, mixed>' : self::objectType($this->members, []),
             ShapeKind::Tagged => \implode('|', \array_map(
-                fn(array $branch): string => self::objectType($branch['shape']->members, [(string) $this->discriminator => '\'' . \addcslashes($branch['value'], "'\\") . '\'']),
+                fn(array $branch): string => self::objectType($branch['shape']->members, [(string) $this->discriminator => Php::docString($branch['value'])]),
                 $this->branches,
             )),
         };
@@ -149,7 +150,7 @@ final class Shape
     /** A member name as an array-shape key, quoted when it is not a bare identifier. */
     public static function key(string $name): string
     {
-        return \preg_match('/^[A-Za-z_][A-Za-z0-9_]*$/', $name) === 1 ? $name : '\'' . \addcslashes($name, "'\\") . '\'';
+        return Php::docKey($name);
     }
 
     /** A value the document declares nothing about. */

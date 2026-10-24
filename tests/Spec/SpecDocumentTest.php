@@ -35,7 +35,7 @@ final class SpecDocumentTest extends TestCase
 
     public function testTheMusicCatalogDocumentDeclaresItsContract(): void
     {
-        self::assertSame(4, Fixtures::musicCatalog()->contract());
+        self::assertSame(5, Fixtures::musicCatalog()->contract());
     }
 
     public function testAContractIsReadFromTheGeneratorBlock(): void

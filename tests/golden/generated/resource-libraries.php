@@ -1034,8 +1034,10 @@ final class LibraryQuery extends Query
     public function __construct(private readonly Fetcher $fetcher) {}
 
     /**
-     * @param positive-int      $number
-     * @param positive-int|null $size
+     * `$number` defaults to 1 and `$size` defaults to 15.
+     *
+     * @param positive-int    $number
+     * @param int<1, 50>|null $size
      *
      * @return static
      */

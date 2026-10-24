@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace haddowg\JsonApiCodegen\Emit\Writes;
 
+use haddowg\JsonApiCodegen\Emit\Php;
+
 /**
  * One member of a write input, with every type the generated code spells it as.
  *
@@ -11,7 +13,8 @@ namespace haddowg\JsonApiCodegen\Emit\Writes;
  * sees, and differs from `$native` where the native type cannot say enough (`array` against
  * `list<Identifier|Track>`). `$aliasDoc` is the same type written with the resource class's
  * shape alias where one exists, for classes that import it. `$input` is the type the array door
- * accepts, which is looser for dates and enums.
+ * accepts, which is looser for dates and enums. `$prose` states the constraints no type
+ * expresses, for the member's setter.
  */
 final class WriteMember
 {
@@ -30,7 +33,24 @@ final class WriteMember
         public readonly ?string $enum,
         public readonly ?string $dateFormat,
         public readonly bool $toMany,
+        public readonly ?string $prose = null,
     ) {}
+
+    /**
+     * The setter's docblock lines: the constraint sentence, then the given tags.
+     *
+     * @param list<string> $tags
+     *
+     * @return list<string>
+     */
+    public function setterDoc(array $tags): array
+    {
+        if ($this->prose === null) {
+            return $tags;
+        }
+
+        return [...Php::wrap($this->prose, 4), ...($tags === [] ? [] : ['', ...$tags])];
+    }
 
     /** The native type of a value that is always present: a required member, or a setter's parameter. */
     public function presentNative(): string

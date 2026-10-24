@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace haddowg\JsonApiCodegen\Emit\Writes;
 
 use haddowg\JsonApiCodegen\Descriptor\ValueSchema;
+use haddowg\JsonApiCodegen\Emit\Narrowing;
 
 /**
  * A JSON Schema fragment as a PHPStan type and the native type that holds it.
@@ -13,6 +14,9 @@ use haddowg\JsonApiCodegen\Descriptor\ValueSchema;
  * non-null branch is that branch and with several is one shape whose members are all optional
  * (the branches are not exclusive), `oneOf` is a union of its branches, and a `{"type": "null"}`
  * branch is nullability rather than a branch.
+ *
+ * The doc type is narrowed by the schema's constraints (see {@see Narrowing}); the native type
+ * never is, so a value outside a bound is a PHPStan error and not a runtime one.
  */
 final class Shape
 {
@@ -42,10 +46,10 @@ final class Shape
         }
 
         return match (self::jsonType($schema)) {
-            'array' => new self('list<' . ($schema->items === null ? 'mixed' : self::nullable($schema->items)) . '>', 'array'),
+            'array' => new self(Narrowing::list($schema->items === null ? 'mixed' : self::nullable($schema->items), $schema->constraints), 'array'),
             'object' => new self('array<string, mixed>', 'array'),
-            'string' => new self('string', 'string'),
-            'integer' => new self('int', 'int'),
+            'string' => new self(Narrowing::scalar('string', $schema->constraints), 'string'),
+            'integer' => new self(Narrowing::scalar('integer', $schema->constraints), 'int'),
             'number' => new self('float', 'float'),
             'boolean' => new self('bool', 'bool'),
             default => new self('mixed', 'mixed'),

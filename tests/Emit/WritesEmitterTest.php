@@ -33,17 +33,17 @@ final class WritesEmitterTest extends TestCase
 {
     public function testAlbumCreateMatchesTheArtefact(): void
     {
-        ArtefactParity::assertMatches('AlbumCreate', 'resource-albums.php', Generated::file('resource-albums.php'));
+        ArtefactParity::assertMatches('AlbumCreate', 'resource-albums.php', Generated::artefactFile('resource-albums.php'));
     }
 
     public function testAlbumCreateBuilderMatchesTheArtefact(): void
     {
-        ArtefactParity::assertMatches('AlbumCreateBuilder', 'resource-albums.php', Generated::file('resource-albums.php'));
+        ArtefactParity::assertMatches('AlbumCreateBuilder', 'resource-albums.php', Generated::artefactFile('resource-albums.php'));
     }
 
     public function testAlbumUpdateMatchesTheArtefact(): void
     {
-        ArtefactParity::assertMatches('AlbumUpdate', 'resource-albums.php', Generated::file('resource-albums.php'));
+        ArtefactParity::assertMatches('AlbumUpdate', 'resource-albums.php', Generated::artefactFile('resource-albums.php'));
     }
 
     public function testTheResourceClassCarriesTheArtefactsWriteAliasesInItsOrder(): void
@@ -52,7 +52,7 @@ final class WritesEmitterTest extends TestCase
         $artefact = self::aliasLines(self::artefact(), $aliases);
 
         self::assertSame(\array_keys($artefact), $aliases, 'the artefact declares the aliases in this order');
-        self::assertSame($artefact, self::aliasLines(Generated::file('resource-albums.php'), $aliases));
+        self::assertSame($artefact, self::aliasLines(Generated::artefactFile('resource-albums.php'), $aliases));
     }
 
     public function testTheResourceClassCarriesTheArtefactsWriteConstants(): void
@@ -60,7 +60,7 @@ final class WritesEmitterTest extends TestCase
         foreach (['WRITABLE', 'REQUIRED_ON_CREATE'] as $constant) {
             self::assertSame(
                 self::constant(self::artefact(), $constant),
-                self::constant(Generated::file('resource-albums.php'), $constant),
+                self::constant(Generated::artefactFile('resource-albums.php'), $constant),
                 $constant,
             );
         }

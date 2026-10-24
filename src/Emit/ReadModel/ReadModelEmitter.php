@@ -7,6 +7,7 @@ namespace haddowg\JsonApiCodegen\Emit\ReadModel;
 use haddowg\JsonApiCodegen\Descriptor\ApiDescriptor;
 use haddowg\JsonApiCodegen\Descriptor\AttributeDescriptor;
 use haddowg\JsonApiCodegen\Descriptor\Cardinality;
+use haddowg\JsonApiCodegen\Descriptor\Constraints;
 use haddowg\JsonApiCodegen\Descriptor\OperationDescriptor;
 use haddowg\JsonApiCodegen\Descriptor\OperationKind;
 use haddowg\JsonApiCodegen\Descriptor\RelationDescriptor;
@@ -17,6 +18,7 @@ use haddowg\JsonApiCodegen\Emit\Emitter;
 use haddowg\JsonApiCodegen\Emit\FileKey;
 use haddowg\JsonApiCodegen\Emit\GeneratorConfig;
 use haddowg\JsonApiCodegen\Emit\Naming;
+use haddowg\JsonApiCodegen\Emit\Narrowing;
 use haddowg\JsonApiCodegen\Emit\Php;
 use haddowg\JsonApiCodegen\Emit\UnitKind;
 use haddowg\JsonApiCodegen\Emit\Warns;
@@ -531,23 +533,33 @@ final class ReadModelEmitter implements Emitter, Warns
         }
 
         if ($attribute->schema === null) {
-            return $this->scalar($resource, $attribute, self::jsonType($attribute->format), $method);
+            $json = self::jsonType($attribute->format);
+
+            return $this->scalar($resource, $attribute, $json, $method)
+                ->withProse(Narrowing::prose($json, $attribute->constraints, $attribute->format));
         }
 
         $shape = Shape::of($attribute->schema);
         $nullable = $nullable || $shape->nullable;
         $shape = $shape->nullable($nullable);
 
-        return match ($shape->kind) {
-            ShapeKind::Scalar => $this->scalar($resource, $attribute, (string) $shape->scalar, $method, $nullable),
+        $read = match ($shape->kind) {
+            ShapeKind::Scalar => $this->scalar($resource, $attribute, (string) $shape->scalar, $method, $nullable, $shape->constraints),
             ShapeKind::Mixed => new AttributeRead($name, $method, 'mixed', null, ['return $this->_attribute(' . $field . ');']),
             ShapeKind::List => $this->list($resource, $attribute, $shape, $method),
             ShapeKind::Object => $this->object($resource, $attribute, $shape, $method),
             ShapeKind::Tagged => $this->tagged($resource, $attribute, $shape, $method),
         };
+
+        return $read->withProse(match ($shape->kind) {
+            ShapeKind::Scalar => Narrowing::prose((string) $shape->scalar, $shape->constraints, $attribute->schema->format),
+            ShapeKind::List => Narrowing::prose('array', $shape->constraints),
+            ShapeKind::Object => Narrowing::prose('object', $attribute->schema->constraints),
+            default => null,
+        });
     }
 
-    private function scalar(ResourceDescriptor $resource, AttributeDescriptor $attribute, string $json, string $method, ?bool $nullable = null): AttributeRead
+    private function scalar(ResourceDescriptor $resource, AttributeDescriptor $attribute, string $json, string $method, ?bool $nullable = null, ?Constraints $constraints = null): AttributeRead
     {
         $nullable ??= $attribute->nullable;
         $field = Php::string($attribute->name);
@@ -562,8 +574,17 @@ final class ReadModelEmitter implements Emitter, Warns
             'boolean' => $nullable ? '_nullableBool' : '_bool',
             default => $nullable ? '_nullableString' : '_string',
         };
+        $native = self::nullable(Shape::scalarType($json), $nullable);
+        $call = '$this->' . $reader . '(' . $field . ')';
 
-        return new AttributeRead($attribute->name, $method, self::nullable(Shape::scalarType($json), $nullable), null, ['return $this->' . $reader . '(' . $field . ');']);
+        $narrowed = Narrowing::scalar($json, $constraints ?? $attribute->constraints);
+        if ($narrowed === Shape::scalarType($json)) {
+            return new AttributeRead($attribute->name, $method, $native, null, ['return ' . $call . ';']);
+        }
+
+        $doc = $narrowed . ($nullable ? '|null' : '');
+
+        return new AttributeRead($attribute->name, $method, $native, $doc, ['/** @var ' . $doc . ' $value */', '$value = ' . $call . ';', '', 'return $value;']);
     }
 
     private function list(ResourceDescriptor $resource, AttributeDescriptor $attribute, Shape $shape, string $method): AttributeRead
@@ -575,7 +596,11 @@ final class ReadModelEmitter implements Emitter, Warns
         $field = Php::string($attribute->name);
 
         if (!$shape->nullable && $items->scalar === 'string' && !$items->nullable) {
-            return new AttributeRead($attribute->name, $method, 'array', 'list<string>', ['return $this->_stringList(' . $field . ');']);
+            if (!$shape->narrowed()) {
+                return new AttributeRead($attribute->name, $method, 'array', 'list<string>', ['return $this->_stringList(' . $field . ');']);
+            }
+
+            return new AttributeRead($attribute->name, $method, 'array', $shape->wireType(), ['/** @var ' . $shape->wireType() . ' $value */', '$value = $this->_stringList(' . $field . ');', '', 'return $value;']);
         }
 
         $json = (string) $items->scalar;
@@ -591,13 +616,14 @@ final class ReadModelEmitter implements Emitter, Warns
         }
         $value = $json === 'number' ? ($items->nullable ? '$member === null ? null : (float) $member' : '(float) $member') : '$member';
         $memberType = $items->nullable ? $type . '|null' : $type;
+        $listType = $shape->nullable(false)->wireType();
         $subject = 'The "' . $attribute->name . '" attribute of ' . self::article($resource->type) . ' "' . $resource->type . '" resource';
 
         return new AttributeRead(
             $attribute->name,
             $method,
             $shape->nullable ? '?array' : 'array',
-            'list<' . $memberType . '>' . ($shape->nullable ? '|null' : ''),
+            $listType . ($shape->nullable ? '|null' : ''),
             [
                 '$raw = $this->' . ($shape->nullable ? '_nullableList' : '_list') . '(' . $field . ');',
                 '',
@@ -610,6 +636,7 @@ final class ReadModelEmitter implements Emitter, Warns
                 '    $list[] = ' . $value . ';',
                 '}',
                 '',
+                ...($shape->narrowed() ? ['/** @var ' . $listType . ' $list */'] : []),
                 'return $list;',
             ],
             [],
@@ -728,7 +755,7 @@ final class ReadModelEmitter implements Emitter, Warns
             $typed = $optional ? $memberShape->nullable(true) : $memberShape;
             $native = self::native($typed);
             $params[] = '        public readonly ' . $native . ' $' . $property . ($optional ? ' = null' : '') . ',';
-            if (\in_array($memberShape->kind, [ShapeKind::Object, ShapeKind::List], true)) {
+            if (\in_array($memberShape->kind, [ShapeKind::Object, ShapeKind::List], true) || $memberShape->narrowed()) {
                 $paramDocs[] = '@param ' . $typed->wireType() . ' $' . $property;
             }
 

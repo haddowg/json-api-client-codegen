@@ -71,15 +71,19 @@ final class MusicCatalogDescriptorTest extends TestCase
     {
         $albums = $this->resource('albums');
 
-        // Both are `number`; only one of them is `?float`.
-        self::assertTrue($albums->attributes['averageRating']->nullable);
-        self::assertSame('number', $albums->attributes['averageRating']->format);
-        self::assertFalse($albums->attributes['explicit']->nullable);
+        // Both are `integer`; only one of them is `?int`.
+        self::assertTrue($this->resource('tracks')->attributes['trackNumber']->nullable);
+        self::assertSame('integer', $this->resource('tracks')->attributes['trackNumber']->format);
+        self::assertFalse($this->resource('artists')->attributes['trackCount']->nullable);
+        self::assertSame('integer', $this->resource('artists')->attributes['trackCount']->format);
 
         self::assertTrue($albums->attributes['availableFrom']->nullable);
         self::assertSame('date', $albums->attributes['availableFrom']->format);
-        self::assertFalse($albums->attributes['releasedAt']->nullable);
-        self::assertFalse($albums->attributes['status']->nullable);
+
+        // A nullable enum is an `anyOf` of its component and null, and keeps both.
+        self::assertTrue($albums->attributes['status']->nullable);
+        self::assertSame('AlbumStatus', $albums->attributes['status']->enum);
+        self::assertNull($albums->attributes['status']->schema);
     }
 
     public function testEveryNullableAttributeInTheDocumentIsMarked(): void
@@ -93,13 +97,18 @@ final class MusicCatalogDescriptorTest extends TestCase
             }
         }
 
+        // Contract 5 reads every attribute as nullable unless the server guarantees a value.
         self::assertSame([
             'albums.artwork', 'albums.availableFrom', 'albums.availableUntil',
-            'albums.averageRating', 'albums.releaseInfo',
-            'artists.bio', 'artists.website',
-            'playlists.externalId',
+            'albums.averageRating', 'albums.explicit', 'albums.releaseInfo', 'albums.releasedAt', 'albums.status',
+            'artists.bio', 'artists.createdAt', 'artists.slug', 'artists.website',
+            'catalog-exports.status',
+            'export-jobs.state',
+            'favorites.favoritedAt',
+            'playlists.externalId', 'playlists.public', 'playlists.slug',
+            'public-profiles.displayName',
             'releases.availability', 'releases.dimensions', 'releases.format', 'releases.packaging',
-            'tracks.previewOffset',
+            'tracks.durationSeconds', 'tracks.explicit', 'tracks.genres', 'tracks.previewOffset', 'tracks.trackNumber',
         ], $nullable);
     }
 
@@ -111,7 +120,7 @@ final class MusicCatalogDescriptorTest extends TestCase
         self::assertTrue($releaseInfo->nullable);
         self::assertNotNull($releaseInfo->schema);
         self::assertSame(['label', 'catalogueNumber'], \array_keys($releaseInfo->schema->properties), 'members keep document order, which a generated shape repeats');
-        self::assertSame(['string'], $releaseInfo->schema->properties['label']->types);
+        self::assertSame(['string', 'null'], $releaseInfo->schema->properties['label']->types);
 
         $format = $this->resource('releases')->attributes['format']->schema;
         self::assertNotNull($format);

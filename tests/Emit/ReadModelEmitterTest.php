@@ -43,7 +43,7 @@ final class ReadModelEmitterTest extends TestCase
     #[DataProvider('albumDeclarations')]
     public function testAlbumDeclarationMatchesTheArtefact(string $declaration): void
     {
-        ArtefactParity::assertMatches($declaration, 'resource-albums.php', Generated::file('resource-albums.php'));
+        ArtefactParity::assertMatches($declaration, 'resource-albums.php', Generated::artefactFile('resource-albums.php'));
     }
 
     /**
@@ -53,7 +53,7 @@ final class ReadModelEmitterTest extends TestCase
      */
     public function testAlbumMatchesTheArtefactWithEveryEmittersContributions(): void
     {
-        ArtefactParity::assertMatches('Album', 'resource-albums.php', Generated::file('resource-albums.php'));
+        ArtefactParity::assertMatches('Album', 'resource-albums.php', Generated::artefactFile('resource-albums.php'));
     }
 
     public function testAn83TargetEmitsNoPropertyHooksOrInterfaceProperties(): void
@@ -76,7 +76,7 @@ final class ReadModelEmitterTest extends TestCase
 
         self::assertStringContainsString('public function format(): ReleaseFormatVinyl|ReleaseFormatCd|ReleaseFormatDigital|null', $releases, 'oneOf + discriminator is a union of branch classes, the null branch nullability');
         self::assertStringContainsString("public const string MEDIUM = 'vinyl';", $releases);
-        self::assertStringContainsString('@phpstan-type ReleaseAvailabilityShape array{worldwide?: bool, regions?: list<string>}', $releases, 'anyOf merges with every member optional');
+        self::assertStringContainsString('@phpstan-type ReleaseAvailabilityShape array{worldwide?: bool, regions?: non-empty-list<string>}', $releases, 'anyOf merges with every member optional');
         self::assertStringContainsString('@phpstan-type ReleaseDimensionsShape array{widthMm: float, heightMm: float, depthMm?: float}', $releases, 'allOf flattens and keeps required members');
     }
 
@@ -104,7 +104,7 @@ final class ReadModelEmitterTest extends TestCase
                 $tags = [...$tags, ...$unit->tags];
             }
         }
-        self::assertSame(['@phpstan-type WidgetFilterAttributeShape array{label?: string, catalogueNumber?: string}'], $tags);
+        self::assertSame(['@phpstan-type WidgetFilterAttributeShape array{label?: string|null, catalogueNumber?: string|null}'], $tags);
     }
 
     public function testShapesTheRuntimeNowReadsAreGeneratedRatherThanRefused(): void

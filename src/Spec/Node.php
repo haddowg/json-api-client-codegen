@@ -88,6 +88,16 @@ final class Node
     }
 
     /** @throws SpecException */
+    public function number(): int|float
+    {
+        if (!\is_int($this->value) && !\is_float($this->value)) {
+            throw SpecException::wrongType($this->pointer, 'a number', $this->value);
+        }
+
+        return $this->value;
+    }
+
+    /** @throws SpecException */
     public function bool(): bool
     {
         if (!\is_bool($this->value)) {

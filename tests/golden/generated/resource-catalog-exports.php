@@ -93,9 +93,10 @@ abstract class CatalogExportBase extends ResourceObject
 
     public string $type { get => $this->type(); }
 
+    /** @var non-empty-string */
     public string $format { get => $this->format(); }
 
-    public string $status { get => $this->status(); }
+    public ?string $status { get => $this->status(); }
 
     public function id(): string
     {
@@ -111,11 +112,18 @@ abstract class CatalogExportBase extends ResourceObject
     }
 
     /**
+     * At most 16 characters.
+     *
+     * @return non-empty-string
+     *
      * @throws FieldNotSelectedException when a sparse fieldset excluded `format`
      */
     public function format(): string
     {
-        return $this->_string('format');
+        /** @var non-empty-string $value */
+        $value = $this->_string('format');
+
+        return $value;
     }
 
     /**
@@ -123,9 +131,9 @@ abstract class CatalogExportBase extends ResourceObject
      *
      * @throws FieldNotSelectedException when a sparse fieldset excluded `status`
      */
-    public function status(): string
+    public function status(): ?string
     {
-        return $this->_string('status');
+        return $this->_nullableString('status');
     }
 }
 
@@ -141,7 +149,7 @@ abstract class CatalogExportBase extends ResourceObject
  * constants the runtime guards check against. `@phpstan-type` aliases are class-local, so every
  * other class using one imports it from here.
  *
- * @phpstan-type CatalogExportCreateShape array{format: string}
+ * @phpstan-type CatalogExportCreateShape array{format: non-empty-string}
  * @phpstan-type CatalogExportFieldToken 'format'|'status'
  *
  * @generated from `components.schemas.CatalogExportsResource`
@@ -230,6 +238,9 @@ final class CatalogExport extends CatalogExportBase
  */
 final class CatalogExportCreate
 {
+    /**
+     * @param non-empty-string $format
+     */
     public function __construct(
         public readonly string $format,
     ) {}
@@ -282,8 +293,16 @@ final class CatalogExportCreateBuilder
 {
     use Conditionable;
 
+    /**
+     * @var non-empty-string|Missing
+     */
     private string|Missing $format = Missing::Value;
 
+    /**
+     * At most 16 characters.
+     *
+     * @param non-empty-string $format
+     */
     public function format(string $format): self
     {
         $this->format = $format;
@@ -443,8 +462,10 @@ final class CatalogExportQuery extends Query
     public function __construct(private readonly Fetcher $fetcher) {}
 
     /**
-     * @param positive-int      $number
-     * @param positive-int|null $size
+     * `$number` defaults to 1 and `$size` defaults to 15.
+     *
+     * @param positive-int    $number
+     * @param int<1, 50>|null $size
      *
      * @return static
      */

@@ -28,6 +28,7 @@ final class ValueSchema
      * @param list<ValueSchema>          $allOf      all-of branches, in document order
      * @param string|null                $const      a string `const`, which is how a discriminated
      *                                               branch names the value that selects it
+     * @param Constraints                $constraints the validation keywords this fragment declares
      */
     public function __construct(
         public readonly array $types,
@@ -41,6 +42,7 @@ final class ValueSchema
         public readonly array $allOf,
         public readonly ?string $discriminator,
         public readonly ?string $const = null,
+        public readonly Constraints $constraints = new Constraints(),
     ) {}
 
     /** True when this schema's real shape is in its branches rather than its own members. */

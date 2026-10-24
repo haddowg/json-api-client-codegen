@@ -26,6 +26,7 @@ final class ResourceDescriptor
      * @param list<string>                       $createRelations relations the create document accepts, in document order
      * @param list<string>                       $updateRelations relations the update document accepts, in document order
      * @param list<string>                       $memberOrder     every attribute then every relation, in the order the resource schema declares them
+     * @param array<string, RelationDescriptor>  $writeOnlyRelations relations a write accepts that no read shows, keyed and sorted by name
      */
     public function __construct(
         public readonly string $type,
@@ -44,6 +45,7 @@ final class ResourceDescriptor
         public readonly array $createRelations = [],
         public readonly array $updateRelations = [],
         public readonly array $memberOrder = [],
+        public readonly array $writeOnlyRelations = [],
     ) {}
 
     /**
@@ -70,6 +72,15 @@ final class ResourceDescriptor
     public function relation(string $name): ?RelationDescriptor
     {
         return $this->relations[$name] ?? null;
+    }
+
+    /**
+     * A relation a write can set: a readable one, or a write-only one, which contract 5 leaves
+     * out of every read schema but still accepts in the create and update documents.
+     */
+    public function writableRelation(string $name): ?RelationDescriptor
+    {
+        return $this->relations[$name] ?? $this->writeOnlyRelations[$name] ?? null;
     }
 
     /**

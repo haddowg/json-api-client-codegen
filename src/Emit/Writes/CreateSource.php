@@ -121,7 +121,7 @@ final class CreateSource
         if ($clientId !== ClientIdPolicy::Forbidden) {
             $requiredId = $clientId === ClientIdPolicy::Required;
             $properties[] = $requiredId ? '    private string|Missing $id = Missing::Value;' . "\n" : '    private ?string $id = null;' . "\n";
-            $setters[] = self::setter('id', $requiredId ? 'string $id' : '?string $id', null);
+            $setters[] = self::setter('id', $requiredId ? 'string $id' : '?string $id', []);
             if ($requiredId) {
                 $guards[] = self::guard($base, 'id');
             }
@@ -135,7 +135,7 @@ final class CreateSource
             $setters[] = self::setter(
                 $member->setter,
                 $parameter,
-                $member->needsDoc(false) ? '@param ' . $member->presentDoc(false) . ' $' . $member->variable : null,
+                $member->setterDoc($member->needsDoc(false) ? ['@param ' . $member->presentDoc(false) . ' $' . $member->variable] : []),
                 $member->variable,
             );
             if ($member->required) {
@@ -205,9 +205,12 @@ final class CreateSource
         return $operation === null ? $kind->value : $operation->method . ' ' . $operation->path;
     }
 
-    private static function setter(string $method, string $parameter, ?string $doc, string $variable = 'id'): string
+    /**
+     * @param list<string> $doc
+     */
+    private static function setter(string $method, string $parameter, array $doc, string $variable = 'id'): string
     {
-        return ($doc === null ? '' : Php::docblock([$doc], 4, false))
+        return ($doc === [] ? '' : Php::docblock($doc, 4, false))
             . '    public function ' . $method . '(' . $parameter . "): self\n    {\n"
             . '        $this->' . $variable . ' = $' . $variable . ";\n\n"
             . "        return \$this;\n"

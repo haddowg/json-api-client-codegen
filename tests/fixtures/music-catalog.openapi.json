@@ -12,7 +12,7 @@
         },
         "version": "1.0.0",
         "x-generator": {
-            "contract": 4
+            "contract": 5
         }
     },
     "servers": [
@@ -246,12 +246,15 @@
                                 "number": {
                                     "type": "integer",
                                     "description": "The page number to retrieve.",
+                                    "default": 1,
                                     "minimum": 1
                                 },
                                 "size": {
                                     "type": "integer",
                                     "description": "The number of resources per page.",
-                                    "minimum": 1
+                                    "default": 15,
+                                    "minimum": 1,
+                                    "maximum": 50
                                 }
                             },
                             "x-paginator": {
@@ -268,7 +271,7 @@
                     {
                         "name": "withCount",
                         "in": "query",
-                        "description": "A comma-separated list of relationship-count tokens (the Countable profile). `_self_` counts this collection; a relation name counts that relation per item. Recognised only when the Countable profile is negotiated. Allowed tokens: `tracks`.",
+                        "description": "A comma-separated list of count tokens (the Countable profile), recognised only when the Countable profile is negotiated. Request a relation name, e.g. `withCount=tracks`, to receive that relation's total on each resource in `relationships.tracks.meta.total`. Allowed tokens: `tracks`.",
                         "schema": {
                             "type": "array",
                             "items": {
@@ -1404,12 +1407,15 @@
                                 "number": {
                                     "type": "integer",
                                     "description": "The page number to retrieve.",
+                                    "default": 1,
                                     "minimum": 1
                                 },
                                 "size": {
                                     "type": "integer",
                                     "description": "The number of resources per page.",
-                                    "minimum": 1
+                                    "default": 2,
+                                    "minimum": 1,
+                                    "maximum": 100
                                 }
                             },
                             "x-paginator": {
@@ -1426,7 +1432,7 @@
                     {
                         "name": "withCount",
                         "in": "query",
-                        "description": "A comma-separated list of relationship-count tokens (the Countable profile). `_self_` counts this collection; a relation name counts that relation per item. Recognised only when the Countable profile is negotiated. Allowed tokens: `_self_`, `playlists`.",
+                        "description": "A comma-separated list of count tokens (the Countable profile), recognised only when the Countable profile is negotiated. Request `withCount=_self_` to receive the collection total in the top-level `meta.total` (also in `meta.page.total` when the collection is paginated). Request a relation name, e.g. `withCount=playlists`, to receive that relation's total on each resource in `relationships.playlists.meta.total`. Allowed tokens: `_self_`, `playlists`.",
                         "schema": {
                             "type": "array",
                             "items": {
@@ -1570,12 +1576,15 @@
                                 "number": {
                                     "type": "integer",
                                     "description": "The page number to retrieve.",
+                                    "default": 1,
                                     "minimum": 1
                                 },
                                 "size": {
                                     "type": "integer",
                                     "description": "The number of resources per page.",
-                                    "minimum": 1
+                                    "default": 2,
+                                    "minimum": 1,
+                                    "maximum": 100
                                 }
                             },
                             "x-paginator": {
@@ -1592,7 +1601,7 @@
                     {
                         "name": "withCount",
                         "in": "query",
-                        "description": "A comma-separated list of relationship-count tokens (the Countable profile). `_self_` counts this collection; a relation name counts that relation per item. Recognised only when the Countable profile is negotiated. Allowed tokens: `_self_`.",
+                        "description": "A comma-separated list of count tokens (the Countable profile), recognised only when the Countable profile is negotiated. Request `withCount=_self_` to receive the collection total in the top-level `meta.total` (also in `meta.page.total` when the collection is paginated). Allowed tokens: `_self_`.",
                         "schema": {
                             "type": "array",
                             "items": {
@@ -2250,12 +2259,15 @@
                                 "number": {
                                     "type": "integer",
                                     "description": "The page number to retrieve.",
+                                    "default": 1,
                                     "minimum": 1
                                 },
                                 "size": {
                                     "type": "integer",
                                     "description": "The number of resources per page.",
-                                    "minimum": 1
+                                    "default": 15,
+                                    "minimum": 1,
+                                    "maximum": 50
                                 }
                             },
                             "x-paginator": {
@@ -3018,12 +3030,15 @@
                                 "number": {
                                     "type": "integer",
                                     "description": "The page number to retrieve.",
+                                    "default": 1,
                                     "minimum": 1
                                 },
                                 "size": {
                                     "type": "integer",
                                     "description": "The number of resources per page.",
-                                    "minimum": 1
+                                    "default": 15,
+                                    "minimum": 1,
+                                    "maximum": 50
                                 }
                             },
                             "x-paginator": {
@@ -3040,7 +3055,7 @@
                     {
                         "name": "withCount",
                         "in": "query",
-                        "description": "A comma-separated list of relationship-count tokens (the Countable profile). `_self_` counts this collection; a relation name counts that relation per item. Recognised only when the Countable profile is negotiated. Allowed tokens: `tracks`.",
+                        "description": "A comma-separated list of count tokens (the Countable profile), recognised only when the Countable profile is negotiated. Request a relation name, e.g. `withCount=tracks`, to receive that relation's total on each resource in `relationships.tracks.meta.total`. Allowed tokens: `tracks`.",
                         "schema": {
                             "type": "array",
                             "items": {
@@ -3206,12 +3221,15 @@
                                 "number": {
                                     "type": "integer",
                                     "description": "The page number to retrieve.",
+                                    "default": 1,
                                     "minimum": 1
                                 },
                                 "size": {
                                     "type": "integer",
                                     "description": "The number of resources per page.",
-                                    "minimum": 1
+                                    "default": 15,
+                                    "minimum": 1,
+                                    "maximum": 50
                                 }
                             },
                             "x-paginator": {
@@ -3463,12 +3481,15 @@
                                 "number": {
                                     "type": "integer",
                                     "description": "The page number to retrieve.",
+                                    "default": 1,
                                     "minimum": 1
                                 },
                                 "size": {
                                     "type": "integer",
                                     "description": "The number of resources per page.",
-                                    "minimum": 1
+                                    "default": 15,
+                                    "minimum": 1,
+                                    "maximum": 50
                                 }
                             },
                             "x-paginator": {
@@ -3730,12 +3751,15 @@
                                 "number": {
                                     "type": "integer",
                                     "description": "The page number to retrieve.",
+                                    "default": 1,
                                     "minimum": 1
                                 },
                                 "size": {
                                     "type": "integer",
                                     "description": "The number of resources per page.",
-                                    "minimum": 1
+                                    "default": 15,
+                                    "minimum": 1,
+                                    "maximum": 50
                                 }
                             },
                             "x-paginator": {
@@ -4074,12 +4098,15 @@
                                 "number": {
                                     "type": "integer",
                                     "description": "The page number to retrieve.",
+                                    "default": 1,
                                     "minimum": 1
                                 },
                                 "size": {
                                     "type": "integer",
                                     "description": "The number of resources per page.",
-                                    "minimum": 1
+                                    "default": 15,
+                                    "minimum": 1,
+                                    "maximum": 50
                                 }
                             },
                             "x-paginator": {
@@ -4273,12 +4300,15 @@
                                 "number": {
                                     "type": "integer",
                                     "description": "The page number to retrieve.",
+                                    "default": 1,
                                     "minimum": 1
                                 },
                                 "size": {
                                     "type": "integer",
                                     "description": "The number of resources per page.",
-                                    "minimum": 1
+                                    "default": 15,
+                                    "minimum": 1,
+                                    "maximum": 50
                                 }
                             },
                             "x-paginator": {
@@ -5134,12 +5164,15 @@
                                 "number": {
                                     "type": "integer",
                                     "description": "The page number to retrieve.",
+                                    "default": 1,
                                     "minimum": 1
                                 },
                                 "size": {
                                     "type": "integer",
                                     "description": "The number of resources per page.",
-                                    "minimum": 1
+                                    "default": 15,
+                                    "minimum": 1,
+                                    "maximum": 50
                                 }
                             },
                             "x-paginator": {
@@ -5584,12 +5617,15 @@
                                 "number": {
                                     "type": "integer",
                                     "description": "The page number to retrieve.",
+                                    "default": 1,
                                     "minimum": 1
                                 },
                                 "size": {
                                     "type": "integer",
                                     "description": "The number of resources per page.",
-                                    "minimum": 1
+                                    "default": 15,
+                                    "minimum": 1,
+                                    "maximum": 50
                                 }
                             },
                             "x-paginator": {
@@ -6495,12 +6531,15 @@
                                 "number": {
                                     "type": "integer",
                                     "description": "The page number to retrieve.",
+                                    "default": 1,
                                     "minimum": 1
                                 },
                                 "size": {
                                     "type": "integer",
                                     "description": "The number of resources per page.",
-                                    "minimum": 1
+                                    "default": 15,
+                                    "minimum": 1,
+                                    "maximum": 50
                                 }
                             },
                             "x-paginator": {
@@ -6899,12 +6938,15 @@
                                 "number": {
                                     "type": "integer",
                                     "description": "The page number to retrieve.",
+                                    "default": 1,
                                     "minimum": 1
                                 },
                                 "size": {
                                     "type": "integer",
                                     "description": "The number of resources per page.",
-                                    "minimum": 1
+                                    "default": 15,
+                                    "minimum": 1,
+                                    "maximum": 50
                                 }
                             },
                             "x-paginator": {
@@ -6921,7 +6963,7 @@
                     {
                         "name": "withCount",
                         "in": "query",
-                        "description": "A comma-separated list of relationship-count tokens (the Countable profile). `_self_` counts this collection; a relation name counts that relation per item. Recognised only when the Countable profile is negotiated. Allowed tokens: `tracks`.",
+                        "description": "A comma-separated list of count tokens (the Countable profile), recognised only when the Countable profile is negotiated. Request a relation name, e.g. `withCount=tracks`, to receive that relation's total on each resource in `relationships.tracks.meta.total`. Allowed tokens: `tracks`.",
                         "schema": {
                             "type": "array",
                             "items": {
@@ -8049,12 +8091,15 @@
                                 "number": {
                                     "type": "integer",
                                     "description": "The page number to retrieve.",
+                                    "default": 1,
                                     "minimum": 1
                                 },
                                 "size": {
                                     "type": "integer",
                                     "description": "The number of resources per page.",
-                                    "minimum": 1
+                                    "default": 2,
+                                    "minimum": 1,
+                                    "maximum": 100
                                 }
                             },
                             "x-paginator": {
@@ -8071,7 +8116,7 @@
                     {
                         "name": "withCount",
                         "in": "query",
-                        "description": "A comma-separated list of relationship-count tokens (the Countable profile). `_self_` counts this collection; a relation name counts that relation per item. Recognised only when the Countable profile is negotiated. Allowed tokens: `_self_`, `playlists`.",
+                        "description": "A comma-separated list of count tokens (the Countable profile), recognised only when the Countable profile is negotiated. Request `withCount=_self_` to receive the collection total in the top-level `meta.total` (also in `meta.page.total` when the collection is paginated). Request a relation name, e.g. `withCount=playlists`, to receive that relation's total on each resource in `relationships.playlists.meta.total`. Allowed tokens: `_self_`, `playlists`.",
                         "schema": {
                             "type": "array",
                             "items": {
@@ -8206,12 +8251,15 @@
                                 "number": {
                                     "type": "integer",
                                     "description": "The page number to retrieve.",
+                                    "default": 1,
                                     "minimum": 1
                                 },
                                 "size": {
                                     "type": "integer",
                                     "description": "The number of resources per page.",
-                                    "minimum": 1
+                                    "default": 2,
+                                    "minimum": 1,
+                                    "maximum": 100
                                 }
                             },
                             "x-paginator": {
@@ -8228,7 +8276,7 @@
                     {
                         "name": "withCount",
                         "in": "query",
-                        "description": "A comma-separated list of relationship-count tokens (the Countable profile). `_self_` counts this collection; a relation name counts that relation per item. Recognised only when the Countable profile is negotiated. Allowed tokens: `_self_`.",
+                        "description": "A comma-separated list of count tokens (the Countable profile), recognised only when the Countable profile is negotiated. Request `withCount=_self_` to receive the collection total in the top-level `meta.total` (also in `meta.page.total` when the collection is paginated). Allowed tokens: `_self_`.",
                         "schema": {
                             "type": "array",
                             "items": {
@@ -8703,12 +8751,15 @@
                                 "number": {
                                     "type": "integer",
                                     "description": "The page number to retrieve.",
+                                    "default": 1,
                                     "minimum": 1
                                 },
                                 "size": {
                                     "type": "integer",
                                     "description": "The number of resources per page.",
-                                    "minimum": 1
+                                    "default": 2,
+                                    "minimum": 1,
+                                    "maximum": 100
                                 }
                             },
                             "x-paginator": {
@@ -8725,7 +8776,7 @@
                     {
                         "name": "withCount",
                         "in": "query",
-                        "description": "A comma-separated list of relationship-count tokens (the Countable profile). `_self_` counts this collection; a relation name counts that relation per item. Recognised only when the Countable profile is negotiated. Allowed tokens: `playlists`.",
+                        "description": "A comma-separated list of count tokens (the Countable profile), recognised only when the Countable profile is negotiated. Request a relation name, e.g. `withCount=playlists`, to receive that relation's total on each resource in `relationships.playlists.meta.total`. Allowed tokens: `playlists`.",
                         "schema": {
                             "type": "array",
                             "items": {
@@ -8881,12 +8932,15 @@
                                 "number": {
                                     "type": "integer",
                                     "description": "The page number to retrieve.",
+                                    "default": 1,
                                     "minimum": 1
                                 },
                                 "size": {
                                     "type": "integer",
                                     "description": "The number of resources per page.",
-                                    "minimum": 1
+                                    "default": 2,
+                                    "minimum": 1,
+                                    "maximum": 100
                                 }
                             },
                             "x-paginator": {
@@ -9171,12 +9225,15 @@
                                 "number": {
                                     "type": "integer",
                                     "description": "The page number to retrieve.",
+                                    "default": 1,
                                     "minimum": 1
                                 },
                                 "size": {
                                     "type": "integer",
                                     "description": "The number of resources per page.",
-                                    "minimum": 1
+                                    "default": 15,
+                                    "minimum": 1,
+                                    "maximum": 50
                                 }
                             },
                             "x-paginator": {
@@ -9785,12 +9842,15 @@
                                 "number": {
                                     "type": "integer",
                                     "description": "The page number to retrieve.",
+                                    "default": 1,
                                     "minimum": 1
                                 },
                                 "size": {
                                     "type": "integer",
                                     "description": "The number of resources per page.",
-                                    "minimum": 1
+                                    "default": 15,
+                                    "minimum": 1,
+                                    "maximum": 50
                                 }
                             },
                             "x-paginator": {
@@ -10050,12 +10110,15 @@
                                 "number": {
                                     "type": "integer",
                                     "description": "The page number to retrieve.",
+                                    "default": 1,
                                     "minimum": 1
                                 },
                                 "size": {
                                     "type": "integer",
                                     "description": "The number of resources per page.",
-                                    "minimum": 1
+                                    "default": 15,
+                                    "minimum": 1,
+                                    "maximum": 50
                                 }
                             },
                             "x-paginator": {
@@ -11277,12 +11340,15 @@
                                         "number": {
                                             "type": "integer",
                                             "description": "The page number to retrieve.",
+                                            "default": 1,
                                             "minimum": 1
                                         },
                                         "size": {
                                             "type": "integer",
                                             "description": "The number of resources per page.",
-                                            "minimum": 1
+                                            "default": 15,
+                                            "minimum": 1,
+                                            "maximum": 50
                                         },
                                         "kind": {
                                             "type": "string",
@@ -11313,7 +11379,9 @@
                                         "size": {
                                             "type": "integer",
                                             "description": "The number of resources per page.",
-                                            "minimum": 1
+                                            "default": 15,
+                                            "minimum": 1,
+                                            "maximum": 50
                                         },
                                         "kind": {
                                             "type": "string",
@@ -11338,12 +11406,15 @@
                                         "offset": {
                                             "type": "integer",
                                             "description": "The zero-based offset of the first resource.",
+                                            "default": 0,
                                             "minimum": 0
                                         },
                                         "limit": {
                                             "type": "integer",
                                             "description": "The maximum number of resources to return.",
-                                            "minimum": 1
+                                            "default": 15,
+                                            "minimum": 1,
+                                            "maximum": 50
                                         },
                                         "kind": {
                                             "type": "string",
@@ -11375,7 +11446,7 @@
                     {
                         "name": "withCount",
                         "in": "query",
-                        "description": "A comma-separated list of relationship-count tokens (the Countable profile). `_self_` counts this collection; a relation name counts that relation per item. Recognised only when the Countable profile is negotiated. Allowed tokens: `playlists`.",
+                        "description": "A comma-separated list of count tokens (the Countable profile), recognised only when the Countable profile is negotiated. Request a relation name, e.g. `withCount=playlists`, to receive that relation's total on each resource in `relationships.playlists.meta.total`. Allowed tokens: `playlists`.",
                         "schema": {
                             "type": "array",
                             "items": {
@@ -12594,12 +12665,15 @@
                                 "number": {
                                     "type": "integer",
                                     "description": "The page number to retrieve.",
+                                    "default": 1,
                                     "minimum": 1
                                 },
                                 "size": {
                                     "type": "integer",
                                     "description": "The number of resources per page.",
-                                    "minimum": 1
+                                    "default": 15,
+                                    "minimum": 1,
+                                    "maximum": 50
                                 }
                             },
                             "x-paginator": {
@@ -12616,7 +12690,7 @@
                     {
                         "name": "withCount",
                         "in": "query",
-                        "description": "A comma-separated list of relationship-count tokens (the Countable profile). `_self_` counts this collection; a relation name counts that relation per item. Recognised only when the Countable profile is negotiated. Allowed tokens: `_self_`, `tracks`.",
+                        "description": "A comma-separated list of count tokens (the Countable profile), recognised only when the Countable profile is negotiated. Request `withCount=_self_` to receive the collection total in the top-level `meta.total` (also in `meta.page.total` when the collection is paginated). Request a relation name, e.g. `withCount=tracks`, to receive that relation's total on each resource in `relationships.tracks.meta.total`. Allowed tokens: `_self_`, `tracks`.",
                         "schema": {
                             "type": "array",
                             "items": {
@@ -12694,12 +12768,15 @@
                                 "number": {
                                     "type": "integer",
                                     "description": "The page number to retrieve.",
+                                    "default": 1,
                                     "minimum": 1
                                 },
                                 "size": {
                                     "type": "integer",
                                     "description": "The number of resources per page.",
-                                    "minimum": 1
+                                    "default": 15,
+                                    "minimum": 1,
+                                    "maximum": 50
                                 }
                             },
                             "x-paginator": {
@@ -12716,7 +12793,7 @@
                     {
                         "name": "withCount",
                         "in": "query",
-                        "description": "A comma-separated list of relationship-count tokens (the Countable profile). `_self_` counts this collection; a relation name counts that relation per item. Recognised only when the Countable profile is negotiated. Allowed tokens: `_self_`.",
+                        "description": "A comma-separated list of count tokens (the Countable profile), recognised only when the Countable profile is negotiated. Request `withCount=_self_` to receive the collection total in the top-level `meta.total` (also in `meta.page.total` when the collection is paginated). Allowed tokens: `_self_`.",
                         "schema": {
                             "type": "array",
                             "items": {
@@ -13385,6 +13462,7 @@
                 "properties": {
                     "title": {
                         "type": "string",
+                        "minLength": 1,
                         "maxLength": 200
                     },
                     "averageRating": {
@@ -13400,16 +13478,29 @@
                         ]
                     },
                     "releasedAt": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "format": "date-time",
                         "description": "Value must be before a dynamically-resolved date/time bound."
                     },
                     "explicit": {
-                        "type": "boolean"
+                        "type": [
+                            "boolean",
+                            "null"
+                        ]
                     },
                     "status": {
-                        "$ref": "#/components/schemas/AlbumStatus",
-                        "description": "Where the album sits in its release lifecycle."
+                        "description": "Where the album sits in its release lifecycle.",
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/AlbumStatus"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
                     },
                     "availableFrom": {
                         "type": [
@@ -13433,10 +13524,16 @@
                         ],
                         "properties": {
                             "label": {
-                                "type": "string"
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
                             },
                             "catalogueNumber": {
-                                "type": "string"
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
                             }
                         }
                     }
@@ -13499,6 +13596,7 @@
                 "properties": {
                     "title": {
                         "type": "string",
+                        "minLength": 1,
                         "maxLength": 200
                     },
                     "releasedAt": {
@@ -13721,6 +13819,7 @@
                 "properties": {
                     "title": {
                         "type": "string",
+                        "minLength": 1,
                         "maxLength": 200
                     },
                     "releasedAt": {
@@ -13957,10 +14056,14 @@
                 "properties": {
                     "name": {
                         "type": "string",
+                        "minLength": 1,
                         "maxLength": 120
                     },
                     "slug": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "website": {
                         "type": [
@@ -13980,7 +14083,10 @@
                         "type": "integer"
                     },
                     "createdAt": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "format": "date-time"
                     }
                 },
@@ -14039,6 +14145,7 @@
                 "properties": {
                     "name": {
                         "type": "string",
+                        "minLength": 1,
                         "maxLength": 120
                     },
                     "slug": {
@@ -14195,6 +14302,7 @@
                 "properties": {
                     "name": {
                         "type": "string",
+                        "minLength": 1,
                         "maxLength": 120
                     },
                     "slug": {
@@ -14719,10 +14827,14 @@
                 "properties": {
                     "format": {
                         "type": "string",
+                        "minLength": 1,
                         "maxLength": 16
                     },
                     "status": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     }
                 },
                 "required": [
@@ -14758,6 +14870,7 @@
                 "properties": {
                     "format": {
                         "type": "string",
+                        "minLength": 1,
                         "maxLength": 16
                     }
                 },
@@ -15300,7 +15413,8 @@
                 "type": "object",
                 "properties": {
                     "label": {
-                        "type": "string"
+                        "type": "string",
+                        "minLength": 1
                     }
                 },
                 "required": [
@@ -15334,7 +15448,8 @@
                 "type": "object",
                 "properties": {
                     "label": {
-                        "type": "string"
+                        "type": "string",
+                        "minLength": 1
                     }
                 },
                 "required": [
@@ -15438,7 +15553,8 @@
                 "type": "object",
                 "properties": {
                     "label": {
-                        "type": "string"
+                        "type": "string",
+                        "minLength": 1
                     }
                 }
             },
@@ -16136,7 +16252,10 @@
                 "type": "object",
                 "properties": {
                     "state": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     }
                 },
                 "required": [
@@ -16326,7 +16445,10 @@
                 "type": "object",
                 "properties": {
                     "favoritedAt": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "format": "date-time"
                     }
                 },
@@ -16973,7 +17095,8 @@
                 "type": "object",
                 "properties": {
                     "name": {
-                        "type": "string"
+                        "type": "string",
+                        "minLength": 1
                     }
                 },
                 "required": [
@@ -17007,7 +17130,8 @@
                 "type": "object",
                 "properties": {
                     "name": {
-                        "type": "string"
+                        "type": "string",
+                        "minLength": 1
                     }
                 },
                 "required": [
@@ -17114,7 +17238,8 @@
                 "type": "object",
                 "properties": {
                     "name": {
-                        "type": "string"
+                        "type": "string",
+                        "minLength": 1
                     }
                 }
             },
@@ -18212,15 +18337,22 @@
                 "type": "object",
                 "properties": {
                     "title": {
-                        "type": "string"
+                        "type": "string",
+                        "minLength": 1
                     },
                     "slug": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
                         "example": "example-slug"
                     },
                     "public": {
-                        "type": "boolean"
+                        "type": [
+                            "boolean",
+                            "null"
+                        ]
                     },
                     "externalId": {
                         "type": [
@@ -18282,7 +18414,8 @@
                 "type": "object",
                 "properties": {
                     "title": {
-                        "type": "string"
+                        "type": "string",
+                        "minLength": 1
                     },
                     "public": {
                         "type": "boolean"
@@ -18718,7 +18851,8 @@
                 "type": "object",
                 "properties": {
                     "title": {
-                        "type": "string"
+                        "type": "string",
+                        "minLength": 1
                     },
                     "public": {
                         "type": "boolean"
@@ -18862,7 +18996,8 @@
                 "type": "object",
                 "properties": {
                     "name": {
-                        "type": "string"
+                        "type": "string",
+                        "minLength": 1
                     }
                 },
                 "required": [
@@ -18914,7 +19049,8 @@
                 "type": "object",
                 "properties": {
                     "name": {
-                        "type": "string"
+                        "type": "string",
+                        "minLength": 1
                     }
                 },
                 "required": [
@@ -19141,7 +19277,8 @@
                 "type": "object",
                 "properties": {
                     "name": {
-                        "type": "string"
+                        "type": "string",
+                        "minLength": 1
                     }
                 }
             },
@@ -19184,7 +19321,10 @@
                 "type": "object",
                 "properties": {
                     "displayName": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     }
                 },
                 "required": [
@@ -19661,6 +19801,7 @@
                 "properties": {
                     "catalogNumber": {
                         "type": "string",
+                        "minLength": 1,
                         "maxLength": 40
                     },
                     "format": {
@@ -19674,7 +19815,10 @@
                                         "maximum": 78
                                     },
                                     "coloured": {
-                                        "type": "boolean"
+                                        "type": [
+                                            "boolean",
+                                            "null"
+                                        ]
                                     },
                                     "medium": {
                                         "type": "string",
@@ -19700,10 +19844,14 @@
                                 "properties": {
                                     "codec": {
                                         "type": "string",
+                                        "minLength": 1,
                                         "maxLength": 16
                                     },
                                     "bitrateKbps": {
-                                        "type": "integer",
+                                        "type": [
+                                            "integer",
+                                            "null"
+                                        ],
                                         "minimum": 32
                                     },
                                     "medium": {
@@ -19728,10 +19876,14 @@
                         "properties": {
                             "material": {
                                 "type": "string",
+                                "minLength": 1,
                                 "maxLength": 40
                             },
                             "gatefold": {
-                                "type": "boolean"
+                                "type": [
+                                    "boolean",
+                                    "null"
+                                ]
                             }
                         }
                     },
@@ -19868,6 +20020,7 @@
                 "properties": {
                     "catalogNumber": {
                         "type": "string",
+                        "minLength": 1,
                         "maxLength": 40
                     },
                     "format": {
@@ -19915,6 +20068,7 @@
                                 "properties": {
                                     "codec": {
                                         "type": "string",
+                                        "minLength": 1,
                                         "maxLength": 16
                                     },
                                     "bitrateKbps": {
@@ -19947,6 +20101,7 @@
                         "properties": {
                             "material": {
                                 "type": "string",
+                                "minLength": 1,
                                 "maxLength": 40
                             },
                             "gatefold": {
@@ -20168,6 +20323,7 @@
                 "properties": {
                     "catalogNumber": {
                         "type": "string",
+                        "minLength": 1,
                         "maxLength": 40
                     },
                     "format": {
@@ -20207,6 +20363,7 @@
                                 "properties": {
                                     "codec": {
                                         "type": "string",
+                                        "minLength": 1,
                                         "maxLength": 16
                                     },
                                     "bitrateKbps": {
@@ -20235,6 +20392,7 @@
                         "properties": {
                             "material": {
                                 "type": "string",
+                                "minLength": 1,
                                 "maxLength": 40
                             },
                             "gatefold": {
@@ -21182,20 +21340,33 @@
                 "type": "object",
                 "properties": {
                     "title": {
-                        "type": "string"
+                        "type": "string",
+                        "minLength": 1
                     },
                     "trackNumber": {
-                        "type": "integer",
+                        "type": [
+                            "integer",
+                            "null"
+                        ],
                         "minimum": 1
                     },
                     "durationSeconds": {
-                        "type": "integer"
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
                     },
                     "explicit": {
-                        "type": "boolean"
+                        "type": [
+                            "boolean",
+                            "null"
+                        ]
                     },
                     "genres": {
-                        "type": "array",
+                        "type": [
+                            "array",
+                            "null"
+                        ],
                         "minItems": 1,
                         "uniqueItems": true,
                         "items": {
@@ -21269,7 +21440,8 @@
                 "type": "object",
                 "properties": {
                     "title": {
-                        "type": "string"
+                        "type": "string",
+                        "minLength": 1
                     },
                     "trackNumber": {
                         "type": "integer",
@@ -21475,7 +21647,8 @@
                 "type": "object",
                 "properties": {
                     "title": {
-                        "type": "string"
+                        "type": "string",
+                        "minLength": 1
                     },
                     "trackNumber": {
                         "type": "integer",

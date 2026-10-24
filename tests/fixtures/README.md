@@ -3,14 +3,15 @@
 The music-catalog pair started as copies of `json-api-ts/packages/codegen/test/fixtures/`, the
 TypeScript codegen's reference input, so a PHP and a TypeScript client generated from one
 document could be diffed against each other. They have since been re-exported from a
-`haddowg/json-api` 1.3.0 server, and `json-api-ts` keeps its own copies. Until it refreshes them,
+`haddowg/json-api` 1.5.0 server, and `json-api-ts` keeps its own copies. Until it refreshes them,
 the two codegens read different documents of the same API.
 
 | File | What it is |
 | --- | --- |
-| `music-catalog.openapi.json` | The OpenAPI 3.1 document for the music-catalog API. 63 paths, 254 component schemas, 15 resource types, generator contract 4 (`haddowg/json-api` 1.3.0). |
+| `music-catalog.openapi.json` | The OpenAPI 3.1 document for the music-catalog API. 63 paths, 254 component schemas, 15 resource types, generator contract 5 (`haddowg/json-api` 1.5.0). |
+| `music-catalog-1.3.openapi.json` | The same API exported from `haddowg/json-api` 1.3.0, generator contract 4. The reference artefact was written against it, so artefact parity is checked against this document. See [The reference artefact](#the-reference-artefact). |
 | `music-catalog.schemas.json` | The sidecar JSON Schema map, one draft-2020-12 schema per resource type, keyed by type. |
-| `paginators.openapi.json` | Hand-built, generator contract 3. One collection per pagination strategy, each with renamed keys under `x-paginator`, a `MultiPaginator` menu on `posts` (and on its related `comments` read), an unstamped canonical `tags`, and a strategy no codegen knows on `logs`. Shaped after core's projection; not exported from a server. |
+| `paginators.openapi.json` | Hand-built, generator contract 3, with an offset floor of 0 as core projects it. One collection per pagination strategy, each with renamed keys under `x-paginator`, a `MultiPaginator` menu on `posts` (and on its related `comments` read), an unstamped canonical `tags`, and a strategy no codegen knows on `logs`. Shaped after core's projection; not exported from a server. |
 
 `music-catalog.openapi.json` is the canonical codegen input. Golden-file tests generate from it and diff the committed
 expected output, so treat both files as frozen: regenerating them changes every golden file at
@@ -48,8 +49,9 @@ The reader normalises both, and `tests/Descriptor/PaginatorDetectionTest.php` pi
 strategy against hand-built documents in both forms. Do not "simplify" it to the current form
 alone.
 
-This document is contract 4, so every page schema carries `x-paginator` and its `tracks`
-collection is a page/cursor/offset menu: the picker is generated from a real server's document.
+This document is contract 5, so every page schema carries `x-paginator` and states its members'
+`default` and the size cap, and its `tracks` collection is a page/cursor/offset menu: the picker
+is generated from a real server's document.
 The name-based fallback for unstamped documents is pinned by `PaginatorDetectionTest`'s
 hand-built documents. `paginators.openapi.json` covers renamed keys and strategies a server can
 configure but this API doesn't use. Its generated output is
@@ -61,8 +63,13 @@ the page-type assertions in `tests/GeneratedTypes`, and run by `PaginationBehavi
 `artefact/` is a snapshot of `json-api-client/tests/Generated/MusicCatalog`, the hand-written
 output for the `albums` type that every emitter targets. Copied at json-api-client `2dc1277`.
 
-`ArtefactParity` compares a generated declaration against it on code tokens and type-bearing
-PHPDoc only, because the artefact's prose explains the design to a reader and is not derivable
-from the document. `artists` and `tracks` there are trimmed companions, so only `Album*`
-declarations and `AlbumStatus` are compared. Re-copy it when the artefact changes upstream, and
-say so in the commit.
+`ArtefactParity` compares a declaration generated from `music-catalog-1.3.openapi.json` against it
+on code tokens and type-bearing PHPDoc only, because the artefact's prose explains the design to a
+reader and is not derivable from the document. It uses the 1.3.0 document because the artefact
+predates contract 5, whose read nullability and constraints change the `albums` read model and its
+write shapes; against the current document it would only measure that drift. Move parity back to
+`music-catalog.openapi.json` once the artefact is refreshed upstream.
+
+`artists` and `tracks` there are trimmed companions, so only `Album*` declarations and
+`AlbumStatus` are compared. Re-copy it when the artefact changes upstream, and say so in the
+commit.

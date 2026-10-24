@@ -175,16 +175,18 @@ abstract class TrackBase extends ResourceObject
 
     public string $type { get => $this->type(); }
 
+    /** @var non-empty-string */
     public string $title { get => $this->title(); }
 
-    public int $trackNumber { get => $this->trackNumber(); }
+    /** @var positive-int|null */
+    public ?int $trackNumber { get => $this->trackNumber(); }
 
-    public int $durationSeconds { get => $this->durationSeconds(); }
+    public ?int $durationSeconds { get => $this->durationSeconds(); }
 
-    public bool $explicit { get => $this->explicit(); }
+    public ?bool $explicit { get => $this->explicit(); }
 
-    /** @var list<string> */
-    public array $genres { get => $this->genres(); }
+    /** @var non-empty-list<non-empty-string>|null */
+    public ?array $genres { get => $this->genres(); }
 
     public ?string $previewOffset { get => $this->previewOffset(); }
 
@@ -204,45 +206,72 @@ abstract class TrackBase extends ResourceObject
     }
 
     /**
+     * @return non-empty-string
+     *
      * @throws FieldNotSelectedException when a sparse fieldset excluded `title`
      */
     public function title(): string
     {
-        return $this->_string('title');
+        /** @var non-empty-string $value */
+        $value = $this->_string('title');
+
+        return $value;
     }
 
     /**
+     * @return positive-int|null
+     *
      * @throws FieldNotSelectedException when a sparse fieldset excluded `trackNumber`
      */
-    public function trackNumber(): int
+    public function trackNumber(): ?int
     {
-        return $this->_int('trackNumber');
+        /** @var positive-int|null $value */
+        $value = $this->_nullableInt('trackNumber');
+
+        return $value;
     }
 
     /**
      * @throws FieldNotSelectedException when a sparse fieldset excluded `durationSeconds`
      */
-    public function durationSeconds(): int
+    public function durationSeconds(): ?int
     {
-        return $this->_int('durationSeconds');
+        return $this->_nullableInt('durationSeconds');
     }
 
     /**
      * @throws FieldNotSelectedException when a sparse fieldset excluded `explicit`
      */
-    public function explicit(): bool
+    public function explicit(): ?bool
     {
-        return $this->_bool('explicit');
+        return $this->_nullableBool('explicit');
     }
 
     /**
-     * @return list<string>
+     * No duplicate items.
+     *
+     * @return non-empty-list<non-empty-string>|null
      *
      * @throws FieldNotSelectedException when a sparse fieldset excluded `genres`
      */
-    public function genres(): array
+    public function genres(): ?array
     {
-        return $this->_stringList('genres');
+        $raw = $this->_nullableList('genres');
+
+        if ($raw === null) {
+            return null;
+        }
+
+        $list = [];
+        foreach ($raw as $member) {
+            if (!(\is_string($member))) {
+                throw MalformedDocument::unexpectedMember('The "genres" attribute of a "tracks" resource', 'genres', 'a list of string values');
+            }
+            $list[] = $member;
+        }
+
+        /** @var non-empty-list<non-empty-string> $list */
+        return $list;
     }
 
     /**
@@ -322,8 +351,8 @@ abstract class TrackBase extends ResourceObject
  *
  * @phpstan-type TrackAlbumInput Album|Identifier|null
  * @phpstan-type TrackPlaylistsInput list<Identifier|Playlist>
- * @phpstan-type TrackCreateShape array{title: string, trackNumber?: int, durationSeconds?: int, explicit?: bool, genres?: list<string>, previewOffset?: string|null, album?: TrackAlbumInput, playlists?: TrackPlaylistsInput}
- * @phpstan-type TrackUpdateShape array{title?: string, trackNumber?: int, durationSeconds?: int, explicit?: bool, genres?: list<string>, previewOffset?: string|null, album?: TrackAlbumInput}
+ * @phpstan-type TrackCreateShape array{title: non-empty-string, trackNumber?: positive-int, durationSeconds?: int, explicit?: bool, genres?: non-empty-list<non-empty-string>, previewOffset?: string|null, album?: TrackAlbumInput, playlists?: TrackPlaylistsInput}
+ * @phpstan-type TrackUpdateShape array{title?: non-empty-string, trackNumber?: positive-int, durationSeconds?: int, explicit?: bool, genres?: non-empty-list<non-empty-string>, previewOffset?: string|null, album?: TrackAlbumInput}
  * @phpstan-type TrackFilterShape array{title?: string, explicit?: bool, genres?: list<string>, q?: string}
  * @phpstan-type TrackSortToken '-title'|'-trackNumber'|'title'|'trackNumber'
  * @phpstan-type TrackIncludePath 'album'|'album.artist'|'album.tracks'|'playlists'|'playlists.orderedTracks'|'playlists.publicOwner'|'playlists.tracks'
@@ -611,7 +640,9 @@ final class TrackAlbumRelation
 final class TrackCreate
 {
     /**
-     * @param list<string>|Missing $genres
+     * @param non-empty-string $title
+     * @param positive-int|Missing $trackNumber
+     * @param non-empty-list<non-empty-string>|Missing $genres
      * @param Album|Identifier|Missing|null $album
      * @param list<Identifier|Playlist>|Missing $playlists
      */
@@ -715,8 +746,14 @@ final class TrackCreateBuilder
 {
     use Conditionable;
 
+    /**
+     * @var non-empty-string|Missing
+     */
     private string|Missing $title = Missing::Value;
 
+    /**
+     * @var positive-int|Missing
+     */
     private int|Missing $trackNumber = Missing::Value;
 
     private int|Missing $durationSeconds = Missing::Value;
@@ -724,7 +761,7 @@ final class TrackCreateBuilder
     private bool|Missing $explicit = Missing::Value;
 
     /**
-     * @var list<string>|Missing
+     * @var non-empty-list<non-empty-string>|Missing
      */
     private array|Missing $genres = Missing::Value;
 
@@ -737,6 +774,9 @@ final class TrackCreateBuilder
      */
     private array|Missing $playlists = Missing::Value;
 
+    /**
+     * @param non-empty-string $title
+     */
     public function title(string $title): self
     {
         $this->title = $title;
@@ -744,6 +784,9 @@ final class TrackCreateBuilder
         return $this;
     }
 
+    /**
+     * @param positive-int $trackNumber
+     */
     public function trackNumber(int $trackNumber): self
     {
         $this->trackNumber = $trackNumber;
@@ -766,7 +809,9 @@ final class TrackCreateBuilder
     }
 
     /**
-     * @param list<string> $genres
+     * No duplicate items.
+     *
+     * @param non-empty-list<non-empty-string> $genres
      */
     public function genres(array $genres): self
     {
@@ -1360,10 +1405,10 @@ final class TrackQuery extends Query
     /**
      * Page by the `page` strategy, the one the server uses when a read picks none. Sends
      * `page[kind]=page` with whichever members are given, replacing whatever an earlier picker set,
-     * and reads `PageNumber` pages.
+     * and reads `PageNumber` pages. `$number` defaults to 1 and `$size` defaults to 15.
      *
      * @param positive-int|null $number
-     * @param positive-int|null $size
+     * @param int<1, 50>|null   $size
      *
      * @return self<TProj, PageNumber>
      */
@@ -1374,11 +1419,11 @@ final class TrackQuery extends Query
 
     /**
      * Page by the `cursor` strategy. Sends `page[kind]=cursor` with whichever members are given,
-     * replacing whatever an earlier picker set, and reads `Cursor` pages.
+     * replacing whatever an earlier picker set, and reads `Cursor` pages. `$size` defaults to 15.
      *
-     * @param string|null       $after
-     * @param string|null       $before
-     * @param positive-int|null $size
+     * @param string|null     $after
+     * @param string|null     $before
+     * @param int<1, 50>|null $size
      *
      * @return self<TProj, Cursor>
      */
@@ -1389,10 +1434,11 @@ final class TrackQuery extends Query
 
     /**
      * Page by the `offset` strategy. Sends `page[kind]=offset` with whichever members are given,
-     * replacing whatever an earlier picker set, and reads `Offset` pages.
+     * replacing whatever an earlier picker set, and reads `Offset` pages. `$offset` defaults to 0
+     * and `$limit` defaults to 15.
      *
-     * @param int<0, max>|null  $offset
-     * @param positive-int|null $limit
+     * @param int<0, max>|null $offset
+     * @param int<1, 50>|null  $limit
      *
      * @return self<TProj, Offset>
      */
@@ -1553,7 +1599,9 @@ final class TrackUpdate
     use ImmutableConditionable;
 
     /**
-     * @param list<string>|Missing $genres
+     * @param non-empty-string|Missing $title
+     * @param positive-int|Missing $trackNumber
+     * @param non-empty-list<non-empty-string>|Missing $genres
      * @param Album|Identifier|Missing|null $album
      *
      * @phpstan-pure
@@ -1569,6 +1617,8 @@ final class TrackUpdate
     ) {}
 
     /**
+     * @param non-empty-string $title
+     *
      * @phpstan-pure
      */
     public function title(string $title): self
@@ -1585,6 +1635,8 @@ final class TrackUpdate
     }
 
     /**
+     * @param positive-int $trackNumber
+     *
      * @phpstan-pure
      */
     public function trackNumber(int $trackNumber): self
@@ -1633,7 +1685,9 @@ final class TrackUpdate
     }
 
     /**
-     * @param list<string> $genres
+     * No duplicate items.
+     *
+     * @param non-empty-list<non-empty-string> $genres
      *
      * @phpstan-pure
      */

@@ -137,6 +137,7 @@ abstract class ProductBase extends ResourceObject
 
     public string $type { get => $this->type(); }
 
+    /** @var non-empty-string */
     public string $name { get => $this->name(); }
 
     public function id(): string
@@ -153,11 +154,16 @@ abstract class ProductBase extends ResourceObject
     }
 
     /**
+     * @return non-empty-string
+     *
      * @throws FieldNotSelectedException when a sparse fieldset excluded `name`
      */
     public function name(): string
     {
-        return $this->_string('name');
+        /** @var non-empty-string $value */
+        $value = $this->_string('name');
+
+        return $value;
     }
 
     /**
@@ -200,8 +206,8 @@ abstract class ProductBase extends ResourceObject
  * using one imports it from here.
  *
  * @phpstan-type ProductParentInput Identifier|Product|null
- * @phpstan-type ProductCreateShape array{name: string, parent?: ProductParentInput}
- * @phpstan-type ProductUpdateShape array{name?: string, parent?: ProductParentInput}
+ * @phpstan-type ProductCreateShape array{name: non-empty-string, parent?: ProductParentInput}
+ * @phpstan-type ProductUpdateShape array{name?: non-empty-string, parent?: ProductParentInput}
  * @phpstan-type ProductIncludePath 'parent'
  * @phpstan-type ProductFieldToken 'name'|'parent'
  *
@@ -328,6 +334,7 @@ final class Product extends ProductBase implements ProductHasParent
 final class ProductCreate
 {
     /**
+     * @param non-empty-string $name
      * @param Identifier|Product|Missing|null $parent
      */
     public function __construct(
@@ -394,10 +401,16 @@ final class ProductCreateBuilder
 {
     use Conditionable;
 
+    /**
+     * @var non-empty-string|Missing
+     */
     private string|Missing $name = Missing::Value;
 
     private Identifier|Product|Missing|null $parent = Missing::Value;
 
+    /**
+     * @param non-empty-string $name
+     */
     public function name(string $name): self
     {
         $this->name = $name;
@@ -702,8 +715,10 @@ final class ProductQuery extends Query
     public function __construct(private readonly Fetcher $fetcher) {}
 
     /**
-     * @param positive-int      $number
-     * @param positive-int|null $size
+     * `$number` defaults to 1 and `$size` defaults to 15.
+     *
+     * @param positive-int    $number
+     * @param int<1, 50>|null $size
      *
      * @return static
      */
@@ -817,6 +832,7 @@ final class ProductUpdate
     use ImmutableConditionable;
 
     /**
+     * @param non-empty-string|Missing $name
      * @param Identifier|Product|Missing|null $parent
      *
      * @phpstan-pure
@@ -827,6 +843,8 @@ final class ProductUpdate
     ) {}
 
     /**
+     * @param non-empty-string $name
+     *
      * @phpstan-pure
      */
     public function name(string $name): self

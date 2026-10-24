@@ -1,5 +1,5 @@
 {
-    "contract": 4,
+    "contract": 5,
     "atomic": {
         "path": "/operations",
         "mediaType": "application/vnd.api+json; ext=\"https://jsonapi.org/ext/atomic\""
@@ -477,6 +477,17 @@
                 "keys": {
                     "number": "number",
                     "size": "size"
+                },
+                "bounds": {
+                    "number": {
+                        "minimum": 1,
+                        "default": 1
+                    },
+                    "size": {
+                        "minimum": 1,
+                        "maximum": 50,
+                        "default": 15
+                    }
                 }
             },
             "clientId": "forbidden",
@@ -491,31 +502,36 @@
                     "format": "string",
                     "nullable": true,
                     "enum": null,
-                    "schema": null
+                    "schema": null,
+                    "constraints": {}
                 },
                 "availableFrom": {
                     "format": "date",
                     "nullable": true,
                     "enum": null,
-                    "schema": null
+                    "schema": null,
+                    "constraints": {}
                 },
                 "availableUntil": {
                     "format": "date",
                     "nullable": true,
                     "enum": null,
-                    "schema": null
+                    "schema": null,
+                    "constraints": {}
                 },
                 "averageRating": {
                     "format": "number",
                     "nullable": true,
                     "enum": null,
-                    "schema": null
+                    "schema": null,
+                    "constraints": {}
                 },
                 "explicit": {
                     "format": "boolean",
-                    "nullable": false,
+                    "nullable": true,
                     "enum": null,
-                    "schema": null
+                    "schema": null,
+                    "constraints": {}
                 },
                 "releaseInfo": {
                     "format": "object",
@@ -532,7 +548,8 @@
                         "properties": {
                             "label": {
                                 "types": [
-                                    "string"
+                                    "string",
+                                    "null"
                                 ],
                                 "format": null,
                                 "enum": [],
@@ -543,11 +560,13 @@
                                 "const": null,
                                 "oneOf": [],
                                 "anyOf": [],
-                                "allOf": []
+                                "allOf": [],
+                                "constraints": {}
                             },
                             "catalogueNumber": {
                                 "types": [
-                                    "string"
+                                    "string",
+                                    "null"
                                 ],
                                 "format": null,
                                 "enum": [],
@@ -558,7 +577,8 @@
                                 "const": null,
                                 "oneOf": [],
                                 "anyOf": [],
-                                "allOf": []
+                                "allOf": [],
+                                "constraints": {}
                             }
                         },
                         "items": null,
@@ -566,26 +586,34 @@
                         "const": null,
                         "oneOf": [],
                         "anyOf": [],
-                        "allOf": []
-                    }
+                        "allOf": [],
+                        "constraints": {}
+                    },
+                    "constraints": {}
                 },
                 "releasedAt": {
                     "format": "date-time",
-                    "nullable": false,
+                    "nullable": true,
                     "enum": null,
-                    "schema": null
+                    "schema": null,
+                    "constraints": {}
                 },
                 "status": {
                     "format": "string",
-                    "nullable": false,
+                    "nullable": true,
                     "enum": "AlbumStatus",
-                    "schema": null
+                    "schema": null,
+                    "constraints": {}
                 },
                 "title": {
                     "format": "string",
                     "nullable": false,
                     "enum": null,
-                    "schema": null
+                    "schema": null,
+                    "constraints": {
+                        "minLength": 1,
+                        "maxLength": 200
+                    }
                 }
             },
             "createAttributes": {
@@ -594,21 +622,24 @@
                     "nullable": true,
                     "enum": null,
                     "required": false,
-                    "schema": null
+                    "schema": null,
+                    "constraints": {}
                 },
                 "availableUntil": {
                     "format": "date",
                     "nullable": true,
                     "enum": null,
                     "required": false,
-                    "schema": null
+                    "schema": null,
+                    "constraints": {}
                 },
                 "explicit": {
                     "format": "boolean",
                     "nullable": false,
                     "enum": null,
                     "required": false,
-                    "schema": null
+                    "schema": null,
+                    "constraints": {}
                 },
                 "releaseInfo": {
                     "format": "object",
@@ -637,7 +668,8 @@
                                 "const": null,
                                 "oneOf": [],
                                 "anyOf": [],
-                                "allOf": []
+                                "allOf": [],
+                                "constraints": {}
                             },
                             "catalogueNumber": {
                                 "types": [
@@ -652,7 +684,8 @@
                                 "const": null,
                                 "oneOf": [],
                                 "anyOf": [],
-                                "allOf": []
+                                "allOf": [],
+                                "constraints": {}
                             }
                         },
                         "items": null,
@@ -660,29 +693,37 @@
                         "const": null,
                         "oneOf": [],
                         "anyOf": [],
-                        "allOf": []
-                    }
+                        "allOf": [],
+                        "constraints": {}
+                    },
+                    "constraints": {}
                 },
                 "releasedAt": {
                     "format": "date-time",
                     "nullable": false,
                     "enum": null,
                     "required": false,
-                    "schema": null
+                    "schema": null,
+                    "constraints": {}
                 },
                 "status": {
                     "format": "string",
                     "nullable": false,
                     "enum": "AlbumStatus",
                     "required": false,
-                    "schema": null
+                    "schema": null,
+                    "constraints": {}
                 },
                 "title": {
                     "format": "string",
                     "nullable": false,
                     "enum": null,
                     "required": true,
-                    "schema": null
+                    "schema": null,
+                    "constraints": {
+                        "minLength": 1,
+                        "maxLength": 200
+                    }
                 }
             },
             "updateAttributes": {
@@ -691,21 +732,24 @@
                     "nullable": true,
                     "enum": null,
                     "required": false,
-                    "schema": null
+                    "schema": null,
+                    "constraints": {}
                 },
                 "availableUntil": {
                     "format": "date",
                     "nullable": true,
                     "enum": null,
                     "required": false,
-                    "schema": null
+                    "schema": null,
+                    "constraints": {}
                 },
                 "explicit": {
                     "format": "boolean",
                     "nullable": false,
                     "enum": null,
                     "required": false,
-                    "schema": null
+                    "schema": null,
+                    "constraints": {}
                 },
                 "releaseInfo": {
                     "format": "object",
@@ -734,7 +778,8 @@
                                 "const": null,
                                 "oneOf": [],
                                 "anyOf": [],
-                                "allOf": []
+                                "allOf": [],
+                                "constraints": {}
                             },
                             "catalogueNumber": {
                                 "types": [
@@ -749,7 +794,8 @@
                                 "const": null,
                                 "oneOf": [],
                                 "anyOf": [],
-                                "allOf": []
+                                "allOf": [],
+                                "constraints": {}
                             }
                         },
                         "items": null,
@@ -757,29 +803,37 @@
                         "const": null,
                         "oneOf": [],
                         "anyOf": [],
-                        "allOf": []
-                    }
+                        "allOf": [],
+                        "constraints": {}
+                    },
+                    "constraints": {}
                 },
                 "releasedAt": {
                     "format": "date-time",
                     "nullable": false,
                     "enum": null,
                     "required": false,
-                    "schema": null
+                    "schema": null,
+                    "constraints": {}
                 },
                 "status": {
                     "format": "string",
                     "nullable": false,
                     "enum": "AlbumStatus",
                     "required": false,
-                    "schema": null
+                    "schema": null,
+                    "constraints": {}
                 },
                 "title": {
                     "format": "string",
                     "nullable": false,
                     "enum": null,
                     "required": false,
-                    "schema": null
+                    "schema": null,
+                    "constraints": {
+                        "minLength": 1,
+                        "maxLength": 200
+                    }
                 }
             },
             "relations": {
@@ -1022,6 +1076,17 @@
                         "keys": {
                             "number": "number",
                             "size": "size"
+                        },
+                        "bounds": {
+                            "number": {
+                                "minimum": 1,
+                                "default": 1
+                            },
+                            "size": {
+                                "minimum": 1,
+                                "maximum": 100,
+                                "default": 2
+                            }
                         }
                     },
                     "countable": {
@@ -1375,7 +1440,8 @@
                         "const": null,
                         "oneOf": [],
                         "anyOf": [],
-                        "allOf": []
+                        "allOf": [],
+                        "constraints": {}
                     }
                 },
                 "artist.name": {
@@ -1392,7 +1458,8 @@
                         "const": null,
                         "oneOf": [],
                         "anyOf": [],
-                        "allOf": []
+                        "allOf": [],
+                        "constraints": {}
                     }
                 },
                 "title": {
@@ -1409,7 +1476,8 @@
                         "const": null,
                         "oneOf": [],
                         "anyOf": [],
-                        "allOf": []
+                        "allOf": [],
+                        "constraints": {}
                     }
                 },
                 "rating": {
@@ -1434,7 +1502,8 @@
                                 "const": null,
                                 "oneOf": [],
                                 "anyOf": [],
-                                "allOf": []
+                                "allOf": [],
+                                "constraints": {}
                             },
                             "max": {
                                 "types": [
@@ -1449,7 +1518,8 @@
                                 "const": null,
                                 "oneOf": [],
                                 "anyOf": [],
-                                "allOf": []
+                                "allOf": [],
+                                "constraints": {}
                             }
                         },
                         "items": null,
@@ -1457,7 +1527,8 @@
                         "const": null,
                         "oneOf": [],
                         "anyOf": [],
-                        "allOf": []
+                        "allOf": [],
+                        "constraints": {}
                     }
                 },
                 "releasedAt": {
@@ -1482,7 +1553,8 @@
                                 "const": null,
                                 "oneOf": [],
                                 "anyOf": [],
-                                "allOf": []
+                                "allOf": [],
+                                "constraints": {}
                             },
                             "max": {
                                 "types": [
@@ -1497,7 +1569,8 @@
                                 "const": null,
                                 "oneOf": [],
                                 "anyOf": [],
-                                "allOf": []
+                                "allOf": [],
+                                "constraints": {}
                             }
                         },
                         "items": null,
@@ -1505,7 +1578,8 @@
                         "const": null,
                         "oneOf": [],
                         "anyOf": [],
-                        "allOf": []
+                        "allOf": [],
+                        "constraints": {}
                     }
                 },
                 "q": {
@@ -1522,7 +1596,8 @@
                         "const": null,
                         "oneOf": [],
                         "anyOf": [],
-                        "allOf": []
+                        "allOf": [],
+                        "constraints": {}
                     }
                 }
             },
@@ -1669,7 +1744,8 @@
                 "releaseInfo",
                 "artist",
                 "tracks"
-            ]
+            ],
+            "writeOnlyRelations": []
         },
         "artists": {
             "type": "artists",
@@ -1678,6 +1754,17 @@
                 "keys": {
                     "number": "number",
                     "size": "size"
+                },
+                "bounds": {
+                    "number": {
+                        "minimum": 1,
+                        "default": 1
+                    },
+                    "size": {
+                        "minimum": 1,
+                        "maximum": 50,
+                        "default": 15
+                    }
                 }
             },
             "clientId": "forbidden",
@@ -1687,37 +1774,48 @@
                     "format": "string",
                     "nullable": true,
                     "enum": null,
-                    "schema": null
+                    "schema": null,
+                    "constraints": {
+                        "maxLength": 1000
+                    }
                 },
                 "createdAt": {
                     "format": "date-time",
-                    "nullable": false,
+                    "nullable": true,
                     "enum": null,
-                    "schema": null
+                    "schema": null,
+                    "constraints": {}
                 },
                 "name": {
                     "format": "string",
                     "nullable": false,
                     "enum": null,
-                    "schema": null
+                    "schema": null,
+                    "constraints": {
+                        "minLength": 1,
+                        "maxLength": 120
+                    }
                 },
                 "slug": {
                     "format": "string",
-                    "nullable": false,
+                    "nullable": true,
                     "enum": null,
-                    "schema": null
+                    "schema": null,
+                    "constraints": {}
                 },
                 "trackCount": {
                     "format": "integer",
                     "nullable": false,
                     "enum": null,
-                    "schema": null
+                    "schema": null,
+                    "constraints": {}
                 },
                 "website": {
                     "format": "uri",
                     "nullable": true,
                     "enum": null,
-                    "schema": null
+                    "schema": null,
+                    "constraints": {}
                 }
             },
             "createAttributes": {
@@ -1726,35 +1824,45 @@
                     "nullable": true,
                     "enum": null,
                     "required": false,
-                    "schema": null
+                    "schema": null,
+                    "constraints": {
+                        "maxLength": 1000
+                    }
                 },
                 "createdAt": {
                     "format": "date-time",
                     "nullable": false,
                     "enum": null,
                     "required": false,
-                    "schema": null
+                    "schema": null,
+                    "constraints": {}
                 },
                 "name": {
                     "format": "string",
                     "nullable": false,
                     "enum": null,
                     "required": true,
-                    "schema": null
+                    "schema": null,
+                    "constraints": {
+                        "minLength": 1,
+                        "maxLength": 120
+                    }
                 },
                 "slug": {
                     "format": "string",
                     "nullable": false,
                     "enum": null,
                     "required": false,
-                    "schema": null
+                    "schema": null,
+                    "constraints": {}
                 },
                 "website": {
                     "format": "uri",
                     "nullable": true,
                     "enum": null,
                     "required": false,
-                    "schema": null
+                    "schema": null,
+                    "constraints": {}
                 }
             },
             "updateAttributes": {
@@ -1763,28 +1871,37 @@
                     "nullable": true,
                     "enum": null,
                     "required": false,
-                    "schema": null
+                    "schema": null,
+                    "constraints": {
+                        "maxLength": 1000
+                    }
                 },
                 "name": {
                     "format": "string",
                     "nullable": false,
                     "enum": null,
                     "required": false,
-                    "schema": null
+                    "schema": null,
+                    "constraints": {
+                        "minLength": 1,
+                        "maxLength": 120
+                    }
                 },
                 "slug": {
                     "format": "string",
                     "nullable": false,
                     "enum": null,
                     "required": false,
-                    "schema": null
+                    "schema": null,
+                    "constraints": {}
                 },
                 "website": {
                     "format": "uri",
                     "nullable": true,
                     "enum": null,
                     "required": false,
-                    "schema": null
+                    "schema": null,
+                    "constraints": {}
                 }
             },
             "relations": {
@@ -2217,7 +2334,8 @@
                         "const": null,
                         "oneOf": [],
                         "anyOf": [],
-                        "allOf": []
+                        "allOf": [],
+                        "constraints": {}
                     }
                 },
                 "q": {
@@ -2234,7 +2352,8 @@
                         "const": null,
                         "oneOf": [],
                         "anyOf": [],
-                        "allOf": []
+                        "allOf": [],
+                        "constraints": {}
                     }
                 }
             },
@@ -2253,7 +2372,8 @@
                 "trackCount",
                 "createdAt",
                 "albums"
-            ]
+            ],
+            "writeOnlyRelations": []
         },
         "catalog-exports": {
             "type": "catalog-exports",
@@ -2262,6 +2382,17 @@
                 "keys": {
                     "number": "number",
                     "size": "size"
+                },
+                "bounds": {
+                    "number": {
+                        "minimum": 1,
+                        "default": 1
+                    },
+                    "size": {
+                        "minimum": 1,
+                        "maximum": 50,
+                        "default": 15
+                    }
                 }
             },
             "clientId": "forbidden",
@@ -2271,13 +2402,18 @@
                     "format": "string",
                     "nullable": false,
                     "enum": null,
-                    "schema": null
+                    "schema": null,
+                    "constraints": {
+                        "minLength": 1,
+                        "maxLength": 16
+                    }
                 },
                 "status": {
                     "format": "string",
-                    "nullable": false,
+                    "nullable": true,
                     "enum": null,
-                    "schema": null
+                    "schema": null,
+                    "constraints": {}
                 }
             },
             "createAttributes": {
@@ -2286,7 +2422,11 @@
                     "nullable": false,
                     "enum": null,
                     "required": true,
-                    "schema": null
+                    "schema": null,
+                    "constraints": {
+                        "minLength": 1,
+                        "maxLength": 16
+                    }
                 }
             },
             "updateAttributes": [],
@@ -2372,13 +2512,15 @@
             "memberOrder": [
                 "format",
                 "status"
-            ]
+            ],
+            "writeOnlyRelations": []
         },
         "charts": {
             "type": "charts",
             "paginator": {
                 "kind": "none",
-                "keys": {}
+                "keys": {},
+                "bounds": {}
             },
             "clientId": "forbidden",
             "countable": null,
@@ -2419,13 +2561,15 @@
             "actions": [],
             "createRelations": [],
             "updateRelations": [],
-            "memberOrder": []
+            "memberOrder": [],
+            "writeOnlyRelations": []
         },
         "countries": {
             "type": "countries",
             "paginator": {
                 "kind": "none",
-                "keys": {}
+                "keys": {},
+                "bounds": {}
             },
             "clientId": "forbidden",
             "countable": null,
@@ -2466,7 +2610,8 @@
             "actions": [],
             "createRelations": [],
             "updateRelations": [],
-            "memberOrder": []
+            "memberOrder": [],
+            "writeOnlyRelations": []
         },
         "devices": {
             "type": "devices",
@@ -2475,6 +2620,17 @@
                 "keys": {
                     "number": "number",
                     "size": "size"
+                },
+                "bounds": {
+                    "number": {
+                        "minimum": 1,
+                        "default": 1
+                    },
+                    "size": {
+                        "minimum": 1,
+                        "maximum": 50,
+                        "default": 15
+                    }
                 }
             },
             "clientId": "forbidden",
@@ -2484,7 +2640,10 @@
                     "format": "string",
                     "nullable": false,
                     "enum": null,
-                    "schema": null
+                    "schema": null,
+                    "constraints": {
+                        "minLength": 1
+                    }
                 }
             },
             "createAttributes": {
@@ -2493,7 +2652,10 @@
                     "nullable": false,
                     "enum": null,
                     "required": true,
-                    "schema": null
+                    "schema": null,
+                    "constraints": {
+                        "minLength": 1
+                    }
                 }
             },
             "updateAttributes": {
@@ -2502,7 +2664,10 @@
                     "nullable": false,
                     "enum": null,
                     "required": false,
-                    "schema": null
+                    "schema": null,
+                    "constraints": {
+                        "minLength": 1
+                    }
                 }
             },
             "relations": [],
@@ -2614,7 +2779,8 @@
             "updateRelations": [],
             "memberOrder": [
                 "label"
-            ]
+            ],
+            "writeOnlyRelations": []
         },
         "export-jobs": {
             "type": "export-jobs",
@@ -2623,6 +2789,17 @@
                 "keys": {
                     "number": "number",
                     "size": "size"
+                },
+                "bounds": {
+                    "number": {
+                        "minimum": 1,
+                        "default": 1
+                    },
+                    "size": {
+                        "minimum": 1,
+                        "maximum": 50,
+                        "default": 15
+                    }
                 }
             },
             "clientId": "forbidden",
@@ -2630,9 +2807,10 @@
             "attributes": {
                 "state": {
                     "format": "string",
-                    "nullable": false,
+                    "nullable": true,
                     "enum": null,
-                    "schema": null
+                    "schema": null,
+                    "constraints": {}
                 }
             },
             "createAttributes": [],
@@ -2687,7 +2865,8 @@
             "updateRelations": [],
             "memberOrder": [
                 "state"
-            ]
+            ],
+            "writeOnlyRelations": []
         },
         "favorites": {
             "type": "favorites",
@@ -2696,6 +2875,17 @@
                 "keys": {
                     "number": "number",
                     "size": "size"
+                },
+                "bounds": {
+                    "number": {
+                        "minimum": 1,
+                        "default": 1
+                    },
+                    "size": {
+                        "minimum": 1,
+                        "maximum": 50,
+                        "default": 15
+                    }
                 }
             },
             "clientId": "forbidden",
@@ -2703,9 +2893,10 @@
             "attributes": {
                 "favoritedAt": {
                     "format": "date-time",
-                    "nullable": false,
+                    "nullable": true,
                     "enum": null,
-                    "schema": null
+                    "schema": null,
+                    "constraints": {}
                 }
             },
             "createAttributes": {
@@ -2714,7 +2905,8 @@
                     "nullable": false,
                     "enum": null,
                     "required": false,
-                    "schema": null
+                    "schema": null,
+                    "constraints": {}
                 }
             },
             "updateAttributes": [],
@@ -3046,7 +3238,8 @@
                 "favoritedAt",
                 "user",
                 "favoritable"
-            ]
+            ],
+            "writeOnlyRelations": []
         },
         "genres": {
             "type": "genres",
@@ -3055,6 +3248,17 @@
                 "keys": {
                     "number": "number",
                     "size": "size"
+                },
+                "bounds": {
+                    "number": {
+                        "minimum": 1,
+                        "default": 1
+                    },
+                    "size": {
+                        "minimum": 1,
+                        "maximum": 50,
+                        "default": 15
+                    }
                 }
             },
             "clientId": "required",
@@ -3064,7 +3268,10 @@
                     "format": "string",
                     "nullable": false,
                     "enum": null,
-                    "schema": null
+                    "schema": null,
+                    "constraints": {
+                        "minLength": 1
+                    }
                 }
             },
             "createAttributes": {
@@ -3073,7 +3280,10 @@
                     "nullable": false,
                     "enum": null,
                     "required": true,
-                    "schema": null
+                    "schema": null,
+                    "constraints": {
+                        "minLength": 1
+                    }
                 }
             },
             "updateAttributes": {
@@ -3082,7 +3292,10 @@
                     "nullable": false,
                     "enum": null,
                     "required": false,
-                    "schema": null
+                    "schema": null,
+                    "constraints": {
+                        "minLength": 1
+                    }
                 }
             },
             "relations": [],
@@ -3194,7 +3407,8 @@
             "updateRelations": [],
             "memberOrder": [
                 "name"
-            ]
+            ],
+            "writeOnlyRelations": []
         },
         "libraries": {
             "type": "libraries",
@@ -3203,6 +3417,17 @@
                 "keys": {
                     "number": "number",
                     "size": "size"
+                },
+                "bounds": {
+                    "number": {
+                        "minimum": 1,
+                        "default": 1
+                    },
+                    "size": {
+                        "minimum": 1,
+                        "maximum": 50,
+                        "default": 15
+                    }
                 }
             },
             "clientId": "forbidden",
@@ -3336,6 +3561,17 @@
                         "keys": {
                             "number": "number",
                             "size": "size"
+                        },
+                        "bounds": {
+                            "number": {
+                                "minimum": 1,
+                                "default": 1
+                            },
+                            "size": {
+                                "minimum": 1,
+                                "maximum": 50,
+                                "default": 15
+                            }
                         }
                     },
                     "countable": null,
@@ -3708,7 +3944,8 @@
             "memberOrder": [
                 "owner",
                 "items"
-            ]
+            ],
+            "writeOnlyRelations": []
         },
         "playlists": {
             "type": "playlists",
@@ -3717,6 +3954,17 @@
                 "keys": {
                     "number": "number",
                     "size": "size"
+                },
+                "bounds": {
+                    "number": {
+                        "minimum": 1,
+                        "default": 1
+                    },
+                    "size": {
+                        "minimum": 1,
+                        "maximum": 50,
+                        "default": 15
+                    }
                 }
             },
             "clientId": "forbidden",
@@ -3731,25 +3979,33 @@
                     "format": "uuid",
                     "nullable": true,
                     "enum": null,
-                    "schema": null
+                    "schema": null,
+                    "constraints": {}
                 },
                 "public": {
                     "format": "boolean",
-                    "nullable": false,
+                    "nullable": true,
                     "enum": null,
-                    "schema": null
+                    "schema": null,
+                    "constraints": {}
                 },
                 "slug": {
                     "format": "string",
-                    "nullable": false,
+                    "nullable": true,
                     "enum": null,
-                    "schema": null
+                    "schema": null,
+                    "constraints": {
+                        "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+                    }
                 },
                 "title": {
                     "format": "string",
                     "nullable": false,
                     "enum": null,
-                    "schema": null
+                    "schema": null,
+                    "constraints": {
+                        "minLength": 1
+                    }
                 }
             },
             "createAttributes": {
@@ -3758,21 +4014,26 @@
                     "nullable": true,
                     "enum": null,
                     "required": false,
-                    "schema": null
+                    "schema": null,
+                    "constraints": {}
                 },
                 "public": {
                     "format": "boolean",
                     "nullable": false,
                     "enum": null,
                     "required": false,
-                    "schema": null
+                    "schema": null,
+                    "constraints": {}
                 },
                 "title": {
                     "format": "string",
                     "nullable": false,
                     "enum": null,
                     "required": true,
-                    "schema": null
+                    "schema": null,
+                    "constraints": {
+                        "minLength": 1
+                    }
                 }
             },
             "updateAttributes": {
@@ -3781,21 +4042,26 @@
                     "nullable": true,
                     "enum": null,
                     "required": false,
-                    "schema": null
+                    "schema": null,
+                    "constraints": {}
                 },
                 "public": {
                     "format": "boolean",
                     "nullable": false,
                     "enum": null,
                     "required": false,
-                    "schema": null
+                    "schema": null,
+                    "constraints": {}
                 },
                 "title": {
                     "format": "string",
                     "nullable": false,
                     "enum": null,
                     "required": false,
-                    "schema": null
+                    "schema": null,
+                    "constraints": {
+                        "minLength": 1
+                    }
                 }
             },
             "relations": {
@@ -3943,6 +4209,17 @@
                         "keys": {
                             "number": "number",
                             "size": "size"
+                        },
+                        "bounds": {
+                            "number": {
+                                "minimum": 1,
+                                "default": 1
+                            },
+                            "size": {
+                                "minimum": 1,
+                                "maximum": 100,
+                                "default": 2
+                            }
                         }
                     },
                     "countable": {
@@ -4226,6 +4503,17 @@
                         "keys": {
                             "number": "number",
                             "size": "size"
+                        },
+                        "bounds": {
+                            "number": {
+                                "minimum": 1,
+                                "default": 1
+                            },
+                            "size": {
+                                "minimum": 1,
+                                "maximum": 100,
+                                "default": 2
+                            }
                         }
                     },
                     "countable": {
@@ -4566,7 +4854,8 @@
                 "publicOwner",
                 "tracks",
                 "orderedTracks"
-            ]
+            ],
+            "writeOnlyRelations": []
         },
         "products": {
             "type": "products",
@@ -4575,6 +4864,17 @@
                 "keys": {
                     "number": "number",
                     "size": "size"
+                },
+                "bounds": {
+                    "number": {
+                        "minimum": 1,
+                        "default": 1
+                    },
+                    "size": {
+                        "minimum": 1,
+                        "maximum": 50,
+                        "default": 15
+                    }
                 }
             },
             "clientId": "forbidden",
@@ -4584,7 +4884,10 @@
                     "format": "string",
                     "nullable": false,
                     "enum": null,
-                    "schema": null
+                    "schema": null,
+                    "constraints": {
+                        "minLength": 1
+                    }
                 }
             },
             "createAttributes": {
@@ -4593,7 +4896,10 @@
                     "nullable": false,
                     "enum": null,
                     "required": true,
-                    "schema": null
+                    "schema": null,
+                    "constraints": {
+                        "minLength": 1
+                    }
                 }
             },
             "updateAttributes": {
@@ -4602,7 +4908,10 @@
                     "nullable": false,
                     "enum": null,
                     "required": false,
-                    "schema": null
+                    "schema": null,
+                    "constraints": {
+                        "minLength": 1
+                    }
                 }
             },
             "relations": {
@@ -4824,7 +5133,8 @@
             "memberOrder": [
                 "name",
                 "parent"
-            ]
+            ],
+            "writeOnlyRelations": []
         },
         "public-profiles": {
             "type": "public-profiles",
@@ -4833,6 +5143,17 @@
                 "keys": {
                     "number": "number",
                     "size": "size"
+                },
+                "bounds": {
+                    "number": {
+                        "minimum": 1,
+                        "default": 1
+                    },
+                    "size": {
+                        "minimum": 1,
+                        "maximum": 50,
+                        "default": 15
+                    }
                 }
             },
             "clientId": "forbidden",
@@ -4840,9 +5161,10 @@
             "attributes": {
                 "displayName": {
                     "format": "string",
-                    "nullable": false,
+                    "nullable": true,
                     "enum": null,
-                    "schema": null
+                    "schema": null,
+                    "constraints": {}
                 }
             },
             "createAttributes": [],
@@ -4900,7 +5222,8 @@
             "updateRelations": [],
             "memberOrder": [
                 "displayName"
-            ]
+            ],
+            "writeOnlyRelations": []
         },
         "releases": {
             "type": "releases",
@@ -4909,6 +5232,17 @@
                 "keys": {
                     "number": "number",
                     "size": "size"
+                },
+                "bounds": {
+                    "number": {
+                        "minimum": 1,
+                        "default": 1
+                    },
+                    "size": {
+                        "minimum": 1,
+                        "maximum": 50,
+                        "default": 15
+                    }
                 }
             },
             "clientId": "forbidden",
@@ -4955,7 +5289,8 @@
                                         "const": null,
                                         "oneOf": [],
                                         "anyOf": [],
-                                        "allOf": []
+                                        "allOf": [],
+                                        "constraints": {}
                                     }
                                 },
                                 "items": null,
@@ -4963,7 +5298,8 @@
                                 "const": null,
                                 "oneOf": [],
                                 "anyOf": [],
-                                "allOf": []
+                                "allOf": [],
+                                "constraints": {}
                             },
                             {
                                 "types": [
@@ -4996,13 +5332,17 @@
                                             "const": null,
                                             "oneOf": [],
                                             "anyOf": [],
-                                            "allOf": []
+                                            "allOf": [],
+                                            "constraints": {}
                                         },
                                         "discriminator": null,
                                         "const": null,
                                         "oneOf": [],
                                         "anyOf": [],
-                                        "allOf": []
+                                        "allOf": [],
+                                        "constraints": {
+                                            "minItems": 1
+                                        }
                                     }
                                 },
                                 "items": null,
@@ -5010,7 +5350,8 @@
                                 "const": null,
                                 "oneOf": [],
                                 "anyOf": [],
-                                "allOf": []
+                                "allOf": [],
+                                "constraints": {}
                             },
                             {
                                 "types": [
@@ -5025,17 +5366,24 @@
                                 "const": null,
                                 "oneOf": [],
                                 "anyOf": [],
-                                "allOf": []
+                                "allOf": [],
+                                "constraints": {}
                             }
                         ],
-                        "allOf": []
-                    }
+                        "allOf": [],
+                        "constraints": {}
+                    },
+                    "constraints": {}
                 },
                 "catalogNumber": {
                     "format": "string",
                     "nullable": false,
                     "enum": null,
-                    "schema": null
+                    "schema": null,
+                    "constraints": {
+                        "minLength": 1,
+                        "maxLength": 40
+                    }
                 },
                 "dimensions": {
                     "format": "object",
@@ -5068,7 +5416,8 @@
                                 "const": null,
                                 "oneOf": [],
                                 "anyOf": [],
-                                "allOf": []
+                                "allOf": [],
+                                "constraints": {}
                             },
                             {
                                 "types": [],
@@ -5106,7 +5455,8 @@
                                                 "const": null,
                                                 "oneOf": [],
                                                 "anyOf": [],
-                                                "allOf": []
+                                                "allOf": [],
+                                                "constraints": {}
                                             },
                                             "heightMm": {
                                                 "types": [
@@ -5121,7 +5471,8 @@
                                                 "const": null,
                                                 "oneOf": [],
                                                 "anyOf": [],
-                                                "allOf": []
+                                                "allOf": [],
+                                                "constraints": {}
                                             }
                                         },
                                         "items": null,
@@ -5129,7 +5480,8 @@
                                         "const": null,
                                         "oneOf": [],
                                         "anyOf": [],
-                                        "allOf": []
+                                        "allOf": [],
+                                        "constraints": {}
                                     },
                                     {
                                         "types": [
@@ -5152,7 +5504,8 @@
                                                 "const": null,
                                                 "oneOf": [],
                                                 "anyOf": [],
-                                                "allOf": []
+                                                "allOf": [],
+                                                "constraints": {}
                                             }
                                         },
                                         "items": null,
@@ -5160,13 +5513,17 @@
                                         "const": null,
                                         "oneOf": [],
                                         "anyOf": [],
-                                        "allOf": []
+                                        "allOf": [],
+                                        "constraints": {}
                                     }
-                                ]
+                                ],
+                                "constraints": {}
                             }
                         ],
-                        "allOf": []
-                    }
+                        "allOf": [],
+                        "constraints": {}
+                    },
+                    "constraints": {}
                 },
                 "format": {
                     "format": "unknown",
@@ -5203,11 +5560,16 @@
                                         "const": null,
                                         "oneOf": [],
                                         "anyOf": [],
-                                        "allOf": []
+                                        "allOf": [],
+                                        "constraints": {
+                                            "minimum": 16,
+                                            "maximum": 78
+                                        }
                                     },
                                     "coloured": {
                                         "types": [
-                                            "boolean"
+                                            "boolean",
+                                            "null"
                                         ],
                                         "format": null,
                                         "enum": [],
@@ -5218,7 +5580,8 @@
                                         "const": null,
                                         "oneOf": [],
                                         "anyOf": [],
-                                        "allOf": []
+                                        "allOf": [],
+                                        "constraints": {}
                                     },
                                     "medium": {
                                         "types": [
@@ -5233,7 +5596,8 @@
                                         "const": "vinyl",
                                         "oneOf": [],
                                         "anyOf": [],
-                                        "allOf": []
+                                        "allOf": [],
+                                        "constraints": {}
                                     }
                                 },
                                 "items": null,
@@ -5241,7 +5605,8 @@
                                 "const": null,
                                 "oneOf": [],
                                 "anyOf": [],
-                                "allOf": []
+                                "allOf": [],
+                                "constraints": {}
                             },
                             {
                                 "types": [
@@ -5264,7 +5629,10 @@
                                         "const": null,
                                         "oneOf": [],
                                         "anyOf": [],
-                                        "allOf": []
+                                        "allOf": [],
+                                        "constraints": {
+                                            "minimum": 1
+                                        }
                                     },
                                     "medium": {
                                         "types": [
@@ -5279,7 +5647,8 @@
                                         "const": "cd",
                                         "oneOf": [],
                                         "anyOf": [],
-                                        "allOf": []
+                                        "allOf": [],
+                                        "constraints": {}
                                     }
                                 },
                                 "items": null,
@@ -5287,7 +5656,8 @@
                                 "const": null,
                                 "oneOf": [],
                                 "anyOf": [],
-                                "allOf": []
+                                "allOf": [],
+                                "constraints": {}
                             },
                             {
                                 "types": [
@@ -5310,11 +5680,16 @@
                                         "const": null,
                                         "oneOf": [],
                                         "anyOf": [],
-                                        "allOf": []
+                                        "allOf": [],
+                                        "constraints": {
+                                            "minLength": 1,
+                                            "maxLength": 16
+                                        }
                                     },
                                     "bitrateKbps": {
                                         "types": [
-                                            "integer"
+                                            "integer",
+                                            "null"
                                         ],
                                         "format": null,
                                         "enum": [],
@@ -5325,7 +5700,10 @@
                                         "const": null,
                                         "oneOf": [],
                                         "anyOf": [],
-                                        "allOf": []
+                                        "allOf": [],
+                                        "constraints": {
+                                            "minimum": 32
+                                        }
                                     },
                                     "medium": {
                                         "types": [
@@ -5340,7 +5718,8 @@
                                         "const": "digital",
                                         "oneOf": [],
                                         "anyOf": [],
-                                        "allOf": []
+                                        "allOf": [],
+                                        "constraints": {}
                                     }
                                 },
                                 "items": null,
@@ -5348,7 +5727,8 @@
                                 "const": null,
                                 "oneOf": [],
                                 "anyOf": [],
-                                "allOf": []
+                                "allOf": [],
+                                "constraints": {}
                             },
                             {
                                 "types": [
@@ -5363,12 +5743,15 @@
                                 "const": null,
                                 "oneOf": [],
                                 "anyOf": [],
-                                "allOf": []
+                                "allOf": [],
+                                "constraints": {}
                             }
                         ],
                         "anyOf": [],
-                        "allOf": []
-                    }
+                        "allOf": [],
+                        "constraints": {}
+                    },
+                    "constraints": {}
                 },
                 "packaging": {
                     "format": "object",
@@ -5396,11 +5779,16 @@
                                 "const": null,
                                 "oneOf": [],
                                 "anyOf": [],
-                                "allOf": []
+                                "allOf": [],
+                                "constraints": {
+                                    "minLength": 1,
+                                    "maxLength": 40
+                                }
                             },
                             "gatefold": {
                                 "types": [
-                                    "boolean"
+                                    "boolean",
+                                    "null"
                                 ],
                                 "format": null,
                                 "enum": [],
@@ -5411,7 +5799,8 @@
                                 "const": null,
                                 "oneOf": [],
                                 "anyOf": [],
-                                "allOf": []
+                                "allOf": [],
+                                "constraints": {}
                             }
                         },
                         "items": null,
@@ -5419,8 +5808,10 @@
                         "const": null,
                         "oneOf": [],
                         "anyOf": [],
-                        "allOf": []
-                    }
+                        "allOf": [],
+                        "constraints": {}
+                    },
+                    "constraints": {}
                 }
             },
             "createAttributes": {
@@ -5466,7 +5857,8 @@
                                         "const": null,
                                         "oneOf": [],
                                         "anyOf": [],
-                                        "allOf": []
+                                        "allOf": [],
+                                        "constraints": {}
                                     }
                                 },
                                 "items": null,
@@ -5474,7 +5866,8 @@
                                 "const": null,
                                 "oneOf": [],
                                 "anyOf": [],
-                                "allOf": []
+                                "allOf": [],
+                                "constraints": {}
                             },
                             {
                                 "types": [
@@ -5507,13 +5900,17 @@
                                             "const": null,
                                             "oneOf": [],
                                             "anyOf": [],
-                                            "allOf": []
+                                            "allOf": [],
+                                            "constraints": {}
                                         },
                                         "discriminator": null,
                                         "const": null,
                                         "oneOf": [],
                                         "anyOf": [],
-                                        "allOf": []
+                                        "allOf": [],
+                                        "constraints": {
+                                            "minItems": 1
+                                        }
                                     }
                                 },
                                 "items": null,
@@ -5521,7 +5918,8 @@
                                 "const": null,
                                 "oneOf": [],
                                 "anyOf": [],
-                                "allOf": []
+                                "allOf": [],
+                                "constraints": {}
                             },
                             {
                                 "types": [
@@ -5536,18 +5934,25 @@
                                 "const": null,
                                 "oneOf": [],
                                 "anyOf": [],
-                                "allOf": []
+                                "allOf": [],
+                                "constraints": {}
                             }
                         ],
-                        "allOf": []
-                    }
+                        "allOf": [],
+                        "constraints": {}
+                    },
+                    "constraints": {}
                 },
                 "catalogNumber": {
                     "format": "string",
                     "nullable": false,
                     "enum": null,
                     "required": true,
-                    "schema": null
+                    "schema": null,
+                    "constraints": {
+                        "minLength": 1,
+                        "maxLength": 40
+                    }
                 },
                 "dimensions": {
                     "format": "object",
@@ -5581,7 +5986,8 @@
                                 "const": null,
                                 "oneOf": [],
                                 "anyOf": [],
-                                "allOf": []
+                                "allOf": [],
+                                "constraints": {}
                             },
                             {
                                 "types": [],
@@ -5619,7 +6025,8 @@
                                                 "const": null,
                                                 "oneOf": [],
                                                 "anyOf": [],
-                                                "allOf": []
+                                                "allOf": [],
+                                                "constraints": {}
                                             },
                                             "heightMm": {
                                                 "types": [
@@ -5634,7 +6041,8 @@
                                                 "const": null,
                                                 "oneOf": [],
                                                 "anyOf": [],
-                                                "allOf": []
+                                                "allOf": [],
+                                                "constraints": {}
                                             }
                                         },
                                         "items": null,
@@ -5642,7 +6050,8 @@
                                         "const": null,
                                         "oneOf": [],
                                         "anyOf": [],
-                                        "allOf": []
+                                        "allOf": [],
+                                        "constraints": {}
                                     },
                                     {
                                         "types": [
@@ -5665,7 +6074,8 @@
                                                 "const": null,
                                                 "oneOf": [],
                                                 "anyOf": [],
-                                                "allOf": []
+                                                "allOf": [],
+                                                "constraints": {}
                                             }
                                         },
                                         "items": null,
@@ -5673,13 +6083,17 @@
                                         "const": null,
                                         "oneOf": [],
                                         "anyOf": [],
-                                        "allOf": []
+                                        "allOf": [],
+                                        "constraints": {}
                                     }
-                                ]
+                                ],
+                                "constraints": {}
                             }
                         ],
-                        "allOf": []
-                    }
+                        "allOf": [],
+                        "constraints": {}
+                    },
+                    "constraints": {}
                 },
                 "format": {
                     "format": "unknown",
@@ -5720,7 +6134,11 @@
                                         "const": null,
                                         "oneOf": [],
                                         "anyOf": [],
-                                        "allOf": []
+                                        "allOf": [],
+                                        "constraints": {
+                                            "minimum": 16,
+                                            "maximum": 78
+                                        }
                                     },
                                     "coloured": {
                                         "types": [
@@ -5735,7 +6153,8 @@
                                         "const": null,
                                         "oneOf": [],
                                         "anyOf": [],
-                                        "allOf": []
+                                        "allOf": [],
+                                        "constraints": {}
                                     },
                                     "medium": {
                                         "types": [
@@ -5750,7 +6169,8 @@
                                         "const": "vinyl",
                                         "oneOf": [],
                                         "anyOf": [],
-                                        "allOf": []
+                                        "allOf": [],
+                                        "constraints": {}
                                     }
                                 },
                                 "items": null,
@@ -5758,7 +6178,8 @@
                                 "const": null,
                                 "oneOf": [],
                                 "anyOf": [],
-                                "allOf": []
+                                "allOf": [],
+                                "constraints": {}
                             },
                             {
                                 "types": [
@@ -5784,7 +6205,10 @@
                                         "const": null,
                                         "oneOf": [],
                                         "anyOf": [],
-                                        "allOf": []
+                                        "allOf": [],
+                                        "constraints": {
+                                            "minimum": 1
+                                        }
                                     },
                                     "medium": {
                                         "types": [
@@ -5799,7 +6223,8 @@
                                         "const": "cd",
                                         "oneOf": [],
                                         "anyOf": [],
-                                        "allOf": []
+                                        "allOf": [],
+                                        "constraints": {}
                                     }
                                 },
                                 "items": null,
@@ -5807,7 +6232,8 @@
                                 "const": null,
                                 "oneOf": [],
                                 "anyOf": [],
-                                "allOf": []
+                                "allOf": [],
+                                "constraints": {}
                             },
                             {
                                 "types": [
@@ -5833,7 +6259,11 @@
                                         "const": null,
                                         "oneOf": [],
                                         "anyOf": [],
-                                        "allOf": []
+                                        "allOf": [],
+                                        "constraints": {
+                                            "minLength": 1,
+                                            "maxLength": 16
+                                        }
                                     },
                                     "bitrateKbps": {
                                         "types": [
@@ -5848,7 +6278,10 @@
                                         "const": null,
                                         "oneOf": [],
                                         "anyOf": [],
-                                        "allOf": []
+                                        "allOf": [],
+                                        "constraints": {
+                                            "minimum": 32
+                                        }
                                     },
                                     "medium": {
                                         "types": [
@@ -5863,7 +6296,8 @@
                                         "const": "digital",
                                         "oneOf": [],
                                         "anyOf": [],
-                                        "allOf": []
+                                        "allOf": [],
+                                        "constraints": {}
                                     }
                                 },
                                 "items": null,
@@ -5871,7 +6305,8 @@
                                 "const": null,
                                 "oneOf": [],
                                 "anyOf": [],
-                                "allOf": []
+                                "allOf": [],
+                                "constraints": {}
                             },
                             {
                                 "types": [
@@ -5886,12 +6321,15 @@
                                 "const": null,
                                 "oneOf": [],
                                 "anyOf": [],
-                                "allOf": []
+                                "allOf": [],
+                                "constraints": {}
                             }
                         ],
                         "anyOf": [],
-                        "allOf": []
-                    }
+                        "allOf": [],
+                        "constraints": {}
+                    },
+                    "constraints": {}
                 },
                 "packaging": {
                     "format": "object",
@@ -5922,7 +6360,11 @@
                                 "const": null,
                                 "oneOf": [],
                                 "anyOf": [],
-                                "allOf": []
+                                "allOf": [],
+                                "constraints": {
+                                    "minLength": 1,
+                                    "maxLength": 40
+                                }
                             },
                             "gatefold": {
                                 "types": [
@@ -5937,7 +6379,8 @@
                                 "const": null,
                                 "oneOf": [],
                                 "anyOf": [],
-                                "allOf": []
+                                "allOf": [],
+                                "constraints": {}
                             }
                         },
                         "items": null,
@@ -5945,8 +6388,10 @@
                         "const": null,
                         "oneOf": [],
                         "anyOf": [],
-                        "allOf": []
-                    }
+                        "allOf": [],
+                        "constraints": {}
+                    },
+                    "constraints": {}
                 }
             },
             "updateAttributes": {
@@ -5992,7 +6437,8 @@
                                         "const": null,
                                         "oneOf": [],
                                         "anyOf": [],
-                                        "allOf": []
+                                        "allOf": [],
+                                        "constraints": {}
                                     }
                                 },
                                 "items": null,
@@ -6000,7 +6446,8 @@
                                 "const": null,
                                 "oneOf": [],
                                 "anyOf": [],
-                                "allOf": []
+                                "allOf": [],
+                                "constraints": {}
                             },
                             {
                                 "types": [
@@ -6033,13 +6480,17 @@
                                             "const": null,
                                             "oneOf": [],
                                             "anyOf": [],
-                                            "allOf": []
+                                            "allOf": [],
+                                            "constraints": {}
                                         },
                                         "discriminator": null,
                                         "const": null,
                                         "oneOf": [],
                                         "anyOf": [],
-                                        "allOf": []
+                                        "allOf": [],
+                                        "constraints": {
+                                            "minItems": 1
+                                        }
                                     }
                                 },
                                 "items": null,
@@ -6047,7 +6498,8 @@
                                 "const": null,
                                 "oneOf": [],
                                 "anyOf": [],
-                                "allOf": []
+                                "allOf": [],
+                                "constraints": {}
                             },
                             {
                                 "types": [
@@ -6062,18 +6514,25 @@
                                 "const": null,
                                 "oneOf": [],
                                 "anyOf": [],
-                                "allOf": []
+                                "allOf": [],
+                                "constraints": {}
                             }
                         ],
-                        "allOf": []
-                    }
+                        "allOf": [],
+                        "constraints": {}
+                    },
+                    "constraints": {}
                 },
                 "catalogNumber": {
                     "format": "string",
                     "nullable": false,
                     "enum": null,
                     "required": false,
-                    "schema": null
+                    "schema": null,
+                    "constraints": {
+                        "minLength": 1,
+                        "maxLength": 40
+                    }
                 },
                 "dimensions": {
                     "format": "object",
@@ -6107,7 +6566,8 @@
                                 "const": null,
                                 "oneOf": [],
                                 "anyOf": [],
-                                "allOf": []
+                                "allOf": [],
+                                "constraints": {}
                             },
                             {
                                 "types": [],
@@ -6145,7 +6605,8 @@
                                                 "const": null,
                                                 "oneOf": [],
                                                 "anyOf": [],
-                                                "allOf": []
+                                                "allOf": [],
+                                                "constraints": {}
                                             },
                                             "heightMm": {
                                                 "types": [
@@ -6160,7 +6621,8 @@
                                                 "const": null,
                                                 "oneOf": [],
                                                 "anyOf": [],
-                                                "allOf": []
+                                                "allOf": [],
+                                                "constraints": {}
                                             }
                                         },
                                         "items": null,
@@ -6168,7 +6630,8 @@
                                         "const": null,
                                         "oneOf": [],
                                         "anyOf": [],
-                                        "allOf": []
+                                        "allOf": [],
+                                        "constraints": {}
                                     },
                                     {
                                         "types": [
@@ -6191,7 +6654,8 @@
                                                 "const": null,
                                                 "oneOf": [],
                                                 "anyOf": [],
-                                                "allOf": []
+                                                "allOf": [],
+                                                "constraints": {}
                                             }
                                         },
                                         "items": null,
@@ -6199,13 +6663,17 @@
                                         "const": null,
                                         "oneOf": [],
                                         "anyOf": [],
-                                        "allOf": []
+                                        "allOf": [],
+                                        "constraints": {}
                                     }
-                                ]
+                                ],
+                                "constraints": {}
                             }
                         ],
-                        "allOf": []
-                    }
+                        "allOf": [],
+                        "constraints": {}
+                    },
+                    "constraints": {}
                 },
                 "format": {
                     "format": "unknown",
@@ -6243,7 +6711,11 @@
                                         "const": null,
                                         "oneOf": [],
                                         "anyOf": [],
-                                        "allOf": []
+                                        "allOf": [],
+                                        "constraints": {
+                                            "minimum": 16,
+                                            "maximum": 78
+                                        }
                                     },
                                     "coloured": {
                                         "types": [
@@ -6258,7 +6730,8 @@
                                         "const": null,
                                         "oneOf": [],
                                         "anyOf": [],
-                                        "allOf": []
+                                        "allOf": [],
+                                        "constraints": {}
                                     },
                                     "medium": {
                                         "types": [
@@ -6273,7 +6746,8 @@
                                         "const": "vinyl",
                                         "oneOf": [],
                                         "anyOf": [],
-                                        "allOf": []
+                                        "allOf": [],
+                                        "constraints": {}
                                     }
                                 },
                                 "items": null,
@@ -6281,7 +6755,8 @@
                                 "const": null,
                                 "oneOf": [],
                                 "anyOf": [],
-                                "allOf": []
+                                "allOf": [],
+                                "constraints": {}
                             },
                             {
                                 "types": [
@@ -6304,7 +6779,10 @@
                                         "const": null,
                                         "oneOf": [],
                                         "anyOf": [],
-                                        "allOf": []
+                                        "allOf": [],
+                                        "constraints": {
+                                            "minimum": 1
+                                        }
                                     },
                                     "medium": {
                                         "types": [
@@ -6319,7 +6797,8 @@
                                         "const": "cd",
                                         "oneOf": [],
                                         "anyOf": [],
-                                        "allOf": []
+                                        "allOf": [],
+                                        "constraints": {}
                                     }
                                 },
                                 "items": null,
@@ -6327,7 +6806,8 @@
                                 "const": null,
                                 "oneOf": [],
                                 "anyOf": [],
-                                "allOf": []
+                                "allOf": [],
+                                "constraints": {}
                             },
                             {
                                 "types": [
@@ -6350,7 +6830,11 @@
                                         "const": null,
                                         "oneOf": [],
                                         "anyOf": [],
-                                        "allOf": []
+                                        "allOf": [],
+                                        "constraints": {
+                                            "minLength": 1,
+                                            "maxLength": 16
+                                        }
                                     },
                                     "bitrateKbps": {
                                         "types": [
@@ -6365,7 +6849,10 @@
                                         "const": null,
                                         "oneOf": [],
                                         "anyOf": [],
-                                        "allOf": []
+                                        "allOf": [],
+                                        "constraints": {
+                                            "minimum": 32
+                                        }
                                     },
                                     "medium": {
                                         "types": [
@@ -6380,7 +6867,8 @@
                                         "const": "digital",
                                         "oneOf": [],
                                         "anyOf": [],
-                                        "allOf": []
+                                        "allOf": [],
+                                        "constraints": {}
                                     }
                                 },
                                 "items": null,
@@ -6388,7 +6876,8 @@
                                 "const": null,
                                 "oneOf": [],
                                 "anyOf": [],
-                                "allOf": []
+                                "allOf": [],
+                                "constraints": {}
                             },
                             {
                                 "types": [
@@ -6403,12 +6892,15 @@
                                 "const": null,
                                 "oneOf": [],
                                 "anyOf": [],
-                                "allOf": []
+                                "allOf": [],
+                                "constraints": {}
                             }
                         ],
                         "anyOf": [],
-                        "allOf": []
-                    }
+                        "allOf": [],
+                        "constraints": {}
+                    },
+                    "constraints": {}
                 },
                 "packaging": {
                     "format": "object",
@@ -6437,7 +6929,11 @@
                                 "const": null,
                                 "oneOf": [],
                                 "anyOf": [],
-                                "allOf": []
+                                "allOf": [],
+                                "constraints": {
+                                    "minLength": 1,
+                                    "maxLength": 40
+                                }
                             },
                             "gatefold": {
                                 "types": [
@@ -6452,7 +6948,8 @@
                                 "const": null,
                                 "oneOf": [],
                                 "anyOf": [],
-                                "allOf": []
+                                "allOf": [],
+                                "constraints": {}
                             }
                         },
                         "items": null,
@@ -6460,8 +6957,10 @@
                         "const": null,
                         "oneOf": [],
                         "anyOf": [],
-                        "allOf": []
-                    }
+                        "allOf": [],
+                        "constraints": {}
+                    },
+                    "constraints": {}
                 }
             },
             "relations": {
@@ -6891,7 +7390,8 @@
                 "availability",
                 "dimensions",
                 "album"
-            ]
+            ],
+            "writeOnlyRelations": []
         },
         "tracks": {
             "type": "tracks",
@@ -6905,6 +7405,17 @@
                         "keys": {
                             "number": "number",
                             "size": "size"
+                        },
+                        "bounds": {
+                            "number": {
+                                "minimum": 1,
+                                "default": 1
+                            },
+                            "size": {
+                                "minimum": 1,
+                                "maximum": 50,
+                                "default": 15
+                            }
                         }
                     },
                     "cursor": {
@@ -6913,6 +7424,13 @@
                             "after": "after",
                             "before": "before",
                             "size": "size"
+                        },
+                        "bounds": {
+                            "size": {
+                                "minimum": 1,
+                                "maximum": 50,
+                                "default": 15
+                            }
                         }
                     },
                     "offset": {
@@ -6920,6 +7438,17 @@
                         "keys": {
                             "limit": "limit",
                             "offset": "offset"
+                        },
+                        "bounds": {
+                            "limit": {
+                                "minimum": 1,
+                                "maximum": 50,
+                                "default": 15
+                            },
+                            "offset": {
+                                "minimum": 0,
+                                "default": 0
+                            }
                         }
                     }
                 }
@@ -6936,27 +7465,31 @@
                     "format": "string",
                     "nullable": false,
                     "enum": null,
-                    "schema": null
+                    "schema": null,
+                    "constraints": {}
                 },
                 "durationSeconds": {
                     "format": "integer",
-                    "nullable": false,
+                    "nullable": true,
                     "enum": null,
-                    "schema": null
+                    "schema": null,
+                    "constraints": {}
                 },
                 "explicit": {
                     "format": "boolean",
-                    "nullable": false,
+                    "nullable": true,
                     "enum": null,
-                    "schema": null
+                    "schema": null,
+                    "constraints": {}
                 },
                 "genres": {
                     "format": "array",
-                    "nullable": false,
+                    "nullable": true,
                     "enum": null,
                     "schema": {
                         "types": [
-                            "array"
+                            "array",
+                            "null"
                         ],
                         "format": null,
                         "enum": [],
@@ -6975,32 +7508,50 @@
                             "const": null,
                             "oneOf": [],
                             "anyOf": [],
-                            "allOf": []
+                            "allOf": [],
+                            "constraints": {
+                                "minLength": 1
+                            }
                         },
                         "discriminator": null,
                         "const": null,
                         "oneOf": [],
                         "anyOf": [],
-                        "allOf": []
+                        "allOf": [],
+                        "constraints": {
+                            "minItems": 1,
+                            "uniqueItems": true
+                        }
+                    },
+                    "constraints": {
+                        "minItems": 1,
+                        "uniqueItems": true
                     }
                 },
                 "previewOffset": {
                     "format": "string",
                     "nullable": true,
                     "enum": null,
-                    "schema": null
+                    "schema": null,
+                    "constraints": {}
                 },
                 "title": {
                     "format": "string",
                     "nullable": false,
                     "enum": null,
-                    "schema": null
+                    "schema": null,
+                    "constraints": {
+                        "minLength": 1
+                    }
                 },
                 "trackNumber": {
                     "format": "integer",
-                    "nullable": false,
+                    "nullable": true,
                     "enum": null,
-                    "schema": null
+                    "schema": null,
+                    "constraints": {
+                        "minimum": 1
+                    }
                 }
             },
             "createAttributes": {
@@ -7009,14 +7560,16 @@
                     "nullable": false,
                     "enum": null,
                     "required": false,
-                    "schema": null
+                    "schema": null,
+                    "constraints": {}
                 },
                 "explicit": {
                     "format": "boolean",
                     "nullable": false,
                     "enum": null,
                     "required": false,
-                    "schema": null
+                    "schema": null,
+                    "constraints": {}
                 },
                 "genres": {
                     "format": "array",
@@ -7044,13 +7597,24 @@
                             "const": null,
                             "oneOf": [],
                             "anyOf": [],
-                            "allOf": []
+                            "allOf": [],
+                            "constraints": {
+                                "minLength": 1
+                            }
                         },
                         "discriminator": null,
                         "const": null,
                         "oneOf": [],
                         "anyOf": [],
-                        "allOf": []
+                        "allOf": [],
+                        "constraints": {
+                            "minItems": 1,
+                            "uniqueItems": true
+                        }
+                    },
+                    "constraints": {
+                        "minItems": 1,
+                        "uniqueItems": true
                     }
                 },
                 "previewOffset": {
@@ -7058,21 +7622,28 @@
                     "nullable": true,
                     "enum": null,
                     "required": false,
-                    "schema": null
+                    "schema": null,
+                    "constraints": {}
                 },
                 "title": {
                     "format": "string",
                     "nullable": false,
                     "enum": null,
                     "required": true,
-                    "schema": null
+                    "schema": null,
+                    "constraints": {
+                        "minLength": 1
+                    }
                 },
                 "trackNumber": {
                     "format": "integer",
                     "nullable": false,
                     "enum": null,
                     "required": false,
-                    "schema": null
+                    "schema": null,
+                    "constraints": {
+                        "minimum": 1
+                    }
                 }
             },
             "updateAttributes": {
@@ -7081,14 +7652,16 @@
                     "nullable": false,
                     "enum": null,
                     "required": false,
-                    "schema": null
+                    "schema": null,
+                    "constraints": {}
                 },
                 "explicit": {
                     "format": "boolean",
                     "nullable": false,
                     "enum": null,
                     "required": false,
-                    "schema": null
+                    "schema": null,
+                    "constraints": {}
                 },
                 "genres": {
                     "format": "array",
@@ -7116,13 +7689,24 @@
                             "const": null,
                             "oneOf": [],
                             "anyOf": [],
-                            "allOf": []
+                            "allOf": [],
+                            "constraints": {
+                                "minLength": 1
+                            }
                         },
                         "discriminator": null,
                         "const": null,
                         "oneOf": [],
                         "anyOf": [],
-                        "allOf": []
+                        "allOf": [],
+                        "constraints": {
+                            "minItems": 1,
+                            "uniqueItems": true
+                        }
+                    },
+                    "constraints": {
+                        "minItems": 1,
+                        "uniqueItems": true
                     }
                 },
                 "previewOffset": {
@@ -7130,21 +7714,28 @@
                     "nullable": true,
                     "enum": null,
                     "required": false,
-                    "schema": null
+                    "schema": null,
+                    "constraints": {}
                 },
                 "title": {
                     "format": "string",
                     "nullable": false,
                     "enum": null,
                     "required": false,
-                    "schema": null
+                    "schema": null,
+                    "constraints": {
+                        "minLength": 1
+                    }
                 },
                 "trackNumber": {
                     "format": "integer",
                     "nullable": false,
                     "enum": null,
                     "required": false,
-                    "schema": null
+                    "schema": null,
+                    "constraints": {
+                        "minimum": 1
+                    }
                 }
             },
             "relations": {
@@ -7741,7 +8332,8 @@
                         "const": null,
                         "oneOf": [],
                         "anyOf": [],
-                        "allOf": []
+                        "allOf": [],
+                        "constraints": {}
                     }
                 },
                 "explicit": {
@@ -7758,7 +8350,8 @@
                         "const": null,
                         "oneOf": [],
                         "anyOf": [],
-                        "allOf": []
+                        "allOf": [],
+                        "constraints": {}
                     }
                 },
                 "genres": {
@@ -7783,13 +8376,15 @@
                             "const": null,
                             "oneOf": [],
                             "anyOf": [],
-                            "allOf": []
+                            "allOf": [],
+                            "constraints": {}
                         },
                         "discriminator": null,
                         "const": null,
                         "oneOf": [],
                         "anyOf": [],
-                        "allOf": []
+                        "allOf": [],
+                        "constraints": {}
                     }
                 },
                 "q": {
@@ -7806,7 +8401,8 @@
                         "const": null,
                         "oneOf": [],
                         "anyOf": [],
-                        "allOf": []
+                        "allOf": [],
+                        "constraints": {}
                     }
                 }
             },
@@ -7828,7 +8424,8 @@
                 "displayTitle",
                 "album",
                 "playlists"
-            ]
+            ],
+            "writeOnlyRelations": []
         }
     }
 }

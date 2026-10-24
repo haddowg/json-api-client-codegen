@@ -20,6 +20,12 @@ namespace haddowg\JsonApiCodegen\Spec;
  *
  * Contract 4 gives each error code's component a `description` and, for some codes, an example
  * `detail`. Both are read into the code's descriptor and written into its class docblock.
+ *
+ * Contract 5 projects each validation constraint into every schema it holds for, makes a read
+ * attribute nullable unless the server guarantees a value, states a page member's `default` and
+ * cap, and drops a write-only relation from the read schemas. The constraints are read per
+ * schema and narrow the generated types; the rest needs no reader change, because nullability
+ * and members were already read from the schema they appear in.
  */
 final class ContractCompatibility
 {
@@ -27,7 +33,7 @@ final class ContractCompatibility
     public const int MINIMUM = 1;
 
     /** Above this the document carries structures this codegen does not read. */
-    public const int MAXIMUM = 4;
+    public const int MAXIMUM = 5;
 
     /**
      * Check a document's declared contract against the supported range.

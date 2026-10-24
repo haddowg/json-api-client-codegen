@@ -68,6 +68,7 @@ final class DescriptorSerializer
                 'nullable' => $attribute->nullable,
                 'enum' => $attribute->enum,
                 'schema' => self::valueSchema($attribute->schema),
+                'constraints' => (object) $attribute->constraints->toArray(),
             ], $resource->attributes),
             'createAttributes' => \array_map(self::writeAttribute(...), $resource->createAttributes),
             'updateAttributes' => \array_map(self::writeAttribute(...), $resource->updateAttributes),
@@ -82,6 +83,7 @@ final class DescriptorSerializer
             'createRelations' => $resource->createRelations,
             'updateRelations' => $resource->updateRelations,
             'memberOrder' => $resource->memberOrder,
+            'writeOnlyRelations' => \array_map(self::relation(...), $resource->writeOnlyRelations),
         ];
     }
 
@@ -136,6 +138,7 @@ final class DescriptorSerializer
             'enum' => $attribute->enum,
             'required' => $attribute->required,
             'schema' => self::valueSchema($attribute->schema),
+            'constraints' => (object) $attribute->constraints->toArray(),
         ];
     }
 
@@ -151,7 +154,11 @@ final class DescriptorSerializer
             ];
         }
 
-        return ['kind' => $paginator->kind->value, 'keys' => (object) $paginator->keys];
+        return [
+            'kind' => $paginator->kind->value,
+            'keys' => (object) $paginator->keys,
+            'bounds' => (object) \array_map(static fn(Constraints $bounds): array => $bounds->toArray(), $paginator->bounds),
+        ];
     }
 
     /** @return ($operation is null ? null : array<string, mixed>) */
@@ -208,6 +215,7 @@ final class DescriptorSerializer
             'oneOf' => \array_map(self::valueSchema(...), $schema->oneOf),
             'anyOf' => \array_map(self::valueSchema(...), $schema->anyOf),
             'allOf' => \array_map(self::valueSchema(...), $schema->allOf),
+            'constraints' => (object) $schema->constraints->toArray(),
         ];
     }
 }

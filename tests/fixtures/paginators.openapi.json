@@ -115,7 +115,7 @@
                             "properties": {
                                 "skip": {
                                     "type": "integer",
-                                    "minimum": 1
+                                    "minimum": 0
                                 },
                                 "take": {
                                     "type": "integer",
@@ -265,7 +265,7 @@
                                     "properties": {
                                         "offset": {
                                             "type": "integer",
-                                            "minimum": 1
+                                            "minimum": 0
                                         },
                                         "limit": {
                                             "type": "integer",
@@ -451,7 +451,7 @@
                                     "properties": {
                                         "offset": {
                                             "type": "integer",
-                                            "minimum": 1
+                                            "minimum": 0
                                         },
                                         "limit": {
                                             "type": "integer",

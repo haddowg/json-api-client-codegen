@@ -16,6 +16,8 @@ namespace haddowg\JsonApiCodegen\Descriptor;
  * with a writable flag, because they genuinely diverge — `artists.createdAt` is accepted on
  * create and not on update, and `catalog-exports` accepts one attribute on create and none on
  * update. A read-only attribute is simply absent from both, never present and marked.
+ * `$constraints` are read the same way: a bound can hold on create and not on update, so each
+ * set is its own schema's.
  */
 final class WriteAttributeDescriptor
 {
@@ -26,5 +28,6 @@ final class WriteAttributeDescriptor
         public readonly bool $nullable,
         public readonly ?ValueSchema $schema,
         public readonly bool $required,
+        public readonly Constraints $constraints = new Constraints(),
     ) {}
 }

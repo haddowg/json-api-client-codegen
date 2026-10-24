@@ -92,6 +92,7 @@ abstract class GenreBase extends ResourceObject
 
     public string $type { get => $this->type(); }
 
+    /** @var non-empty-string */
     public string $name { get => $this->name(); }
 
     public function id(): string
@@ -108,11 +109,16 @@ abstract class GenreBase extends ResourceObject
     }
 
     /**
+     * @return non-empty-string
+     *
      * @throws FieldNotSelectedException when a sparse fieldset excluded `name`
      */
     public function name(): string
     {
-        return $this->_string('name');
+        /** @var non-empty-string $value */
+        $value = $this->_string('name');
+
+        return $value;
     }
 }
 
@@ -127,8 +133,8 @@ abstract class GenreBase extends ResourceObject
  * runtime guards check against. `@phpstan-type` aliases are class-local, so every other class using
  * one imports it from here.
  *
- * @phpstan-type GenreCreateShape array{id: string, name: string}
- * @phpstan-type GenreUpdateShape array{name?: string}
+ * @phpstan-type GenreCreateShape array{id: string, name: non-empty-string}
+ * @phpstan-type GenreUpdateShape array{name?: non-empty-string}
  * @phpstan-type GenreFieldToken 'name'
  *
  * @generated from `components.schemas.GenresResource`
@@ -240,6 +246,9 @@ final class Genre extends GenreBase
  */
 final class GenreCreate
 {
+    /**
+     * @param non-empty-string $name
+     */
     public function __construct(
         public readonly string $id,
         public readonly string $name,
@@ -296,6 +305,9 @@ final class GenreCreateBuilder
 
     private string|Missing $id = Missing::Value;
 
+    /**
+     * @var non-empty-string|Missing
+     */
     private string|Missing $name = Missing::Value;
 
     public function id(string $id): self
@@ -305,6 +317,9 @@ final class GenreCreateBuilder
         return $this;
     }
 
+    /**
+     * @param non-empty-string $name
+     */
     public function name(string $name): self
     {
         $this->name = $name;
@@ -520,8 +535,10 @@ final class GenreQuery extends Query
     public function __construct(private readonly Fetcher $fetcher) {}
 
     /**
-     * @param positive-int      $number
-     * @param positive-int|null $size
+     * `$number` defaults to 1 and `$size` defaults to 15.
+     *
+     * @param positive-int    $number
+     * @param int<1, 50>|null $size
      *
      * @return static
      */
@@ -635,6 +652,8 @@ final class GenreUpdate
     use ImmutableConditionable;
 
     /**
+     * @param non-empty-string|Missing $name
+     *
      * @phpstan-pure
      */
     public function __construct(
@@ -642,6 +661,8 @@ final class GenreUpdate
     ) {}
 
     /**
+     * @param non-empty-string $name
+     *
      * @phpstan-pure
      */
     public function name(string $name): self

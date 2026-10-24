@@ -84,7 +84,7 @@ abstract class ExportJobBase extends ResourceObject
 
     public string $type { get => $this->type(); }
 
-    public string $state { get => $this->state(); }
+    public ?string $state { get => $this->state(); }
 
     public function id(): string
     {
@@ -104,9 +104,9 @@ abstract class ExportJobBase extends ResourceObject
      *
      * @throws FieldNotSelectedException when a sparse fieldset excluded `state`
      */
-    public function state(): string
+    public function state(): ?string
     {
-        return $this->_string('state');
+        return $this->_nullableString('state');
     }
 }
 
@@ -287,8 +287,10 @@ final class ExportJobQuery extends Query
     public function __construct(private readonly Fetcher $fetcher) {}
 
     /**
-     * @param positive-int      $number
-     * @param positive-int|null $size
+     * `$number` defaults to 1 and `$size` defaults to 15.
+     *
+     * @param positive-int    $number
+     * @param int<1, 50>|null $size
      *
      * @return static
      */

@@ -38,17 +38,17 @@ final class ReadsEmitterTest extends TestCase
 {
     public function testAlbumProjectingMatchesTheArtefact(): void
     {
-        ArtefactParity::assertMatches('AlbumProjecting', 'resource-albums.php', Generated::file('resource-albums.php'));
+        ArtefactParity::assertMatches('AlbumProjecting', 'resource-albums.php', Generated::artefactFile('resource-albums.php'));
     }
 
     public function testAlbumProjectionMatchesTheArtefact(): void
     {
-        ArtefactParity::assertMatches('AlbumProjection', 'resource-albums.php', Generated::file('resource-albums.php'));
+        ArtefactParity::assertMatches('AlbumProjection', 'resource-albums.php', Generated::artefactFile('resource-albums.php'));
     }
 
     public function testAlbumQueryMatchesTheArtefact(): void
     {
-        ArtefactParity::assertMatches('AlbumQuery', 'resource-albums.php', Generated::file('resource-albums.php'));
+        ArtefactParity::assertMatches('AlbumQuery', 'resource-albums.php', Generated::artefactFile('resource-albums.php'));
     }
 
     public function testTheAlbumContributionCarriesTheArtefactsAliasesAndConstantsInOrder(): void

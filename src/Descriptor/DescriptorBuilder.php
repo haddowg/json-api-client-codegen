@@ -155,13 +155,16 @@ final class DescriptorBuilder
         $list = $collection === null ? null : $this->document->pathItem($collection)?->find('get');
 
         $single = $collection === null ? null : $this->document->pathItem($collection . '/{id}');
+        $relations = $this->relations($schema, $collection);
+        $create = $collection === null ? null : $this->document->pathItem($collection)?->find('post');
+        $update = $single?->find('patch');
 
         return new ResourceDescriptor(
             $type,
             $this->attributes($schema),
             $this->writeAttributes($collection === null ? null : $this->document->pathItem($collection)?->find('post')),
             $this->writeAttributes($single?->find('patch')),
-            $this->relations($schema, $collection),
+            $relations,
             $collection === null ? [] : $this->operations($collection),
             $this->typePaginators[$type] ?? PaginatorDescriptor::none(),
             $this->clientIdPolicy($collection),
@@ -173,7 +176,38 @@ final class DescriptorBuilder
             $this->writeRelations($collection === null ? null : $this->document->pathItem($collection)?->find('post')),
             $this->writeRelations($single?->find('patch')),
             $this->memberOrder($schema),
+            $this->writeOnlyRelations($relations, $collection, $create, $update),
         );
+    }
+
+    /**
+     * The relations a write accepts that the resource schema does not show. Contract 5 drops a
+     * write-only relation from every read schema (core ADR 0153), so its cardinality and types
+     * are read from the write document's own relationship schema instead.
+     *
+     * @param array<string, RelationDescriptor> $readable
+     *
+     * @return array<string, RelationDescriptor>
+     */
+    private function writeOnlyRelations(array $readable, ?string $collection, ?Node ...$operations): array
+    {
+        $out = [];
+        foreach ($operations as $operation) {
+            $relationships = $operation === null
+                ? null
+                : $this->requestBodySchema($operation)?->path('properties', 'data', 'properties', 'relationships');
+            $properties = $relationships === null ? null : $this->document->dereference($relationships)->find('properties');
+
+            foreach ($properties?->members() ?? [] as $key => $property) {
+                $name = (string) $key;
+                if (!isset($readable[$name]) && !isset($out[$name])) {
+                    $out[$name] = $this->relation($name, $this->document->dereference($property), $collection);
+                }
+            }
+        }
+        \ksort($out, \SORT_STRING);
+
+        return $out;
     }
 
     /**
@@ -240,7 +274,8 @@ final class DescriptorBuilder
                 $hint['format'],
                 $hint['enum'],
                 $hint['nullable'],
-                $this->compositeSchema($attribute, $hint['format']),
+                $this->compositeSchema($attribute, $hint['format'], $this->readsHoldConstraints()),
+                $this->readsHoldConstraints() ? $this->attributeConstraints($attribute) : Constraints::none(),
             );
         }
         \ksort($out, \SORT_STRING);
@@ -288,6 +323,7 @@ final class DescriptorBuilder
                 $hint['nullable'],
                 $this->compositeSchema($attribute, $hint['format']),
                 \in_array($name, $required, true),
+                $this->attributeConstraints($attribute),
             );
         }
         \ksort($out, \SORT_STRING);
@@ -308,8 +344,9 @@ final class DescriptorBuilder
      */
     private function formatHint(Node $schema): array
     {
-        $reference = $this->document->refName($schema);
-        $target = $reference === null ? $schema : $this->document->schema($reference);
+        $unwrapped = $this->unwrapNullable($schema);
+        $reference = $this->document->refName($unwrapped);
+        $target = $reference === null ? $unwrapped : $this->document->schema($reference);
         $isEnum = $target->find('enum') !== null;
 
         $format = $target->find('format')?->string()
@@ -328,16 +365,92 @@ final class DescriptorBuilder
      * object's members, an array's item type, and any composed schema — a `oneOf` union has no
      * format at all, and its branches are the only description of it there is.
      */
-    private function compositeSchema(Node $schema, string $format): ?ValueSchema
+    private function compositeSchema(Node $schema, string $format, bool $constrained = true): ?ValueSchema
     {
-        $target = $this->document->dereference($schema);
+        $target = $this->document->dereference($this->unwrapNullable($schema));
         $composed = $target->find('oneOf') !== null
             || $target->find('anyOf') !== null
             || $target->find('allOf') !== null;
 
         return $composed || \in_array($format, ['object', 'array'], true)
-            ? $this->valueSchema($schema)
+            ? $this->valueSchema($schema, $constrained)
             : null;
+    }
+
+    /**
+     * Whether a response schema's constraints hold for every value it describes. Before contract
+     * 5 the read schema took the update context's keywords, which a create could have broken, so
+     * an older document's read constraints are not read at all. A write schema's always held for
+     * its own write.
+     */
+    private function readsHoldConstraints(): bool
+    {
+        return ($this->document->contract() ?? 0) >= 5;
+    }
+
+    /**
+     * The one branch of a nullable union, `anyOf`/`oneOf` of a schema and `{"type": "null"}`,
+     * which is how contract 5 makes a `$ref`'d enum nullable. Any other schema comes back as it
+     * is: nullability is read from the union itself by {@see admitsNull()}.
+     */
+    private function unwrapNullable(Node $schema): Node
+    {
+        if ($schema->find('type') !== null || $schema->find('$ref') !== null) {
+            return $schema;
+        }
+
+        foreach (['anyOf', 'oneOf'] as $keyword) {
+            $branches = $schema->find($keyword)?->items();
+            if ($branches === null || $schema->find($keyword === 'anyOf' ? 'oneOf' : 'anyOf') !== null || $schema->find('allOf') !== null) {
+                continue;
+            }
+            $kept = \array_values(\array_filter($branches, fn(Node $branch): bool => $this->declaredTypes($branch) !== ['null']));
+            if (\count($kept) === 1 && \count($branches) === 2) {
+                return $kept[0];
+            }
+        }
+
+        return $schema;
+    }
+
+    /**
+     * An attribute's constraints: the keywords on its own schema, then those on the schema it
+     * stands for when it is a `$ref` or a nullable union of one.
+     */
+    private function attributeConstraints(Node $schema): Constraints
+    {
+        $own = $this->constraints($schema);
+        $unwrapped = $this->document->dereference($this->unwrapNullable($schema));
+
+        return $unwrapped === $schema ? $own : $own->orElse($this->constraints($unwrapped));
+    }
+
+    /**
+     * The validation keywords one schema node declares. A keyword of the wrong JSON type is a
+     * malformed document, reported at its pointer.
+     */
+    private function constraints(Node $schema): Constraints
+    {
+        $number = static fn(string $keyword): int|float|null => $schema->find($keyword)?->number();
+        $count = static fn(string $keyword): ?int => $schema->find($keyword)?->int();
+        $default = $schema->find('default')?->raw();
+
+        return new Constraints(
+            $number('minimum'),
+            $number('maximum'),
+            $number('exclusiveMinimum'),
+            $number('exclusiveMaximum'),
+            $number('multipleOf'),
+            $count('minLength'),
+            $count('maxLength'),
+            $schema->find('pattern')?->string(),
+            $count('minItems'),
+            $count('maxItems'),
+            $schema->find('uniqueItems')?->bool() ?? false,
+            $count('minProperties'),
+            $count('maxProperties'),
+            \is_scalar($default) ? $default : null,
+        );
     }
 
     /**
@@ -530,7 +643,7 @@ final class DescriptorBuilder
                 $hint['format'],
                 $hint['enum'],
                 $hint['nullable'],
-                $this->compositeSchema($field, $hint['format']),
+                $this->compositeSchema($field, $hint['format'], $this->readsHoldConstraints()),
                 $field->find('readOnly')?->bool() === true,
                 \in_array($name, $required, true),
             );
@@ -621,6 +734,7 @@ final class DescriptorBuilder
 
         $label = self::label($operation);
         $members = [];
+        $bounds = [];
 
         foreach ($operation->find('parameters')?->items() ?? [] as $parameter) {
             $name = $parameter->find('name')?->string();
@@ -644,12 +758,18 @@ final class DescriptorBuilder
                 foreach (\array_keys($schema->find('properties')?->members() ?? []) as $member) {
                     $members[] = (string) $member;
                 }
+                $bounds = $this->memberConstraints($schema);
 
                 continue;
             }
 
             if (\str_starts_with($name, 'page[') && \str_ends_with($name, ']')) {
-                $members[] = \substr($name, \strlen('page['), -1);
+                $member = \substr($name, \strlen('page['), -1);
+                $members[] = $member;
+                $schema = $parameter->find('schema');
+                if ($schema !== null) {
+                    $bounds[$member] = $this->constraints($schema);
+                }
             }
         }
 
@@ -657,7 +777,7 @@ final class DescriptorBuilder
             return PaginatorDescriptor::none();
         }
 
-        return $this->inferred($members, $label) ?? PaginatorDescriptor::none();
+        return $this->inferred($members, $label)?->bounded($bounds) ?? PaginatorDescriptor::none();
     }
 
     /**
@@ -689,7 +809,7 @@ final class DescriptorBuilder
             }
         }
 
-        return $this->strategy($kind, $keys, $where);
+        return $this->strategy($kind, $keys, $where)?->bounded($this->memberConstraints($schema));
     }
 
     /**
@@ -714,7 +834,7 @@ final class DescriptorBuilder
                     \array_map('strval', \array_keys($branch->find('properties')?->members() ?? [])),
                     static fn(string $member): bool => $member !== $discriminator,
                 ));
-                $arm = $this->inferred($members, \sprintf('the `%s` strategy of %s', $kind, $label));
+                $arm = $this->inferred($members, \sprintf('the `%s` strategy of %s', $kind, $label))?->bounded($this->memberConstraints($branch));
             }
 
             if ($arm !== null) {
@@ -794,6 +914,21 @@ final class DescriptorBuilder
         \ksort($keys, \SORT_STRING);
 
         return new PaginatorDescriptor($kind, $keys);
+    }
+
+    /**
+     * The constraints of each member a page schema declares, keyed by member name.
+     *
+     * @return array<string, Constraints>
+     */
+    private function memberConstraints(Node $schema): array
+    {
+        $out = [];
+        foreach ($schema->find('properties')?->members() ?? [] as $member => $property) {
+            $out[(string) $member] = $this->constraints($property);
+        }
+
+        return $out;
     }
 
     private function warn(string $warning): void
@@ -967,13 +1102,13 @@ final class DescriptorBuilder
         return $out;
     }
 
-    private function valueSchema(Node $schema): ValueSchema
+    private function valueSchema(Node $schema, bool $constrained = true): ValueSchema
     {
         $schema = $this->document->dereference($schema);
 
         $properties = [];
         foreach ($schema->find('properties')?->members() ?? [] as $key => $property) {
-            $properties[(string) $key] = $this->valueSchema($property);
+            $properties[(string) $key] = $this->valueSchema($property, $constrained);
         }
 
         $required = $schema->find('required')?->strings() ?? [];
@@ -986,14 +1121,15 @@ final class DescriptorBuilder
             $this->declaredTypes($schema),
             $schema->find('format')?->string(),
             $properties,
-            $items === null ? null : $this->valueSchema($items),
+            $items === null ? null : $this->valueSchema($items, $constrained),
             $required,
             $schema->find('enum')?->strings() ?? [],
-            $this->branches($schema, 'oneOf'),
-            $this->branches($schema, 'anyOf'),
-            $this->branches($schema, 'allOf'),
+            $this->branches($schema, 'oneOf', $constrained),
+            $this->branches($schema, 'anyOf', $constrained),
+            $this->branches($schema, 'allOf', $constrained),
             $schema->path('discriminator', 'propertyName')?->string(),
             $const !== null && $const->isString() ? $const->string() : null,
+            $constrained ? $this->constraints($schema) : Constraints::none(),
         );
     }
 
@@ -1002,11 +1138,11 @@ final class DescriptorBuilder
      *
      * @return list<ValueSchema>
      */
-    private function branches(Node $schema, string $keyword): array
+    private function branches(Node $schema, string $keyword, bool $constrained): array
     {
         $out = [];
         foreach ($schema->find($keyword)?->items() ?? [] as $branch) {
-            $out[] = $this->valueSchema($branch);
+            $out[] = $this->valueSchema($branch, $constrained);
         }
 
         return $out;

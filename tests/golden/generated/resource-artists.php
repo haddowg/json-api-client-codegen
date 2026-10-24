@@ -141,9 +141,10 @@ abstract class ArtistBase extends ResourceObject
 
     public string $type { get => $this->type(); }
 
+    /** @var non-empty-string */
     public string $name { get => $this->name(); }
 
-    public string $slug { get => $this->slug(); }
+    public ?string $slug { get => $this->slug(); }
 
     public ?string $website { get => $this->website(); }
 
@@ -151,7 +152,7 @@ abstract class ArtistBase extends ResourceObject
 
     public int $trackCount { get => $this->trackCount(); }
 
-    public \DateTimeImmutable $createdAt { get => $this->createdAt(); }
+    public ?\DateTimeImmutable $createdAt { get => $this->createdAt(); }
 
     public function id(): string
     {
@@ -167,22 +168,31 @@ abstract class ArtistBase extends ResourceObject
     }
 
     /**
+     * At most 120 characters.
+     *
+     * @return non-empty-string
+     *
      * @throws FieldNotSelectedException when a sparse fieldset excluded `name`
      */
     public function name(): string
     {
-        return $this->_string('name');
+        /** @var non-empty-string $value */
+        $value = $this->_string('name');
+
+        return $value;
     }
 
     /**
      * @throws FieldNotSelectedException when a sparse fieldset excluded `slug`
      */
-    public function slug(): string
+    public function slug(): ?string
     {
-        return $this->_string('slug');
+        return $this->_nullableString('slug');
     }
 
     /**
+     * In `uri` format.
+     *
      * @throws FieldNotSelectedException when a sparse fieldset excluded `website`
      */
     public function website(): ?string
@@ -191,6 +201,8 @@ abstract class ArtistBase extends ResourceObject
     }
 
     /**
+     * At most 1000 characters.
+     *
      * @throws FieldNotSelectedException when a sparse fieldset excluded `bio`
      */
     public function bio(): ?string
@@ -211,9 +223,9 @@ abstract class ArtistBase extends ResourceObject
     /**
      * @throws FieldNotSelectedException when a sparse fieldset excluded `createdAt`
      */
-    public function createdAt(): \DateTimeImmutable
+    public function createdAt(): ?\DateTimeImmutable
     {
-        return $this->_dateTime('createdAt');
+        return $this->_nullableDateTime('createdAt');
     }
 
     /**
@@ -259,8 +271,8 @@ abstract class ArtistBase extends ResourceObject
  *
  * @phpstan-type ArtistDateInput \DateTimeImmutable|string
  * @phpstan-type ArtistAlbumsInput list<Album|Identifier>
- * @phpstan-type ArtistCreateShape array{name: string, slug?: string, website?: string|null, bio?: string|null, createdAt?: ArtistDateInput, albums?: ArtistAlbumsInput}
- * @phpstan-type ArtistUpdateShape array{name?: string, slug?: string, website?: string|null, bio?: string|null, albums?: ArtistAlbumsInput}
+ * @phpstan-type ArtistCreateShape array{name: non-empty-string, slug?: string, website?: string|null, bio?: string|null, createdAt?: ArtistDateInput, albums?: ArtistAlbumsInput}
+ * @phpstan-type ArtistUpdateShape array{name?: non-empty-string, slug?: string, website?: string|null, bio?: string|null, albums?: ArtistAlbumsInput}
  * @phpstan-type ArtistFilterShape array{slug?: string, q?: string}
  * @phpstan-type ArtistSortToken '-createdAt'|'-name'|'-slug'|'createdAt'|'name'|'slug'
  * @phpstan-type ArtistIncludePath 'albums'|'albums.artist'|'albums.tracks'
@@ -593,6 +605,7 @@ final class ArtistAlbumsRelation
 final class ArtistCreate
 {
     /**
+     * @param non-empty-string $name
      * @param list<Album|Identifier>|Missing $albums
      */
     public function __construct(
@@ -683,6 +696,9 @@ final class ArtistCreateBuilder
 {
     use Conditionable;
 
+    /**
+     * @var non-empty-string|Missing
+     */
     private string|Missing $name = Missing::Value;
 
     private string|Missing $slug = Missing::Value;
@@ -698,6 +714,11 @@ final class ArtistCreateBuilder
      */
     private array|Missing $albums = Missing::Value;
 
+    /**
+     * At most 120 characters.
+     *
+     * @param non-empty-string $name
+     */
     public function name(string $name): self
     {
         $this->name = $name;
@@ -712,6 +733,9 @@ final class ArtistCreateBuilder
         return $this;
     }
 
+    /**
+     * In `uri` format.
+     */
     public function website(?string $website): self
     {
         $this->website = $website;
@@ -719,6 +743,9 @@ final class ArtistCreateBuilder
         return $this;
     }
 
+    /**
+     * At most 1000 characters.
+     */
     public function bio(?string $bio): self
     {
         $this->bio = $bio;
@@ -1049,8 +1076,10 @@ final class ArtistQuery extends Query
     }
 
     /**
-     * @param positive-int      $number
-     * @param positive-int|null $size
+     * `$number` defaults to 1 and `$size` defaults to 15.
+     *
+     * @param positive-int    $number
+     * @param int<1, 50>|null $size
      *
      * @return static
      */
@@ -1182,6 +1211,7 @@ final class ArtistUpdate
     use ImmutableConditionable;
 
     /**
+     * @param non-empty-string|Missing $name
      * @param list<Album|Identifier>|Missing $albums
      *
      * @phpstan-pure
@@ -1195,6 +1225,10 @@ final class ArtistUpdate
     ) {}
 
     /**
+     * At most 120 characters.
+     *
+     * @param non-empty-string $name
+     *
      * @phpstan-pure
      */
     public function name(string $name): self
@@ -1223,6 +1257,8 @@ final class ArtistUpdate
     }
 
     /**
+     * In `uri` format.
+     *
      * @phpstan-pure
      */
     public function website(?string $website): self
@@ -1237,6 +1273,8 @@ final class ArtistUpdate
     }
 
     /**
+     * At most 1000 characters.
+     *
      * @phpstan-pure
      */
     public function bio(?string $bio): self

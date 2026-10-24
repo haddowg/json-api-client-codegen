@@ -23,6 +23,8 @@ final class AttributeDescriptor
      *                                 cannot express the value — an object's members, an array's
      *                                 item type. Null for a scalar, where the format and
      *                                 `$nullable` already say everything.
+     * @param Constraints      $constraints the keywords the read schema declares, which hold for
+     *                                      every value a response carries
      */
     public function __construct(
         public readonly string $name,
@@ -30,5 +32,6 @@ final class AttributeDescriptor
         public readonly ?string $enum,
         public readonly bool $nullable,
         public readonly ?ValueSchema $schema,
+        public readonly Constraints $constraints = new Constraints(),
     ) {}
 }

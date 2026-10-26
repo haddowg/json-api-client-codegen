@@ -11,6 +11,7 @@ parameters:
         - tests/golden/generated
         - tests/golden/paginators
         - tests/golden/witness
+        - tests/golden/form-fields
         - tests/GeneratedTypes
     tmpDir: .phpstan.cache
     treatPhpDocTypesAsCertain: false

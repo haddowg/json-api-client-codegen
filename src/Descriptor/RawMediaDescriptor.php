@@ -13,6 +13,10 @@ namespace haddowg\JsonApiCodegen\Descriptor;
  * binary. A `multipart/form-data` or `application/x-www-form-urlencoded` request body is a form,
  * whatever its schema says. `$component` names the schema component a `$ref` pointed at, which a generated value
  * class takes its name from.
+ *
+ * A form keeps its schema only when it lists `properties`, which the generated field array is
+ * narrowed to. `$additional` then says what other fields it takes: none (`false`, also when the
+ * schema is silent), any (`true`), or fields of the schema given.
  */
 final class RawMediaDescriptor
 {
@@ -21,6 +25,7 @@ final class RawMediaDescriptor
         public readonly RawMediaKind $kind,
         public readonly ?ValueSchema $schema = null,
         public readonly ?string $component = null,
+        public readonly ValueSchema|bool $additional = false,
     ) {}
 
     /** Whether the media type is a range such as `image/*` rather than one concrete type. */

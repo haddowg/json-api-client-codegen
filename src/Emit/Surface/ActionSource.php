@@ -12,6 +12,7 @@ use haddowg\JsonApiCodegen\Descriptor\Cardinality;
 use haddowg\JsonApiCodegen\Descriptor\OperationKind;
 use haddowg\JsonApiCodegen\Descriptor\RawMediaDescriptor;
 use haddowg\JsonApiCodegen\Descriptor\RawMediaKind;
+use haddowg\JsonApiCodegen\Descriptor\ValueSchema;
 use haddowg\JsonApiCodegen\Emit\ClassUnit;
 use haddowg\JsonApiCodegen\Emit\Naming;
 use haddowg\JsonApiCodegen\Emit\Php;
@@ -109,7 +110,7 @@ final class ActionSource
             case ActionInput::Raw:
                 $lone = $multi && \count($action->requests) === 1 && $action->requests[0]->kind->isForm() ? $action->requests[0] : null;
                 if ($lone !== null) {
-                    $fields = self::formFields($lone->kind, $imports);
+                    $fields = self::formFields($lone, $imports);
                     $prose[] = 'The body is ' . ($lone->kind === RawMediaKind::Multipart ? 'a set of form fields and files' : 'a set of form fields') . ', encoded as `' . $lone->mediaType . '`.'
                         . ($action->bodyRequired ? '' : ' The body is optional, so it may be left out.');
                     $params[] = [$action->bodyRequired ? $fields : $fields . '|null', '$body'];
@@ -384,7 +385,7 @@ final class ActionSource
                 RawMediaKind::Json => self::jsonBodyType($media),
                 RawMediaKind::Text => ['string', 'string'],
                 RawMediaKind::Binary => [$stream . '|string', $stream . '|string'],
-                RawMediaKind::Multipart, RawMediaKind::Form => [self::formFields($media->kind, $imports), 'array'],
+                RawMediaKind::Multipart, RawMediaKind::Form => [self::formFields($media, $imports), 'array'],
             };
             if ($media->wildcard()) {
                 $ranges[] = ['media' => $media, 'doc' => $doc, 'native' => $native];
@@ -512,12 +513,53 @@ final class ActionSource
         return "        \$request = match (true) {\n" . \implode("\n", $arms) . "\n        };\n\n";
     }
 
-    /** The PHPDoc type of a form body: its fields, and for multipart its files. */
-    private static function formFields(RawMediaKind $kind, Imports $imports): string
+    /**
+     * The PHPDoc type of a form body: its fields, and for multipart its files. A schema listing
+     * `properties` narrows it to an array shape, its required members required, sealed unless
+     * `additionalProperties` lets other fields in.
+     */
+    private static function formFields(RawMediaDescriptor $media, Imports $imports): string
     {
-        return $kind === RawMediaKind::Multipart
-            ? 'array<string, string|int|float|bool|' . $imports->runtime('Http\\FilePart') . '>'
-            : 'array<string, string|int|float|bool>';
+        $file = $media->kind === RawMediaKind::Multipart ? $imports->runtime('Http\\FilePart') : null;
+        $generic = 'string|int|float|bool' . ($file === null ? '' : '|' . $file);
+        if ($media->schema === null) {
+            return 'array<string, ' . $generic . '>';
+        }
+
+        $members = [];
+        foreach ($media->schema->properties as $name => $property) {
+            $members[] = Shape::key($name) . (\in_array($name, $media->schema->required, true) ? '' : '?') . ': ' . self::formValue($property, $file, $generic);
+        }
+        if ($media->additional !== false) {
+            $members[] = '...<string, ' . ($media->additional === true ? $generic . '|list<' . $generic . '>' : self::formValue($media->additional, $file, $generic)) . '>';
+        }
+
+        return 'array{' . \implode(', ', $members) . '}';
+    }
+
+    /**
+     * The PHP type of one form field: its scalar type, a file for a binary multipart member, a
+     * list of either for an array, and any field value where the schema says nothing PHP can use.
+     */
+    private static function formValue(ValueSchema $schema, ?string $file, string $generic, bool $item = false): string
+    {
+        $types = \array_values(\array_diff($schema->types, ['null']));
+        if ($schema->composed() || \count($types) !== 1) {
+            return $generic;
+        }
+
+        return match ($types[0]) {
+            'string' => match (true) {
+                $schema->format === 'binary' => $file ?? 'string',
+                $schema->enum !== [] => \implode('|', \array_map(Php::docString(...), $schema->enum)),
+                default => 'string',
+            },
+            'integer' => 'int',
+            'number' => 'int|float',
+            'boolean' => 'bool',
+            'array' => $item ? $generic : 'list<' . ($schema->items === null ? $generic : self::formValue($schema->items, $file, $generic, true)) . '>',
+            default => $generic,
+        };
     }
 
     /**

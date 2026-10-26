@@ -1526,7 +1526,7 @@ final class DescriptorBuilder
         } elseif ($input === ActionInput::Raw && (\count($rawRequests) > 1 || \str_contains($rawRequests[0] ?? '', '*') || RawMediaKind::formOf($rawRequests[0] ?? '') !== null)) {
             foreach ($rawRequests as $media) {
                 $form = RawMediaKind::formOf($media);
-                $requests[] = $form === null ? $this->rawMedia($media, $content?->path($media, 'schema')) : new RawMediaDescriptor($media, $form);
+                $requests[] = $form === null ? $this->rawMedia($media, $content?->path($media, 'schema')) : $this->formMedia($media, $form, $content?->path($media, 'schema'));
             }
         }
 
@@ -1594,6 +1594,32 @@ final class DescriptorBuilder
             $kind,
             $kind === RawMediaKind::Json && $schema !== null ? $this->valueSchema($schema) : null,
             $kind === RawMediaKind::Json && $schema !== null ? $this->document->refName($schema) : null,
+        );
+    }
+
+    /**
+     * A form request body, narrowed to its schema's `properties` when it lists any. Without them
+     * the form is a generic field array and keeps no schema.
+     */
+    private function formMedia(string $media, RawMediaKind $kind, ?Node $schema): RawMediaDescriptor
+    {
+        $target = $schema === null ? null : $this->document->dereference($schema);
+        $properties = $target?->find('properties');
+        if ($target === null || $properties === null || $properties->members() === []) {
+            return new RawMediaDescriptor($media, $kind);
+        }
+
+        $additional = $target->find('additionalProperties');
+
+        return new RawMediaDescriptor(
+            $media,
+            $kind,
+            $this->valueSchema($target, false),
+            additional: match (true) {
+                $additional === null => false,
+                $additional->isObject() => $this->valueSchema($additional, false),
+                default => $additional->bool(),
+            },
         );
     }
 

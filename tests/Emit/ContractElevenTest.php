@@ -77,7 +77,7 @@ final class ContractElevenTest extends TestCase
     public function testALoneFormTakesItsFieldsWithoutAContentType(): void
     {
         $json = self::patched([
-            'content' => ['multipart/form-data' => ['schema' => ['type' => 'object', 'properties' => ['file' => ['type' => 'string', 'format' => 'binary']]]]],
+            'content' => ['multipart/form-data' => ['schema' => ['type' => 'object']]],
             'required' => true,
         ]);
 
@@ -100,6 +100,76 @@ final class ContractElevenTest extends TestCase
         self::assertStringContainsString('public function bulkImport(?array $body = null): void', $source);
         self::assertStringContainsString("\$request = \$body === null ? \$request : \$request->withFormBody(\$body);\n", $source);
         self::assertStringContainsString("        \$this->fetcher->send(\$request);\n", $source);
+    }
+
+    public function testAFormSchemaWithPropertiesNarrowsTheFields(): void
+    {
+        $json = self::patched([
+            'content' => ['multipart/form-data' => ['schema' => [
+                'type' => 'object',
+                'properties' => [
+                    'title' => ['type' => 'string'],
+                    'cover' => ['type' => 'string', 'format' => 'binary'],
+                    'tags' => ['type' => 'array', 'items' => ['type' => 'string']],
+                    'attachments' => ['type' => 'array', 'items' => ['type' => 'string', 'format' => 'binary']],
+                    'rows' => ['type' => 'integer'],
+                    'weight' => ['type' => 'number'],
+                    'draft' => ['type' => 'boolean'],
+                    'status' => ['type' => 'string', 'enum' => ['draft', 'published']],
+                    'meta' => ['type' => 'object'],
+                    'content-language' => ['type' => 'string'],
+                ],
+                'required' => ['title'],
+            ]]],
+            'required' => true,
+        ]);
+
+        $media = self::action($json, 'bulk-import')->requests[0];
+        self::assertNotNull($media->schema);
+        self::assertFalse($media->additional);
+
+        $source = self::generate($json)['resource-articles.php'];
+        self::assertStringContainsString(
+            "@param array{title: string, cover?: FilePart, tags?: list<string>, attachments?: list<FilePart>, rows?: int, weight?: int|float, draft?: bool, status?: 'draft'|'published', meta?: string|int|float|bool|FilePart, 'content-language'?: string} \$body",
+            $source,
+        );
+        self::assertStringContainsString('public function bulkImport(array $body): void', $source);
+    }
+
+    public function testAdditionalPropertiesTypeTheOtherFields(): void
+    {
+        $fields = static fn(mixed $additional): string => self::generate(self::patched([
+            'content' => ['multipart/form-data' => ['schema' => [
+                'type' => 'object',
+                'properties' => ['title' => ['type' => 'string']],
+                'required' => ['title'],
+                ...($additional === null ? [] : ['additionalProperties' => $additional]),
+            ]]],
+            'required' => true,
+        ]))['resource-articles.php'];
+
+        self::assertStringContainsString('@param array{title: string} $body', $fields(null));
+        self::assertStringContainsString('@param array{title: string} $body', $fields(false));
+        self::assertStringContainsString('@param array{title: string, ...<string, string|int|float|bool|FilePart|list<string|int|float|bool|FilePart>>} $body', $fields(true));
+        self::assertStringContainsString('@param array{title: string, ...<string, int>} $body', $fields(['type' => 'integer']));
+    }
+
+    public function testAUrlencodedFormHasNoFiles(): void
+    {
+        $json = self::patched([
+            'content' => [
+                'application/x-www-form-urlencoded' => ['schema' => [
+                    'type' => 'object',
+                    'properties' => ['q' => ['type' => 'string'], 'blob' => ['type' => 'string', 'format' => 'binary'], 'any' => ['type' => 'object']],
+                    'required' => ['q'],
+                ]],
+                'text/csv' => ['schema' => ['type' => 'string']],
+            ],
+            'required' => true,
+        ]);
+
+        $source = self::generate($json)['resource-articles.php'];
+        self::assertStringContainsString("(TContentType is 'application/x-www-form-urlencoded' ? array{q: string, blob?: string, any?: string|int|float|bool} : string) \$body", $source);
     }
 
     private static function action(string $json, string $name): ActionDescriptor

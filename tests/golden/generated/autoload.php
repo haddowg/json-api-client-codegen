@@ -7,7 +7,7 @@ declare(strict_types=1);
  * so this map is how each one is found. Register it once through composer.json's
  * `autoload.files`; regenerating rewrites it, so a new type never needs a `dump-autoload`.
  *
- * @generated from an OpenAPI document with sha256 37089ee43e7d5d58873c9bcf344764fac17ec905bdfa538009e4c2d71d3bb493
+ * @generated from an OpenAPI document with sha256 e4d322ad613d4d2a760ecf2ce6410250e64b4f14f7785cabd929d06379ac872d
  */
 
 \spl_autoload_register(static function (string $class): void {

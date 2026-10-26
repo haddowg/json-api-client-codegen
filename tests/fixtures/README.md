@@ -3,12 +3,12 @@
 The music-catalog pair started as copies of `json-api-ts/packages/codegen/test/fixtures/`, the
 TypeScript codegen's reference input, so a PHP and a TypeScript client generated from one
 document could be diffed against each other. They have since been re-exported from the
-bundle's example on `haddowg/json-api` 1.12.0, and `json-api-ts` was refreshed from the same
+bundle's example on `haddowg/json-api` 1.12.1, and `json-api-ts` was refreshed from the same
 export, so both codegens read the same document again.
 
 | File | What it is |
 | --- | --- |
-| `music-catalog.openapi.json` | The OpenAPI 3.1 document for the music-catalog API. 65 paths, 354 component schemas, 15 resource types, generator contract 11 (`haddowg/json-api` 1.12.0). |
+| `music-catalog.openapi.json` | The OpenAPI 3.1 document for the music-catalog API. 65 paths, 354 component schemas, 15 resource types, generator contract 11 (`haddowg/json-api` 1.12.1). |
 | `music-catalog.schemas.json` | The sidecar JSON Schema map, one draft-2020-12 schema per resource type, keyed by type. |
 | `contract-witness.openapi.json` | Core's contract witness, copied verbatim from `tests/OpenApi/Fixture/contract-witness.json` in `haddowg/json-api` 1.11.0. One server projecting every branch the projector can reach: an integer-backed enum, types named by their own singular, a type with no endpoint, and, from contract 10, actions answering in raw media types. Generator contract 10. Refresh it by copying the file from a newer core release. |
 | `paginators.openapi.json` | Hand-built, generator contract 3, with an offset floor of 0 as core projects it. One collection per pagination strategy, each with renamed keys under `x-paginator`, a `MultiPaginator` menu on `posts` (and on its related `comments` read), an unstamped canonical `tags`, and a strategy no codegen knows on `logs`. Shaped after core's projection; not exported from a server. |

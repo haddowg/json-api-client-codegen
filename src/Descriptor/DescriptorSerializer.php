@@ -149,13 +149,14 @@ final class DescriptorSerializer
     /** @return array<string, mixed> */
     private static function action(ActionDescriptor $action): array
     {
-        // Contract-10 and -12 members appear only when present, so an older document serialises as it did.
+        // Contract-10, -12 and -15 members appear only when present, so an older document serialises as it did.
         $raw = \array_filter([
             'summary' => $action->summary,
             'description' => $action->description,
             'responses' => \array_map(self::rawMedia(...), $action->responses),
             'requests' => \array_map(self::rawMedia(...), $action->requests),
             'examples' => self::examples($action->examples),
+            'safety' => $action->safety?->declared(),
         ], static fn(mixed $value): bool => $value !== null && $value !== []);
 
         return [...[

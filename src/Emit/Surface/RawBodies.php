@@ -57,7 +57,7 @@ final class RawBodies
 
                     $class = $media->component !== null && Identifier::isClassName($media->component) && !isset($taken[\strtolower($media->component)])
                         ? $media->component
-                        : Naming::perType($type, Naming::pascal($action->name) . Naming::pascal(self::subtype($media->mediaType)) . 'Body');
+                        : Naming::perType($type, Naming::pascal($action->memberName()) . Naming::pascal(self::subtype($media->mediaType)) . 'Body');
                     $taken[\strtolower($class)] = true;
                     $out[$key] = [
                         'class' => $class,
@@ -100,7 +100,7 @@ final class RawBodies
 
     private static function key(string $type, ActionDescriptor $action, RawMediaDescriptor $media): string
     {
-        return $media->component ?? $type . ' ' . $action->name . ' ' . $media->mediaType;
+        return $media->component ?? $type . ' ' . $action->memberName() . ' ' . $media->mediaType;
     }
 
     private static function shape(RawMediaDescriptor $media): ?Shape

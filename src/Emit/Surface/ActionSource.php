@@ -7,6 +7,7 @@ namespace haddowg\JsonApiCodegen\Emit\Surface;
 use haddowg\JsonApiCodegen\Descriptor\ActionDescriptor;
 use haddowg\JsonApiCodegen\Descriptor\ActionInput;
 use haddowg\JsonApiCodegen\Descriptor\ActionOutput;
+use haddowg\JsonApiCodegen\Descriptor\ActionSafety;
 use haddowg\JsonApiCodegen\Descriptor\ActionScope;
 use haddowg\JsonApiCodegen\Descriptor\Cardinality;
 use haddowg\JsonApiCodegen\Descriptor\OperationKind;
@@ -53,7 +54,7 @@ final class ActionSource
         $aliases = [];
         $methods = [];
         foreach ($actions as $action) {
-            $method = Naming::member($action->name);
+            $method = Naming::member($action->memberName());
             if ($method === '' || isset($methods[\strtolower($method)]) || \strtolower($method) === '__construct') {
                 throw new \LogicException(\sprintf('The action "%s" of "%s" cannot be the method %s(), which another member already is.', $action->name, $type->type(), $method));
             }
@@ -160,6 +161,10 @@ final class ActionSource
                 $body .= TypeSurface::createInput($input) . "\n";
                 $requestBody = '\\json_encode($document->toDocument(), \\JSON_THROW_ON_ERROR)';
                 break;
+        }
+
+        if ($action->safety !== null) {
+            $prose[] = self::safetyProse($action->safety);
         }
 
         if ($projection !== null) {
@@ -630,6 +635,18 @@ final class ActionSource
     }
 
     /** `export-catalog` → `Export catalog`. */
+    /** The flags an action's `x-safety` declares, as a sentence. */
+    private static function safetyProse(ActionSafety $safety): string
+    {
+        $words = ['readOnly' => 'read-only', 'destructive' => 'destructive', 'idempotent' => 'idempotent'];
+        $flags = [];
+        foreach ($safety->declared() as $key => $flag) {
+            $flags[] = ($flag ? '' : 'not ') . $words[$key];
+        }
+
+        return 'The server declares it ' . self::list($flags, 'and') . '.';
+    }
+
     private static function humanise(string $name): string
     {
         return \ucfirst(\strtolower((string) \preg_replace('/(?<=[a-z0-9])(?=[A-Z])|[^A-Za-z0-9]+/', ' ', $name)));

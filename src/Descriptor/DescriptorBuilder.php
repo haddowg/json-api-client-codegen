@@ -201,7 +201,7 @@ final class DescriptorBuilder
             $this->writeRelations($update),
             \array_values(\array_diff($this->memberOrder($schema), $writeOnly)),
             $this->writeOnlyRelations($type, $relations, $collection, $create, $update),
-            $this->declaredLinks($schema, \array_keys($actions)),
+            $this->declaredLinks($schema, \array_values(\array_unique(\array_map(static fn(ActionDescriptor $action): string => $action->name, \array_values($actions))))),
         );
     }
 
@@ -1618,16 +1618,33 @@ final class DescriptorBuilder
                 continue;
             }
 
-            $out[$name] = $this->action($name, $scope, $path, $item);
+            // The preferred method keeps the action's name, so a client generated before contract
+            // 15 keeps compiling. From contract 15 every other method has its own operation id and
+            // its own action; before it every method shared one id and only the preferred was read.
+            $preferred = $this->actionMethod($item, $path);
+            $preferredId = $item->get($preferred)->find('operationId')?->raw();
+            $out[$name] = $this->action($name, $scope, $path, $item, $preferred);
+            foreach (self::ACTION_METHODS as $method) {
+                $operation = $item->find($method);
+                if ($method === $preferred || $operation === null || $operation->find('operationId')?->raw() === $preferredId) {
+                    continue;
+                }
+                $alias = self::methodActionName($name, $method);
+                if (isset($out[$alias])) {
+                    $this->warn(\sprintf('The %s operation of the "%s" action at %s would be named "%s", which another action already is; it is not generated.', \strtoupper($method), $name, $path, $alias));
+
+                    continue;
+                }
+                $out[$alias] = $this->action($name, $scope, $path, $item, $method, $alias);
+            }
         }
         \ksort($out, \SORT_STRING);
 
         return $out;
     }
 
-    private function action(string $name, ActionScope $scope, string $path, Node $item): ActionDescriptor
+    private function action(string $name, ActionScope $scope, string $path, Node $item, string $method, ?string $alias = null): ActionDescriptor
     {
-        $method = $this->actionMethod($item, $path);
         $operation = $item->get($method);
 
         $content = $operation->path('requestBody', 'content');
@@ -1717,7 +1734,28 @@ final class DescriptorBuilder
             \array_values($responses),
             $requests,
             $this->examples($operation),
+            $alias,
+            $this->safety($operation),
         );
+    }
+
+    /**
+     * The flags an action operation's `x-safety` declares, from contract 15. Each is a boolean
+     * when present; an operation with no `x-safety`, or one declaring none of the three, has none.
+     */
+    private function safety(Node $operation): ?ActionSafety
+    {
+        $safety = $operation->find('x-safety');
+        if ($safety === null) {
+            return null;
+        }
+        if (!$safety->isObject()) {
+            throw SpecException::wrongType($safety->pointer(), 'an object', $safety->raw());
+        }
+
+        $flags = \array_map(static fn(string $key): ?bool => $safety->find($key)?->bool(), ['readOnly', 'destructive', 'idempotent']);
+
+        return $flags === [null, null, null] ? null : new ActionSafety(...$flags);
     }
 
     /** The operation's prose, or null when it is the projector's default, which names only the action. */
@@ -1780,7 +1818,18 @@ final class DescriptorBuilder
         );
     }
 
-    /** POST where it is advertised, else the one method that is. */
+    /**
+     * The name a multi-method action's other methods go under: the action's name and the method,
+     * joined the way the name joins its words, so `export` gives `exportGet` and `bulk-import`
+     * gives `bulk-import-get`. Core refuses action ids that differ only in case or punctuation, so
+     * it can't be another action's name.
+     */
+    private static function methodActionName(string $name, string $method): string
+    {
+        return \preg_match('/[-_.]/', $name, $separator) === 1 ? $name . $separator[0] . $method : $name . \ucfirst($method);
+    }
+
+    /** POST where it is advertised, else the first method that is. */
     private function actionMethod(Node $item, string $path): string
     {
         foreach (self::ACTION_METHODS as $method) {

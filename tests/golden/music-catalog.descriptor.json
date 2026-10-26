@@ -1768,7 +1768,7 @@
                     "requests": [
                         {
                             "mediaType": "text/csv",
-                            "kind": "binary",
+                            "kind": "text",
                             "component": null,
                             "schema": null
                         },

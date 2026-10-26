@@ -67,6 +67,10 @@ namespace haddowg\JsonApiCodegen\Spec;
  * each operation's `examples`, a raw media type keeps its own `example`, and a generated method's
  * docblock quotes one as its `@example`. Nothing else changes shape, so an older document
  * generates exactly as before.
+ *
+ * Contract 13 gives every core error code's component an example `detail`, and since those
+ * components are in every document, every document carries it. The example was already read
+ * under contract 4, so each code's descriptor now has one and its class docblock quotes it.
  */
 final class ContractCompatibility
 {
@@ -74,7 +78,7 @@ final class ContractCompatibility
     public const int MINIMUM = 1;
 
     /** Above this the document carries structures this codegen does not read. */
-    public const int MAXIMUM = 12;
+    public const int MAXIMUM = 13;
 
     /**
      * Check a document's declared contract against the supported range.

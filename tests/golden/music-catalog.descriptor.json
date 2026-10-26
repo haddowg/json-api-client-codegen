@@ -1,5 +1,5 @@
 {
-    "contract": 12,
+    "contract": 13,
     "atomic": {
         "path": "/operations",
         "mediaType": "application/vnd.api+json; ext=\"https://jsonapi.org/ext/atomic\""
@@ -34,7 +34,7 @@
             "title": "Forbidden",
             "source": null,
             "description": "The caller is authenticated but not permitted to do what the request asks. Retrying with the same credentials will fail the same way; act as a user who holds the permission, or don't make the request.",
-            "exampleDetail": null
+            "exampleDetail": "Access is denied!"
         },
         "ADDITION_PROHIBITED": {
             "status": 403,
@@ -42,7 +42,7 @@
             "title": "Addition is prohibited",
             "source": "pointer",
             "description": "This relationship does not let a client add members to it. Don't retry the request; the relationship changes only in the ways the API documents for it.",
-            "exampleDetail": null
+            "exampleDetail": "Addition to relationship 'tags' is prohibited!"
         },
         "APPLICATION_ERROR": {
             "status": 500,
@@ -50,7 +50,7 @@
             "title": "Application error",
             "source": null,
             "description": "The server failed to handle the request because of a fault on its side, not because of anything in the request. Retrying won't help; report it to the API's maintainers.",
-            "exampleDetail": null
+            "exampleDetail": "An application error has occurred!"
         },
         "ATOMIC_OPERATIONS_INVALID": {
             "status": 400,
@@ -74,7 +74,7 @@
             "title": "Unauthorized",
             "source": null,
             "description": "The request carried no credentials, or credentials the server rejected, such as an expired token. Authenticate, then send the request again with valid credentials.",
-            "exampleDetail": null
+            "exampleDetail": "Authentication is required!"
         },
         "CLIENT_GENERATED_ID_ALREADY_EXISTS": {
             "status": 409,
@@ -82,7 +82,7 @@
             "title": "Client generated ID already exists",
             "source": "pointer",
             "description": "A resource of this type already has the `id` the create request supplied. Generate a new id and send the request again, or update the existing resource instead.",
-            "exampleDetail": null
+            "exampleDetail": "Client generated ID '1' already exists!"
         },
         "CLIENT_GENERATED_ID_NOT_SUPPORTED": {
             "status": 403,
@@ -90,7 +90,7 @@
             "title": "Client generated ID is not supported",
             "source": "pointer",
             "description": "The create request supplied an `id`, but this resource type assigns its own ids. Leave `data.id` out and the server generates one.",
-            "exampleDetail": null
+            "exampleDetail": "Client generated ID '1' is not supported!"
         },
         "CLIENT_GENERATED_ID_REQUIRED": {
             "status": 403,
@@ -98,7 +98,7 @@
             "title": "Required client generated ID",
             "source": "pointer",
             "description": "This resource type expects the client to choose the id, and the create request supplied none. Add `data.id` in the format the API documents and send the request again.",
-            "exampleDetail": null
+            "exampleDetail": "A client generated ID must be used!"
         },
         "CURSOR_MALFORMED": {
             "status": 400,
@@ -106,7 +106,7 @@
             "title": "Cursor is malformed",
             "source": "parameter",
             "description": "The cursor in the named `page` parameter could not be decoded. Use cursors exactly as the server returned them in a previous page's `links`; never build or edit one.",
-            "exampleDetail": null
+            "exampleDetail": "The cursor supplied in 'page[after]' could not be decoded."
         },
         "CURSOR_STALE": {
             "status": 400,
@@ -114,7 +114,7 @@
             "title": "Cursor is stale",
             "source": "parameter",
             "description": "The cursor was issued for a different sort order than this request asks for, so it no longer marks a position in these results. Keep `sort` unchanged while paging, or start again from the first page.",
-            "exampleDetail": null
+            "exampleDetail": "The cursor supplied in 'page[after]' was built for a different sort order and can no longer be used."
         },
         "DATA_MEMBER_MISSING": {
             "status": 400,
@@ -122,7 +122,7 @@
             "title": "Missing `data` member at the document's top level",
             "source": null,
             "description": "The request document has no top-level `data` member, which this request needs. Send the resource object or relationship linkage under `data`.",
-            "exampleDetail": null
+            "exampleDetail": "Missing `data` member at the document's top level!"
         },
         "FIELDSET_MEMBER_UNRECOGNIZED": {
             "status": 400,
@@ -146,7 +146,7 @@
             "title": "Filter value is invalid",
             "source": "parameter",
             "description": "A `filter[...]` value fails the constraints that filter declares, for example text where a number is expected. Correct the value of the parameter named in `source.parameter`; each failed constraint is its own error.",
-            "exampleDetail": null
+            "exampleDetail": "The value supplied for 'filter[rating]' is invalid."
         },
         "FULL_REPLACEMENT_PROHIBITED": {
             "status": 403,
@@ -154,7 +154,7 @@
             "title": "Full replacement is prohibited",
             "source": "pointer",
             "description": "This relationship cannot be replaced as a whole, for example by a `PATCH` to its relationship endpoint. Add or remove individual members instead, if the relationship allows that.",
-            "exampleDetail": null
+            "exampleDetail": "Full replacement of relationship 'tags' is prohibited!"
         },
         "INCLUSION_DEPTH_EXCEEDED": {
             "status": 400,
@@ -170,7 +170,7 @@
             "title": "Inclusion is not allowed",
             "source": "parameter",
             "description": "An `include` path names a relationship that exists but may not be included from this request. Remove the path and fetch the related resources with a separate request.",
-            "exampleDetail": null
+            "exampleDetail": "Included paths 'author.company' are not allowed by the endpoint!"
         },
         "INCLUSION_UNRECOGNIZED": {
             "status": 400,
@@ -186,7 +186,7 @@
             "title": "Inclusion is unsupported",
             "source": "parameter",
             "description": "This endpoint does not support the `include` parameter. Remove it and fetch related resources with separate requests.",
-            "exampleDetail": null
+            "exampleDetail": "Inclusion is not supported by the endpoint!"
         },
         "LOCAL_ID_CONFLICT": {
             "status": 400,
@@ -194,7 +194,7 @@
             "title": "Local id conflict",
             "source": null,
             "description": "Two operations in the Atomic Operations request create resources of the same type under the same `lid`. Give each resource a batch creates its own `lid`.",
-            "exampleDetail": null
+            "exampleDetail": "Local id 'new-article' is already registered for type 'articles'!"
         },
         "LOCAL_ID_NOT_FOUND": {
             "status": 400,
@@ -202,7 +202,7 @@
             "title": "Local id not found",
             "source": null,
             "description": "An operation refers to a `lid` that no earlier operation in the batch created. Create the resource under that `lid` in an earlier operation, or refer to an existing resource by `id`.",
-            "exampleDetail": null
+            "exampleDetail": "No resource is registered for local id 'new-article' of type 'articles'!"
         },
         "LOCAL_ID_NOT_SUPPORTED": {
             "status": 400,
@@ -210,7 +210,7 @@
             "title": "Local id is not supported",
             "source": "pointer",
             "description": "The request used a `lid`, which only means something inside an Atomic Operations request. Identify the resource by `id`, or send the dependent writes together as one atomic batch if the API offers the extension.",
-            "exampleDetail": null
+            "exampleDetail": "A local id (lid) is only supported within an Atomic Operations request; a standalone request must identify a resource by id."
         },
         "MEDIA_TYPE_UNACCEPTABLE": {
             "status": 406,
@@ -234,7 +234,7 @@
             "title": "No resource registered",
             "source": null,
             "description": "The server tried to use a resource type it has nothing registered for, which is a configuration fault on its side. Retrying won't help; report it to the API's maintainers.",
-            "exampleDetail": null
+            "exampleDetail": "No resource is registered for type \"articles\"."
         },
         "PAGINATION_KIND_UNKNOWN": {
             "status": 400,
@@ -250,7 +250,7 @@
             "title": "Query parameter is malformed",
             "source": "parameter",
             "description": "A query parameter has the wrong shape, such as `fields` sent without a type key or `include` sent as a list instead of a comma-separated string. Fix the parameter named in `source.parameter`.",
-            "exampleDetail": null
+            "exampleDetail": "Query parameter 'include' is malformed!"
         },
         "QUERY_PARAM_UNRECOGNIZED": {
             "status": 400,
@@ -258,7 +258,7 @@
             "title": "Query parameter is unrecognized",
             "source": "parameter",
             "description": "The request used a query parameter this endpoint does not recognize. Remove it, or check its spelling against the parameters the API documents.",
-            "exampleDetail": null
+            "exampleDetail": "Query parameter 'colour' can't be recognized by the endpoint!"
         },
         "RELATED_ATTRIBUTE_OWNER_MISSING": {
             "status": 422,
@@ -274,7 +274,7 @@
             "title": "Relationship count is not allowed",
             "source": "parameter",
             "description": "`withCount` names a relationship that is not a countable to-many relationship of this resource. Ask for counts only on the relationships the API marks as countable.",
-            "exampleDetail": null
+            "exampleDetail": "Counted relationships 'author' are not countable to-many relationships of this resource!"
         },
         "RELATIONSHIP_NOT_EXISTS": {
             "status": 404,
@@ -282,7 +282,7 @@
             "title": "The requested relationship does not exist!",
             "source": null,
             "description": "The request names a relationship this resource type does not have, or one whose endpoint the API does not expose. Check the relationship name against the ones the type documents.",
-            "exampleDetail": null
+            "exampleDetail": "The requested relationship 'reviewers' does not exist!"
         },
         "RELATIONSHIP_TYPE_INAPPROPRIATE": {
             "status": 400,
@@ -298,7 +298,7 @@
             "title": "Removal is prohibited",
             "source": "pointer",
             "description": "This relationship does not let a client remove members from it or clear it. Don't retry the request; the relationship changes only in the ways the API documents for it.",
-            "exampleDetail": null
+            "exampleDetail": "Removal of relationship 'tags' is prohibited!"
         },
         "REQUEST_BODY_INVALID_JSON": {
             "status": 400,
@@ -306,7 +306,7 @@
             "title": "Request body is an invalid JSON document",
             "source": null,
             "description": "The request body is not well-formed JSON. Fix the syntax the `detail` reports and send the request again.",
-            "exampleDetail": null
+            "exampleDetail": "Request body is an invalid JSON document: 'Syntax error'!"
         },
         "REQUEST_BODY_INVALID_JSON_API": {
             "status": 400,
@@ -314,7 +314,7 @@
             "title": "Request body is an invalid JSON:API document",
             "source": null,
             "description": "The request body is JSON but breaks the JSON:API document structure or the schema the server validates this resource against. Each violation is its own error, with `source.pointer` set where the server could locate it.",
-            "exampleDetail": null
+            "exampleDetail": "The data must match the type: object"
         },
         "REQUIRED_TOP_LEVEL_MEMBERS_MISSING": {
             "status": 400,
@@ -322,7 +322,7 @@
             "title": "Required top-level members are missing",
             "source": null,
             "description": "The request body is not a JSON object, or has none of the top-level members `data`, `errors` and `meta`. Send a JSON object with the resource under `data`.",
-            "exampleDetail": null
+            "exampleDetail": "A document must contain at least one of the following top-level members: \"data\", \"errors\", \"meta\""
         },
         "RESOURCE_IDENTIFIER_ID_INVALID": {
             "status": 400,
@@ -330,7 +330,7 @@
             "title": "Resource identifier ID is invalid",
             "source": null,
             "description": "A resource identifier in the request carries an `id` that is not a string, such as a number. Send every `id` as a JSON string.",
-            "exampleDetail": null
+            "exampleDetail": "The resource ID must be a string instead of integer!"
         },
         "RESOURCE_IDENTIFIER_ID_MISSING": {
             "status": 400,
@@ -338,7 +338,7 @@
             "title": "An ID for the resource identifier is missing",
             "source": null,
             "description": "A resource identifier in the request has neither an `id` nor a `lid`. Identify each related resource by its `id`, or by a `lid` inside an Atomic Operations request.",
-            "exampleDetail": null
+            "exampleDetail": "An ID or local ID (lid) for the resource identifier must be included!"
         },
         "RESOURCE_IDENTIFIER_LID_INVALID": {
             "status": 400,
@@ -346,7 +346,7 @@
             "title": "Resource identifier local ID is invalid",
             "source": null,
             "description": "A resource identifier in the request carries a `lid` that is not a string. Send every `lid` as a JSON string.",
-            "exampleDetail": null
+            "exampleDetail": "The resource local ID (lid) must be a string instead of integer!"
         },
         "RESOURCE_IDENTIFIER_TYPE_INVALID": {
             "status": 400,
@@ -354,7 +354,7 @@
             "title": "Resource identifier type is invalid",
             "source": null,
             "description": "A resource identifier in the request carries a `type` that is not a string. Send every `type` as a JSON string.",
-            "exampleDetail": null
+            "exampleDetail": "The resource type must be a string instead of integer!"
         },
         "RESOURCE_IDENTIFIER_TYPE_MISSING": {
             "status": 400,
@@ -362,7 +362,7 @@
             "title": "A type for the resource identifier is missing",
             "source": null,
             "description": "A resource identifier in the request has no `type`. Add the related resource's `type` to every identifier.",
-            "exampleDetail": null
+            "exampleDetail": "A type for the resource identifier must be included!"
         },
         "RESOURCE_ID_CONFLICT": {
             "status": 409,
@@ -378,7 +378,7 @@
             "title": "Resource ID is invalid",
             "source": "pointer",
             "description": "The resource object's `id` is not a string, such as a number. Send `data.id` as a JSON string.",
-            "exampleDetail": null
+            "exampleDetail": "The resource ID must be a string instead of integer!"
         },
         "RESOURCE_ID_MISSING": {
             "status": 400,
@@ -386,7 +386,7 @@
             "title": "Resource ID is missing",
             "source": "pointer",
             "description": "The update request's resource object has no `id`. Include the id of the resource being updated as `data.id`.",
-            "exampleDetail": null
+            "exampleDetail": "A resource ID must be included in the document!"
         },
         "RESOURCE_ID_UNDECODABLE": {
             "status": 422,
@@ -394,7 +394,7 @@
             "title": "Resource ID is undecodable",
             "source": "pointer",
             "description": "The client-generated `id` is not in a format the server can decode into one of its own ids. Send an `id` in the format the API documents for this resource type.",
-            "exampleDetail": null
+            "exampleDetail": "The resource ID 'not-an-id' could not be decoded!"
         },
         "RESOURCE_NOT_FOUND": {
             "status": 404,
@@ -402,7 +402,7 @@
             "title": "Resource not found",
             "source": null,
             "description": "The resource the request addresses does not exist. Check the type and id in the URL; a deleted resource stays not found.",
-            "exampleDetail": null
+            "exampleDetail": "The requested resource is not found!"
         },
         "RESOURCE_TYPE_MISSING": {
             "status": 400,
@@ -410,7 +410,7 @@
             "title": "Resource type is missing",
             "source": "pointer",
             "description": "The resource object in `data` has no `type`. Add the type of the resource the endpoint serves.",
-            "exampleDetail": null
+            "exampleDetail": "A resource type must be included in the document!"
         },
         "RESOURCE_TYPE_UNACCEPTABLE": {
             "status": 409,
@@ -418,7 +418,7 @@
             "title": "Resource type is unacceptable",
             "source": "pointer",
             "description": "The `type` in the request is not one this endpoint or relationship accepts. Send the type the endpoint serves, or one the relationship documents for its related resources.",
-            "exampleDetail": null
+            "exampleDetail": "Resource type 'people' is unacceptable!"
         },
         "RESPONSE_BODY_INVALID_JSON": {
             "status": 500,
@@ -426,7 +426,7 @@
             "title": "Response body is an invalid JSON document",
             "source": null,
             "description": "The server produced a response body that is not valid JSON, which is a fault on its side. Retrying won't help; report it to the API's maintainers.",
-            "exampleDetail": null
+            "exampleDetail": "Response body is an invalid JSON document: 'Syntax error'!"
         },
         "RESPONSE_BODY_INVALID_JSON_API": {
             "status": 500,
@@ -434,7 +434,7 @@
             "title": "Response body is an invalid JSON:API document",
             "source": null,
             "description": "The server produced a response that breaks the JSON:API document structure, which is a fault on its side. Retrying won't help; report it to the API's maintainers.",
-            "exampleDetail": null
+            "exampleDetail": "The data must match the type: object"
         },
         "SORTING_UNRECOGNIZED": {
             "status": 400,
@@ -450,7 +450,7 @@
             "title": "Sorting is unsupported",
             "source": "parameter",
             "description": "This endpoint does not support sorting. Remove the `sort` parameter.",
-            "exampleDetail": null
+            "exampleDetail": "Sorting is not supported by the endpoint!"
         },
         "TOP_LEVEL_MEMBERS_INCOMPATIBLE": {
             "status": 400,
@@ -458,7 +458,7 @@
             "title": "Top-level members are incompatible",
             "source": null,
             "description": "The request body has both `data` and `errors` at the top level, which JSON:API forbids. Send the resource under `data` alone.",
-            "exampleDetail": null
+            "exampleDetail": "The members \"data\" and \"errors\" cannot coexist in the same document"
         },
         "TOP_LEVEL_MEMBER_NOT_ALLOWED": {
             "status": 400,
@@ -466,7 +466,7 @@
             "title": "Top-level member is not allowed",
             "source": null,
             "description": "The request body has a top-level `included` member but no `data`. Remove `included`, or send it alongside `data`.",
-            "exampleDetail": null
+            "exampleDetail": "If a document does not contain a top-level \"data\" key, the \"included\" member must not be present either."
         }
     },
     "resources": {

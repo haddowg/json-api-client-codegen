@@ -14,13 +14,18 @@ use haddowg\JsonApiCodegen\Emit\Surface\SurfaceEmitter;
 use haddowg\JsonApiCodegen\Spec\SpecDocument;
 use haddowg\JsonApiCodegen\Spec\SpecException;
 use haddowg\JsonApiCodegen\Tests\Support\Fixtures;
+use haddowg\JsonApiCodegen\Tests\Support\GoldenFile;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
 /**
  * Core's contract witness projects every branch its projector can reach in one document, so it
  * carries shapes no example server does: an integer-backed enum, types whose singular is the type
- * itself, and a type the document describes without giving it a single endpoint.
+ * itself, a type the document describes without giving it a single endpoint, and from contract 10
+ * actions answering in raw media types.
+ *
+ * `tests/golden/witness` is its whole generated output, analysed at level 9 by
+ * `composer phpstan-generated` beside `tests/GeneratedTypes/RawActionTypes.php`.
  */
 #[CoversClass(DescriptorBuilder::class)]
 #[CoversClass(EnumEmitter::class)]
@@ -28,7 +33,26 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(ClientEmitter::class)]
 final class ContractWitnessTest extends TestCase
 {
+    use GoldenFile;
+
     public const string NAMESPACE = 'haddowg\\JsonApiCodegen\\Tests\\Golden\\Witness';
+
+    public function testEveryGeneratedFileMatchesItsGoldenFile(): void
+    {
+        foreach (self::generate() as $path => $contents) {
+            $this->assertMatchesGolden('witness/' . $path, $contents);
+        }
+    }
+
+    public function testTheGoldenDirectoryHoldsNothingTheCodegenNoLongerGenerates(): void
+    {
+        $golden = \array_map('basename', \glob(self::goldenPath('witness') . '/*.php') ?: []);
+        \sort($golden, \SORT_STRING);
+        $generated = \array_keys(self::generate());
+        \sort($generated, \SORT_STRING);
+
+        self::assertSame($generated, $golden, 'Delete golden files for output the codegen no longer generates.');
+    }
 
     public function testAnIntegerEnumIsAnIntBackedEnum(): void
     {
@@ -81,7 +105,7 @@ final class ContractWitnessTest extends TestCase
         return Generator::default()->generate(
             DescriptorBuilder::build(SpecDocument::fromJson(self::json(), 'the witness')),
             new GeneratorConfig(self::NAMESPACE, 'Witness', PhpTarget::Php84),
-            'x',
+            \hash_file('sha256', Fixtures::path('contract-witness.openapi.json')) ?: '',
         );
     }
 

@@ -61,7 +61,7 @@ the projector whenever the emitted structure changes. This codegen declares a su
 this is the only thing that catches it. A feature-token list was rejected: it names what
 changed, at the cost of two hand-maintained lists that must agree.
 
-The supported range is `[1, 9]`. Contract 2 (json-api 1.1.0) added the error catalogue, shared
+The supported range is `[1, 10]`. Contract 2 (json-api 1.1.0) added the error catalogue, shared
 error responses and write-side `include`/`fields`; the descriptor reads the first into `errors`,
 and the last into each operation's `projection`. Contract 3 added `x-paginator` on page schemas,
 which the descriptor reads into each `PaginatorDescriptor`: the strategy, its role-to-key map, and
@@ -86,7 +86,12 @@ the read model (ADR 0005). Contract 9 writes a `$ref` that carries an `example`,
 `default` as a single-entry `allOf` holding only the `$ref`, gives every endpoint document its own
 links component, and answers a to-many related read with a per-relation `<Type><Rel>RelatedCollection`.
 The reader takes the wrapper as the `$ref` wherever it resolves a schema, so an enum attribute keeps
-its enum type; the rest needs no reader change (ADR 0006). Raise `MAXIMUM` only in the change that
+its enum type; the rest needs no reader change (ADR 0006). Contract 10 (json-api 1.11.0) lets an
+action answer in media types other than JSON:API, listed beside or instead of
+`application/vnd.api+json` under its success `content`, and only a document that declares one
+carries it. The descriptor reads each as binary, text or JSON, and the action's method takes
+`$accept` with a conditional return type: a stream, a string, or a value class generated from an
+object schema (ADR 0008). Raise `MAXIMUM` only in the change that
 teaches the descriptor to read whatever the next contract adds.
 
 **Pagination warns rather than errors.** An unknown strategy, an unstamped member set outside the

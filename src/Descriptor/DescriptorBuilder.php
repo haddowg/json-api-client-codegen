@@ -1514,6 +1514,35 @@ final class DescriptorBuilder
             ? (\array_values(\array_filter($mediaTypes, static fn(string $media): bool => $media !== self::JSON_API_MEDIA_TYPE))[0] ?? null)
             : null;
 
+        $requests = [];
+        $rawRequests = \array_values(\array_filter($mediaTypes, static fn(string $media): bool => !\str_starts_with($media, self::JSON_API_MEDIA_TYPE)));
+        if ($input === ActionInput::Document && $rawRequests !== []) {
+            $this->warn(\sprintf(
+                'The "%s" action at %s also accepts %s; only its JSON:API body is generated.',
+                $name,
+                $path,
+                \implode(', ', $rawRequests),
+            ));
+        } elseif ($input === ActionInput::Raw && (\count($rawRequests) > 1 || \str_contains($rawRequests[0] ?? '', '*'))) {
+            foreach ($rawRequests as $media) {
+                $requests[] = $this->rawMedia($media, $content?->path($media, 'schema'));
+            }
+        }
+
+        $responses = [];
+        foreach ($operation->find('responses')?->members() ?? [] as $code => $response) {
+            if (!\str_starts_with((string) $code, '2')) {
+                continue;
+            }
+            foreach ($response->find('content')?->members() ?? [] as $media => $body) {
+                $media = (string) $media;
+                if (\str_starts_with($media, self::JSON_API_MEDIA_TYPE) || isset($responses[$media])) {
+                    continue;
+                }
+                $responses[$media] = $this->rawMedia($media, $body->find('schema'));
+            }
+        }
+
         return new ActionDescriptor(
             $name,
             $scope,
@@ -1528,6 +1557,42 @@ final class DescriptorBuilder
             $this->errorStatuses($operation),
             $this->projection($operation),
             $input === ActionInput::None || $operation->path('requestBody', 'required')?->bool() === true,
+            self::authored($operation->find('summary')?->string(), '/^Invoke the `[^`]*` action$/'),
+            self::authored($operation->find('description')?->string(), '/^Invokes the `[^`]*` custom action on [^\n]*\.$/'),
+            \array_values($responses),
+            $requests,
+        );
+    }
+
+    /** The operation's prose, or null when it is the projector's default, which names only the action. */
+    private static function authored(?string $prose, string $default): ?string
+    {
+        return $prose === null || \trim($prose) === '' || \preg_match($default, $prose) === 1 ? null : $prose;
+    }
+
+    /**
+     * Classify one raw media type of an action. The schema decides first: `format: binary` is
+     * bytes. A JSON media type is JSON, typed by its schema; a string schema or a `text/*` type
+     * without one is text; anything else is bytes.
+     */
+    private function rawMedia(string $media, ?Node $schema): RawMediaDescriptor
+    {
+        $target = $schema === null ? null : $this->document->dereference($schema);
+        $essence = \strtolower(\trim(\explode(';', $media, 2)[0]));
+        $json = $essence === 'application/json' || \str_ends_with($essence, '+json');
+
+        $kind = match (true) {
+            $target?->find('format')?->isString() === true && $target->get('format')->string() === 'binary' => RawMediaKind::Binary,
+            $json => RawMediaKind::Json,
+            $target !== null && \in_array('string', $this->declaredTypes($target), true), $target === null && \str_starts_with($essence, 'text/') => RawMediaKind::Text,
+            default => RawMediaKind::Binary,
+        };
+
+        return new RawMediaDescriptor(
+            $media,
+            $kind,
+            $kind === RawMediaKind::Json && $schema !== null ? $this->valueSchema($schema) : null,
+            $kind === RawMediaKind::Json && $schema !== null ? $this->document->refName($schema) : null,
         );
     }
 

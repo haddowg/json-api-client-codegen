@@ -121,7 +121,15 @@ final class DescriptorSerializer
     /** @return array<string, mixed> */
     private static function action(ActionDescriptor $action): array
     {
-        return [
+        // Contract-10 members appear only when present, so an older document serialises as it did.
+        $raw = \array_filter([
+            'summary' => $action->summary,
+            'description' => $action->description,
+            'responses' => \array_map(self::rawMedia(...), $action->responses),
+            'requests' => \array_map(self::rawMedia(...), $action->requests),
+        ], static fn(mixed $value): bool => $value !== null && $value !== []);
+
+        return [...[
             'scope' => $action->scope->value,
             'path' => $action->path,
             'method' => $action->method,
@@ -134,6 +142,17 @@ final class DescriptorSerializer
             'outputCardinality' => $action->outputCardinality?->value,
             'errorStatuses' => $action->errorStatuses,
             'projection' => self::projection($action->projection),
+        ], ...$raw];
+    }
+
+    /** @return array<string, mixed> */
+    private static function rawMedia(RawMediaDescriptor $media): array
+    {
+        return [
+            'mediaType' => $media->mediaType,
+            'kind' => $media->kind->value,
+            'component' => $media->component,
+            'schema' => self::valueSchema($media->schema),
         ];
     }
 

@@ -7,10 +7,12 @@ parameters:
     paths:
         - tests/golden/generated
         - tests/golden/paginators
+        - tests/golden/witness
         # Asserts the page type a menu query's pickers leave it reading.
         - tests/GeneratedTypes
     bootstrapFiles:
         - tests/golden/generated/autoload.php
         - tests/golden/paginators/autoload.php
+        - tests/golden/witness/autoload.php
     tmpDir: .phpstan.cache/generated
     treatPhpDocTypesAsCertain: false

@@ -36,6 +36,8 @@ final class SurfaceEmitter implements Emitter
 
     public function emit(ApiDescriptor $api, GeneratorConfig $config): iterable
     {
+        yield from RawBodies::units($api);
+
         foreach ($api->resources as $resource) {
             $type = new TypeSurface($api, $resource);
 

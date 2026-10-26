@@ -749,9 +749,32 @@ final class ReadModelEmitter implements Emitter, Warns
     {
         $members = $shape->members;
         unset($members[$discriminator]);
+
+        $doc = [
+            ...Php::wrap('The `' . $value . '` branch of the `' . $attribute->name . '` attribute of ' . self::article($resource->type) . ' `' . $resource->type . '` resource, selected by `' . $discriminator . '`.'),
+            '',
+            '@generated from `components.schemas.' . self::schema($resource->type) . '`, the `' . $value . '` branch of `' . $attribute->name . '`',
+        ];
+        $const = Php::docblock(['The `' . $discriminator . '` value that selects this branch.'], 4, false)
+            . '    public const string ' . $constant . ' = ' . Php::string($value) . ";\n";
+
+        return self::valueClass($class, 'The "' . $attribute->name . '" attribute of ' . self::article($resource->type) . ' "' . $resource->type . '" resource', $members, $doc, $file, [$const]);
+    }
+
+    /**
+     * A value class with a readonly property per member, required members first, and a static
+     * `_from()` that narrows a decoded object member by member: an optional member of the wrong type
+     * is dropped and a required one throws.
+     *
+     * @param array<string, array{shape: Shape, required: bool}> $members
+     * @param list<string>                                        $doc     the class docblock lines
+     * @param list<string>                                        $before  members declared ahead of the constructor
+     */
+    public static function valueClass(string $class, string $subject, array $members, array $doc, string $file, array $before = []): ClassUnit
+    {
         \uasort($members, static fn(array $a, array $b): int => (int) $b['required'] <=> (int) $a['required']);
 
-        $guard = new Guard('The "' . $attribute->name . '" attribute of ' . self::article($resource->type) . ' "' . $resource->type . '" resource', ['raw']);
+        $guard = new Guard($subject, ['raw']);
         $params = [];
         $paramDocs = [];
         $extract = [];
@@ -783,14 +806,7 @@ final class ReadModelEmitter implements Emitter, Warns
             $arguments[] = '$' . $out;
         }
 
-        $doc = [
-            ...Php::wrap('The `' . $value . '` branch of the `' . $attribute->name . '` attribute of ' . self::article($resource->type) . ' `' . $resource->type . '` resource, selected by `' . $discriminator . '`.'),
-            '',
-            '@generated from `components.schemas.' . self::schema($resource->type) . '`, the `' . $value . '` branch of `' . $attribute->name . '`',
-        ];
-
-        $body = [Php::docblock(['The `' . $discriminator . '` value that selects this branch.'], 4, false)
-            . '    public const string ' . $constant . ' = ' . Php::string($value) . ";\n"];
+        $body = $before;
         $body[] = ($paramDocs === [] ? '' : Php::docblock($paramDocs, 4, false))
             . '    public function __construct(' . ($params === [] ? ") {}\n" : "\n" . \implode("\n", $params) . "\n    ) {}\n");
 
@@ -910,7 +926,7 @@ final class ReadModelEmitter implements Emitter, Warns
         return new ClassUnit($class, UnitKind::FinalClass, $file, $source, \array_values(\array_unique($imports)));
     }
 
-    private static function native(Shape $shape): string
+    public static function native(Shape $shape): string
     {
         $type = match ($shape->kind) {
             ShapeKind::Mixed => 'mixed',

@@ -49,6 +49,12 @@ namespace haddowg\JsonApiCodegen\Spec;
  * wrapper's own `default` still reaches the docblock. The per-relation links components and the
  * per-relation related collection need nothing new: links are not read, and a relation's
  * endpoints are found by operationId and their pagination from their `page` parameter.
+ *
+ * Contract 10 lets a custom action answer in media types other than JSON:API, each listed under
+ * the success response's `content` with its own schema, and is stamped only on a document that
+ * declares one; every other document stays at 9. The descriptor reads each raw media type as
+ * binary, text or JSON, and the generated method takes the choice as `$accept` with a return
+ * type conditional on it. A JSON body whose schema is an object becomes a value class.
  */
 final class ContractCompatibility
 {
@@ -56,7 +62,7 @@ final class ContractCompatibility
     public const int MINIMUM = 1;
 
     /** Above this the document carries structures this codegen does not read. */
-    public const int MAXIMUM = 9;
+    public const int MAXIMUM = 10;
 
     /**
      * Check a document's declared contract against the supported range.

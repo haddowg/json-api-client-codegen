@@ -33,13 +33,13 @@ final class ContractCompatibilityTest extends TestCase
 
     public function testContractNineIsReadAndTenIsNot(): void
     {
-        // Contract 9 wraps a `$ref` carrying an example or default in a single-entry `allOf`,
-        // which this codegen reads as the `$ref`; whatever 10 adds, it does not.
-        self::assertNull(ContractCompatibility::check(8));
+        // Contract 10 lets an action answer in raw media types, which this codegen reads;
+        // whatever 11 adds, it does not.
         self::assertNull(ContractCompatibility::check(9));
+        self::assertNull(ContractCompatibility::check(10));
 
-        $warning = ContractCompatibility::check(10);
-        self::assertSame('the document declares contract 10 and this codegen reads up to 9. It describes capabilities that were not generated; upgrade the codegen to pick them up.', $warning);
+        $warning = ContractCompatibility::check(11);
+        self::assertSame('the document declares contract 11 and this codegen reads up to 10. It describes capabilities that were not generated; upgrade the codegen to pick them up.', $warning);
     }
 
     public function testANewerContractWarnsThatCapabilitiesWereNotGenerated(): void

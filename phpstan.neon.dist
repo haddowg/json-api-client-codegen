@@ -10,6 +10,7 @@ parameters:
         # do the type assertions made against it.
         - tests/golden/generated
         - tests/golden/paginators
+        - tests/golden/witness
         - tests/GeneratedTypes
     tmpDir: .phpstan.cache
     treatPhpDocTypesAsCertain: false

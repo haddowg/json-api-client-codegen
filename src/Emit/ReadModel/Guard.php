@@ -145,7 +145,16 @@ final class Guard
     private function nested(Shape $shape, string $in, string $out): array
     {
         if ($shape->members === []) {
-            return [$out . ' = $' . $in . ';'];
+            // A decoded JSON object can carry integer-like keys, which PHP turns into ints.
+            $key = $this->variable($in . 'Key');
+            $item = $this->variable($in . 'Item');
+
+            return [
+                $out . ' = [];',
+                'foreach ($' . $in . ' as $' . $key . ' => $' . $item . ') {',
+                '    ' . $out . '[(string) $' . $key . '] = $' . $item . ';',
+                '}',
+            ];
         }
         $local = $this->variable($in . 'Shape');
 

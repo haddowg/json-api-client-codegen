@@ -61,7 +61,7 @@ the projector whenever the emitted structure changes. This codegen declares a su
 this is the only thing that catches it. A feature-token list was rejected: it names what
 changed, at the cost of two hand-maintained lists that must agree.
 
-The supported range is `[1, 13]`. Contract 2 (json-api 1.1.0) added the error catalogue, shared
+The supported range is `[1, 14]`. Contract 2 (json-api 1.1.0) added the error catalogue, shared
 error responses and write-side `include`/`fields`; the descriptor reads the first into `errors`,
 and the last into each operation's `projection`. Contract 3 added `x-paginator` on page schemas,
 which the descriptor reads into each `PaginatorDescriptor`: the strategy, its role-to-key map, and
@@ -102,6 +102,11 @@ operation's and action's `examples`, a raw media type keeps its own `example`, a
 method's docblock quotes the request example, else the first response's, as an `@example` of at
 most 60 lines (ADR 0011). Contract 13 (json-api 1.13.1) gives every core error code an example
 `detail`, read since contract 4, and is on every document because the error components are shared.
+Contract 14 lists the links a type declares as named properties of its `<Type>ResourceLinks`, and
+only a document whose types declare one is stamped with it. The descriptor reads them into each
+type's `links`, and the resource base gets `_declaredLinks()`, which returns a `<Type>Links` with
+one typed accessor per link: a link object's class carries its static members and a typed `meta`,
+and a bare link reads as its URL (ADR 0012).
 Raise `MAXIMUM` only in the change that
 teaches the descriptor to read whatever the next contract adds.
 

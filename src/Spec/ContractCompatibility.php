@@ -71,6 +71,12 @@ namespace haddowg\JsonApiCodegen\Spec;
  * Contract 13 gives every core error code's component an example `detail`, and since those
  * components are in every document, every document carries it. The example was already read
  * under contract 4, so each code's descriptor now has one and its class docblock quotes it.
+ *
+ * Contract 14 lists the links a type declares as named properties of its `<Type>ResourceLinks`,
+ * and is stamped only on a document whose types declare one. The descriptor reads each into the
+ * type's `links`: a link object with its static members and typed `meta`, or a bare link. The
+ * resource base gets `_declaredLinks()`, typed per link. A type that declares none, and every
+ * older document, generates exactly as before.
  */
 final class ContractCompatibility
 {
@@ -78,7 +84,7 @@ final class ContractCompatibility
     public const int MINIMUM = 1;
 
     /** Above this the document carries structures this codegen does not read. */
-    public const int MAXIMUM = 13;
+    public const int MAXIMUM = 14;
 
     /**
      * Check a document's declared contract against the supported range.

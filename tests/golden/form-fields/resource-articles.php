@@ -1300,60 +1300,6 @@ final class ArticleAttachmentsRelation
      * @throws NotAcceptable      when the negotiated media type cannot be satisfied
      * @throws ServerError        when the server fails
      * @throws TransportException when no response is received at all
-     *
-     * @example 200 response:
-     *     {
-     *         "data": [
-     *             {
-     *                 "type": "images",
-     *                 "id": "img-1",
-     *                 "links": {
-     *                     "self": {
-     *                         "href": "https://api.example.com/images/img-1",
-     *                         "describedby": "/docs/openapi.json#/paths/~1images~1%7Bid%7D/get"
-     *                     }
-     *                 },
-     *                 "attributes": {
-     *                     "url": "https://cdn.example.com/cover.png"
-     *                 },
-     *                 "relationships": {
-     *                     "clips": {
-     *                         "links": {
-     *                             "self": {
-     *                                 "href": "https://api.example.com/images/img-1/relationships/clips",
-     *                                 "describedby": "/docs/openapi.json#/paths/~1images~1%7Bid%7D~1relationships~1clips/get"
-     *                             },
-     *                             "related": {
-     *                                 "href": "https://api.example.com/images/img-1/clips",
-     *                                 "describedby": "/docs/openapi.json#/paths/~1images~1%7Bid%7D~1clips/get"
-     *                             }
-     *                         },
-     *                         "data": [
-     *                             {
-     *                                 "type": "videos",
-     *                                 "id": "vid-1"
-     *                             }
-     *                         ]
-     *                     }
-     *                 }
-     *             }
-     *         ],
-     *         "links": {
-     *             "self": {
-     *                 "href": "https://api.example.com/articles/art-1/attachments",
-     *                 "describedby": "/docs/openapi.json#/paths/~1articles~1%7Bid%7D~1attachments/get"
-     *             },
-     *             "describedby": {
-     *                 "href": "/docs/openapi.json#/paths/~1articles~1%7Bid%7D~1attachments/get"
-     *             }
-     *         },
-     *         "meta": {
-     *             "total": 1
-     *         },
-     *         "jsonapi": {
-     *             "version": "1.1"
-     *         }
-     *     }
      */
     public function related(): PaginatedCollection
     {

@@ -60,7 +60,10 @@ final class DescriptorSerializer
     /** @return array<string, mixed> */
     private static function resource(ResourceDescriptor $resource): array
     {
-        return [
+        // Contract-14 declared links appear only when present, so an older document serialises as it did.
+        $links = $resource->links === [] ? [] : ['links' => \array_map(self::declaredLink(...), $resource->links)];
+
+        return [...[
             'type' => $resource->type,
             'paginator' => self::paginator($resource->paginator),
             'clientId' => $resource->clientId->value,
@@ -86,6 +89,29 @@ final class DescriptorSerializer
             'updateRelations' => $resource->updateRelations,
             'memberOrder' => $resource->memberOrder,
             'writeOnlyRelations' => \array_map(self::relation(...), $resource->writeOnlyRelations),
+        ], ...$links];
+    }
+
+    /** @return array<string, mixed> */
+    private static function declaredLink(DeclaredLinkDescriptor $link): array
+    {
+        return [
+            'object' => $link->object,
+            'description' => $link->description,
+            'members' => \array_map(static fn(LinkMemberDescriptor $member): array => [
+                'const' => $member->const,
+                'required' => $member->required,
+            ], $link->members),
+            'meta' => \array_map(static fn(LinkMetaDescriptor $member): array => [
+                'format' => $member->format,
+                'nullable' => $member->nullable,
+                'enum' => $member->enum,
+                'schema' => self::valueSchema($member->schema),
+                'required' => $member->required,
+                'constraints' => (object) $member->constraints->toArray(),
+                'description' => $member->description,
+                'example' => $member->example,
+            ], $link->meta),
         ];
     }
 

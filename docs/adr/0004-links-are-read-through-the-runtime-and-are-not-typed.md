@@ -37,3 +37,9 @@ used to emit a `$ref` to a component that didn't exist. The reader still can't b
 from an open schema, so an action whose body or response names an undescribed type is an error
 naming that schema's pointer (ADR 0001). The codegen reads no `202` body of a create or update,
 so an inline one there changes nothing.
+
+## Amendment: declared links are typed
+
+Generator contract 14 describes the links a resource type declares, and those are now typed
+through `_declaredLinks()` (ADR 0012). Everything above still holds for the links a server builds:
+`self`, an action's link, and the links of documents, collections and relationships.

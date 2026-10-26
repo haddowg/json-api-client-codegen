@@ -20,6 +20,10 @@ namespace haddowg\JsonApiCodegen\Descriptor;
  * `image/*`, and from contract 11 also a lone form media type, whose body is a field array. `$summary` and `$description` are the operation's own prose, left null when they are
  * the projector's defaults. `$examples` holds the JSON:API request and response examples of a
  * contract-12 document, null when it has none; a raw media type keeps its own.
+ *
+ * From contract 15 an action answering to several methods has one operation, and one
+ * descriptor, per method, and `$perMethod` is true on each of them. `$safety` is what the
+ * operation's `x-safety` declares, null when it declares nothing.
  */
 final class ActionDescriptor
 {
@@ -47,7 +51,18 @@ final class ActionDescriptor
         public readonly array $responses = [],
         public readonly array $requests = [],
         public readonly ?OperationExamples $examples = null,
+        public readonly bool $perMethod = false,
+        public readonly ?ActionSafety $safety = null,
     ) {}
+
+    /**
+     * The name the action is generated under: its own, or for one of several methods its own
+     * with the method appended, as its operation id does.
+     */
+    public function memberName(): string
+    {
+        return $this->perMethod ? $this->name . '.' . \strtolower($this->method) : $this->name;
+    }
 
     /** Whether the action answers with JSON:API as well as, or instead of, a raw body. */
     public function answersJsonApi(): bool

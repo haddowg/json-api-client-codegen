@@ -22,7 +22,7 @@ final class ResourceDescriptor
      * @param list<string>                       $includable relation paths accepted in `include`, nested ones among them
      * @param list<string>                       $sortable   signed sort tokens, both directions
      * @param array<string, FilterDescriptor>    $filterable in document order
-     * @param array<string, ActionDescriptor>    $actions
+     * @param array<string, ActionDescriptor>    $actions    keyed by each action's `memberName()`
      * @param list<string>                       $createRelations relations the create document accepts, in document order
      * @param list<string>                       $updateRelations relations the update document accepts, in document order
      * @param list<string>                       $memberOrder     every attribute then every relation, in the order the resource schema declares them

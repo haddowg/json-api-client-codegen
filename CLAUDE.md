@@ -61,7 +61,7 @@ the projector whenever the emitted structure changes. This codegen declares a su
 this is the only thing that catches it. A feature-token list was rejected: it names what
 changed, at the cost of two hand-maintained lists that must agree.
 
-The supported range is `[1, 14]`. Contract 2 (json-api 1.1.0) added the error catalogue, shared
+The supported range is `[1, 15]`. Contract 2 (json-api 1.1.0) added the error catalogue, shared
 error responses and write-side `include`/`fields`; the descriptor reads the first into `errors`,
 and the last into each operation's `projection`. Contract 3 added `x-paginator` on page schemas,
 which the descriptor reads into each `PaginatorDescriptor`: the strategy, its role-to-key map, and
@@ -106,7 +106,13 @@ Contract 14 lists the links a type declares as named properties of its `<Type>Re
 only a document whose types declare one is stamped with it. The descriptor reads them into each
 type's `links`, and the resource base gets `_declaredLinks()`, which returns a `<Type>Links` with
 one typed accessor per link: a link object's class carries its static members and a typed `meta`,
-and a bare link reads as its URL (ADR 0012).
+and a bare link reads as its URL (ADR 0012). Contract 15 gives each method of a multi-method action
+its own operation id, stamps an action's declared safety as `x-safety`, and lets an action carry its
+own vendor extensions, each only on a document that uses it. Each method becomes its own action,
+keyed `<path>.<method>` and generated as `exportGet()`, `exportPost()`; a single-method action, and a
+multi-method one in an older document, keeps its name. The declared `readOnly`, `destructive` and
+`idempotent` flags are read into the action's `safety` and stated in its docblock. Vendor extensions
+are not read (ADR 0013).
 Raise `MAXIMUM` only in the change that
 teaches the descriptor to read whatever the next contract adds.
 

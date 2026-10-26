@@ -77,6 +77,14 @@ namespace haddowg\JsonApiCodegen\Spec;
  * type's `links`: a link object with its static members and typed `meta`, or a bare link. The
  * resource base gets `_declaredLinks()`, typed per link. A type that declares none, and every
  * older document, generates exactly as before.
+ *
+ * Contract 15 gives each method of an action answering to several its own operation id, puts
+ * what an action declares about its safety on its operation as `x-safety`, and lets an action
+ * carry its own vendor extensions. Each is stamped only on a document that uses it. Each method
+ * of such an action is its own descriptor and its own generated method, named after the action
+ * with the method appended, and the declared flags are read into the action's `safety` and
+ * stated in its docblock. A vendor extension describes nothing a client is generated from, so it
+ * is not read, as on any other operation. A single-method action keeps the name it had.
  */
 final class ContractCompatibility
 {
@@ -84,7 +92,7 @@ final class ContractCompatibility
     public const int MINIMUM = 1;
 
     /** Above this the document carries structures this codegen does not read. */
-    public const int MAXIMUM = 14;
+    public const int MAXIMUM = 15;
 
     /**
      * Check a document's declared contract against the supported range.

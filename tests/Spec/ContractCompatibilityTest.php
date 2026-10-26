@@ -31,20 +31,22 @@ final class ContractCompatibilityTest extends TestCase
         self::assertNull(ContractCompatibility::check(ContractCompatibility::MAXIMUM));
     }
 
-    public function testContractFourteenIsReadAndFifteenIsNot(): void
+    public function testContractFifteenIsReadAndSixteenIsNot(): void
     {
         // Contract 10 lets an action answer in raw media types, 11 lets it accept several request
-        // bodies, 12 adds operation examples, 13 an example detail on every error code and 14 the
-        // links a type declares, all of which this codegen reads; whatever 15 adds, it does not.
+        // bodies, 12 adds operation examples, 13 an example detail on every error code, 14 the
+        // links a type declares and 15 per-method action ids and declared action safety, all of
+        // which this codegen reads; whatever 16 adds, it does not.
         self::assertNull(ContractCompatibility::check(9));
         self::assertNull(ContractCompatibility::check(10));
         self::assertNull(ContractCompatibility::check(11));
         self::assertNull(ContractCompatibility::check(12));
         self::assertNull(ContractCompatibility::check(13));
         self::assertNull(ContractCompatibility::check(14));
+        self::assertNull(ContractCompatibility::check(15));
 
-        $warning = ContractCompatibility::check(15);
-        self::assertSame('the document declares contract 15 and this codegen reads up to 14. It describes capabilities that were not generated; upgrade the codegen to pick them up.', $warning);
+        $warning = ContractCompatibility::check(16);
+        self::assertSame('the document declares contract 16 and this codegen reads up to 15. It describes capabilities that were not generated; upgrade the codegen to pick them up.', $warning);
     }
 
     public function testANewerContractWarnsThatCapabilitiesWereNotGenerated(): void

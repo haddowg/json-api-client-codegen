@@ -201,7 +201,7 @@ final class DescriptorBuilder
             $this->writeRelations($update),
             \array_values(\array_diff($this->memberOrder($schema), $writeOnly)),
             $this->writeOnlyRelations($type, $relations, $collection, $create, $update),
-            $this->declaredLinks($schema, \array_keys($actions)),
+            $this->declaredLinks($schema, \array_values(\array_unique(\array_map(static fn(ActionDescriptor $action): string => $action->name, \array_values($actions))))),
         );
     }
 
@@ -1618,16 +1618,27 @@ final class DescriptorBuilder
                 continue;
             }
 
-            $out[$name] = $this->action($name, $scope, $path, $item);
+            // From contract 15 each method of an action is its own operation with its own id.
+            // Before it every method shared one id, and only the preferred one was generated.
+            $methods = \array_values(\array_filter(self::ACTION_METHODS, static fn(string $method): bool => $item->find($method) !== null));
+            if (\count($methods) > 1 && ($this->document->contract() ?? 0) >= 15) {
+                foreach ($methods as $method) {
+                    $action = $this->action($name, $scope, $path, $item, $method, true);
+                    $out[$action->memberName()] = $action;
+                }
+
+                continue;
+            }
+
+            $out[$name] = $this->action($name, $scope, $path, $item, $this->actionMethod($item, $path));
         }
         \ksort($out, \SORT_STRING);
 
         return $out;
     }
 
-    private function action(string $name, ActionScope $scope, string $path, Node $item): ActionDescriptor
+    private function action(string $name, ActionScope $scope, string $path, Node $item, string $method, bool $perMethod = false): ActionDescriptor
     {
-        $method = $this->actionMethod($item, $path);
         $operation = $item->get($method);
 
         $content = $operation->path('requestBody', 'content');
@@ -1717,7 +1728,28 @@ final class DescriptorBuilder
             \array_values($responses),
             $requests,
             $this->examples($operation),
+            $perMethod,
+            $this->safety($operation),
         );
+    }
+
+    /**
+     * The flags an action operation's `x-safety` declares, from contract 15. Each is a boolean
+     * when present; an operation with no `x-safety`, or one declaring none of the three, has none.
+     */
+    private function safety(Node $operation): ?ActionSafety
+    {
+        $safety = $operation->find('x-safety');
+        if ($safety === null) {
+            return null;
+        }
+        if (!$safety->isObject()) {
+            throw SpecException::wrongType($safety->pointer(), 'an object', $safety->raw());
+        }
+
+        $flags = \array_map(static fn(string $key): ?bool => $safety->find($key)?->bool(), ['readOnly', 'destructive', 'idempotent']);
+
+        return $flags === [null, null, null] ? null : new ActionSafety(...$flags);
     }
 
     /** The operation's prose, or null when it is the projector's default, which names only the action. */

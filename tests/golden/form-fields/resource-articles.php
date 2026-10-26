@@ -1127,7 +1127,7 @@ final class Article extends ArticleBase implements ArticleHasAuthor, ArticleHasT
  *
  * @phpstan-import-type ArticleCreateShape from Article
  *
- * @generated from `GET /articles/{id}/-actions/cover` and `POST /articles/{id}/-actions/draft` and `POST /articles/{id}/-actions/publish`
+ * @generated from `GET /articles/{id}/-actions/cover` and `POST /articles/{id}/-actions/draft` and `GET /articles/{id}/-actions/preview` and `POST /articles/{id}/-actions/publish` and `POST /articles/{id}/-actions/purge`
  */
 final class ArticleActions
 {
@@ -1192,6 +1192,42 @@ final class ArticleActions
     }
 
     /**
+     * Preview: `GET /articles/{id}/-actions/preview`. It declares no request body, so it takes no
+     * input. The server declares it read-only, not destructive and idempotent.
+     *
+     * @template TProj of object
+     *
+     * @param (callable(ArticleProjection<ArticleBase>): ArticleProjection<TProj>)|ArticleProjection<TProj>|null $projection
+     *
+     * @return ($projection is null ? ArticleBase : ArticleBase&TProj)
+     *
+     * @throws BadRequest           when the request is malformed
+     * @throws Unauthorized         when credentials are missing or invalid
+     * @throws Forbidden            when the action is not permitted
+     * @throws NotFound             when no article has this id
+     * @throws NotAcceptable        when the negotiated media type cannot be satisfied
+     * @throws UnsupportedMediaType when the `Content-Type` is refused
+     * @throws ValidationFailed     when the payload fails validation
+     * @throws ServerError          when the server fails
+     * @throws TransportException   when no response is received at all
+     * @throws MalformedDocument    when the response carries no primary resource
+     */
+    public function preview(callable|ArticleProjection|null $projection = null): ArticleBase
+    {
+        $query = ArticleProjection::resolve($projection);
+
+        $context = $this->fetcher->read(
+            Request::get($query->appendTo('/articles/' . $this->id . '/-actions/preview')),
+            $query,
+        );
+
+        $raw = $context->primary() ?? throw MalformedDocument::missingMember('The preview response', 'data');
+
+        /** @var ArticleBase&TProj */
+        return $context->hydrate($raw, Article::_hydrate(...));
+    }
+
+    /**
      * Publish the article: `POST /articles/{id}/-actions/publish`. It declares no request body, so
      * it takes no input.
      *
@@ -1225,6 +1261,25 @@ final class ArticleActions
 
         /** @var ArticleBase&TProj */
         return $context->hydrate($raw, Article::_hydrate(...));
+    }
+
+    /**
+     * Purge: `POST /articles/{id}/-actions/purge`. It declares no request body, so it takes no
+     * input. The server declares it destructive.
+     *
+     * @throws BadRequest           when the request is malformed
+     * @throws Unauthorized         when credentials are missing or invalid
+     * @throws Forbidden            when the action is not permitted
+     * @throws NotFound             when no article has this id
+     * @throws NotAcceptable        when the negotiated media type cannot be satisfied
+     * @throws UnsupportedMediaType when the `Content-Type` is refused
+     * @throws ValidationFailed     when the payload fails validation
+     * @throws ServerError          when the server fails
+     * @throws TransportException   when no response is received at all
+     */
+    public function purge(): void
+    {
+        $this->fetcher->send(Request::post('/articles/' . $this->id . '/-actions/purge'));
     }
 }
 
@@ -1655,7 +1710,7 @@ final class ArticleBlockImage
  * The collection-scoped custom actions of `articles`, reached through the type accessor. Each
  * signature is derived from the action's own request body and response.
  *
- * @generated from `POST /articles/-actions/bulk-import` and `POST /articles/-actions/import` and `GET /articles/-actions/report` and `GET /articles/-actions/stats`
+ * @generated from `POST /articles/-actions/bulk-import` and `GET /articles/-actions/export` and `POST /articles/-actions/export` and `POST /articles/-actions/import` and `GET /articles/-actions/report` and `GET /articles/-actions/stats`
  */
 final class ArticleCollectionActions
 {
@@ -1703,6 +1758,46 @@ final class ArticleCollectionActions
         };
 
         $this->fetcher->send($request);
+    }
+
+    /**
+     * Export: `GET /articles/-actions/export`. It declares no request body, so it takes no input.
+     *
+     * @return array<string, mixed>
+     *
+     * @throws BadRequest           when the request is malformed
+     * @throws Unauthorized         when credentials are missing or invalid
+     * @throws Forbidden            when the action is not permitted
+     * @throws NotFound             when the endpoint does not exist
+     * @throws NotAcceptable        when the negotiated media type cannot be satisfied
+     * @throws UnsupportedMediaType when the `Content-Type` is refused
+     * @throws ValidationFailed     when the payload fails validation
+     * @throws ServerError          when the server fails
+     * @throws TransportException   when no response is received at all
+     */
+    public function exportGet(): array
+    {
+        return $this->fetcher->meta(Request::get('/articles/-actions/export'));
+    }
+
+    /**
+     * Export: `POST /articles/-actions/export`. It declares no request body, so it takes no input.
+     *
+     * @return array<string, mixed>
+     *
+     * @throws BadRequest           when the request is malformed
+     * @throws Unauthorized         when credentials are missing or invalid
+     * @throws Forbidden            when the action is not permitted
+     * @throws NotFound             when the endpoint does not exist
+     * @throws NotAcceptable        when the negotiated media type cannot be satisfied
+     * @throws UnsupportedMediaType when the `Content-Type` is refused
+     * @throws ValidationFailed     when the payload fails validation
+     * @throws ServerError          when the server fails
+     * @throws TransportException   when no response is received at all
+     */
+    public function exportPost(): array
+    {
+        return $this->fetcher->meta(Request::post('/articles/-actions/export'));
     }
 
     /**
@@ -3037,7 +3132,7 @@ final class ArticleLockedRelation
  *
  * @extends Projection<TProj>
  *
- * @generated from the `include` and `fields` parameters of `GET /articles/{id}`, `POST /articles`, `PATCH /articles/{id}`, `POST /articles/{id}/-actions/publish`
+ * @generated from the `include` and `fields` parameters of `GET /articles/{id}`, `POST /articles`, `PATCH /articles/{id}`, `GET /articles/{id}/-actions/preview`, `POST /articles/{id}/-actions/publish`
  */
 final class ArticleProjection extends Projection
 {

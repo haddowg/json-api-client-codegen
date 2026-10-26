@@ -36,11 +36,11 @@ final class ContractTwelveTest extends TestCase
 {
     private const array VIDEO_CREATE = ['paths', '/videos', 'post', 'requestBody', 'content', 'application/vnd.api+json', 'example'];
 
-    public function testTheWitnessIsAContractTwelveDocumentThisCodegenReads(): void
+    public function testTheWitnessCarriesExamplesAndIsAContractThisCodegenReads(): void
     {
         $document = SpecDocument::fromJson(self::json(), 'the witness');
 
-        self::assertSame(12, $document->contract());
+        self::assertSame(13, $document->contract());
         self::assertNull(ContractCompatibility::check($document->contract()));
     }
 

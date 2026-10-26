@@ -564,6 +564,30 @@ final class TrackAlbumRelation
      * @throws NotAcceptable      when the negotiated media type cannot be satisfied
      * @throws ServerError        when the server fails
      * @throws TransportException when no response is received at all
+     *
+     * @example 200 response:
+     *     {
+     *         "data": {
+     *             "type": "albums",
+     *             "id": "1"
+     *         },
+     *         "links": {
+     *             "self": {
+     *                 "href": "https://music.example/tracks/1/relationships/album",
+     *                 "describedby": "/docs.json#/paths/~1tracks~1%7Bid%7D~1relationships~1album/get"
+     *             },
+     *             "related": {
+     *                 "href": "https://music.example/tracks/1/album",
+     *                 "describedby": "/docs.json#/paths/~1tracks~1%7Bid%7D~1album/get"
+     *             },
+     *             "describedby": {
+     *                 "href": "/docs.json#/paths/~1tracks~1%7Bid%7D~1relationships~1album/get"
+     *             }
+     *         },
+     *         "jsonapi": {
+     *             "version": "1.1"
+     *         }
+     *     }
      */
     public function get(): ?Identifier
     {
@@ -606,6 +630,14 @@ final class TrackAlbumRelation
      * @throws ValidationFailed     when the linkage fails validation
      * @throws ServerError          when the server fails
      * @throws TransportException   when no response is received at all
+     *
+     * @example Request body:
+     *     {
+     *         "data": {
+     *             "type": "albums",
+     *             "id": "1"
+     *         }
+     *     }
      */
     public function set(Album|Identifier|null $target): void
     {
@@ -932,6 +964,32 @@ final class TrackHandle
      * @throws ServerError          when the server fails
      * @throws TransportException   when no response is received at all
      * @throws MalformedDocument    when the response carries no primary resource
+     *
+     * @example Request body:
+     *     {
+     *         "data": {
+     *             "type": "tracks",
+     *             "id": "1",
+     *             "attributes": {
+     *                 "title": "Come Together",
+     *                 "trackNumber": 1,
+     *                 "durationSeconds": 259,
+     *                 "explicit": false,
+     *                 "genres": [
+     *                     "rock"
+     *                 ],
+     *                 "previewOffset": "00:00:30"
+     *             },
+     *             "relationships": {
+     *                 "album": {
+     *                     "data": {
+     *                         "type": "albums",
+     *                         "id": "1"
+     *                     }
+     *                 }
+     *             }
+     *         }
+     *     }
      */
     public function update(
         TrackUpdate|array $input,
@@ -1017,6 +1075,62 @@ final class TrackPlaylistsRelation
      * @throws NotAcceptable      when the negotiated media type cannot be satisfied
      * @throws ServerError        when the server fails
      * @throws TransportException when no response is received at all
+     *
+     * @example 200 response:
+     *     {
+     *         "data": [
+     *             {
+     *                 "type": "playlists",
+     *                 "id": "0b9e3c34-2f4e-4c1a-9a57-6d3b2a1f8c10"
+     *             }
+     *         ],
+     *         "links": {
+     *             "self": {
+     *                 "href": "https://music.example/tracks/1/relationships/playlists?page%5Bnumber%5D=2&page%5Bsize%5D=15&withCount=_self_",
+     *                 "describedby": "/docs.json#/paths/~1tracks~1%7Bid%7D~1relationships~1playlists/get"
+     *             },
+     *             "related": {
+     *                 "href": "https://music.example/tracks/1/playlists",
+     *                 "describedby": "/docs.json#/paths/~1tracks~1%7Bid%7D~1playlists/get"
+     *             },
+     *             "first": {
+     *                 "href": "https://music.example/tracks/1/relationships/playlists?page%5Bnumber%5D=1&page%5Bsize%5D=15&withCount=_self_",
+     *                 "describedby": "/docs.json#/paths/~1tracks~1%7Bid%7D~1relationships~1playlists/get"
+     *             },
+     *             "prev": {
+     *                 "href": "https://music.example/tracks/1/relationships/playlists?page%5Bnumber%5D=1&page%5Bsize%5D=15&withCount=_self_",
+     *                 "describedby": "/docs.json#/paths/~1tracks~1%7Bid%7D~1relationships~1playlists/get"
+     *             },
+     *             "next": {
+     *                 "href": "https://music.example/tracks/1/relationships/playlists?page%5Bnumber%5D=3&page%5Bsize%5D=15&withCount=_self_",
+     *                 "describedby": "/docs.json#/paths/~1tracks~1%7Bid%7D~1relationships~1playlists/get"
+     *             },
+     *             "last": {
+     *                 "href": "https://music.example/tracks/1/relationships/playlists?page%5Bnumber%5D=5&page%5Bsize%5D=15&withCount=_self_",
+     *                 "describedby": "/docs.json#/paths/~1tracks~1%7Bid%7D~1relationships~1playlists/get"
+     *             },
+     *             "describedby": {
+     *                 "href": "/docs.json#/paths/~1tracks~1%7Bid%7D~1relationships~1playlists/get"
+     *             }
+     *         },
+     *         "meta": {
+     *             "total": 75,
+     *             "page": {
+     *                 "currentPage": 2,
+     *                 "perPage": 15,
+     *                 "from": 16,
+     *                 "to": 30,
+     *                 "total": 75,
+     *                 "lastPage": 5
+     *             }
+     *         },
+     *         "jsonapi": {
+     *             "version": "1.1",
+     *             "profile": [
+     *                 "https://haddowg.github.io/json-api/profiles/countable/"
+     *             ]
+     *         }
+     *     }
      */
     public function get(): PaginatedCollection
     {
@@ -1058,6 +1172,16 @@ final class TrackPlaylistsRelation
      * @throws ValidationFailed     when the linkage fails validation
      * @throws ServerError          when the server fails
      * @throws TransportException   when no response is received at all
+     *
+     * @example Request body:
+     *     {
+     *         "data": [
+     *             {
+     *                 "type": "playlists",
+     *                 "id": "0b9e3c34-2f4e-4c1a-9a57-6d3b2a1f8c10"
+     *             }
+     *         ]
+     *     }
      */
     public function add(array $playlists): void
     {
@@ -1082,6 +1206,16 @@ final class TrackPlaylistsRelation
      * @throws ValidationFailed     when the linkage fails validation
      * @throws ServerError          when the server fails
      * @throws TransportException   when no response is received at all
+     *
+     * @example Request body:
+     *     {
+     *         "data": [
+     *             {
+     *                 "type": "playlists",
+     *                 "id": "0b9e3c34-2f4e-4c1a-9a57-6d3b2a1f8c10"
+     *             }
+     *         ]
+     *     }
      */
     public function remove(array $playlists): void
     {
@@ -1869,6 +2003,39 @@ final class Tracks
      * @throws ServerError          when the server fails
      * @throws TransportException   when no response is received at all
      * @throws MalformedDocument    when the response carries no primary resource
+     *
+     * @example Request body:
+     *     {
+     *         "data": {
+     *             "type": "tracks",
+     *             "attributes": {
+     *                 "title": "Come Together",
+     *                 "trackNumber": 1,
+     *                 "durationSeconds": 259,
+     *                 "explicit": false,
+     *                 "genres": [
+     *                     "rock"
+     *                 ],
+     *                 "previewOffset": "00:00:30"
+     *             },
+     *             "relationships": {
+     *                 "album": {
+     *                     "data": {
+     *                         "type": "albums",
+     *                         "id": "1"
+     *                     }
+     *                 },
+     *                 "playlists": {
+     *                     "data": [
+     *                         {
+     *                             "type": "playlists",
+     *                             "id": "0b9e3c34-2f4e-4c1a-9a57-6d3b2a1f8c10"
+     *                         }
+     *                     ]
+     *                 }
+     *             }
+     *         }
+     *     }
      */
     public function create(
         TrackCreate|TrackCreateBuilder|array $input,

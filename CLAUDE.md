@@ -61,7 +61,7 @@ the projector whenever the emitted structure changes. This codegen declares a su
 this is the only thing that catches it. A feature-token list was rejected: it names what
 changed, at the cost of two hand-maintained lists that must agree.
 
-The supported range is `[1, 11]`. Contract 2 (json-api 1.1.0) added the error catalogue, shared
+The supported range is `[1, 12]`. Contract 2 (json-api 1.1.0) added the error catalogue, shared
 error responses and write-side `include`/`fields`; the descriptor reads the first into `errors`,
 and the last into each operation's `projection`. Contract 3 added `x-paginator` on page schemas,
 which the descriptor reads into each `PaginatorDescriptor`: the strategy, its role-to-key map, and
@@ -95,7 +95,12 @@ object schema (ADR 0008). Contract 11 (json-api 1.12.0) lets an action accept se
 `requestBody.content`, and only a document that declares one carries it. The choice by
 `$contentType` was already read; a `multipart/form-data` or `application/x-www-form-urlencoded`
 body is now a field array that the runtime encodes, boundary included, rather than bytes (ADR 0009),
-narrowed to an array shape when its schema lists `properties` (ADR 0010).
+narrowed to an array shape when its schema lists `properties` (ADR 0010). Contract 12 (json-api
+1.13.0) puts a worked `example` on each operation's JSON:API request body and success responses,
+and only a document that carries one is stamped with it. The descriptor reads them into each
+operation's and action's `examples`, a raw media type keeps its own `example`, and a generated
+method's docblock quotes the request example, else the first response's, as an `@example` of at
+most 60 lines (ADR 0011).
 Raise `MAXIMUM` only in the change that
 teaches the descriptor to read whatever the next contract adds.
 

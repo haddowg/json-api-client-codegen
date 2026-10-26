@@ -856,6 +856,49 @@ final class PlaylistHandle
      * @throws ServerError          when the server fails
      * @throws TransportException   when no response is received at all
      * @throws MalformedDocument    when the response carries no primary resource
+     *
+     * @example Request body:
+     *     {
+     *         "data": {
+     *             "type": "playlists",
+     *             "id": "0b9e3c34-2f4e-4c1a-9a57-6d3b2a1f8c10",
+     *             "attributes": {
+     *                 "title": "Road trip",
+     *                 "public": true,
+     *                 "externalId": "5f1d7c2e-8a4b-4e6f-9c3d-2b1a0e9f8d7c"
+     *             },
+     *             "relationships": {
+     *                 "publicOwner": {
+     *                     "data": {
+     *                         "type": "public-profiles",
+     *                         "id": "1"
+     *                     }
+     *                 },
+     *                 "tracks": {
+     *                     "data": [
+     *                         {
+     *                             "type": "tracks",
+     *                             "id": "1"
+     *                         }
+     *                     ]
+     *                 },
+     *                 "orderedTracks": {
+     *                     "data": [
+     *                         {
+     *                             "type": "tracks",
+     *                             "id": "1",
+     *                             "meta": {
+     *                                 "pivot": {
+     *                                     "position": 1,
+     *                                     "weight": 2
+     *                                 }
+     *                             }
+     *                         }
+     *                     ]
+     *                 }
+     *             }
+     *         }
+     *     }
      */
     public function update(
         PlaylistUpdate|array $input,
@@ -1033,6 +1076,59 @@ final class PlaylistOrderedTracksRelation
      * @throws NotAcceptable      when the negotiated media type cannot be satisfied
      * @throws ServerError        when the server fails
      * @throws TransportException when no response is received at all
+     *
+     * @example 200 response:
+     *     {
+     *         "data": [
+     *             {
+     *                 "type": "tracks",
+     *                 "id": "1",
+     *                 "meta": {
+     *                     "pivot": {
+     *                         "position": 1,
+     *                         "weight": 2,
+     *                         "addedAt": "2024-06-01T09:30:00+00:00"
+     *                     }
+     *                 }
+     *             }
+     *         ],
+     *         "links": {
+     *             "self": {
+     *                 "href": "https://music.example/playlists/0b9e3c34-2f4e-4c1a-9a57-6d3b2a1f8c10/relationships/orderedTracks?page%5Bnumber%5D=2&page%5Bsize%5D=2",
+     *                 "describedby": "/docs.json#/paths/~1playlists~1%7Bid%7D~1relationships~1orderedTracks/get"
+     *             },
+     *             "related": {
+     *                 "href": "https://music.example/playlists/0b9e3c34-2f4e-4c1a-9a57-6d3b2a1f8c10/orderedTracks",
+     *                 "describedby": "/docs.json#/paths/~1playlists~1%7Bid%7D~1orderedTracks/get"
+     *             },
+     *             "first": {
+     *                 "href": "https://music.example/playlists/0b9e3c34-2f4e-4c1a-9a57-6d3b2a1f8c10/relationships/orderedTracks?page%5Bnumber%5D=1&page%5Bsize%5D=2",
+     *                 "describedby": "/docs.json#/paths/~1playlists~1%7Bid%7D~1relationships~1orderedTracks/get"
+     *             },
+     *             "prev": {
+     *                 "href": "https://music.example/playlists/0b9e3c34-2f4e-4c1a-9a57-6d3b2a1f8c10/relationships/orderedTracks?page%5Bnumber%5D=1&page%5Bsize%5D=2",
+     *                 "describedby": "/docs.json#/paths/~1playlists~1%7Bid%7D~1relationships~1orderedTracks/get"
+     *             },
+     *             "next": {
+     *                 "href": "https://music.example/playlists/0b9e3c34-2f4e-4c1a-9a57-6d3b2a1f8c10/relationships/orderedTracks?page%5Bnumber%5D=3&page%5Bsize%5D=2",
+     *                 "describedby": "/docs.json#/paths/~1playlists~1%7Bid%7D~1relationships~1orderedTracks/get"
+     *             },
+     *             "describedby": {
+     *                 "href": "/docs.json#/paths/~1playlists~1%7Bid%7D~1relationships~1orderedTracks/get"
+     *             }
+     *         },
+     *         "meta": {
+     *             "page": {
+     *                 "currentPage": 2,
+     *                 "perPage": 2,
+     *                 "from": 3,
+     *                 "to": 4
+     *             }
+     *         },
+     *         "jsonapi": {
+     *             "version": "1.1"
+     *         }
+     *     }
      */
     public function get(): PaginatedCollection
     {
@@ -1074,6 +1170,22 @@ final class PlaylistOrderedTracksRelation
      * @throws ValidationFailed     when the linkage fails validation
      * @throws ServerError          when the server fails
      * @throws TransportException   when no response is received at all
+     *
+     * @example Request body:
+     *     {
+     *         "data": [
+     *             {
+     *                 "type": "tracks",
+     *                 "id": "1",
+     *                 "meta": {
+     *                     "pivot": {
+     *                         "position": 1,
+     *                         "weight": 2
+     *                     }
+     *                 }
+     *             }
+     *         ]
+     *     }
      */
     public function add(array $orderedTracks): void
     {
@@ -1098,6 +1210,22 @@ final class PlaylistOrderedTracksRelation
      * @throws ValidationFailed     when the linkage fails validation
      * @throws ServerError          when the server fails
      * @throws TransportException   when no response is received at all
+     *
+     * @example Request body:
+     *     {
+     *         "data": [
+     *             {
+     *                 "type": "tracks",
+     *                 "id": "1",
+     *                 "meta": {
+     *                     "pivot": {
+     *                         "position": 1,
+     *                         "weight": 2
+     *                     }
+     *                 }
+     *             }
+     *         ]
+     *     }
      */
     public function remove(array $orderedTracks): void
     {
@@ -1122,6 +1250,22 @@ final class PlaylistOrderedTracksRelation
      * @throws ValidationFailed     when the linkage fails validation
      * @throws ServerError          when the server fails
      * @throws TransportException   when no response is received at all
+     *
+     * @example Request body:
+     *     {
+     *         "data": [
+     *             {
+     *                 "type": "tracks",
+     *                 "id": "1",
+     *                 "meta": {
+     *                     "pivot": {
+     *                         "position": 1,
+     *                         "weight": 2
+     *                     }
+     *                 }
+     *             }
+     *         ]
+     *     }
      */
     public function replace(array $orderedTracks): void
     {
@@ -1208,6 +1352,14 @@ final class PlaylistOwnerRelation
      * @throws NotAcceptable      when the negotiated media type cannot be satisfied
      * @throws ServerError        when the server fails
      * @throws TransportException when no response is received at all
+     *
+     * @example 200 response:
+     *     {
+     *         "data": {
+     *             "type": "users",
+     *             "id": "1"
+     *         }
+     *     }
      */
     public function get(): ?Identifier
     {
@@ -1231,6 +1383,14 @@ final class PlaylistOwnerRelation
      * @throws ValidationFailed     when the linkage fails validation
      * @throws ServerError          when the server fails
      * @throws TransportException   when no response is received at all
+     *
+     * @example Request body:
+     *     {
+     *         "data": {
+     *             "type": "users",
+     *             "id": "1"
+     *         }
+     *     }
      */
     public function set(Identifier|null $target): void
     {
@@ -1312,6 +1472,30 @@ final class PlaylistPublicOwnerRelation
      * @throws NotAcceptable      when the negotiated media type cannot be satisfied
      * @throws ServerError        when the server fails
      * @throws TransportException when no response is received at all
+     *
+     * @example 200 response:
+     *     {
+     *         "data": {
+     *             "type": "public-profiles",
+     *             "id": "1"
+     *         },
+     *         "links": {
+     *             "self": {
+     *                 "href": "https://music.example/playlists/0b9e3c34-2f4e-4c1a-9a57-6d3b2a1f8c10/relationships/public-owner",
+     *                 "describedby": "/docs.json#/paths/~1playlists~1%7Bid%7D~1relationships~1public-owner/get"
+     *             },
+     *             "related": {
+     *                 "href": "https://music.example/playlists/0b9e3c34-2f4e-4c1a-9a57-6d3b2a1f8c10/public-owner",
+     *                 "describedby": "/docs.json#/paths/~1playlists~1%7Bid%7D~1public-owner/get"
+     *             },
+     *             "describedby": {
+     *                 "href": "/docs.json#/paths/~1playlists~1%7Bid%7D~1relationships~1public-owner/get"
+     *             }
+     *         },
+     *         "jsonapi": {
+     *             "version": "1.1"
+     *         }
+     *     }
      */
     public function get(): ?Identifier
     {
@@ -1332,6 +1516,35 @@ final class PlaylistPublicOwnerRelation
      * @throws NotAcceptable      when the negotiated media type cannot be satisfied
      * @throws ServerError        when the server fails
      * @throws TransportException when no response is received at all
+     *
+     * @example 200 response:
+     *     {
+     *         "data": {
+     *             "type": "public-profiles",
+     *             "id": "1",
+     *             "links": {
+     *                 "self": {
+     *                     "href": "https://music.example/public-profiles/1",
+     *                     "describedby": "/docs.json#/paths/~1public-profiles~1%7Bid%7D/get"
+     *                 }
+     *             },
+     *             "attributes": {
+     *                 "displayName": "Ada"
+     *             }
+     *         },
+     *         "links": {
+     *             "self": {
+     *                 "href": "https://music.example/playlists/0b9e3c34-2f4e-4c1a-9a57-6d3b2a1f8c10/public-owner",
+     *                 "describedby": "/docs.json#/paths/~1playlists~1%7Bid%7D~1public-owner/get"
+     *             },
+     *             "describedby": {
+     *                 "href": "/docs.json#/paths/~1playlists~1%7Bid%7D~1public-owner/get"
+     *             }
+     *         },
+     *         "jsonapi": {
+     *             "version": "1.1"
+     *         }
+     *     }
      */
     public function related(): ?PublicProfile
     {
@@ -1354,6 +1567,14 @@ final class PlaylistPublicOwnerRelation
      * @throws ValidationFailed     when the linkage fails validation
      * @throws ServerError          when the server fails
      * @throws TransportException   when no response is received at all
+     *
+     * @example Request body:
+     *     {
+     *         "data": {
+     *             "type": "public-profiles",
+     *             "id": "1"
+     *         }
+     *     }
      */
     public function set(Identifier|PublicProfile|null $target): void
     {
@@ -1536,6 +1757,62 @@ final class PlaylistTracksRelation
      * @throws NotAcceptable      when the negotiated media type cannot be satisfied
      * @throws ServerError        when the server fails
      * @throws TransportException when no response is received at all
+     *
+     * @example 200 response:
+     *     {
+     *         "data": [
+     *             {
+     *                 "type": "tracks",
+     *                 "id": "1"
+     *             }
+     *         ],
+     *         "links": {
+     *             "self": {
+     *                 "href": "https://music.example/playlists/0b9e3c34-2f4e-4c1a-9a57-6d3b2a1f8c10/relationships/tracks?page%5Bnumber%5D=2&page%5Bsize%5D=2&withCount=_self_",
+     *                 "describedby": "/docs.json#/paths/~1playlists~1%7Bid%7D~1relationships~1tracks/get"
+     *             },
+     *             "related": {
+     *                 "href": "https://music.example/playlists/0b9e3c34-2f4e-4c1a-9a57-6d3b2a1f8c10/tracks",
+     *                 "describedby": "/docs.json#/paths/~1playlists~1%7Bid%7D~1tracks/get"
+     *             },
+     *             "first": {
+     *                 "href": "https://music.example/playlists/0b9e3c34-2f4e-4c1a-9a57-6d3b2a1f8c10/relationships/tracks?page%5Bnumber%5D=1&page%5Bsize%5D=2&withCount=_self_",
+     *                 "describedby": "/docs.json#/paths/~1playlists~1%7Bid%7D~1relationships~1tracks/get"
+     *             },
+     *             "prev": {
+     *                 "href": "https://music.example/playlists/0b9e3c34-2f4e-4c1a-9a57-6d3b2a1f8c10/relationships/tracks?page%5Bnumber%5D=1&page%5Bsize%5D=2&withCount=_self_",
+     *                 "describedby": "/docs.json#/paths/~1playlists~1%7Bid%7D~1relationships~1tracks/get"
+     *             },
+     *             "next": {
+     *                 "href": "https://music.example/playlists/0b9e3c34-2f4e-4c1a-9a57-6d3b2a1f8c10/relationships/tracks?page%5Bnumber%5D=3&page%5Bsize%5D=2&withCount=_self_",
+     *                 "describedby": "/docs.json#/paths/~1playlists~1%7Bid%7D~1relationships~1tracks/get"
+     *             },
+     *             "last": {
+     *                 "href": "https://music.example/playlists/0b9e3c34-2f4e-4c1a-9a57-6d3b2a1f8c10/relationships/tracks?page%5Bnumber%5D=5&page%5Bsize%5D=2&withCount=_self_",
+     *                 "describedby": "/docs.json#/paths/~1playlists~1%7Bid%7D~1relationships~1tracks/get"
+     *             },
+     *             "describedby": {
+     *                 "href": "/docs.json#/paths/~1playlists~1%7Bid%7D~1relationships~1tracks/get"
+     *             }
+     *         },
+     *         "meta": {
+     *             "total": 10,
+     *             "page": {
+     *                 "currentPage": 2,
+     *                 "perPage": 2,
+     *                 "from": 3,
+     *                 "to": 4,
+     *                 "total": 10,
+     *                 "lastPage": 5
+     *             }
+     *         },
+     *         "jsonapi": {
+     *             "version": "1.1",
+     *             "profile": [
+     *                 "https://haddowg.github.io/json-api/profiles/countable/"
+     *             ]
+     *         }
+     *     }
      */
     public function get(): PaginatedCollection
     {
@@ -1577,6 +1854,16 @@ final class PlaylistTracksRelation
      * @throws ValidationFailed     when the linkage fails validation
      * @throws ServerError          when the server fails
      * @throws TransportException   when no response is received at all
+     *
+     * @example Request body:
+     *     {
+     *         "data": [
+     *             {
+     *                 "type": "tracks",
+     *                 "id": "1"
+     *             }
+     *         ]
+     *     }
      */
     public function add(array $tracks): void
     {
@@ -1601,6 +1888,16 @@ final class PlaylistTracksRelation
      * @throws ValidationFailed     when the linkage fails validation
      * @throws ServerError          when the server fails
      * @throws TransportException   when no response is received at all
+     *
+     * @example Request body:
+     *     {
+     *         "data": [
+     *             {
+     *                 "type": "tracks",
+     *                 "id": "1"
+     *             }
+     *         ]
+     *     }
      */
     public function remove(array $tracks): void
     {
@@ -1625,6 +1922,16 @@ final class PlaylistTracksRelation
      * @throws ValidationFailed     when the linkage fails validation
      * @throws ServerError          when the server fails
      * @throws TransportException   when no response is received at all
+     *
+     * @example Request body:
+     *     {
+     *         "data": [
+     *             {
+     *                 "type": "tracks",
+     *                 "id": "1"
+     *             }
+     *         ]
+     *     }
      */
     public function replace(array $tracks): void
     {
@@ -1973,6 +2280,48 @@ final class Playlists
      * @throws ServerError          when the server fails
      * @throws TransportException   when no response is received at all
      * @throws MalformedDocument    when the response carries no primary resource
+     *
+     * @example Request body:
+     *     {
+     *         "data": {
+     *             "type": "playlists",
+     *             "attributes": {
+     *                 "title": "Road trip",
+     *                 "public": true,
+     *                 "externalId": "5f1d7c2e-8a4b-4e6f-9c3d-2b1a0e9f8d7c"
+     *             },
+     *             "relationships": {
+     *                 "publicOwner": {
+     *                     "data": {
+     *                         "type": "public-profiles",
+     *                         "id": "1"
+     *                     }
+     *                 },
+     *                 "tracks": {
+     *                     "data": [
+     *                         {
+     *                             "type": "tracks",
+     *                             "id": "1"
+     *                         }
+     *                     ]
+     *                 },
+     *                 "orderedTracks": {
+     *                     "data": [
+     *                         {
+     *                             "type": "tracks",
+     *                             "id": "1",
+     *                             "meta": {
+     *                                 "pivot": {
+     *                                     "position": 1,
+     *                                     "weight": 2
+     *                                 }
+     *                             }
+     *                         }
+     *                     ]
+     *                 }
+     *             }
+     *         }
+     *     }
      */
     public function create(
         PlaylistCreate|PlaylistCreateBuilder|array $input,

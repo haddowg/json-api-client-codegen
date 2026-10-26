@@ -14,7 +14,9 @@ namespace haddowg\JsonApiCodegen\Descriptor;
  * never a reordering.
  *
  * Absent values are written as `null` or an empty collection rather than being omitted, so the
- * diff for a capability appearing or disappearing is a changed value, not a moved key.
+ * diff for a capability appearing or disappearing is a changed value, not a moved key. Members a
+ * later contract added are the exception: they appear only when present, so a document from
+ * before that contract serialises as it always did.
  */
 final class DescriptorSerializer
 {
@@ -121,12 +123,13 @@ final class DescriptorSerializer
     /** @return array<string, mixed> */
     private static function action(ActionDescriptor $action): array
     {
-        // Contract-10 members appear only when present, so an older document serialises as it did.
+        // Contract-10 and -12 members appear only when present, so an older document serialises as it did.
         $raw = \array_filter([
             'summary' => $action->summary,
             'description' => $action->description,
             'responses' => \array_map(self::rawMedia(...), $action->responses),
             'requests' => \array_map(self::rawMedia(...), $action->requests),
+            'examples' => self::examples($action->examples),
         ], static fn(mixed $value): bool => $value !== null && $value !== []);
 
         return [...[
@@ -158,6 +161,7 @@ final class DescriptorSerializer
             'component' => $media->component,
             'schema' => self::valueSchema($media->schema),
             ...$form,
+            ...($media->example === null ? [] : ['example' => $media->example]),
         ];
     }
 
@@ -201,6 +205,20 @@ final class DescriptorSerializer
             'method' => $operation->method,
             'errorStatuses' => $operation->errorStatuses,
             'projection' => self::projection($operation->projection),
+            ...($operation->examples === null ? [] : ['examples' => self::examples($operation->examples)]),
+        ];
+    }
+
+    /**
+     * Responses keyed by status as a JSON object, which a list of statuses would otherwise not be.
+     *
+     * @return array<string, mixed>|null
+     */
+    private static function examples(?OperationExamples $examples): ?array
+    {
+        return $examples === null ? null : [
+            'request' => $examples->request,
+            'responses' => (object) $examples->responses,
         ];
     }
 

@@ -495,6 +495,30 @@ final class FavoriteFavoritableRelation
      * @throws NotAcceptable      when the negotiated media type cannot be satisfied
      * @throws ServerError        when the server fails
      * @throws TransportException when no response is received at all
+     *
+     * @example 200 response:
+     *     {
+     *         "data": {
+     *             "type": "tracks",
+     *             "id": "1"
+     *         },
+     *         "links": {
+     *             "self": {
+     *                 "href": "https://music.example/favorites/1/relationships/favoritable",
+     *                 "describedby": "/docs.json#/paths/~1favorites~1%7Bid%7D~1relationships~1favoritable/get"
+     *             },
+     *             "related": {
+     *                 "href": "https://music.example/favorites/1/favoritable",
+     *                 "describedby": "/docs.json#/paths/~1favorites~1%7Bid%7D~1favoritable/get"
+     *             },
+     *             "describedby": {
+     *                 "href": "/docs.json#/paths/~1favorites~1%7Bid%7D~1relationships~1favoritable/get"
+     *             }
+     *         },
+     *         "jsonapi": {
+     *             "version": "1.1"
+     *         }
+     *     }
      */
     public function get(): ?Identifier
     {
@@ -537,6 +561,14 @@ final class FavoriteFavoritableRelation
      * @throws ValidationFailed     when the linkage fails validation
      * @throws ServerError          when the server fails
      * @throws TransportException   when no response is received at all
+     *
+     * @example Request body:
+     *     {
+     *         "data": {
+     *             "type": "tracks",
+     *             "id": "1"
+     *         }
+     *     }
      */
     public function set(Album|Artist|Identifier|Track|null $target): void
     {
@@ -640,6 +672,28 @@ final class FavoriteHandle
      * @throws ServerError          when the server fails
      * @throws TransportException   when no response is received at all
      * @throws MalformedDocument    when the response carries no primary resource
+     *
+     * @example Request body:
+     *     {
+     *         "data": {
+     *             "type": "favorites",
+     *             "id": "1",
+     *             "relationships": {
+     *                 "user": {
+     *                     "data": {
+     *                         "type": "public-profiles",
+     *                         "id": "1"
+     *                     }
+     *                 },
+     *                 "favoritable": {
+     *                     "data": {
+     *                         "type": "tracks",
+     *                         "id": "1"
+     *                     }
+     *                 }
+     *             }
+     *         }
+     *     }
      */
     public function update(
         FavoriteUpdate|array $input,
@@ -1001,6 +1055,30 @@ final class FavoriteUserRelation
      * @throws NotAcceptable      when the negotiated media type cannot be satisfied
      * @throws ServerError        when the server fails
      * @throws TransportException when no response is received at all
+     *
+     * @example 200 response:
+     *     {
+     *         "data": {
+     *             "type": "public-profiles",
+     *             "id": "1"
+     *         },
+     *         "links": {
+     *             "self": {
+     *                 "href": "https://music.example/favorites/1/relationships/user",
+     *                 "describedby": "/docs.json#/paths/~1favorites~1%7Bid%7D~1relationships~1user/get"
+     *             },
+     *             "related": {
+     *                 "href": "https://music.example/favorites/1/user",
+     *                 "describedby": "/docs.json#/paths/~1favorites~1%7Bid%7D~1user/get"
+     *             },
+     *             "describedby": {
+     *                 "href": "/docs.json#/paths/~1favorites~1%7Bid%7D~1relationships~1user/get"
+     *             }
+     *         },
+     *         "jsonapi": {
+     *             "version": "1.1"
+     *         }
+     *     }
      */
     public function get(): ?Identifier
     {
@@ -1021,6 +1099,35 @@ final class FavoriteUserRelation
      * @throws NotAcceptable      when the negotiated media type cannot be satisfied
      * @throws ServerError        when the server fails
      * @throws TransportException when no response is received at all
+     *
+     * @example 200 response:
+     *     {
+     *         "data": {
+     *             "type": "public-profiles",
+     *             "id": "1",
+     *             "links": {
+     *                 "self": {
+     *                     "href": "https://music.example/public-profiles/1",
+     *                     "describedby": "/docs.json#/paths/~1public-profiles~1%7Bid%7D/get"
+     *                 }
+     *             },
+     *             "attributes": {
+     *                 "displayName": "Ada"
+     *             }
+     *         },
+     *         "links": {
+     *             "self": {
+     *                 "href": "https://music.example/favorites/1/user",
+     *                 "describedby": "/docs.json#/paths/~1favorites~1%7Bid%7D~1user/get"
+     *             },
+     *             "describedby": {
+     *                 "href": "/docs.json#/paths/~1favorites~1%7Bid%7D~1user/get"
+     *             }
+     *         },
+     *         "jsonapi": {
+     *             "version": "1.1"
+     *         }
+     *     }
      */
     public function related(): ?PublicProfile
     {
@@ -1043,6 +1150,14 @@ final class FavoriteUserRelation
      * @throws ValidationFailed     when the linkage fails validation
      * @throws ServerError          when the server fails
      * @throws TransportException   when no response is received at all
+     *
+     * @example Request body:
+     *     {
+     *         "data": {
+     *             "type": "public-profiles",
+     *             "id": "1"
+     *         }
+     *     }
      */
     public function set(Identifier|PublicProfile|null $target): void
     {
@@ -1106,6 +1221,30 @@ final class Favorites
      * @throws ServerError          when the server fails
      * @throws TransportException   when no response is received at all
      * @throws MalformedDocument    when the response carries no primary resource
+     *
+     * @example Request body:
+     *     {
+     *         "data": {
+     *             "type": "favorites",
+     *             "attributes": {
+     *                 "favoritedAt": "2024-06-01T09:30:00+00:00"
+     *             },
+     *             "relationships": {
+     *                 "user": {
+     *                     "data": {
+     *                         "type": "public-profiles",
+     *                         "id": "1"
+     *                     }
+     *                 },
+     *                 "favoritable": {
+     *                     "data": {
+     *                         "type": "tracks",
+     *                         "id": "1"
+     *                     }
+     *                 }
+     *             }
+     *         }
+     *     }
      */
     public function create(
         FavoriteCreate|FavoriteCreateBuilder|array $input,

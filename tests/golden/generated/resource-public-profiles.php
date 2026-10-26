@@ -218,6 +218,35 @@ final class PublicProfileHandle
      * @throws ServerError        when the server fails
      * @throws TransportException when no response is received at all
      * @throws MalformedDocument  when the response carries no primary resource
+     *
+     * @example 200 response:
+     *     {
+     *         "data": {
+     *             "type": "public-profiles",
+     *             "id": "1",
+     *             "links": {
+     *                 "self": {
+     *                     "href": "https://music.example/public-profiles/1",
+     *                     "describedby": "/docs.json#/paths/~1public-profiles~1%7Bid%7D/get"
+     *                 }
+     *             },
+     *             "attributes": {
+     *                 "displayName": "Ada"
+     *             }
+     *         },
+     *         "links": {
+     *             "self": {
+     *                 "href": "https://music.example/public-profiles/1",
+     *                 "describedby": "/docs.json#/paths/~1public-profiles~1%7Bid%7D/get"
+     *             },
+     *             "describedby": {
+     *                 "href": "/docs.json#/paths/~1public-profiles~1%7Bid%7D/get"
+     *             }
+     *         },
+     *         "jsonapi": {
+     *             "version": "1.1"
+     *         }
+     *     }
      */
     public function get(callable|PublicProfileProjection|null $projection = null): PublicProfileBase
     {
@@ -369,6 +398,57 @@ final class PublicProfileQuery extends Query
      * @throws NotAcceptable      when the negotiated media type cannot be satisfied
      * @throws ServerError        when the server fails
      * @throws TransportException when no response is received at all
+     *
+     * @example 200 response:
+     *     {
+     *         "data": [
+     *             {
+     *                 "type": "public-profiles",
+     *                 "id": "1",
+     *                 "links": {
+     *                     "self": {
+     *                         "href": "https://music.example/public-profiles/1",
+     *                         "describedby": "/docs.json#/paths/~1public-profiles~1%7Bid%7D/get"
+     *                     }
+     *                 },
+     *                 "attributes": {
+     *                     "displayName": "Ada"
+     *                 }
+     *             }
+     *         ],
+     *         "links": {
+     *             "self": {
+     *                 "href": "https://music.example/public-profiles?page%5Bnumber%5D=2&page%5Bsize%5D=15",
+     *                 "describedby": "/docs.json#/paths/~1public-profiles/get"
+     *             },
+     *             "first": {
+     *                 "href": "https://music.example/public-profiles?page%5Bnumber%5D=1&page%5Bsize%5D=15",
+     *                 "describedby": "/docs.json#/paths/~1public-profiles/get"
+     *             },
+     *             "prev": {
+     *                 "href": "https://music.example/public-profiles?page%5Bnumber%5D=1&page%5Bsize%5D=15",
+     *                 "describedby": "/docs.json#/paths/~1public-profiles/get"
+     *             },
+     *             "next": {
+     *                 "href": "https://music.example/public-profiles?page%5Bnumber%5D=3&page%5Bsize%5D=15",
+     *                 "describedby": "/docs.json#/paths/~1public-profiles/get"
+     *             },
+     *             "describedby": {
+     *                 "href": "/docs.json#/paths/~1public-profiles/get"
+     *             }
+     *         },
+     *         "meta": {
+     *             "page": {
+     *                 "currentPage": 2,
+     *                 "perPage": 15,
+     *                 "from": 16,
+     *                 "to": 30
+     *             }
+     *         },
+     *         "jsonapi": {
+     *             "version": "1.1"
+     *         }
+     *     }
      */
     public function get(): PaginatedCollection
     {

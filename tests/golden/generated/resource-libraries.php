@@ -429,6 +429,29 @@ final class Libraries
      * @throws ServerError          when the server fails
      * @throws TransportException   when no response is received at all
      * @throws MalformedDocument    when the response carries no primary resource
+     *
+     * @example Request body:
+     *     {
+     *         "data": {
+     *             "type": "libraries",
+     *             "relationships": {
+     *                 "owner": {
+     *                     "data": {
+     *                         "type": "public-profiles",
+     *                         "id": "1"
+     *                     }
+     *                 },
+     *                 "items": {
+     *                     "data": [
+     *                         {
+     *                             "type": "tracks",
+     *                             "id": "1"
+     *                         }
+     *                     ]
+     *                 }
+     *             }
+     *         }
+     *     }
      */
     public function create(
         LibraryCreate|LibraryCreateBuilder|array $input,
@@ -610,6 +633,68 @@ final class LibraryHandle
      * @throws ServerError        when the server fails
      * @throws TransportException when no response is received at all
      * @throws MalformedDocument  when the response carries no primary resource
+     *
+     * @example 200 response:
+     *     {
+     *         "data": {
+     *             "type": "libraries",
+     *             "id": "1",
+     *             "links": {
+     *                 "self": {
+     *                     "href": "https://music.example/libraries/1",
+     *                     "describedby": "/docs.json#/paths/~1libraries~1%7Bid%7D/get"
+     *                 }
+     *             },
+     *             "relationships": {
+     *                 "owner": {
+     *                     "links": {
+     *                         "self": {
+     *                             "href": "https://music.example/libraries/1/relationships/owner",
+     *                             "describedby": "/docs.json#/paths/~1libraries~1%7Bid%7D~1relationships~1owner/get"
+     *                         },
+     *                         "related": {
+     *                             "href": "https://music.example/libraries/1/owner",
+     *                             "describedby": "/docs.json#/paths/~1libraries~1%7Bid%7D~1owner/get"
+     *                         }
+     *                     },
+     *                     "data": {
+     *                         "type": "public-profiles",
+     *                         "id": "1"
+     *                     }
+     *                 },
+     *                 "items": {
+     *                     "links": {
+     *                         "self": {
+     *                             "href": "https://music.example/libraries/1/relationships/items",
+     *                             "describedby": "/docs.json#/paths/~1libraries~1%7Bid%7D~1relationships~1items/get"
+     *                         },
+     *                         "related": {
+     *                             "href": "https://music.example/libraries/1/items",
+     *                             "describedby": "/docs.json#/paths/~1libraries~1%7Bid%7D~1items/get"
+     *                         }
+     *                     },
+     *                     "data": [
+     *                         {
+     *                             "type": "tracks",
+     *                             "id": "1"
+     *                         }
+     *                     ]
+     *                 }
+     *             }
+     *         },
+     *         "links": {
+     *             "self": {
+     *                 "href": "https://music.example/libraries/1",
+     *                 "describedby": "/docs.json#/paths/~1libraries~1%7Bid%7D/get"
+     *             },
+     *             "describedby": {
+     *                 "href": "/docs.json#/paths/~1libraries~1%7Bid%7D/get"
+     *             }
+     *         },
+     *         "jsonapi": {
+     *             "version": "1.1"
+     *         }
+     *     }
      */
     public function get(callable|LibraryProjection|null $projection = null): LibraryBase
     {
@@ -645,6 +730,30 @@ final class LibraryHandle
      * @throws ServerError          when the server fails
      * @throws TransportException   when no response is received at all
      * @throws MalformedDocument    when the response carries no primary resource
+     *
+     * @example Request body:
+     *     {
+     *         "data": {
+     *             "type": "libraries",
+     *             "id": "1",
+     *             "relationships": {
+     *                 "owner": {
+     *                     "data": {
+     *                         "type": "public-profiles",
+     *                         "id": "1"
+     *                     }
+     *                 },
+     *                 "items": {
+     *                     "data": [
+     *                         {
+     *                             "type": "tracks",
+     *                             "id": "1"
+     *                         }
+     *                     ]
+     *                 }
+     *             }
+     *         }
+     *     }
      */
     public function update(
         LibraryUpdate|array $input,
@@ -731,6 +840,52 @@ final class LibraryItemsRelation
      * @throws NotAcceptable      when the negotiated media type cannot be satisfied
      * @throws ServerError        when the server fails
      * @throws TransportException when no response is received at all
+     *
+     * @example 200 response:
+     *     {
+     *         "data": [
+     *             {
+     *                 "type": "tracks",
+     *                 "id": "1"
+     *             }
+     *         ],
+     *         "links": {
+     *             "self": {
+     *                 "href": "https://music.example/libraries/1/relationships/items?page%5Bnumber%5D=2&page%5Bsize%5D=15",
+     *                 "describedby": "/docs.json#/paths/~1libraries~1%7Bid%7D~1relationships~1items/get"
+     *             },
+     *             "related": {
+     *                 "href": "https://music.example/libraries/1/items",
+     *                 "describedby": "/docs.json#/paths/~1libraries~1%7Bid%7D~1items/get"
+     *             },
+     *             "first": {
+     *                 "href": "https://music.example/libraries/1/relationships/items?page%5Bnumber%5D=1&page%5Bsize%5D=15",
+     *                 "describedby": "/docs.json#/paths/~1libraries~1%7Bid%7D~1relationships~1items/get"
+     *             },
+     *             "prev": {
+     *                 "href": "https://music.example/libraries/1/relationships/items?page%5Bnumber%5D=1&page%5Bsize%5D=15",
+     *                 "describedby": "/docs.json#/paths/~1libraries~1%7Bid%7D~1relationships~1items/get"
+     *             },
+     *             "next": {
+     *                 "href": "https://music.example/libraries/1/relationships/items?page%5Bnumber%5D=3&page%5Bsize%5D=15",
+     *                 "describedby": "/docs.json#/paths/~1libraries~1%7Bid%7D~1relationships~1items/get"
+     *             },
+     *             "describedby": {
+     *                 "href": "/docs.json#/paths/~1libraries~1%7Bid%7D~1relationships~1items/get"
+     *             }
+     *         },
+     *         "meta": {
+     *             "page": {
+     *                 "currentPage": 2,
+     *                 "perPage": 15,
+     *                 "from": 16,
+     *                 "to": 30
+     *             }
+     *         },
+     *         "jsonapi": {
+     *             "version": "1.1"
+     *         }
+     *     }
      */
     public function get(): PaginatedCollection
     {
@@ -772,6 +927,16 @@ final class LibraryItemsRelation
      * @throws ValidationFailed     when the linkage fails validation
      * @throws ServerError          when the server fails
      * @throws TransportException   when no response is received at all
+     *
+     * @example Request body:
+     *     {
+     *         "data": [
+     *             {
+     *                 "type": "tracks",
+     *                 "id": "1"
+     *             }
+     *         ]
+     *     }
      */
     public function add(array $items): void
     {
@@ -796,6 +961,16 @@ final class LibraryItemsRelation
      * @throws ValidationFailed     when the linkage fails validation
      * @throws ServerError          when the server fails
      * @throws TransportException   when no response is received at all
+     *
+     * @example Request body:
+     *     {
+     *         "data": [
+     *             {
+     *                 "type": "tracks",
+     *                 "id": "1"
+     *             }
+     *         ]
+     *     }
      */
     public function remove(array $items): void
     {
@@ -820,6 +995,16 @@ final class LibraryItemsRelation
      * @throws ValidationFailed     when the linkage fails validation
      * @throws ServerError          when the server fails
      * @throws TransportException   when no response is received at all
+     *
+     * @example Request body:
+     *     {
+     *         "data": [
+     *             {
+     *                 "type": "tracks",
+     *                 "id": "1"
+     *             }
+     *         ]
+     *     }
      */
     public function replace(array $items): void
     {
@@ -913,6 +1098,30 @@ final class LibraryOwnerRelation
      * @throws NotAcceptable      when the negotiated media type cannot be satisfied
      * @throws ServerError        when the server fails
      * @throws TransportException when no response is received at all
+     *
+     * @example 200 response:
+     *     {
+     *         "data": {
+     *             "type": "public-profiles",
+     *             "id": "1"
+     *         },
+     *         "links": {
+     *             "self": {
+     *                 "href": "https://music.example/libraries/1/relationships/owner",
+     *                 "describedby": "/docs.json#/paths/~1libraries~1%7Bid%7D~1relationships~1owner/get"
+     *             },
+     *             "related": {
+     *                 "href": "https://music.example/libraries/1/owner",
+     *                 "describedby": "/docs.json#/paths/~1libraries~1%7Bid%7D~1owner/get"
+     *             },
+     *             "describedby": {
+     *                 "href": "/docs.json#/paths/~1libraries~1%7Bid%7D~1relationships~1owner/get"
+     *             }
+     *         },
+     *         "jsonapi": {
+     *             "version": "1.1"
+     *         }
+     *     }
      */
     public function get(): ?Identifier
     {
@@ -933,6 +1142,35 @@ final class LibraryOwnerRelation
      * @throws NotAcceptable      when the negotiated media type cannot be satisfied
      * @throws ServerError        when the server fails
      * @throws TransportException when no response is received at all
+     *
+     * @example 200 response:
+     *     {
+     *         "data": {
+     *             "type": "public-profiles",
+     *             "id": "1",
+     *             "links": {
+     *                 "self": {
+     *                     "href": "https://music.example/public-profiles/1",
+     *                     "describedby": "/docs.json#/paths/~1public-profiles~1%7Bid%7D/get"
+     *                 }
+     *             },
+     *             "attributes": {
+     *                 "displayName": "Ada"
+     *             }
+     *         },
+     *         "links": {
+     *             "self": {
+     *                 "href": "https://music.example/libraries/1/owner",
+     *                 "describedby": "/docs.json#/paths/~1libraries~1%7Bid%7D~1owner/get"
+     *             },
+     *             "describedby": {
+     *                 "href": "/docs.json#/paths/~1libraries~1%7Bid%7D~1owner/get"
+     *             }
+     *         },
+     *         "jsonapi": {
+     *             "version": "1.1"
+     *         }
+     *     }
      */
     public function related(): ?PublicProfile
     {
@@ -955,6 +1193,14 @@ final class LibraryOwnerRelation
      * @throws ValidationFailed     when the linkage fails validation
      * @throws ServerError          when the server fails
      * @throws TransportException   when no response is received at all
+     *
+     * @example Request body:
+     *     {
+     *         "data": {
+     *             "type": "public-profiles",
+     *             "id": "1"
+     *         }
+     *     }
      */
     public function set(Identifier|PublicProfile|null $target): void
     {

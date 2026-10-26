@@ -14,6 +14,7 @@ use haddowg\JsonApiCodegen\Descriptor\RawMediaDescriptor;
 use haddowg\JsonApiCodegen\Descriptor\RawMediaKind;
 use haddowg\JsonApiCodegen\Descriptor\ValueSchema;
 use haddowg\JsonApiCodegen\Emit\ClassUnit;
+use haddowg\JsonApiCodegen\Emit\ExampleTag;
 use haddowg\JsonApiCodegen\Emit\Naming;
 use haddowg\JsonApiCodegen\Emit\Php;
 use haddowg\JsonApiCodegen\Emit\ReadModel\ReadModelEmitter;
@@ -258,7 +259,7 @@ final class ActionSource
             if ($jsonDoc !== null) {
                 $doc = [...$doc, '@return ' . $jsonDoc, ''];
             }
-            $doc = [...$doc, ...Throws::tags($action->errorStatuses, $imports, $reasons, $malformed)];
+            $doc = [...$doc, ...Throws::tags($action->errorStatuses, $imports, $reasons, $malformed), ...ExampleTag::lines($action->examples)];
 
             return Php::docblock($doc, 4, false)
                 . SurfaceEmitter::signature($method, $signature, $return)
@@ -329,7 +330,7 @@ final class ActionSource
         if ($chain !== $return) {
             $doc = [...$doc, '@return ' . $chain, ''];
         }
-        $doc = [...$doc, ...Throws::tags($action->errorStatuses, $imports, $reasons, $malformed)];
+        $doc = [...$doc, ...Throws::tags($action->errorStatuses, $imports, $reasons, $malformed), ...ExampleTag::lines($action->examples)];
 
         return Php::docblock($doc, 4, false)
             . SurfaceEmitter::signature($method, $signature, $return)

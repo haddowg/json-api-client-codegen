@@ -314,6 +314,32 @@ final class TagArticlesRelation
      * @throws NotAcceptable      when the negotiated media type cannot be satisfied
      * @throws ServerError        when the server fails
      * @throws TransportException when no response is received at all
+     *
+     * @example 200 response:
+     *     {
+     *         "data": [
+     *             {
+     *                 "type": "articles",
+     *                 "id": "art-1"
+     *             }
+     *         ],
+     *         "links": {
+     *             "self": {
+     *                 "href": "https://api.example.com/tags/tag-1/relationships/articles",
+     *                 "describedby": "/docs/openapi.json#/paths/~1tags~1%7Bid%7D~1relationships~1articles/get"
+     *             },
+     *             "related": {
+     *                 "href": "https://api.example.com/tags/tag-1/articles",
+     *                 "describedby": "/docs/openapi.json#/paths/~1tags~1%7Bid%7D~1articles/get"
+     *             },
+     *             "describedby": {
+     *                 "href": "/docs/openapi.json#/paths/~1tags~1%7Bid%7D~1relationships~1articles/get"
+     *             }
+     *         },
+     *         "jsonapi": {
+     *             "version": "1.1"
+     *         }
+     *     }
      */
     public function get(): PaginatedCollection
     {
@@ -355,6 +381,16 @@ final class TagArticlesRelation
      * @throws ValidationFailed     when the linkage fails validation
      * @throws ServerError          when the server fails
      * @throws TransportException   when no response is received at all
+     *
+     * @example Request body:
+     *     {
+     *         "data": [
+     *             {
+     *                 "type": "articles",
+     *                 "id": "art-1"
+     *             }
+     *         ]
+     *     }
      */
     public function add(array $articles): void
     {
@@ -379,6 +415,16 @@ final class TagArticlesRelation
      * @throws ValidationFailed     when the linkage fails validation
      * @throws ServerError          when the server fails
      * @throws TransportException   when no response is received at all
+     *
+     * @example Request body:
+     *     {
+     *         "data": [
+     *             {
+     *                 "type": "articles",
+     *                 "id": "art-1"
+     *             }
+     *         ]
+     *     }
      */
     public function remove(array $articles): void
     {
@@ -403,6 +449,16 @@ final class TagArticlesRelation
      * @throws ValidationFailed     when the linkage fails validation
      * @throws ServerError          when the server fails
      * @throws TransportException   when no response is received at all
+     *
+     * @example Request body:
+     *     {
+     *         "data": [
+     *             {
+     *                 "type": "articles",
+     *                 "id": "art-1"
+     *             }
+     *         ]
+     *     }
      */
     public function replace(array $articles): void
     {
@@ -639,6 +695,55 @@ final class TagHandle
      * @throws ServerError        when the server fails
      * @throws TransportException when no response is received at all
      * @throws MalformedDocument  when the response carries no primary resource
+     *
+     * @example 200 response:
+     *     {
+     *         "data": {
+     *             "type": "tags",
+     *             "id": "tag-1",
+     *             "links": {
+     *                 "self": {
+     *                     "href": "https://api.example.com/tags/tag-1",
+     *                     "describedby": "/docs/openapi.json#/paths/~1tags~1%7Bid%7D/get"
+     *                 }
+     *             },
+     *             "attributes": {
+     *                 "label": "php"
+     *             },
+     *             "relationships": {
+     *                 "articles": {
+     *                     "links": {
+     *                         "self": {
+     *                             "href": "https://api.example.com/tags/tag-1/relationships/articles",
+     *                             "describedby": "/docs/openapi.json#/paths/~1tags~1%7Bid%7D~1relationships~1articles/get"
+     *                         },
+     *                         "related": {
+     *                             "href": "https://api.example.com/tags/tag-1/articles",
+     *                             "describedby": "/docs/openapi.json#/paths/~1tags~1%7Bid%7D~1articles/get"
+     *                         }
+     *                     },
+     *                     "data": [
+     *                         {
+     *                             "type": "articles",
+     *                             "id": "art-1"
+     *                         }
+     *                     ]
+     *                 }
+     *             }
+     *         },
+     *         "links": {
+     *             "self": {
+     *                 "href": "https://api.example.com/tags/tag-1",
+     *                 "describedby": "/docs/openapi.json#/paths/~1tags~1%7Bid%7D/get"
+     *             },
+     *             "describedby": {
+     *                 "href": "/docs/openapi.json#/paths/~1tags~1%7Bid%7D/get"
+     *             }
+     *         },
+     *         "jsonapi": {
+     *             "version": "1.1"
+     *         }
+     *     }
      */
     public function get(callable|TagProjection|null $projection = null): TagBase
     {
@@ -674,6 +779,27 @@ final class TagHandle
      * @throws ServerError          when the server fails
      * @throws TransportException   when no response is received at all
      * @throws MalformedDocument    when the response carries no primary resource
+     *
+     * @example Request body:
+     *     {
+     *         "data": {
+     *             "type": "tags",
+     *             "id": "tag-1",
+     *             "attributes": {
+     *                 "label": "php"
+     *             },
+     *             "relationships": {
+     *                 "articles": {
+     *                     "data": [
+     *                         {
+     *                             "type": "articles",
+     *                             "id": "art-1"
+     *                         }
+     *                     ]
+     *                 }
+     *             }
+     *         }
+     *     }
      */
     public function update(
         TagUpdate|array $input,
@@ -1201,6 +1327,27 @@ final class Tags
      * @throws ValidationFailed     when the document fails validation
      * @throws ServerError          when the server fails
      * @throws TransportException   when no response is received at all
+     *
+     * @example Request body:
+     *     {
+     *         "data": {
+     *             "type": "tags",
+     *             "id": "tag-1",
+     *             "attributes": {
+     *                 "label": "php"
+     *             },
+     *             "relationships": {
+     *                 "articles": {
+     *                     "data": [
+     *                         {
+     *                             "type": "articles",
+     *                             "id": "art-1"
+     *                         }
+     *                     ]
+     *                 }
+     *             }
+     *         }
+     *     }
      */
     public function create(TagCreate|TagCreateBuilder|array $input): Response
     {

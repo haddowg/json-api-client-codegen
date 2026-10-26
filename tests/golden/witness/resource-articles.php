@@ -1254,6 +1254,32 @@ final class ArticleAttachmentsRelation
      * @throws NotAcceptable      when the negotiated media type cannot be satisfied
      * @throws ServerError        when the server fails
      * @throws TransportException when no response is received at all
+     *
+     * @example 200 response:
+     *     {
+     *         "data": [
+     *             {
+     *                 "type": "images",
+     *                 "id": "img-1"
+     *             }
+     *         ],
+     *         "links": {
+     *             "self": {
+     *                 "href": "https://api.example.com/articles/art-1/relationships/attachments",
+     *                 "describedby": "/docs/openapi.json#/paths/~1articles~1%7Bid%7D~1relationships~1attachments/get"
+     *             },
+     *             "related": {
+     *                 "href": "https://api.example.com/articles/art-1/attachments",
+     *                 "describedby": "/docs/openapi.json#/paths/~1articles~1%7Bid%7D~1attachments/get"
+     *             },
+     *             "describedby": {
+     *                 "href": "/docs/openapi.json#/paths/~1articles~1%7Bid%7D~1relationships~1attachments/get"
+     *             }
+     *         },
+     *         "jsonapi": {
+     *             "version": "1.1"
+     *         }
+     *     }
      */
     public function get(): PaginatedCollection
     {
@@ -1274,6 +1300,60 @@ final class ArticleAttachmentsRelation
      * @throws NotAcceptable      when the negotiated media type cannot be satisfied
      * @throws ServerError        when the server fails
      * @throws TransportException when no response is received at all
+     *
+     * @example 200 response:
+     *     {
+     *         "data": [
+     *             {
+     *                 "type": "images",
+     *                 "id": "img-1",
+     *                 "links": {
+     *                     "self": {
+     *                         "href": "https://api.example.com/images/img-1",
+     *                         "describedby": "/docs/openapi.json#/paths/~1images~1%7Bid%7D/get"
+     *                     }
+     *                 },
+     *                 "attributes": {
+     *                     "url": "https://cdn.example.com/cover.png"
+     *                 },
+     *                 "relationships": {
+     *                     "clips": {
+     *                         "links": {
+     *                             "self": {
+     *                                 "href": "https://api.example.com/images/img-1/relationships/clips",
+     *                                 "describedby": "/docs/openapi.json#/paths/~1images~1%7Bid%7D~1relationships~1clips/get"
+     *                             },
+     *                             "related": {
+     *                                 "href": "https://api.example.com/images/img-1/clips",
+     *                                 "describedby": "/docs/openapi.json#/paths/~1images~1%7Bid%7D~1clips/get"
+     *                             }
+     *                         },
+     *                         "data": [
+     *                             {
+     *                                 "type": "videos",
+     *                                 "id": "vid-1"
+     *                             }
+     *                         ]
+     *                     }
+     *                 }
+     *             }
+     *         ],
+     *         "links": {
+     *             "self": {
+     *                 "href": "https://api.example.com/articles/art-1/attachments",
+     *                 "describedby": "/docs/openapi.json#/paths/~1articles~1%7Bid%7D~1attachments/get"
+     *             },
+     *             "describedby": {
+     *                 "href": "/docs/openapi.json#/paths/~1articles~1%7Bid%7D~1attachments/get"
+     *             }
+     *         },
+     *         "meta": {
+     *             "total": 1
+     *         },
+     *         "jsonapi": {
+     *             "version": "1.1"
+     *         }
+     *     }
      */
     public function related(): PaginatedCollection
     {
@@ -1295,6 +1375,16 @@ final class ArticleAttachmentsRelation
      * @throws ValidationFailed     when the linkage fails validation
      * @throws ServerError          when the server fails
      * @throws TransportException   when no response is received at all
+     *
+     * @example Request body:
+     *     {
+     *         "data": [
+     *             {
+     *                 "type": "images",
+     *                 "id": "img-1"
+     *             }
+     *         ]
+     *     }
      */
     public function add(array $attachments): void
     {
@@ -1319,6 +1409,16 @@ final class ArticleAttachmentsRelation
      * @throws ValidationFailed     when the linkage fails validation
      * @throws ServerError          when the server fails
      * @throws TransportException   when no response is received at all
+     *
+     * @example Request body:
+     *     {
+     *         "data": [
+     *             {
+     *                 "type": "images",
+     *                 "id": "img-1"
+     *             }
+     *         ]
+     *     }
      */
     public function remove(array $attachments): void
     {
@@ -1343,6 +1443,16 @@ final class ArticleAttachmentsRelation
      * @throws ValidationFailed     when the linkage fails validation
      * @throws ServerError          when the server fails
      * @throws TransportException   when no response is received at all
+     *
+     * @example Request body:
+     *     {
+     *         "data": [
+     *             {
+     *                 "type": "images",
+     *                 "id": "img-1"
+     *             }
+     *         ]
+     *     }
      */
     public function replace(array $attachments): void
     {
@@ -1435,6 +1545,30 @@ final class ArticleAuthorRelation
      * @throws NotAcceptable      when the negotiated media type cannot be satisfied
      * @throws ServerError        when the server fails
      * @throws TransportException when no response is received at all
+     *
+     * @example 200 response:
+     *     {
+     *         "data": {
+     *             "type": "people",
+     *             "id": "per-1"
+     *         },
+     *         "links": {
+     *             "self": {
+     *                 "href": "https://api.example.com/articles/art-1/relationships/author",
+     *                 "describedby": "/docs/openapi.json#/paths/~1articles~1%7Bid%7D~1relationships~1author/get"
+     *             },
+     *             "related": {
+     *                 "href": "https://api.example.com/articles/art-1/author",
+     *                 "describedby": "/docs/openapi.json#/paths/~1articles~1%7Bid%7D~1author/get"
+     *             },
+     *             "describedby": {
+     *                 "href": "/docs/openapi.json#/paths/~1articles~1%7Bid%7D~1relationships~1author/get"
+     *             }
+     *         },
+     *         "jsonapi": {
+     *             "version": "1.1"
+     *         }
+     *     }
      */
     public function get(): ?Identifier
     {
@@ -1477,6 +1611,14 @@ final class ArticleAuthorRelation
      * @throws ValidationFailed     when the linkage fails validation
      * @throws ServerError          when the server fails
      * @throws TransportException   when no response is received at all
+     *
+     * @example Request body:
+     *     {
+     *         "data": {
+     *             "type": "people",
+     *             "id": "per-1"
+     *         }
+     *     }
      */
     public function set(Identifier|People|null $target): void
     {
@@ -1692,6 +1834,13 @@ final class ArticleCollectionActions
      * @throws ValidationFailed     when the payload fails validation
      * @throws ServerError          when the server fails
      * @throws TransportException   when no response is received at all
+     *
+     * @example 200 response:
+     *     {
+     *         "meta": {
+     *             "published": 12
+     *         }
+     *     }
      */
     public function stats(): array
     {
@@ -1746,6 +1895,14 @@ final class ArticleCoverRelation
      * @throws ValidationFailed     when the linkage fails validation
      * @throws ServerError          when the server fails
      * @throws TransportException   when no response is received at all
+     *
+     * @example Request body:
+     *     {
+     *         "data": {
+     *             "type": "images",
+     *             "id": "img-1"
+     *         }
+     *     }
      */
     public function set(Identifier|Image|null $target): void
     {
@@ -2515,6 +2672,30 @@ final class ArticleEditorRelation
      * @throws NotAcceptable      when the negotiated media type cannot be satisfied
      * @throws ServerError        when the server fails
      * @throws TransportException when no response is received at all
+     *
+     * @example 200 response:
+     *     {
+     *         "data": {
+     *             "type": "people",
+     *             "id": "per-1"
+     *         },
+     *         "links": {
+     *             "self": {
+     *                 "href": "https://api.example.com/articles/art-1/relationships/editor",
+     *                 "describedby": "/docs/openapi.json#/paths/~1articles~1%7Bid%7D~1relationships~1editor/get"
+     *             },
+     *             "related": {
+     *                 "href": "https://api.example.com/articles/art-1/editor",
+     *                 "describedby": "/docs/openapi.json#/paths/~1articles~1%7Bid%7D~1editor/get"
+     *             },
+     *             "describedby": {
+     *                 "href": "/docs/openapi.json#/paths/~1articles~1%7Bid%7D~1relationships~1editor/get"
+     *             }
+     *         },
+     *         "jsonapi": {
+     *             "version": "1.1"
+     *         }
+     *     }
      */
     public function get(): ?Identifier
     {
@@ -2557,6 +2738,14 @@ final class ArticleEditorRelation
      * @throws ValidationFailed     when the linkage fails validation
      * @throws ServerError          when the server fails
      * @throws TransportException   when no response is received at all
+     *
+     * @example Request body:
+     *     {
+     *         "data": {
+     *             "type": "people",
+     *             "id": "per-1"
+     *         }
+     *     }
      */
     public function set(Identifier|People|null $target): void
     {
@@ -2608,6 +2797,14 @@ final class ArticleHandle
      * @throws ServerError        when the server fails
      * @throws TransportException when no response is received at all
      * @throws MalformedDocument  when the response carries no primary resource
+     *
+     * @example 200 response:
+     *     {
+     *         "data": {
+     *             "type": "articles",
+     *             "id": "art-1"
+     *         }
+     *     }
      */
     public function get(callable|ArticleProjection|null $projection = null): ArticleBase
     {
@@ -2679,6 +2876,13 @@ final class ArticleHandle
      * @throws NotAcceptable      when the negotiated media type cannot be satisfied
      * @throws ServerError        when the server fails
      * @throws TransportException when no response is received at all
+     *
+     * @example 200 response:
+     *     {
+     *         "meta": {
+     *             "deleted": true
+     *         }
+     *     }
      */
     public function delete(): void
     {
@@ -2779,6 +2983,32 @@ final class ArticleLockedRelation
      * @throws NotAcceptable      when the negotiated media type cannot be satisfied
      * @throws ServerError        when the server fails
      * @throws TransportException when no response is received at all
+     *
+     * @example 200 response:
+     *     {
+     *         "data": [
+     *             {
+     *                 "type": "people",
+     *                 "id": "per-1"
+     *             }
+     *         ],
+     *         "links": {
+     *             "self": {
+     *                 "href": "https://api.example.com/articles/art-1/relationships/locked",
+     *                 "describedby": "/docs/openapi.json#/paths/~1articles~1%7Bid%7D~1relationships~1locked/get"
+     *             },
+     *             "related": {
+     *                 "href": "https://api.example.com/articles/art-1/locked",
+     *                 "describedby": "/docs/openapi.json#/paths/~1articles~1%7Bid%7D~1locked/get"
+     *             },
+     *             "describedby": {
+     *                 "href": "/docs/openapi.json#/paths/~1articles~1%7Bid%7D~1relationships~1locked/get"
+     *             }
+     *         },
+     *         "jsonapi": {
+     *             "version": "1.1"
+     *         }
+     *     }
      */
     public function get(): PaginatedCollection
     {
@@ -2919,6 +3149,30 @@ final class ArticlePublisherRelation
      * @throws NotAcceptable      when the negotiated media type cannot be satisfied
      * @throws ServerError        when the server fails
      * @throws TransportException when no response is received at all
+     *
+     * @example 200 response:
+     *     {
+     *         "data": {
+     *             "type": "people",
+     *             "id": "per-1"
+     *         },
+     *         "links": {
+     *             "self": {
+     *                 "href": "https://api.example.com/articles/art-1/relationships/published-by",
+     *                 "describedby": "/docs/openapi.json#/paths/~1articles~1%7Bid%7D~1relationships~1published-by/get"
+     *             },
+     *             "related": {
+     *                 "href": "https://api.example.com/articles/art-1/published-by",
+     *                 "describedby": "/docs/openapi.json#/paths/~1articles~1%7Bid%7D~1published-by/get"
+     *             },
+     *             "describedby": {
+     *                 "href": "/docs/openapi.json#/paths/~1articles~1%7Bid%7D~1relationships~1published-by/get"
+     *             }
+     *         },
+     *         "jsonapi": {
+     *             "version": "1.1"
+     *         }
+     *     }
      */
     public function get(): ?Identifier
     {
@@ -2961,6 +3215,14 @@ final class ArticlePublisherRelation
      * @throws ValidationFailed     when the linkage fails validation
      * @throws ServerError          when the server fails
      * @throws TransportException   when no response is received at all
+     *
+     * @example Request body:
+     *     {
+     *         "data": {
+     *             "type": "people",
+     *             "id": "per-1"
+     *         }
+     *     }
      */
     public function set(Identifier|People|null $target): void
     {

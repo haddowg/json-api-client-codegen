@@ -9,6 +9,7 @@ use haddowg\JsonApiCodegen\Descriptor\PaginatorDescriptor;
 use haddowg\JsonApiCodegen\Descriptor\PaginatorKind;
 use haddowg\JsonApiCodegen\Emit\ClassUnit;
 use haddowg\JsonApiCodegen\Emit\Contribution;
+use haddowg\JsonApiCodegen\Emit\ExampleTag;
 use haddowg\JsonApiCodegen\Emit\Naming;
 use haddowg\JsonApiCodegen\Emit\Narrowing;
 use haddowg\JsonApiCodegen\Emit\Php;
@@ -255,7 +256,7 @@ final class ReadSources
 
         $throws = Throws::for($collection->errorStatuses);
         \array_push($imports, ...Throws::imports($throws));
-        $members[] = $this->terminals($throws);
+        $members[] = $this->terminals($throws, ExampleTag::lines($collection->examples));
 
         if ($s->filters !== []) {
             $members[] = $this->guardFilters();
@@ -737,8 +738,9 @@ final class ReadSources
 
     /**
      * @param list<array{string, string}> $throws
+     * @param list<string>                $example the `@example` lines for `get()`
      */
-    private function terminals(array $throws): string
+    private function terminals(array $throws, array $example): string
     {
         $s = $this->surface;
         $paginated = $s->paginator->paginated();
@@ -756,7 +758,7 @@ final class ReadSources
 
         $singular = Naming::singular($this->type);
 
-        return Php::docblock(['Run the read.', '', '@return ' . $collection, '', ...Throws::lines($throws)], 4)
+        return Php::docblock(['Run the read.', '', '@return ' . $collection, '', ...Throws::lines($throws), ...$example], 4)
             . '    public function get(): ' . ($paginated ? 'PaginatedCollection' : 'ResourceCollection') . "\n"
             . "    {\n"
             . "        \$query = \$this->toReadQuery();\n"

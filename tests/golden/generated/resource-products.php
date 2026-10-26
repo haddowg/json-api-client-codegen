@@ -484,6 +484,53 @@ final class ProductHandle
      * @throws ServerError        when the server fails
      * @throws TransportException when no response is received at all
      * @throws MalformedDocument  when the response carries no primary resource
+     *
+     * @example 200 response:
+     *     {
+     *         "data": {
+     *             "type": "products",
+     *             "id": "prod-7b",
+     *             "links": {
+     *                 "self": {
+     *                     "href": "https://music.example/products/prod-7b",
+     *                     "describedby": "/docs.json#/paths/~1products~1%7Bid%7D/get"
+     *                 }
+     *             },
+     *             "attributes": {
+     *                 "name": "Turntable"
+     *             },
+     *             "relationships": {
+     *                 "parent": {
+     *                     "links": {
+     *                         "self": {
+     *                             "href": "https://music.example/products/prod-7b/relationships/parent",
+     *                             "describedby": "/docs.json#/paths/~1products~1%7Bid%7D~1relationships~1parent/get"
+     *                         },
+     *                         "related": {
+     *                             "href": "https://music.example/products/prod-7b/parent",
+     *                             "describedby": "/docs.json#/paths/~1products~1%7Bid%7D~1parent/get"
+     *                         }
+     *                     },
+     *                     "data": {
+     *                         "type": "products",
+     *                         "id": "prod-7b"
+     *                     }
+     *                 }
+     *             }
+     *         },
+     *         "links": {
+     *             "self": {
+     *                 "href": "https://music.example/products/prod-7b",
+     *                 "describedby": "/docs.json#/paths/~1products~1%7Bid%7D/get"
+     *             },
+     *             "describedby": {
+     *                 "href": "/docs.json#/paths/~1products~1%7Bid%7D/get"
+     *             }
+     *         },
+     *         "jsonapi": {
+     *             "version": "1.1"
+     *         }
+     *     }
      */
     public function get(callable|ProductProjection|null $projection = null): ProductBase
     {
@@ -519,6 +566,25 @@ final class ProductHandle
      * @throws ServerError          when the server fails
      * @throws TransportException   when no response is received at all
      * @throws MalformedDocument    when the response carries no primary resource
+     *
+     * @example Request body:
+     *     {
+     *         "data": {
+     *             "type": "products",
+     *             "id": "prod-7b",
+     *             "attributes": {
+     *                 "name": "Turntable"
+     *             },
+     *             "relationships": {
+     *                 "parent": {
+     *                     "data": {
+     *                         "type": "products",
+     *                         "id": "prod-7b"
+     *                     }
+     *                 }
+     *             }
+     *         }
+     *     }
      */
     public function update(
         ProductUpdate|array $input,
@@ -594,6 +660,30 @@ final class ProductParentRelation
      * @throws NotAcceptable      when the negotiated media type cannot be satisfied
      * @throws ServerError        when the server fails
      * @throws TransportException when no response is received at all
+     *
+     * @example 200 response:
+     *     {
+     *         "data": {
+     *             "type": "products",
+     *             "id": "prod-7b"
+     *         },
+     *         "links": {
+     *             "self": {
+     *                 "href": "https://music.example/products/prod-7b/relationships/parent",
+     *                 "describedby": "/docs.json#/paths/~1products~1%7Bid%7D~1relationships~1parent/get"
+     *             },
+     *             "related": {
+     *                 "href": "https://music.example/products/prod-7b/parent",
+     *                 "describedby": "/docs.json#/paths/~1products~1%7Bid%7D~1parent/get"
+     *             },
+     *             "describedby": {
+     *                 "href": "/docs.json#/paths/~1products~1%7Bid%7D~1relationships~1parent/get"
+     *             }
+     *         },
+     *         "jsonapi": {
+     *             "version": "1.1"
+     *         }
+     *     }
      */
     public function get(): ?Identifier
     {
@@ -614,6 +704,53 @@ final class ProductParentRelation
      * @throws NotAcceptable      when the negotiated media type cannot be satisfied
      * @throws ServerError        when the server fails
      * @throws TransportException when no response is received at all
+     *
+     * @example 200 response:
+     *     {
+     *         "data": {
+     *             "type": "products",
+     *             "id": "prod-7b",
+     *             "links": {
+     *                 "self": {
+     *                     "href": "https://music.example/products/prod-7b",
+     *                     "describedby": "/docs.json#/paths/~1products~1%7Bid%7D/get"
+     *                 }
+     *             },
+     *             "attributes": {
+     *                 "name": "Turntable"
+     *             },
+     *             "relationships": {
+     *                 "parent": {
+     *                     "links": {
+     *                         "self": {
+     *                             "href": "https://music.example/products/prod-7b/relationships/parent",
+     *                             "describedby": "/docs.json#/paths/~1products~1%7Bid%7D~1relationships~1parent/get"
+     *                         },
+     *                         "related": {
+     *                             "href": "https://music.example/products/prod-7b/parent",
+     *                             "describedby": "/docs.json#/paths/~1products~1%7Bid%7D~1parent/get"
+     *                         }
+     *                     },
+     *                     "data": {
+     *                         "type": "products",
+     *                         "id": "prod-7b"
+     *                     }
+     *                 }
+     *             }
+     *         },
+     *         "links": {
+     *             "self": {
+     *                 "href": "https://music.example/products/prod-7b/parent",
+     *                 "describedby": "/docs.json#/paths/~1products~1%7Bid%7D~1parent/get"
+     *             },
+     *             "describedby": {
+     *                 "href": "/docs.json#/paths/~1products~1%7Bid%7D~1parent/get"
+     *             }
+     *         },
+     *         "jsonapi": {
+     *             "version": "1.1"
+     *         }
+     *     }
      */
     public function related(): ?Product
     {
@@ -636,6 +773,14 @@ final class ProductParentRelation
      * @throws ValidationFailed     when the linkage fails validation
      * @throws ServerError          when the server fails
      * @throws TransportException   when no response is received at all
+     *
+     * @example Request body:
+     *     {
+     *         "data": {
+     *             "type": "products",
+     *             "id": "prod-7b"
+     *         }
+     *     }
      */
     public function set(Identifier|Product|null $target): void
     {
@@ -985,6 +1130,24 @@ final class Products
      * @throws ServerError          when the server fails
      * @throws TransportException   when no response is received at all
      * @throws MalformedDocument    when the response carries no primary resource
+     *
+     * @example Request body:
+     *     {
+     *         "data": {
+     *             "type": "products",
+     *             "attributes": {
+     *                 "name": "Turntable"
+     *             },
+     *             "relationships": {
+     *                 "parent": {
+     *                     "data": {
+     *                         "type": "products",
+     *                         "id": "prod-7b"
+     *                     }
+     *                 }
+     *             }
+     *         }
+     *     }
      */
     public function create(
         ProductCreate|ProductCreateBuilder|array $input,

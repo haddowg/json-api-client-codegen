@@ -10,6 +10,7 @@ use haddowg\JsonApiCodegen\Descriptor\PivotFieldDescriptor;
 use haddowg\JsonApiCodegen\Descriptor\RelationDescriptor;
 use haddowg\JsonApiCodegen\Descriptor\RelationVerb;
 use haddowg\JsonApiCodegen\Emit\ClassUnit;
+use haddowg\JsonApiCodegen\Emit\ExampleTag;
 use haddowg\JsonApiCodegen\Emit\Naming;
 use haddowg\JsonApiCodegen\Emit\Php;
 use haddowg\JsonApiCodegen\Emit\UnitKind;
@@ -176,6 +177,7 @@ final class RelationSource
             ...Php::wrap('The linkage alone: the identifier of the related resource, or null, without fetching it.', 4),
             '',
             ...Throws::tags($read->errorStatuses, $imports, [...self::READ_REASONS, ...$notFound]),
+            ...ExampleTag::lines($read->examples),
         ], 4, false)
             . '    public function get(): ?' . $identifier . "\n    {\n"
             . "        \$raw = \$this->fetcher\n"
@@ -198,6 +200,7 @@ final class RelationSource
             '@return ' . self::collectionType($imports, 'Identifier', $page),
             '',
             ...Throws::tags($read->errorStatuses, $imports, [...self::READ_REASONS, ...$notFound]),
+            ...ExampleTag::lines($read->examples),
         ], 4, false)
             . '    public function get(): ' . self::collectionClass($imports, $page) . "\n    {\n"
             . "        return \$this->linkage(\n"
@@ -219,6 +222,7 @@ final class RelationSource
             ...Php::wrap('The related resource itself, or null when the relationship is empty.', 4),
             '',
             ...Throws::tags($read->errorStatuses, $imports, [...self::READ_REASONS, ...$notFound]),
+            ...ExampleTag::lines($read->examples),
         ], 4, false)
             . '    public function related(): ' . (\count($classes) === 1 ? '?' . $classes[0] : self::union($classes) . '|null') . "\n    {\n"
             . '        $context = $this->fetcher->read(' . TypeSurface::request('GET', TypeSurface::path($read->path)) . ");\n"
@@ -241,6 +245,7 @@ final class RelationSource
             '@return ' . self::collectionType($imports, self::union($classes), $page),
             '',
             ...Throws::tags($read->errorStatuses, $imports, [...self::READ_REASONS, ...$notFound]),
+            ...ExampleTag::lines($read->examples),
         ], 4, false)
             . '    public function related(): ' . self::collectionClass($imports, $page) . "\n    {\n"
             . '        return $this->resources($this->fetcher->read(' . TypeSurface::request('GET', TypeSurface::path($read->path)) . "));\n"
@@ -281,6 +286,7 @@ final class RelationSource
             '',
             ...($param === null ? [] : [$param, '']),
             ...Throws::tags($operation->errorStatuses, $imports, [...self::WRITE_REASONS, ...$notFound]),
+            ...ExampleTag::lines($operation->examples),
         ], 4, false)
             . '    public function ' . $verb->value . '(' . $signature . "): void\n    {\n"
             . '        $this->fetcher->send(' . TypeSurface::request(

@@ -22,7 +22,8 @@ use PHPUnit\Framework\TestCase;
  * Core's contract witness projects every branch its projector can reach in one document, so it
  * carries shapes no example server does: an integer-backed enum, types whose singular is the type
  * itself, a type the document describes without giving it a single endpoint, from contract 10
- * actions answering in raw media types, and from contract 11 an action accepting several bodies.
+ * actions answering in raw media types, from contract 11 an action accepting several bodies, and
+ * from contract 12 worked examples on most operations.
  *
  * `tests/golden/witness` is its whole generated output, analysed at level 9 by
  * `composer phpstan-generated` beside `tests/GeneratedTypes/RawActionTypes.php`.

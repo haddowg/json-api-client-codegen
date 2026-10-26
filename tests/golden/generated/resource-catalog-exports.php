@@ -366,6 +366,36 @@ final class CatalogExportHandle
      * @throws ServerError        when the server fails
      * @throws TransportException when no response is received at all
      * @throws MalformedDocument  when the response carries no primary resource
+     *
+     * @example 200 response:
+     *     {
+     *         "data": {
+     *             "type": "catalog-exports",
+     *             "id": "1",
+     *             "links": {
+     *                 "self": {
+     *                     "href": "https://music.example/catalog-exports/1",
+     *                     "describedby": "/docs.json#/paths/~1catalog-exports~1%7Bid%7D/get"
+     *                 }
+     *             },
+     *             "attributes": {
+     *                 "format": "csv",
+     *                 "status": "ready"
+     *             }
+     *         },
+     *         "links": {
+     *             "self": {
+     *                 "href": "https://music.example/catalog-exports/1",
+     *                 "describedby": "/docs.json#/paths/~1catalog-exports~1%7Bid%7D/get"
+     *             },
+     *             "describedby": {
+     *                 "href": "/docs.json#/paths/~1catalog-exports~1%7Bid%7D/get"
+     *             }
+     *         },
+     *         "jsonapi": {
+     *             "version": "1.1"
+     *         }
+     *     }
      */
     public function get(callable|CatalogExportProjection|null $projection = null): CatalogExportBase
     {
@@ -498,6 +528,58 @@ final class CatalogExportQuery extends Query
      * @throws NotAcceptable      when the negotiated media type cannot be satisfied
      * @throws ServerError        when the server fails
      * @throws TransportException when no response is received at all
+     *
+     * @example 200 response:
+     *     {
+     *         "data": [
+     *             {
+     *                 "type": "catalog-exports",
+     *                 "id": "1",
+     *                 "links": {
+     *                     "self": {
+     *                         "href": "https://music.example/catalog-exports/1",
+     *                         "describedby": "/docs.json#/paths/~1catalog-exports~1%7Bid%7D/get"
+     *                     }
+     *                 },
+     *                 "attributes": {
+     *                     "format": "csv",
+     *                     "status": "ready"
+     *                 }
+     *             }
+     *         ],
+     *         "links": {
+     *             "self": {
+     *                 "href": "https://music.example/catalog-exports?page%5Bnumber%5D=2&page%5Bsize%5D=15",
+     *                 "describedby": "/docs.json#/paths/~1catalog-exports/get"
+     *             },
+     *             "first": {
+     *                 "href": "https://music.example/catalog-exports?page%5Bnumber%5D=1&page%5Bsize%5D=15",
+     *                 "describedby": "/docs.json#/paths/~1catalog-exports/get"
+     *             },
+     *             "prev": {
+     *                 "href": "https://music.example/catalog-exports?page%5Bnumber%5D=1&page%5Bsize%5D=15",
+     *                 "describedby": "/docs.json#/paths/~1catalog-exports/get"
+     *             },
+     *             "next": {
+     *                 "href": "https://music.example/catalog-exports?page%5Bnumber%5D=3&page%5Bsize%5D=15",
+     *                 "describedby": "/docs.json#/paths/~1catalog-exports/get"
+     *             },
+     *             "describedby": {
+     *                 "href": "/docs.json#/paths/~1catalog-exports/get"
+     *             }
+     *         },
+     *         "meta": {
+     *             "page": {
+     *                 "currentPage": 2,
+     *                 "perPage": 15,
+     *                 "from": 16,
+     *                 "to": 30
+     *             }
+     *         },
+     *         "jsonapi": {
+     *             "version": "1.1"
+     *         }
+     *     }
      */
     public function get(): PaginatedCollection
     {
@@ -614,6 +696,16 @@ final class CatalogExports
      * @throws ValidationFailed     when the document fails validation
      * @throws ServerError          when the server fails
      * @throws TransportException   when no response is received at all
+     *
+     * @example Request body:
+     *     {
+     *         "data": {
+     *             "type": "catalog-exports",
+     *             "attributes": {
+     *                 "format": "csv"
+     *             }
+     *         }
+     *     }
      */
     public function create(CatalogExportCreate|CatalogExportCreateBuilder|array $input): Response
     {

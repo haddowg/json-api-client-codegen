@@ -9,7 +9,8 @@ namespace haddowg\JsonApiCodegen\Descriptor;
  * it declares.
  *
  * The statuses are what every generated method's `@throws` list is built from, so they are read
- * per operation rather than assumed uniform.
+ * per operation rather than assumed uniform. `$examples` holds the worked examples a contract-12
+ * document carries for it, and is null when the operation has none.
  */
 final class OperationDescriptor
 {
@@ -19,5 +20,6 @@ final class OperationDescriptor
         public readonly string $method,
         public readonly array $errorStatuses,
         public readonly ?ProjectionDescriptor $projection,
+        public readonly ?OperationExamples $examples = null,
     ) {}
 }

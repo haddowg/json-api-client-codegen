@@ -1710,7 +1710,7 @@ final class ArticleBlockImage
  * The collection-scoped custom actions of `articles`, reached through the type accessor. Each
  * signature is derived from the action's own request body and response.
  *
- * @generated from `POST /articles/-actions/bulk-import` and `GET /articles/-actions/export` and `POST /articles/-actions/export` and `POST /articles/-actions/import` and `GET /articles/-actions/report` and `GET /articles/-actions/stats`
+ * @generated from `POST /articles/-actions/bulk-import` and `POST /articles/-actions/export` and `GET /articles/-actions/export` and `POST /articles/-actions/import` and `GET /articles/-actions/report` and `GET /articles/-actions/stats`
  */
 final class ArticleCollectionActions
 {
@@ -1759,6 +1759,26 @@ final class ArticleCollectionActions
     }
 
     /**
+     * Export: `POST /articles/-actions/export`. It declares no request body, so it takes no input.
+     *
+     * @return array<string, mixed>
+     *
+     * @throws BadRequest           when the request is malformed
+     * @throws Unauthorized         when credentials are missing or invalid
+     * @throws Forbidden            when the action is not permitted
+     * @throws NotFound             when the endpoint does not exist
+     * @throws NotAcceptable        when the negotiated media type cannot be satisfied
+     * @throws UnsupportedMediaType when the `Content-Type` is refused
+     * @throws ValidationFailed     when the payload fails validation
+     * @throws ServerError          when the server fails
+     * @throws TransportException   when no response is received at all
+     */
+    public function export(): array
+    {
+        return $this->fetcher->meta(Request::post('/articles/-actions/export'));
+    }
+
+    /**
      * Export: `GET /articles/-actions/export`. It declares no request body, so it takes no input.
      *
      * @return array<string, mixed>
@@ -1776,26 +1796,6 @@ final class ArticleCollectionActions
     public function exportGet(): array
     {
         return $this->fetcher->meta(Request::get('/articles/-actions/export'));
-    }
-
-    /**
-     * Export: `POST /articles/-actions/export`. It declares no request body, so it takes no input.
-     *
-     * @return array<string, mixed>
-     *
-     * @throws BadRequest           when the request is malformed
-     * @throws Unauthorized         when credentials are missing or invalid
-     * @throws Forbidden            when the action is not permitted
-     * @throws NotFound             when the endpoint does not exist
-     * @throws NotAcceptable        when the negotiated media type cannot be satisfied
-     * @throws UnsupportedMediaType when the `Content-Type` is refused
-     * @throws ValidationFailed     when the payload fails validation
-     * @throws ServerError          when the server fails
-     * @throws TransportException   when no response is received at all
-     */
-    public function exportPost(): array
-    {
-        return $this->fetcher->meta(Request::post('/articles/-actions/export'));
     }
 
     /**

@@ -22,8 +22,9 @@ namespace haddowg\JsonApiCodegen\Descriptor;
  * contract-12 document, null when it has none; a raw media type keeps its own.
  *
  * From contract 15 an action answering to several methods has one operation, and one
- * descriptor, per method, and `$perMethod` is true on each of them. `$safety` is what the
- * operation's `x-safety` declares, null when it declares nothing.
+ * descriptor, per method. The preferred method keeps the action's name, and each other one goes
+ * under `$alias`. `$safety` is what the operation's `x-safety` declares, null when it declares
+ * nothing.
  */
 final class ActionDescriptor
 {
@@ -51,17 +52,14 @@ final class ActionDescriptor
         public readonly array $responses = [],
         public readonly array $requests = [],
         public readonly ?OperationExamples $examples = null,
-        public readonly bool $perMethod = false,
+        public readonly ?string $alias = null,
         public readonly ?ActionSafety $safety = null,
     ) {}
 
-    /**
-     * The name the action is generated under: its own, or for one of several methods its own
-     * with the method appended, as its operation id does.
-     */
+    /** The name the action is keyed and generated under: its alias when it has one, else its own. */
     public function memberName(): string
     {
-        return $this->perMethod ? $this->name . '.' . \strtolower($this->method) : $this->name;
+        return $this->alias ?? $this->name;
     }
 
     /** Whether the action answers with JSON:API as well as, or instead of, a raw body. */

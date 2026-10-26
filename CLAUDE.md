@@ -108,9 +108,11 @@ type's `links`, and the resource base gets `_declaredLinks()`, which returns a `
 one typed accessor per link: a link object's class carries its static members and a typed `meta`,
 and a bare link reads as its URL (ADR 0012). Contract 15 gives each method of a multi-method action
 its own operation id, stamps an action's declared safety as `x-safety`, and lets an action carry its
-own vendor extensions, each only on a document that uses it. Each method becomes its own action,
-keyed `<path>.<method>` and generated as `exportGet()`, `exportPost()`; a single-method action, and a
-multi-method one in an older document, keeps its name. The declared `readOnly`, `destructive` and
+own vendor extensions, each only on a document that uses it. Each method becomes its own action.
+The preferred one, POST else the first advertised, keeps the action's name and each other one is
+keyed with the method as a suffix, as the TypeScript codegen does: `export` and `exportGet`, or
+`bulk-import-put` for a dashed name, generated as `bulkImportPut()`. Methods sharing one id, as in
+an older document, still give only the preferred one. The declared `readOnly`, `destructive` and
 `idempotent` flags are read into the action's `safety` and stated in its docblock. Vendor extensions
 are not read (ADR 0013).
 Raise `MAXIMUM` only in the change that

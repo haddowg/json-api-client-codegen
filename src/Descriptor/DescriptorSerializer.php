@@ -156,7 +156,6 @@ final class DescriptorSerializer
             'responses' => \array_map(self::rawMedia(...), $action->responses),
             'requests' => \array_map(self::rawMedia(...), $action->requests),
             'examples' => self::examples($action->examples),
-            'perMethod' => $action->perMethod ? true : null,
             'safety' => $action->safety?->declared(),
         ], static fn(mixed $value): bool => $value !== null && $value !== []);
 

@@ -41,20 +41,20 @@ final class ContractFifteenTest extends TestCase
         self::assertNull(ContractCompatibility::check($document->contract()));
     }
 
-    public function testEachMethodOfAMultiMethodActionIsItsOwnAction(): void
+    public function testThePreferredMethodKeepsTheActionNameAndEachOtherMethodIsSuffixed(): void
     {
         $actions = self::resource(self::json())->actions;
 
-        self::assertArrayNotHasKey('export', $actions);
-        self::assertSame('GET', $actions['export.get']->method);
-        self::assertSame('POST', $actions['export.post']->method);
-        foreach (['export.get', 'export.post'] as $key) {
-            self::assertSame('export', $actions[$key]->name);
-            self::assertTrue($actions[$key]->perMethod);
-            self::assertSame($key, $actions[$key]->memberName());
-        }
+        self::assertSame('POST', $actions['export']->method);
+        self::assertNull($actions['export']->alias);
+        self::assertSame('export', $actions['export']->memberName());
 
-        self::assertFalse($actions['stats']->perMethod);
+        self::assertSame('GET', $actions['exportGet']->method);
+        self::assertSame('export', $actions['exportGet']->name);
+        self::assertSame('exportGet', $actions['exportGet']->alias);
+        self::assertSame('exportGet', $actions['exportGet']->memberName());
+
+        self::assertNull($actions['stats']->alias);
         self::assertSame('stats', $actions['stats']->memberName());
     }
 
@@ -63,11 +63,38 @@ final class ContractFifteenTest extends TestCase
         $source = self::generate(self::json())['resource-articles.php'];
 
         self::assertStringContainsString("Export: `GET /articles/-actions/export`. It declares no request body, so it takes no input.\n", $source);
+        self::assertStringContainsString('public function export(): array', $source);
+        self::assertStringContainsString("return \$this->fetcher->meta(Request::post('/articles/-actions/export'));", $source);
         self::assertStringContainsString('public function exportGet(): array', $source);
         self::assertStringContainsString("return \$this->fetcher->meta(Request::get('/articles/-actions/export'));", $source);
-        self::assertStringContainsString('public function exportPost(): array', $source);
-        self::assertStringContainsString("return \$this->fetcher->meta(Request::post('/articles/-actions/export'));", $source);
-        self::assertStringNotContainsString('public function export(', $source);
+        self::assertStringNotContainsString('public function exportPost(', $source);
+    }
+
+    public function testANameJoinedByADashKeepsItsSeparator(): void
+    {
+        $post = self::decoded()['paths']['/articles/-actions/bulk-import']['post'];
+        $put = ['operationId' => 'action.articles.bulk-import.put'] + $post;
+        $json = self::patched(['paths', '/articles/-actions/bulk-import', 'put'], $put);
+        $json = self::patched(['paths', '/articles/-actions/bulk-import', 'post', 'operationId'], 'action.articles.bulk-import.post', $json);
+
+        $actions = self::resource($json)->actions;
+        self::assertSame('POST', $actions['bulk-import']->method);
+        self::assertSame('PUT', $actions['bulk-import-put']->method);
+
+        $source = self::generate($json)['resource-articles.php'];
+        self::assertStringContainsString('public function bulkImport(', $source);
+        self::assertStringContainsString('public function bulkImportPut(', $source);
+    }
+
+    public function testWithoutPostTheFirstAdvertisedMethodKeepsTheName(): void
+    {
+        $get = self::decoded()['paths']['/articles/-actions/stats']['get'];
+        $json = self::patched(['paths', '/articles/-actions/stats', 'delete'], ['operationId' => 'action.articles.stats.delete'] + $get);
+        $json = self::patched(['paths', '/articles/-actions/stats', 'get', 'operationId'], 'action.articles.stats.get', $json);
+
+        $actions = self::resource($json)->actions;
+        self::assertSame('GET', $actions['stats']->method);
+        self::assertSame('DELETE', $actions['statsDelete']->method);
     }
 
     public function testASingleMethodActionKeepsItsName(): void
@@ -99,7 +126,7 @@ final class ContractFifteenTest extends TestCase
     {
         $actions = self::resource(self::json())->actions;
 
-        foreach (['publish', 'stats', 'export.get', 'export.post'] as $key) {
+        foreach (['publish', 'stats', 'export', 'exportGet'] as $key) {
             self::assertNull($actions[$key]->safety, $key);
         }
     }
@@ -111,8 +138,7 @@ final class ContractFifteenTest extends TestCase
         self::assertSame(['readOnly' => true, 'destructive' => false, 'idempotent' => true], $actions['preview']['safety']);
         self::assertSame(['destructive' => true], $actions['purge']['safety']);
         self::assertArrayNotHasKey('safety', $actions['publish']);
-        self::assertTrue($actions['export.get']['perMethod']);
-        self::assertArrayNotHasKey('perMethod', $actions['publish']);
+        self::assertSame('GET', $actions['exportGet']['method']);
     }
 
     public function testTheDocblockStatesTheDeclaredSafety(): void
@@ -139,17 +165,16 @@ final class ContractFifteenTest extends TestCase
         self::resource(self::patched(['paths', '/articles/{id}/-actions/purge', 'post', 'x-safety'], ['destructive' => 'yes']));
     }
 
-    public function testAnOlderDocumentStillGeneratesThePreferredMethodUnderTheActionName(): void
+    public function testMethodsSharingOneIdGiveOnlyThePreferredMethod(): void
     {
         // Before contract 15 every method of an action shared one operation id, and the codegen
-        // generated only POST under the action's own name. A client generated then keeps it.
-        $older = self::patched(['info', 'x-generator', 'contract'], 14);
+        // generated only the preferred method, under the action's own name.
+        $older = self::patched(['paths', '/articles/-actions/export', 'get', 'operationId'], 'action.articles.export');
+        $older = self::patched(['paths', '/articles/-actions/export', 'post', 'operationId'], 'action.articles.export', $older);
 
         $actions = self::resource($older)->actions;
-        self::assertArrayNotHasKey('export.get', $actions);
+        self::assertArrayNotHasKey('exportGet', $actions);
         self::assertSame('POST', $actions['export']->method);
-        self::assertFalse($actions['export']->perMethod);
-        self::assertArrayNotHasKey('perMethod', self::serialised($older)['export']);
 
         $source = self::generate($older)['resource-articles.php'];
         self::assertStringContainsString('public function export(): array', $source);
@@ -162,6 +187,7 @@ final class ContractFifteenTest extends TestCase
         $on84 = self::generate(self::json())['resource-articles.php'];
 
         self::assertSame(self::method($on84, 'exportGet'), self::method($on83, 'exportGet'));
+        self::assertSame(self::method($on84, 'export'), self::method($on83, 'export'));
         self::assertSame(self::method($on84, 'preview'), self::method($on83, 'preview'));
     }
 
@@ -216,9 +242,9 @@ final class ContractFifteenTest extends TestCase
      *
      * @param list<string> $keys
      */
-    private static function patched(array $keys, mixed $value): string
+    private static function patched(array $keys, mixed $value, ?string $json = null): string
     {
-        $document = \json_decode(self::json(), true, flags: \JSON_THROW_ON_ERROR);
+        $document = \json_decode($json ?? self::json(), true, flags: \JSON_THROW_ON_ERROR);
         self::assertIsArray($document);
         $node = &$document;
         foreach ($keys as $key) {
@@ -229,6 +255,16 @@ final class ContractFifteenTest extends TestCase
         unset($node);
 
         return \json_encode($document, \JSON_THROW_ON_ERROR | \JSON_UNESCAPED_SLASHES);
+    }
+
+    /** @return array<string, array<string, array<string, array<string, mixed>>>> */
+    private static function decoded(): array
+    {
+        $document = \json_decode(self::json(), true, flags: \JSON_THROW_ON_ERROR);
+        self::assertIsArray($document);
+
+        /** @var array<string, array<string, array<string, array<string, mixed>>>> $document */
+        return $document;
     }
 
     private static function json(): string

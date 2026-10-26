@@ -81,10 +81,11 @@ namespace haddowg\JsonApiCodegen\Spec;
  * Contract 15 gives each method of an action answering to several its own operation id, puts
  * what an action declares about its safety on its operation as `x-safety`, and lets an action
  * carry its own vendor extensions. Each is stamped only on a document that uses it. Each method
- * of such an action is its own descriptor and its own generated method, named after the action
- * with the method appended, and the declared flags are read into the action's `safety` and
- * stated in its docblock. A vendor extension describes nothing a client is generated from, so it
- * is not read, as on any other operation. A single-method action keeps the name it had.
+ * of such an action is its own descriptor and its own generated method. The preferred method
+ * keeps the action's name and each other one takes the method as a suffix, so no existing
+ * method is renamed. The declared flags are read into the action's `safety` and stated in its
+ * docblock. A vendor extension describes nothing a client is generated from, so it is not read,
+ * as on any other operation.
  */
 final class ContractCompatibility
 {

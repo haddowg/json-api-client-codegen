@@ -1618,26 +1618,32 @@ final class DescriptorBuilder
                 continue;
             }
 
-            // From contract 15 each method of an action is its own operation with its own id.
-            // Before it every method shared one id, and only the preferred one was generated.
-            $methods = \array_values(\array_filter(self::ACTION_METHODS, static fn(string $method): bool => $item->find($method) !== null));
-            if (\count($methods) > 1 && ($this->document->contract() ?? 0) >= 15) {
-                foreach ($methods as $method) {
-                    $action = $this->action($name, $scope, $path, $item, $method, true);
-                    $out[$action->memberName()] = $action;
+            // The preferred method keeps the action's name, so a client generated before contract
+            // 15 keeps compiling. From contract 15 every other method has its own operation id and
+            // its own action; before it every method shared one id and only the preferred was read.
+            $preferred = $this->actionMethod($item, $path);
+            $preferredId = $item->get($preferred)->find('operationId')?->raw();
+            $out[$name] = $this->action($name, $scope, $path, $item, $preferred);
+            foreach (self::ACTION_METHODS as $method) {
+                $operation = $item->find($method);
+                if ($method === $preferred || $operation === null || $operation->find('operationId')?->raw() === $preferredId) {
+                    continue;
                 }
+                $alias = self::methodActionName($name, $method);
+                if (isset($out[$alias])) {
+                    $this->warn(\sprintf('The %s operation of the "%s" action at %s would be named "%s", which another action already is; it is not generated.', \strtoupper($method), $name, $path, $alias));
 
-                continue;
+                    continue;
+                }
+                $out[$alias] = $this->action($name, $scope, $path, $item, $method, $alias);
             }
-
-            $out[$name] = $this->action($name, $scope, $path, $item, $this->actionMethod($item, $path));
         }
         \ksort($out, \SORT_STRING);
 
         return $out;
     }
 
-    private function action(string $name, ActionScope $scope, string $path, Node $item, string $method, bool $perMethod = false): ActionDescriptor
+    private function action(string $name, ActionScope $scope, string $path, Node $item, string $method, ?string $alias = null): ActionDescriptor
     {
         $operation = $item->get($method);
 
@@ -1728,7 +1734,7 @@ final class DescriptorBuilder
             \array_values($responses),
             $requests,
             $this->examples($operation),
-            $perMethod,
+            $alias,
             $this->safety($operation),
         );
     }
@@ -1812,7 +1818,18 @@ final class DescriptorBuilder
         );
     }
 
-    /** POST where it is advertised, else the one method that is. */
+    /**
+     * The name a multi-method action's other methods go under: the action's name and the method,
+     * joined the way the name joins its words, so `export` gives `exportGet` and `bulk-import`
+     * gives `bulk-import-get`. Core refuses action ids that differ only in case or punctuation, so
+     * it can't be another action's name.
+     */
+    private static function methodActionName(string $name, string $method): string
+    {
+        return \preg_match('/[-_.]/', $name, $separator) === 1 ? $name . $separator[0] . $method : $name . \ucfirst($method);
+    }
+
+    /** POST where it is advertised, else the first method that is. */
     private function actionMethod(Node $item, string $path): string
     {
         foreach (self::ACTION_METHODS as $method) {

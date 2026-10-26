@@ -383,8 +383,7 @@ final class ActionSource
         foreach ($action->requests as $media) {
             [$doc, $native] = match ($media->kind) {
                 RawMediaKind::Json => self::jsonBodyType($media),
-                RawMediaKind::Text => ['string', 'string'],
-                RawMediaKind::Binary => [$stream . '|string', $stream . '|string'],
+                RawMediaKind::Text, RawMediaKind::Binary => [$stream . '|string', $stream . '|string'],
                 RawMediaKind::Multipart, RawMediaKind::Form => [self::formFields($media, $imports), 'array'],
             };
             if ($media->wildcard()) {
@@ -409,8 +408,7 @@ final class ActionSource
         foreach ($action->requests as $media) {
             foreach (\explode('|', match ($media->kind) {
                 RawMediaKind::Json => self::jsonBodyType($media)[1],
-                RawMediaKind::Text => 'string',
-                RawMediaKind::Binary => $stream . '|string',
+                RawMediaKind::Text, RawMediaKind::Binary => $stream . '|string',
                 RawMediaKind::Multipart, RawMediaKind::Form => 'array',
             }) as $native) {
                 $natives[$native] = true;

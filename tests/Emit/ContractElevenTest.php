@@ -69,7 +69,7 @@ final class ContractElevenTest extends TestCase
         ]);
 
         $source = self::generate($json)['resource-articles.php'];
-        self::assertStringContainsString("(TContentType is 'application/x-www-form-urlencoded' ? array<string, string|int|float|bool> : string) \$body", $source);
+        self::assertStringContainsString("(TContentType is 'application/x-www-form-urlencoded' ? array<string, string|int|float|bool> : StreamInterface|string) \$body", $source);
         self::assertStringContainsString("\$contentType === 'application/x-www-form-urlencoded' && \\is_array(\$body) => \$request->withFormBody(FormEncoding::formFields(\$body)),", $source);
         self::assertStringNotContainsString('$body === null => $request,', $source);
     }
@@ -169,7 +169,27 @@ final class ContractElevenTest extends TestCase
         ]);
 
         $source = self::generate($json)['resource-articles.php'];
-        self::assertStringContainsString("(TContentType is 'application/x-www-form-urlencoded' ? array{q: string, blob?: string, any?: string|int|float|bool} : string) \$body", $source);
+        self::assertStringContainsString("(TContentType is 'application/x-www-form-urlencoded' ? array{q: string, blob?: string, any?: string|int|float|bool} : StreamInterface|string) \$body", $source);
+    }
+
+    public function testATextBodyTakesAStreamAndAnyJsonIsMixed(): void
+    {
+        $json = self::patched([
+            'content' => [
+                'text/csv' => ['schema' => ['type' => 'string']],
+                'application/json' => ['schema' => new \stdClass()],
+            ],
+            'required' => true,
+        ]);
+
+        self::assertSame(
+            [['text/csv', RawMediaKind::Text], ['application/json', RawMediaKind::Json]],
+            \array_map(static fn(RawMediaDescriptor $media): array => [$media->mediaType, $media->kind], self::action($json, 'bulk-import')->requests),
+        );
+
+        $source = self::generate($json)['resource-articles.php'];
+        self::assertStringContainsString("(TContentType is 'text/csv' ? StreamInterface|string : mixed) \$body", $source);
+        self::assertStringContainsString('mixed $body', $source);
     }
 
     private static function action(string $json, string $name): ActionDescriptor

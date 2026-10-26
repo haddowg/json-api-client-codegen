@@ -1582,8 +1582,8 @@ final class ArticleCollectionActions
      *
      * @template TContentType of 'text/csv'|'multipart/form-data'|'application/json'|'application/x-www-form-urlencoded'|non-empty-string
      *
-     * @param TContentType                                                                                                                                                                                                                                                                                                                                                                               $contentType
-     * @param (TContentType is 'text/csv' ? string : (TContentType is 'multipart/form-data' ? array{title: string, cover?: FilePart, tags?: list<string>, rows?: int, status?: 'draft'|'published'} : (TContentType is 'application/json' ? list<array{title: string}> : (TContentType is 'application/x-www-form-urlencoded' ? array{title: string, ...<string, int>} : StreamInterface|string))))|null $body
+     * @param TContentType                                                                                                                                                                                                                                                                                                                                                                                               $contentType
+     * @param (TContentType is 'text/csv' ? StreamInterface|string : (TContentType is 'multipart/form-data' ? array{title: string, cover?: FilePart, tags?: list<string>, rows?: int, status?: 'draft'|'published'} : (TContentType is 'application/json' ? list<array{title: string}> : (TContentType is 'application/x-www-form-urlencoded' ? array{title: string, ...<string, int>} : StreamInterface|string))))|null $body
      *
      * @throws BadRequest           when the request is malformed
      * @throws Unauthorized         when credentials are missing or invalid

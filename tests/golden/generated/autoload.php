@@ -7,7 +7,7 @@ declare(strict_types=1);
  * so this map is how each one is found. Register it once through composer.json's
  * `autoload.files`; regenerating rewrites it, so a new type never needs a `dump-autoload`.
  *
- * @generated from an OpenAPI document with sha256 85c81464e49ede4d78966fb733defb8805e5c4600d41a0a5267794f83373ec4c
+ * @generated from an OpenAPI document with sha256 37089ee43e7d5d58873c9bcf344764fac17ec905bdfa538009e4c2d71d3bb493
  */
 
 \spl_autoload_register(static function (string $class): void {
@@ -16,6 +16,7 @@ declare(strict_types=1);
         'haddowg\\JsonApiClient\\Tests\\Generated\\MusicCatalog\\AlbumActions' => 'resource-albums.php',
         'haddowg\\JsonApiClient\\Tests\\Generated\\MusicCatalog\\AlbumArtistRelation' => 'resource-albums.php',
         'haddowg\\JsonApiClient\\Tests\\Generated\\MusicCatalog\\AlbumBase' => 'resource-albums.php',
+        'haddowg\\JsonApiClient\\Tests\\Generated\\MusicCatalog\\AlbumCatalogueStats' => 'resource-albums.php',
         'haddowg\\JsonApiClient\\Tests\\Generated\\MusicCatalog\\AlbumCollectionActions' => 'resource-albums.php',
         'haddowg\\JsonApiClient\\Tests\\Generated\\MusicCatalog\\AlbumCreate' => 'resource-albums.php',
         'haddowg\\JsonApiClient\\Tests\\Generated\\MusicCatalog\\AlbumCreateBuilder' => 'resource-albums.php',

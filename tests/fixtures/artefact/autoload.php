@@ -16,6 +16,7 @@ declare(strict_types=1);
         'haddowg\\JsonApiClient\\Tests\\Generated\\MusicCatalog\\AlbumActions' => 'resource-albums.php',
         'haddowg\\JsonApiClient\\Tests\\Generated\\MusicCatalog\\AlbumArtistRelation' => 'resource-albums.php',
         'haddowg\\JsonApiClient\\Tests\\Generated\\MusicCatalog\\AlbumBase' => 'resource-albums.php',
+        'haddowg\\JsonApiClient\\Tests\\Generated\\MusicCatalog\\AlbumCatalogueStats' => 'resource-albums.php',
         'haddowg\\JsonApiClient\\Tests\\Generated\\MusicCatalog\\AlbumCollectionActions' => 'resource-albums.php',
         'haddowg\\JsonApiClient\\Tests\\Generated\\MusicCatalog\\AlbumCreate' => 'resource-albums.php',
         'haddowg\\JsonApiClient\\Tests\\Generated\\MusicCatalog\\AlbumCreateBuilder' => 'resource-albums.php',

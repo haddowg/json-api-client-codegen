@@ -24,6 +24,8 @@ use haddowg\JsonApiClient\Exceptions\UnknownFilterException;
 use haddowg\JsonApiClient\Exceptions\UnknownSortException;
 use haddowg\JsonApiClient\Exceptions\UnsupportedMediaType;
 use haddowg\JsonApiClient\Exceptions\ValidationFailed;
+use haddowg\JsonApiClient\Http\FilePart;
+use haddowg\JsonApiClient\Http\FormEncoding;
 use haddowg\JsonApiClient\Http\Request;
 use haddowg\JsonApiClient\Pagination\PageLinks;
 use haddowg\JsonApiClient\Pagination\PageNumber;
@@ -648,9 +650,10 @@ final class Album extends AlbumBase implements AlbumHasArtist, AlbumHasTracks
  *
  * Each signature is derived from the action's own declaration, and these two are deliberately
  * different in kind. `reissue` declares `AlbumsCreateRequest` as its body and `AlbumsDocument`
- * as its response, so it takes the three write forms and returns a resource. `artwork` declares
- * `application/octet-stream` and a `204`, so it takes a raw body and returns nothing — and it
- * takes a *nullable* one, because its request body is `required: false`.
+ * as its response, so it takes the three write forms and returns a resource. `artwork` accepts
+ * a multipart form or any image and answers `204`, so it takes the media type to send and a body
+ * typed by it, and returns nothing. The body is nullable because its request body is
+ * `required: false`.
  *
  * @phpstan-import-type AlbumCreateShape from Album
  *
@@ -664,28 +667,44 @@ final class AlbumActions
     ) {}
 
     /**
-     * Upload artwork.
+     * Artwork: `POST /albums/{id}/-actions/artwork`. The body goes over the wire as form fields for
+     * a form media type, JSON-encoded for a JSON one and verbatim otherwise, as `$contentType`,
+     * which is one of `multipart/form-data` or `image/*`. The body is optional, so it may be left
+     * out.
      *
-     * The action relaxes content-type negotiation and owns the body shape, so the body goes over
-     * the wire verbatim under `application/octet-stream` while the response is still negotiated
-     * as JSON:API.
+     * @template TContentType of 'multipart/form-data'|non-empty-string
      *
-     * @throws BadRequest         when the request is malformed
-     * @throws Unauthorized       when credentials are missing or invalid
-     * @throws Forbidden          when the action is not permitted
-     * @throws NotFound           when no album has this id
-     * @throws NotAcceptable      when the negotiated media type cannot be satisfied
-     * @throws ValidationFailed   when the payload fails validation
-     * @throws ServerError        when the server fails
-     * @throws TransportException when no response is received at all
+     * @param TContentType                                                                                                          $contentType
+     * @param (TContentType is 'multipart/form-data' ? array<string, string|int|float|bool|FilePart> : StreamInterface|string)|null $body
+     *
+     * @throws BadRequest           when the request is malformed
+     * @throws Unauthorized         when credentials are missing or invalid
+     * @throws Forbidden            when the action is not permitted
+     * @throws NotFound             when no album has this id
+     * @throws NotAcceptable        when the negotiated media type cannot be satisfied
+     * @throws UnsupportedMediaType when the `Content-Type` is refused
+     * @throws ValidationFailed     when the payload fails validation
+     * @throws ServerError          when the server fails
+     * @throws TransportException   when no response is received at all
      */
-    public function artwork(StreamInterface|string|null $body = null): void
-    {
+    public function artwork(
+        string $contentType,
+        StreamInterface|string|array|null $body = null,
+    ): void {
+        if (!\in_array($contentType, ['multipart/form-data'], true) && !\str_starts_with($contentType, 'image/')) {
+            throw new \InvalidArgumentException(\sprintf('The "artwork" action takes its body as one of multipart/form-data, image/*, not %s.', $contentType));
+        }
+
         $request = Request::post('/albums/' . $this->id . '/-actions/artwork');
 
-        $this->fetcher->send(
-            $body === null ? $request : $request->withRawBody($body, 'application/octet-stream'),
-        );
+        $request = match (true) {
+            $body === null => $request,
+            $contentType === 'multipart/form-data' && \is_array($body) => $request->withMultipartBody(FormEncoding::multipartFields($body)),
+            $body instanceof StreamInterface, \is_string($body) => $request->withRawBody($body, $contentType),
+            default => throw new \InvalidArgumentException(\sprintf('The "artwork" action cannot send this body as %s.', $contentType)),
+        };
+
+        $this->fetcher->send($request);
     }
 
     /**
@@ -819,24 +838,153 @@ final class AlbumArtistRelation
 }
 
 /**
- * The collection-scoped custom actions of `albums`.
+ * A raw JSON response body, narrowed member by member: an optional member of the wrong type is
+ * dropped rather than trusted, and a required one throws.
  *
- * Scope follows the path: `/albums/-actions/summary` carries no `{id}`, so it hangs off the type
- * accessor and not off a handle.
+ * @generated from `components.schemas.AlbumCatalogueStats`
+ */
+final class AlbumCatalogueStats
+{
+    /**
+     * @param int<0, max> $published
+     * @param int<0, max> $unpublished
+     */
+    public function __construct(
+        public readonly int $published,
+        public readonly int $unpublished,
+    ) {}
+
+    /**
+     * @param array<string, mixed> $raw
+     */
+    public static function _from(array $raw): self
+    {
+        $published = $raw['published'] ?? null;
+        $unpublished = $raw['unpublished'] ?? null;
+
+        $publishedValue = null;
+        if (!\is_int($published)) {
+            throw MalformedDocument::unexpectedMember('The AlbumCatalogueStats body', 'published', 'an integer');
+        }
+
+        /** @var int<0, max> $published */
+        $publishedValue = $published;
+
+        $unpublishedValue = null;
+        if (!\is_int($unpublished)) {
+            throw MalformedDocument::unexpectedMember('The AlbumCatalogueStats body', 'unpublished', 'an integer');
+        }
+
+        /** @var int<0, max> $unpublished */
+        $unpublishedValue = $unpublished;
+
+        return new self($publishedValue, $unpublishedValue);
+    }
+}
+
+/**
+ * The collection-scoped custom actions of `albums`, reached through the type accessor. Each
+ * signature is derived from the action's own request body and response.
  *
- * @generated from `POST /albums/-actions/summary`
+ * @generated from `GET /albums/-actions/export` and `POST /albums/-actions/import` and `POST /albums/-actions/summary`
  */
 final class AlbumCollectionActions
 {
     public function __construct(private readonly Fetcher $fetcher) {}
 
     /**
-     * Summarise the catalogue.
+     * Export the album catalogue: `GET /albums/-actions/export`. It declares no request body, so it
+     * takes no input.
      *
-     * No parameters, because the action declares no request body. The return is
-     * `array<string, mixed>` and not a DTO, because the action responds with `MetaDocument`,
-     * whose `meta` is the generic free-form `Meta` schema — there is no payload shape in the
-     * document to generate one from.
+     * Exports every album in the format the Accept header asks for: a JSON:API meta document with
+     * counts, a CSV of ids and titles, a PDF report, or the counts as plain JSON.
+     *
+     * It answers with JSON:API unless `$accept` asks for `text/csv`, `application/pdf` or
+     * `application/json` instead. An error is always a JSON:API document.
+     *
+     * @param 'application/vnd.api+json'|'text/csv'|'application/pdf'|'application/json' $accept the media type to ask for; JSON:API unless another is named
+     *
+     * @return ($accept is 'text/csv' ? string : ($accept is 'application/pdf' ? StreamInterface : ($accept is 'application/json' ? AlbumCatalogueStats : array<string, mixed>)))
+     *
+     * @throws BadRequest           when the request is malformed
+     * @throws Unauthorized         when credentials are missing or invalid
+     * @throws Forbidden            when the action is not permitted
+     * @throws NotFound             when the endpoint does not exist
+     * @throws NotAcceptable        when the negotiated media type cannot be satisfied
+     * @throws UnsupportedMediaType when the `Content-Type` is refused
+     * @throws ValidationFailed     when the payload fails validation
+     * @throws ServerError          when the server fails
+     * @throws TransportException   when no response is received at all
+     * @throws MalformedDocument    when a JSON body is not what its schema says
+     */
+    public function export(string $accept = 'application/vnd.api+json'): array|string|StreamInterface|AlbumCatalogueStats
+    {
+        $request = Request::get('/albums/-actions/export');
+
+        if ($accept === 'text/csv') {
+            return $this->fetcher->text($request->withAccept('text/csv'));
+        }
+
+        if ($accept === 'application/pdf') {
+            return $this->fetcher->stream($request->withAccept('application/pdf'));
+        }
+
+        if ($accept === 'application/json') {
+            return AlbumCatalogueStats::_from($this->fetcher->jsonObject($request->withAccept('application/json')));
+        }
+
+        return $this->fetcher->meta($request);
+    }
+
+    /**
+     * Import albums from a file: `POST /albums/-actions/import`. The body goes over the wire as
+     * form fields for a form media type, JSON-encoded for a JSON one and verbatim otherwise, as
+     * `$contentType`, which is one of `text/csv`, `image/*`, `multipart/form-data` or
+     * `application/json`. The body is optional, so it may be left out.
+     *
+     * Creates albums from a CSV export, a scanned sleeve image, a multipart form upload or a JSON
+     * list of rows. The response reports the media type the server read.
+     *
+     * @template TContentType of 'text/csv'|'multipart/form-data'|'application/json'|non-empty-string
+     *
+     * @param TContentType                                                                                                                                                                                                                                                           $contentType
+     * @param (TContentType is 'text/csv' ? StreamInterface|string : (TContentType is 'multipart/form-data' ? array<string, string|int|float|bool|FilePart> : (TContentType is 'application/json' ? list<array{title: string, releasedOn?: string}> : StreamInterface|string)))|null $body
+     *
+     * @return array<string, mixed>
+     *
+     * @throws BadRequest           when the request is malformed
+     * @throws Unauthorized         when credentials are missing or invalid
+     * @throws Forbidden            when the action is not permitted
+     * @throws NotFound             when the endpoint does not exist
+     * @throws NotAcceptable        when the negotiated media type cannot be satisfied
+     * @throws UnsupportedMediaType when the `Content-Type` is refused
+     * @throws ValidationFailed     when the payload fails validation
+     * @throws ServerError          when the server fails
+     * @throws TransportException   when no response is received at all
+     */
+    public function import(
+        string $contentType,
+        StreamInterface|string|array|null $body = null,
+    ): array {
+        if (!\in_array($contentType, ['text/csv', 'multipart/form-data', 'application/json'], true) && !\str_starts_with($contentType, 'image/')) {
+            throw new \InvalidArgumentException(\sprintf('The "import" action takes its body as one of text/csv, image/*, multipart/form-data, application/json, not %s.', $contentType));
+        }
+
+        $request = Request::post('/albums/-actions/import');
+
+        $request = match (true) {
+            $body === null => $request,
+            $contentType === 'multipart/form-data' && \is_array($body) => $request->withMultipartBody(FormEncoding::multipartFields($body)),
+            $contentType === 'application/json' => $request->withRawBody(\json_encode($body, \JSON_THROW_ON_ERROR), $contentType),
+            $body instanceof StreamInterface, \is_string($body) => $request->withRawBody($body, $contentType),
+            default => throw new \InvalidArgumentException(\sprintf('The "import" action cannot send this body as %s.', $contentType)),
+        };
+
+        return $this->fetcher->meta($request);
+    }
+
+    /**
+     * Summary: `POST /albums/-actions/summary`. It declares no request body, so it takes no input.
      *
      * @return array<string, mixed>
      *

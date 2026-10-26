@@ -21,7 +21,7 @@ final class ContractCompatibilityTest extends TestCase
 
     public function testTheMusicCatalogContractIsOneThisCodegenReads(): void
     {
-        self::assertSame(9, Fixtures::musicCatalog()->contract());
+        self::assertSame(11, Fixtures::musicCatalog()->contract());
         self::assertNull(ContractCompatibility::check(Fixtures::musicCatalog()->contract()));
     }
 

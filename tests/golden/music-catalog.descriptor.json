@@ -1,5 +1,5 @@
 {
-    "contract": 9,
+    "contract": 11,
     "atomic": {
         "path": "/operations",
         "mediaType": "application/vnd.api+json; ext=\"https://jsonapi.org/ext/atomic\""
@@ -225,7 +225,7 @@
             "schema": "MediaTypeUnsupportedError",
             "title": "The provided media type is unsupported",
             "source": "parameter",
-            "description": "The `Content-Type` is `application/vnd.api+json` with a media type parameter other than `ext` or `profile`, or with an `ext` the server does not support. Send `Content-Type: application/vnd.api+json` with only the parameters the server supports.",
+            "description": "The `Content-Type` is missing or names a media type the endpoint does not accept, or is `application/vnd.api+json` with a media type parameter other than `ext` or `profile`, or with an `ext` the server does not support. Send a JSON:API document as `Content-Type: application/vnd.api+json` with only the parameters the server supports.",
             "exampleDetail": "The media type 'application/vnd.api+json; charset=utf-8' is unsupported in the 'Content-Type' header!"
         },
         "NO_RESOURCE_REGISTERED": {
@@ -1610,7 +1610,7 @@
                     "method": "POST",
                     "input": "raw",
                     "inputType": null,
-                    "contentType": "application/octet-stream",
+                    "contentType": "multipart/form-data",
                     "bodyRequired": false,
                     "output": "none",
                     "outputType": null,
@@ -1621,10 +1621,241 @@
                         403,
                         404,
                         406,
+                        415,
                         422,
                         500
                     ],
-                    "projection": null
+                    "projection": null,
+                    "requests": [
+                        {
+                            "mediaType": "multipart/form-data",
+                            "kind": "multipart",
+                            "component": null,
+                            "schema": null
+                        },
+                        {
+                            "mediaType": "image/*",
+                            "kind": "binary",
+                            "component": null,
+                            "schema": null
+                        }
+                    ]
+                },
+                "export": {
+                    "scope": "collection",
+                    "path": "/albums/-actions/export",
+                    "method": "GET",
+                    "input": "none",
+                    "inputType": null,
+                    "contentType": null,
+                    "bodyRequired": true,
+                    "output": "meta",
+                    "outputType": null,
+                    "outputCardinality": null,
+                    "errorStatuses": [
+                        400,
+                        401,
+                        403,
+                        404,
+                        406,
+                        415,
+                        422,
+                        500
+                    ],
+                    "projection": null,
+                    "summary": "Export the album catalogue",
+                    "description": "Exports every album in the format the Accept header asks for: a JSON:API meta document with counts, a CSV of ids and titles, a PDF report, or the counts as plain JSON.",
+                    "responses": [
+                        {
+                            "mediaType": "text/csv",
+                            "kind": "text",
+                            "component": null,
+                            "schema": null
+                        },
+                        {
+                            "mediaType": "application/pdf",
+                            "kind": "binary",
+                            "component": null,
+                            "schema": null
+                        },
+                        {
+                            "mediaType": "application/json",
+                            "kind": "json",
+                            "component": "AlbumCatalogueStats",
+                            "schema": {
+                                "types": [
+                                    "object"
+                                ],
+                                "format": null,
+                                "enum": [],
+                                "required": [
+                                    "published",
+                                    "unpublished"
+                                ],
+                                "properties": {
+                                    "published": {
+                                        "types": [
+                                            "integer"
+                                        ],
+                                        "format": null,
+                                        "enum": [],
+                                        "required": [],
+                                        "properties": [],
+                                        "items": null,
+                                        "discriminator": null,
+                                        "const": null,
+                                        "oneOf": [],
+                                        "anyOf": [],
+                                        "allOf": [],
+                                        "constraints": {
+                                            "minimum": 0
+                                        }
+                                    },
+                                    "unpublished": {
+                                        "types": [
+                                            "integer"
+                                        ],
+                                        "format": null,
+                                        "enum": [],
+                                        "required": [],
+                                        "properties": [],
+                                        "items": null,
+                                        "discriminator": null,
+                                        "const": null,
+                                        "oneOf": [],
+                                        "anyOf": [],
+                                        "allOf": [],
+                                        "constraints": {
+                                            "minimum": 0
+                                        }
+                                    }
+                                },
+                                "items": null,
+                                "discriminator": null,
+                                "const": null,
+                                "oneOf": [],
+                                "anyOf": [],
+                                "allOf": [],
+                                "constraints": {}
+                            }
+                        }
+                    ]
+                },
+                "import": {
+                    "scope": "collection",
+                    "path": "/albums/-actions/import",
+                    "method": "POST",
+                    "input": "raw",
+                    "inputType": null,
+                    "contentType": "text/csv",
+                    "bodyRequired": false,
+                    "output": "meta",
+                    "outputType": null,
+                    "outputCardinality": null,
+                    "errorStatuses": [
+                        400,
+                        401,
+                        403,
+                        404,
+                        406,
+                        415,
+                        422,
+                        500
+                    ],
+                    "projection": null,
+                    "summary": "Import albums from a file",
+                    "description": "Creates albums from a CSV export, a scanned sleeve image, a multipart form upload or a JSON list of rows. The response reports the media type the server read.",
+                    "requests": [
+                        {
+                            "mediaType": "text/csv",
+                            "kind": "binary",
+                            "component": null,
+                            "schema": null
+                        },
+                        {
+                            "mediaType": "image/*",
+                            "kind": "binary",
+                            "component": null,
+                            "schema": null
+                        },
+                        {
+                            "mediaType": "multipart/form-data",
+                            "kind": "multipart",
+                            "component": null,
+                            "schema": null
+                        },
+                        {
+                            "mediaType": "application/json",
+                            "kind": "json",
+                            "component": "AlbumImportRows",
+                            "schema": {
+                                "types": [
+                                    "array"
+                                ],
+                                "format": null,
+                                "enum": [],
+                                "required": [],
+                                "properties": [],
+                                "items": {
+                                    "types": [
+                                        "object"
+                                    ],
+                                    "format": null,
+                                    "enum": [],
+                                    "required": [
+                                        "title"
+                                    ],
+                                    "properties": {
+                                        "title": {
+                                            "types": [
+                                                "string"
+                                            ],
+                                            "format": null,
+                                            "enum": [],
+                                            "required": [],
+                                            "properties": [],
+                                            "items": null,
+                                            "discriminator": null,
+                                            "const": null,
+                                            "oneOf": [],
+                                            "anyOf": [],
+                                            "allOf": [],
+                                            "constraints": {}
+                                        },
+                                        "releasedOn": {
+                                            "types": [
+                                                "string"
+                                            ],
+                                            "format": "date",
+                                            "enum": [],
+                                            "required": [],
+                                            "properties": [],
+                                            "items": null,
+                                            "discriminator": null,
+                                            "const": null,
+                                            "oneOf": [],
+                                            "anyOf": [],
+                                            "allOf": [],
+                                            "constraints": {}
+                                        }
+                                    },
+                                    "items": null,
+                                    "discriminator": null,
+                                    "const": null,
+                                    "oneOf": [],
+                                    "anyOf": [],
+                                    "allOf": [],
+                                    "constraints": {}
+                                },
+                                "discriminator": null,
+                                "const": null,
+                                "oneOf": [],
+                                "anyOf": [],
+                                "allOf": [],
+                                "constraints": {}
+                            }
+                        }
+                    ]
                 },
                 "reissue": {
                     "scope": "resource",

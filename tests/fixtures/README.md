@@ -2,14 +2,13 @@
 
 The music-catalog pair started as copies of `json-api-ts/packages/codegen/test/fixtures/`, the
 TypeScript codegen's reference input, so a PHP and a TypeScript client generated from one
-document could be diffed against each other. They have since been re-exported from a
-`haddowg/json-api` server on its main branch after 1.7.0, ahead of the next release, and
-`json-api-ts` keeps its own copies. Until it refreshes them, the two codegens read different
-documents of the same API.
+document could be diffed against each other. They have since been re-exported from the
+bundle's example on `haddowg/json-api` 1.12.0, and `json-api-ts` was refreshed from the same
+export, so both codegens read the same document again.
 
 | File | What it is |
 | --- | --- |
-| `music-catalog.openapi.json` | The OpenAPI 3.1 document for the music-catalog API. 63 paths, 352 component schemas, 15 resource types, generator contract 9 (`haddowg/json-api` main after 1.7.0). |
+| `music-catalog.openapi.json` | The OpenAPI 3.1 document for the music-catalog API. 65 paths, 354 component schemas, 15 resource types, generator contract 11 (`haddowg/json-api` 1.12.0). |
 | `music-catalog.schemas.json` | The sidecar JSON Schema map, one draft-2020-12 schema per resource type, keyed by type. |
 | `contract-witness.openapi.json` | Core's contract witness, copied verbatim from `tests/OpenApi/Fixture/contract-witness.json` in `haddowg/json-api` 1.11.0. One server projecting every branch the projector can reach: an integer-backed enum, types named by their own singular, a type with no endpoint, and, from contract 10, actions answering in raw media types. Generator contract 10. Refresh it by copying the file from a newer core release. |
 | `paginators.openapi.json` | Hand-built, generator contract 3, with an offset floor of 0 as core projects it. One collection per pagination strategy, each with renamed keys under `x-paginator`, a `MultiPaginator` menu on `posts` (and on its related `comments` read), an unstamped canonical `tags`, and a strategy no codegen knows on `logs`. Shaped after core's projection; not exported from a server. |
@@ -55,7 +54,7 @@ The reader normalises both, and `tests/Descriptor/PaginatorDetectionTest.php` pi
 strategy against hand-built documents in both forms. Do not "simplify" it to the current form
 alone.
 
-This document is contract 9, so every page schema carries `x-paginator` and states its members'
+This document is contract 11, so every page schema carries `x-paginator` and states its members'
 `default` and the size cap, and its `tracks` collection is a page/cursor/offset menu: the picker
 is generated from a real server's document.
 The name-based fallback for unstamped documents is pinned by `PaginatorDetectionTest`'s
@@ -67,8 +66,8 @@ the page-type assertions in `tests/GeneratedTypes`, and run by `PaginationBehavi
 ## The reference artefact
 
 `artefact/` is a snapshot of `json-api-client/tests/Generated/MusicCatalog`, the hand-written
-output for the `albums` type that every emitter targets. Copied at json-api-client `066ad3a`, where
-it was refreshed against generator contract 7.
+output for the `albums` type that every emitter targets. Copied at json-api-client `443fe13`, where
+it was refreshed against generator contract 11.
 
 `ArtefactParity` compares a declaration generated from `music-catalog.openapi.json` against it on
 code tokens and type-bearing PHPDoc only, because the artefact's prose explains the design to a

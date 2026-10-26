@@ -580,7 +580,7 @@ final class MusicCatalogDescriptorTest extends TestCase
     public function testActionsCarryTheirInputAndOutputShapes(): void
     {
         $actions = $this->resource('albums')->actions;
-        self::assertSame(['artwork', 'reissue', 'summary'], \array_keys($actions));
+        self::assertSame(['artwork', 'export', 'import', 'reissue', 'summary'], \array_keys($actions));
 
         self::assertSame(ActionScope::Collection, $actions['summary']->scope);
         self::assertSame(ActionInput::None, $actions['summary']->input);
@@ -588,7 +588,8 @@ final class MusicCatalogDescriptorTest extends TestCase
 
         self::assertSame(ActionScope::Resource, $actions['artwork']->scope);
         self::assertSame(ActionInput::Raw, $actions['artwork']->input);
-        self::assertSame('application/octet-stream', $actions['artwork']->contentType);
+        self::assertSame('multipart/form-data', $actions['artwork']->contentType);
+        self::assertSame(['multipart/form-data', 'image/*'], \array_map(static fn($media): string => $media->mediaType, $actions['artwork']->requests));
         self::assertSame(ActionOutput::None, $actions['artwork']->output);
         self::assertFalse($actions['artwork']->bodyRequired, 'artwork declares its body `required: false`');
         self::assertTrue($actions['reissue']->bodyRequired);
@@ -598,6 +599,14 @@ final class MusicCatalogDescriptorTest extends TestCase
         self::assertSame('albums', $actions['reissue']->outputType);
         self::assertSame(Cardinality::One, $actions['reissue']->outputCardinality);
         self::assertSame('POST', $actions['reissue']->method);
+
+        self::assertSame('GET', $actions['export']->method);
+        self::assertSame(ActionOutput::Meta, $actions['export']->output);
+        self::assertSame(['text/csv', 'application/pdf', 'application/json'], \array_map(static fn($media): string => $media->mediaType, $actions['export']->responses));
+        self::assertSame('AlbumCatalogueStats', $actions['export']->responses[2]->component);
+
+        self::assertSame(['text/csv', 'image/*', 'multipart/form-data', 'application/json'], \array_map(static fn($media): string => $media->mediaType, $actions['import']->requests));
+        self::assertSame('AlbumImportRows', $actions['import']->requests[3]->component);
     }
 
     public function testTheAtomicCapabilityIsFoundByItsExtMediaType(): void

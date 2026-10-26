@@ -9,6 +9,7 @@ use haddowg\JsonApiCodegen\Descriptor\ApiDescriptor;
 use haddowg\JsonApiCodegen\Descriptor\ClientIdPolicy;
 use haddowg\JsonApiCodegen\Descriptor\OperationKind;
 use haddowg\JsonApiCodegen\Descriptor\PaginatorKind;
+use haddowg\JsonApiCodegen\Descriptor\ResourceDescriptor;
 use haddowg\JsonApiCodegen\Emit\ClassUnit;
 use haddowg\JsonApiCodegen\Emit\Emitter;
 use haddowg\JsonApiCodegen\Emit\GeneratorConfig;
@@ -61,8 +62,28 @@ final class SurfaceEmitter implements Emitter
                 yield $handle;
             }
 
-            yield self::accessor($type, $handle !== null, $collectionActions !== null);
+            if (self::exposed($resource)) {
+                yield self::accessor($type, $handle !== null, $collectionActions !== null);
+            }
         }
+    }
+
+    /**
+     * Whether a type has an endpoint of any kind. A type the document describes only as a schema
+     * has nothing to reach, so it gets no accessor and no client property.
+     */
+    public static function exposed(ResourceDescriptor $resource): bool
+    {
+        if ($resource->operations !== [] || $resource->actions !== []) {
+            return true;
+        }
+        foreach ($resource->relations as $relation) {
+            if ($relation->relatedRead !== null || $relation->relationshipRead !== null || $relation->mutations !== []) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private static function accessor(TypeSurface $type, bool $hasHandle, bool $hasActions): ClassUnit

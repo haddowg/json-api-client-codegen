@@ -11,6 +11,7 @@ use haddowg\JsonApiCodegen\Emit\FileKey;
 use haddowg\JsonApiCodegen\Emit\GeneratorConfig;
 use haddowg\JsonApiCodegen\Emit\Naming;
 use haddowg\JsonApiCodegen\Emit\Php;
+use haddowg\JsonApiCodegen\Emit\Surface\SurfaceEmitter;
 use haddowg\JsonApiCodegen\Emit\UnitKind;
 
 /**
@@ -38,6 +39,9 @@ final class ClientEmitter implements Emitter
         $seen = [];
 
         foreach ($api->resources as $type => $resource) {
+            if (!SurfaceEmitter::exposed($resource)) {
+                continue;
+            }
             $property = Naming::member($type);
             if (isset($seen[$property])) {
                 throw new \LogicException(\sprintf('The types "%s" and "%s" would both be the client property $%s.', $seen[$property], $type, $property));

@@ -21,10 +21,16 @@ final class Naming
         return self::className($type, self::pascal(self::singular($type)));
     }
 
-    /** `albums` → `Albums`: the type accessor on the client. */
+    /**
+     * `albums` → `Albums`: the type accessor on the client. A type whose singular is itself, such
+     * as `people` or `healthcheck`, would name its accessor after its resource class, so the
+     * accessor takes an `Accessor` suffix instead.
+     */
     public static function accessor(string $type): string
     {
-        return self::className($type, self::pascal($type));
+        $accessor = self::className($type, self::pascal($type));
+
+        return \strcasecmp($accessor, self::resource($type)) === 0 ? $accessor . 'Accessor' : $accessor;
     }
 
     /** `albums` → `AlbumBase`. */

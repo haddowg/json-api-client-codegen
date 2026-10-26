@@ -54,7 +54,7 @@ final class WriteSource
         if ($member->required) {
             return match ($member->coercion) {
                 Coercion::Date => '\is_string(' . $value . ') ? new \DateTimeImmutable(' . $value . ') : ' . $value,
-                Coercion::Enum => '\is_string(' . $value . ') ? ' . $member->enum . '::from(' . $value . ') : ' . $value,
+                Coercion::Enum => ($member->intEnum ? '\is_int(' : '\is_string(') . $value . ') ? ' . $member->enum . '::from(' . $value . ') : ' . $value,
                 Coercion::None => $value,
             };
         }

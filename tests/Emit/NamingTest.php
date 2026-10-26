@@ -35,6 +35,15 @@ final class NamingTest extends TestCase
         self::assertSame($class, Naming::resource($type));
     }
 
+    public function testATypeThatIsItsOwnSingularGivesItsAccessorASuffix(): void
+    {
+        self::assertSame('People', Naming::resource('people'));
+        self::assertSame('PeopleAccessor', Naming::accessor('people'));
+        self::assertSame('Healthcheck', Naming::resource('healthcheck'));
+        self::assertSame('HealthcheckAccessor', Naming::accessor('healthcheck'));
+        self::assertSame('Albums', Naming::accessor('albums'));
+    }
+
     public function testEveryFixtureTypeGetsADistinctClassAndAccessor(): void
     {
         $classes = [];

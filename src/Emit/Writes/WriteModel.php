@@ -200,6 +200,7 @@ final class WriteModel
             $dateFormat,
             false,
             $enum === null && $dateFormat === null ? self::prose($attribute) : null,
+            $enum !== null && ($api->enum($enum)?->intBacked() ?? false),
         );
     }
 

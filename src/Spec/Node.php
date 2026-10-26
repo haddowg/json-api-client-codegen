@@ -165,6 +165,23 @@ final class Node
         return \array_map(static fn(self $item): string => $item->string(), $this->items());
     }
 
+    /**
+     * The members of an enum: all strings or all integers, as a PHP backed enum needs.
+     *
+     * @return list<string>|list<int>
+     *
+     * @throws SpecException when this node is not an array, or mixes or carries other values
+     */
+    public function enumValues(): array
+    {
+        $items = $this->items();
+        if ($items !== [] && \is_int($items[0]->value)) {
+            return \array_map(static fn(self $item): int => $item->int(), $items);
+        }
+
+        return $this->strings();
+    }
+
     /** An empty JSON object and an empty array decode identically, so both answer true. */
     public function isObject(): bool
     {

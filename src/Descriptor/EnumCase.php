@@ -14,7 +14,7 @@ namespace haddowg\JsonApiCodegen\Descriptor;
 final class EnumCase
 {
     public function __construct(
-        public readonly string $value,
+        public readonly int|string $value,
         public readonly ?string $name,
         public readonly ?string $description,
     ) {}

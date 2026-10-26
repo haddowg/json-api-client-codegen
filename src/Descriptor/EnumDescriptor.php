@@ -18,4 +18,10 @@ final class EnumDescriptor
         public readonly array $cases,
         public readonly ?string $description,
     ) {}
+
+    /** Whether the enum is integer-backed. The reader admits only all-integer or all-string cases. */
+    public function intBacked(): bool
+    {
+        return $this->cases !== [] && \is_int($this->cases[0]->value);
+    }
 }

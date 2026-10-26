@@ -1276,7 +1276,7 @@ final class DescriptorBuilder
             $properties,
             $items === null ? null : $this->valueSchema($items, $constrained),
             $required,
-            $schema->find('enum')?->strings() ?? [],
+            \array_values(\array_filter($schema->find('enum')?->enumValues() ?? [], \is_string(...))),
             $this->branches($schema, 'oneOf', $constrained),
             $this->branches($schema, 'anyOf', $constrained),
             $this->branches($schema, 'allOf', $constrained),
@@ -1604,7 +1604,7 @@ final class DescriptorBuilder
             $descriptions = $schema->find('x-enum-descriptions')?->strings() ?? [];
 
             $cases = [];
-            foreach ($values->strings() as $index => $value) {
+            foreach ($values->enumValues() as $index => $value) {
                 $varName = $varNames[$index] ?? null;
                 if ($varName !== null && !Identifier::isConstantName($varName)) {
                     $this->warn(\sprintf(

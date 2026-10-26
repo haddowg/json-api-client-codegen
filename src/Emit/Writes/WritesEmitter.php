@@ -66,7 +66,7 @@ final class WritesEmitter implements Emitter
         $relations = [];
         foreach ($members as $member) {
             if ($member->enum !== null && !isset($enums[$member->name])) {
-                $values = \array_map(static fn(EnumCase $case): string => Php::docString($case->value), $api->enum($member->enum)->cases ?? []);
+                $values = \array_map(static fn(EnumCase $case): string => \is_int($case->value) ? (string) $case->value : Php::docString($case->value), $api->enum($member->enum)->cases ?? []);
                 \sort($values, \SORT_STRING);
                 $enums[$member->name] = '@phpstan-type ' . Naming::alias($type, Naming::pascal($member->name) . 'Input') . ' ' . \implode('|', [$member->enum, ...$values]);
             }

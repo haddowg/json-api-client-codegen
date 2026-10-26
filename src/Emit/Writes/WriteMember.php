@@ -34,6 +34,7 @@ final class WriteMember
         public readonly ?string $dateFormat,
         public readonly bool $toMany,
         public readonly ?string $prose = null,
+        public readonly bool $intEnum = false,
     ) {}
 
     /**

@@ -49,18 +49,19 @@ final class EnumEmitter implements Emitter
                 $unique = $name . $i;
             }
             $taken[$unique] = true;
-            $line = '    case ' . $unique . ' = ' . Php::string($case->value) . ";\n";
+            $line = '    case ' . $unique . ' = ' . (\is_int($case->value) ? (string) $case->value : Php::string($case->value)) . ";\n";
             $cases[] = ($case->description === null ? '' : Php::docblock(Php::wrap($case->description, 4), 4)) . $line;
         }
 
         return Php::docblock($doc, 0, false)
-            . 'enum ' . $enum->name . ": string\n{\n"
+            . 'enum ' . $enum->name . ($enum->intBacked() ? ": int\n{\n" : ": string\n{\n")
             . \implode("\n", $cases)
             . "}\n";
     }
 
-    private static function caseName(string $value): string
+    private static function caseName(int|string $value): string
     {
+        $value = (string) $value;
         $name = \str_replace(' ', '', \ucwords((string) \preg_replace('/[^A-Za-z0-9]+/', ' ', $value)));
 
         return Identifier::isConstantName($name) ? $name : 'Case' . $name;

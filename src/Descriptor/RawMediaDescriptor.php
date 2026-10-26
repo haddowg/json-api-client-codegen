@@ -17,6 +17,9 @@ namespace haddowg\JsonApiCodegen\Descriptor;
  * A form keeps its schema only when it lists `properties`, which the generated field array is
  * narrowed to. `$additional` then says what other fields it takes: none (`false`, also when the
  * schema is silent), any (`true`), or fields of the schema given.
+ *
+ * `$example` is the media type's own `example`, such as the sample CSV a raw result declares, and
+ * null when it has none.
  */
 final class RawMediaDescriptor
 {
@@ -26,6 +29,7 @@ final class RawMediaDescriptor
         public readonly ?ValueSchema $schema = null,
         public readonly ?string $component = null,
         public readonly ValueSchema|bool $additional = false,
+        public readonly mixed $example = null,
     ) {}
 
     /** Whether the media type is a range such as `image/*` rather than one concrete type. */

@@ -459,6 +459,52 @@ final class ArtistAlbumsRelation
      * @throws NotAcceptable      when the negotiated media type cannot be satisfied
      * @throws ServerError        when the server fails
      * @throws TransportException when no response is received at all
+     *
+     * @example 200 response:
+     *     {
+     *         "data": [
+     *             {
+     *                 "type": "albums",
+     *                 "id": "1"
+     *             }
+     *         ],
+     *         "links": {
+     *             "self": {
+     *                 "href": "https://music.example/artists/1/relationships/albums?page%5Bnumber%5D=2&page%5Bsize%5D=15",
+     *                 "describedby": "/docs.json#/paths/~1artists~1%7Bid%7D~1relationships~1albums/get"
+     *             },
+     *             "related": {
+     *                 "href": "https://music.example/artists/1/albums",
+     *                 "describedby": "/docs.json#/paths/~1artists~1%7Bid%7D~1albums/get"
+     *             },
+     *             "first": {
+     *                 "href": "https://music.example/artists/1/relationships/albums?page%5Bnumber%5D=1&page%5Bsize%5D=15",
+     *                 "describedby": "/docs.json#/paths/~1artists~1%7Bid%7D~1relationships~1albums/get"
+     *             },
+     *             "prev": {
+     *                 "href": "https://music.example/artists/1/relationships/albums?page%5Bnumber%5D=1&page%5Bsize%5D=15",
+     *                 "describedby": "/docs.json#/paths/~1artists~1%7Bid%7D~1relationships~1albums/get"
+     *             },
+     *             "next": {
+     *                 "href": "https://music.example/artists/1/relationships/albums?page%5Bnumber%5D=3&page%5Bsize%5D=15",
+     *                 "describedby": "/docs.json#/paths/~1artists~1%7Bid%7D~1relationships~1albums/get"
+     *             },
+     *             "describedby": {
+     *                 "href": "/docs.json#/paths/~1artists~1%7Bid%7D~1relationships~1albums/get"
+     *             }
+     *         },
+     *         "meta": {
+     *             "page": {
+     *                 "currentPage": 2,
+     *                 "perPage": 15,
+     *                 "from": 16,
+     *                 "to": 30
+     *             }
+     *         },
+     *         "jsonapi": {
+     *             "version": "1.1"
+     *         }
+     *     }
      */
     public function get(): PaginatedCollection
     {
@@ -499,6 +545,16 @@ final class ArtistAlbumsRelation
      * @throws ValidationFailed     when the linkage fails validation
      * @throws ServerError          when the server fails
      * @throws TransportException   when no response is received at all
+     *
+     * @example Request body:
+     *     {
+     *         "data": [
+     *             {
+     *                 "type": "albums",
+     *                 "id": "1"
+     *             }
+     *         ]
+     *     }
      */
     public function add(array $albums): void
     {
@@ -523,6 +579,16 @@ final class ArtistAlbumsRelation
      * @throws ValidationFailed     when the linkage fails validation
      * @throws ServerError          when the server fails
      * @throws TransportException   when no response is received at all
+     *
+     * @example Request body:
+     *     {
+     *         "data": [
+     *             {
+     *                 "type": "albums",
+     *                 "id": "1"
+     *             }
+     *         ]
+     *     }
      */
     public function remove(array $albums): void
     {
@@ -547,6 +613,16 @@ final class ArtistAlbumsRelation
      * @throws ValidationFailed     when the linkage fails validation
      * @throws ServerError          when the server fails
      * @throws TransportException   when no response is received at all
+     *
+     * @example Request body:
+     *     {
+     *         "data": [
+     *             {
+     *                 "type": "albums",
+     *                 "id": "1"
+     *             }
+     *         ]
+     *     }
      */
     public function replace(array $albums): void
     {
@@ -845,6 +921,60 @@ final class ArtistHandle
      * @throws ServerError        when the server fails
      * @throws TransportException when no response is received at all
      * @throws MalformedDocument  when the response carries no primary resource
+     *
+     * @example 200 response:
+     *     {
+     *         "data": {
+     *             "type": "artists",
+     *             "id": "1",
+     *             "links": {
+     *                 "self": {
+     *                     "href": "https://music.example/artists/1",
+     *                     "describedby": "/docs.json#/paths/~1artists~1%7Bid%7D/get"
+     *                 }
+     *             },
+     *             "attributes": {
+     *                 "name": "The Beatles",
+     *                 "slug": "the-beatles",
+     *                 "website": "https://www.thebeatles.com",
+     *                 "bio": "Rock band formed in Liverpool in 1960.",
+     *                 "trackCount": 17,
+     *                 "createdAt": "2024-03-01T12:00:00+00:00"
+     *             },
+     *             "relationships": {
+     *                 "albums": {
+     *                     "links": {
+     *                         "self": {
+     *                             "href": "https://music.example/artists/1/relationships/albums",
+     *                             "describedby": "/docs.json#/paths/~1artists~1%7Bid%7D~1relationships~1albums/get"
+     *                         },
+     *                         "related": {
+     *                             "href": "https://music.example/artists/1/albums",
+     *                             "describedby": "/docs.json#/paths/~1artists~1%7Bid%7D~1albums/get"
+     *                         }
+     *                     },
+     *                     "data": [
+     *                         {
+     *                             "type": "albums",
+     *                             "id": "1"
+     *                         }
+     *                     ]
+     *                 }
+     *             }
+     *         },
+     *         "links": {
+     *             "self": {
+     *                 "href": "https://music.example/artists/1",
+     *                 "describedby": "/docs.json#/paths/~1artists~1%7Bid%7D/get"
+     *             },
+     *             "describedby": {
+     *                 "href": "/docs.json#/paths/~1artists~1%7Bid%7D/get"
+     *             }
+     *         },
+     *         "jsonapi": {
+     *             "version": "1.1"
+     *         }
+     *     }
      */
     public function get(callable|ArtistProjection|null $projection = null): ArtistBase
     {
@@ -880,6 +1010,30 @@ final class ArtistHandle
      * @throws ServerError          when the server fails
      * @throws TransportException   when no response is received at all
      * @throws MalformedDocument    when the response carries no primary resource
+     *
+     * @example Request body:
+     *     {
+     *         "data": {
+     *             "type": "artists",
+     *             "id": "1",
+     *             "attributes": {
+     *                 "name": "The Beatles",
+     *                 "slug": "the-beatles",
+     *                 "website": "https://www.thebeatles.com",
+     *                 "bio": "Rock band formed in Liverpool in 1960."
+     *             },
+     *             "relationships": {
+     *                 "albums": {
+     *                     "data": [
+     *                         {
+     *                             "type": "albums",
+     *                             "id": "1"
+     *                         }
+     *                     ]
+     *                 }
+     *             }
+     *         }
+     *     }
      */
     public function update(
         ArtistUpdate|array $input,
@@ -1454,6 +1608,30 @@ final class Artists
      * @throws ServerError          when the server fails
      * @throws TransportException   when no response is received at all
      * @throws MalformedDocument    when the response carries no primary resource
+     *
+     * @example Request body:
+     *     {
+     *         "data": {
+     *             "type": "artists",
+     *             "attributes": {
+     *                 "name": "The Beatles",
+     *                 "slug": "the-beatles",
+     *                 "website": "https://www.thebeatles.com",
+     *                 "bio": "Rock band formed in Liverpool in 1960.",
+     *                 "createdAt": "2024-03-01T12:00:00+00:00"
+     *             },
+     *             "relationships": {
+     *                 "albums": {
+     *                     "data": [
+     *                         {
+     *                             "type": "albums",
+     *                             "id": "1"
+     *                         }
+     *                     ]
+     *                 }
+     *             }
+     *         }
+     *     }
      */
     public function create(
         ArtistCreate|ArtistCreateBuilder|array $input,

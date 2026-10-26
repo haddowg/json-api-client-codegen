@@ -671,6 +671,41 @@ final class AlbumActions
      * @throws ServerError          when the server fails
      * @throws TransportException   when no response is received at all
      * @throws MalformedDocument    when the response carries no primary resource
+     *
+     * @example Request body:
+     *     {
+     *         "data": {
+     *             "type": "albums",
+     *             "attributes": {
+     *                 "title": "Abbey Road",
+     *                 "releasedAt": "1969-09-26T00:00:00+00:00",
+     *                 "explicit": false,
+     *                 "status": "released",
+     *                 "availableFrom": "2024-01-01",
+     *                 "availableUntil": "2026-12-31",
+     *                 "releaseInfo": {
+     *                     "label": "Apple Records",
+     *                     "catalogueNumber": "PCS 7088"
+     *                 }
+     *             },
+     *             "relationships": {
+     *                 "artist": {
+     *                     "data": {
+     *                         "type": "artists",
+     *                         "id": "1"
+     *                     }
+     *                 },
+     *                 "tracks": {
+     *                     "data": [
+     *                         {
+     *                             "type": "tracks",
+     *                             "id": "1"
+     *                         }
+     *                     ]
+     *                 }
+     *             }
+     *         }
+     *     }
      */
     public function reissue(
         AlbumCreate|AlbumCreateBuilder|array $input,
@@ -723,6 +758,30 @@ final class AlbumArtistRelation
      * @throws NotAcceptable      when the negotiated media type cannot be satisfied
      * @throws ServerError        when the server fails
      * @throws TransportException when no response is received at all
+     *
+     * @example 200 response:
+     *     {
+     *         "data": {
+     *             "type": "artists",
+     *             "id": "1"
+     *         },
+     *         "links": {
+     *             "self": {
+     *                 "href": "https://music.example/albums/1/relationships/artist",
+     *                 "describedby": "/docs.json#/paths/~1albums~1%7Bid%7D~1relationships~1artist/get"
+     *             },
+     *             "related": {
+     *                 "href": "https://music.example/albums/1/artist",
+     *                 "describedby": "/docs.json#/paths/~1albums~1%7Bid%7D~1artist/get"
+     *             },
+     *             "describedby": {
+     *                 "href": "/docs.json#/paths/~1albums~1%7Bid%7D~1relationships~1artist/get"
+     *             }
+     *         },
+     *         "jsonapi": {
+     *             "version": "1.1"
+     *         }
+     *     }
      */
     public function get(): ?Identifier
     {
@@ -743,6 +802,60 @@ final class AlbumArtistRelation
      * @throws NotAcceptable      when the negotiated media type cannot be satisfied
      * @throws ServerError        when the server fails
      * @throws TransportException when no response is received at all
+     *
+     * @example 200 response:
+     *     {
+     *         "data": {
+     *             "type": "artists",
+     *             "id": "1",
+     *             "links": {
+     *                 "self": {
+     *                     "href": "https://music.example/artists/1",
+     *                     "describedby": "/docs.json#/paths/~1artists~1%7Bid%7D/get"
+     *                 }
+     *             },
+     *             "attributes": {
+     *                 "name": "The Beatles",
+     *                 "slug": "the-beatles",
+     *                 "website": "https://www.thebeatles.com",
+     *                 "bio": "Rock band formed in Liverpool in 1960.",
+     *                 "trackCount": 17,
+     *                 "createdAt": "2024-03-01T12:00:00+00:00"
+     *             },
+     *             "relationships": {
+     *                 "albums": {
+     *                     "links": {
+     *                         "self": {
+     *                             "href": "https://music.example/artists/1/relationships/albums",
+     *                             "describedby": "/docs.json#/paths/~1artists~1%7Bid%7D~1relationships~1albums/get"
+     *                         },
+     *                         "related": {
+     *                             "href": "https://music.example/artists/1/albums",
+     *                             "describedby": "/docs.json#/paths/~1artists~1%7Bid%7D~1albums/get"
+     *                         }
+     *                     },
+     *                     "data": [
+     *                         {
+     *                             "type": "albums",
+     *                             "id": "1"
+     *                         }
+     *                     ]
+     *                 }
+     *             }
+     *         },
+     *         "links": {
+     *             "self": {
+     *                 "href": "https://music.example/albums/1/artist",
+     *                 "describedby": "/docs.json#/paths/~1albums~1%7Bid%7D~1artist/get"
+     *             },
+     *             "describedby": {
+     *                 "href": "/docs.json#/paths/~1albums~1%7Bid%7D~1artist/get"
+     *             }
+     *         },
+     *         "jsonapi": {
+     *             "version": "1.1"
+     *         }
+     *     }
      */
     public function related(): ?Artist
     {
@@ -765,6 +878,14 @@ final class AlbumArtistRelation
      * @throws ValidationFailed     when the linkage fails validation
      * @throws ServerError          when the server fails
      * @throws TransportException   when no response is received at all
+     *
+     * @example Request body:
+     *     {
+     *         "data": {
+     *             "type": "artists",
+     *             "id": "1"
+     *         }
+     *     }
      */
     public function set(Artist|Identifier|null $target): void
     {
@@ -935,6 +1056,17 @@ final class AlbumCollectionActions
      * @throws ValidationFailed     when the payload fails validation
      * @throws ServerError          when the server fails
      * @throws TransportException   when no response is received at all
+     *
+     * @example 200 response:
+     *     {
+     *         "meta": {
+     *             "albums": {
+     *                 "published": 12,
+     *                 "unpublished": 3,
+     *                 "total": 15
+     *             }
+     *         }
+     *     }
      */
     public function summary(): array
     {
@@ -1267,6 +1399,42 @@ final class AlbumHandle
      * @throws ServerError          when the server fails
      * @throws TransportException   when no response is received at all
      * @throws MalformedDocument    when the response carries no primary resource
+     *
+     * @example Request body:
+     *     {
+     *         "data": {
+     *             "type": "albums",
+     *             "id": "1",
+     *             "attributes": {
+     *                 "title": "Abbey Road",
+     *                 "releasedAt": "1969-09-26T00:00:00+00:00",
+     *                 "explicit": false,
+     *                 "status": "released",
+     *                 "availableFrom": "2024-01-01",
+     *                 "availableUntil": "2026-12-31",
+     *                 "releaseInfo": {
+     *                     "label": "Apple Records",
+     *                     "catalogueNumber": "PCS 7088"
+     *                 }
+     *             },
+     *             "relationships": {
+     *                 "artist": {
+     *                     "data": {
+     *                         "type": "artists",
+     *                         "id": "1"
+     *                     }
+     *                 },
+     *                 "tracks": {
+     *                     "data": [
+     *                         {
+     *                             "type": "tracks",
+     *                             "id": "1"
+     *                         }
+     *                     ]
+     *                 }
+     *             }
+     *         }
+     *     }
      */
     public function update(
         AlbumUpdate|array $input,
@@ -1723,6 +1891,62 @@ final class AlbumTracksRelation
      * @throws NotAcceptable      when the negotiated media type cannot be satisfied
      * @throws ServerError        when the server fails
      * @throws TransportException when no response is received at all
+     *
+     * @example 200 response:
+     *     {
+     *         "data": [
+     *             {
+     *                 "type": "tracks",
+     *                 "id": "1"
+     *             }
+     *         ],
+     *         "links": {
+     *             "self": {
+     *                 "href": "https://music.example/albums/1/relationships/tracks?page%5Bnumber%5D=2&page%5Bsize%5D=2&withCount=_self_",
+     *                 "describedby": "/docs.json#/paths/~1albums~1%7Bid%7D~1relationships~1tracks/get"
+     *             },
+     *             "related": {
+     *                 "href": "https://music.example/albums/1/tracks",
+     *                 "describedby": "/docs.json#/paths/~1albums~1%7Bid%7D~1tracks/get"
+     *             },
+     *             "first": {
+     *                 "href": "https://music.example/albums/1/relationships/tracks?page%5Bnumber%5D=1&page%5Bsize%5D=2&withCount=_self_",
+     *                 "describedby": "/docs.json#/paths/~1albums~1%7Bid%7D~1relationships~1tracks/get"
+     *             },
+     *             "prev": {
+     *                 "href": "https://music.example/albums/1/relationships/tracks?page%5Bnumber%5D=1&page%5Bsize%5D=2&withCount=_self_",
+     *                 "describedby": "/docs.json#/paths/~1albums~1%7Bid%7D~1relationships~1tracks/get"
+     *             },
+     *             "next": {
+     *                 "href": "https://music.example/albums/1/relationships/tracks?page%5Bnumber%5D=3&page%5Bsize%5D=2&withCount=_self_",
+     *                 "describedby": "/docs.json#/paths/~1albums~1%7Bid%7D~1relationships~1tracks/get"
+     *             },
+     *             "last": {
+     *                 "href": "https://music.example/albums/1/relationships/tracks?page%5Bnumber%5D=5&page%5Bsize%5D=2&withCount=_self_",
+     *                 "describedby": "/docs.json#/paths/~1albums~1%7Bid%7D~1relationships~1tracks/get"
+     *             },
+     *             "describedby": {
+     *                 "href": "/docs.json#/paths/~1albums~1%7Bid%7D~1relationships~1tracks/get"
+     *             }
+     *         },
+     *         "meta": {
+     *             "total": 10,
+     *             "page": {
+     *                 "currentPage": 2,
+     *                 "perPage": 2,
+     *                 "from": 3,
+     *                 "to": 4,
+     *                 "total": 10,
+     *                 "lastPage": 5
+     *             }
+     *         },
+     *         "jsonapi": {
+     *             "version": "1.1",
+     *             "profile": [
+     *                 "https://haddowg.github.io/json-api/profiles/countable/"
+     *             ]
+     *         }
+     *     }
      */
     public function get(): PaginatedCollection
     {
@@ -1764,6 +1988,16 @@ final class AlbumTracksRelation
      * @throws ValidationFailed     when the linkage fails validation
      * @throws ServerError          when the server fails
      * @throws TransportException   when no response is received at all
+     *
+     * @example Request body:
+     *     {
+     *         "data": [
+     *             {
+     *                 "type": "tracks",
+     *                 "id": "1"
+     *             }
+     *         ]
+     *     }
      */
     public function add(array $tracks): void
     {
@@ -1788,6 +2022,16 @@ final class AlbumTracksRelation
      * @throws ValidationFailed     when the linkage fails validation
      * @throws ServerError          when the server fails
      * @throws TransportException   when no response is received at all
+     *
+     * @example Request body:
+     *     {
+     *         "data": [
+     *             {
+     *                 "type": "tracks",
+     *                 "id": "1"
+     *             }
+     *         ]
+     *     }
      */
     public function remove(array $tracks): void
     {
@@ -1812,6 +2056,16 @@ final class AlbumTracksRelation
      * @throws ValidationFailed     when the linkage fails validation
      * @throws ServerError          when the server fails
      * @throws TransportException   when no response is received at all
+     *
+     * @example Request body:
+     *     {
+     *         "data": [
+     *             {
+     *                 "type": "tracks",
+     *                 "id": "1"
+     *             }
+     *         ]
+     *     }
      */
     public function replace(array $tracks): void
     {
@@ -2221,6 +2475,41 @@ final class Albums
      * @throws ServerError          when the server fails
      * @throws TransportException   when no response is received at all
      * @throws MalformedDocument    when the response carries no primary resource
+     *
+     * @example Request body:
+     *     {
+     *         "data": {
+     *             "type": "albums",
+     *             "attributes": {
+     *                 "title": "Abbey Road",
+     *                 "releasedAt": "1969-09-26T00:00:00+00:00",
+     *                 "explicit": false,
+     *                 "status": "released",
+     *                 "availableFrom": "2024-01-01",
+     *                 "availableUntil": "2026-12-31",
+     *                 "releaseInfo": {
+     *                     "label": "Apple Records",
+     *                     "catalogueNumber": "PCS 7088"
+     *                 }
+     *             },
+     *             "relationships": {
+     *                 "artist": {
+     *                     "data": {
+     *                         "type": "artists",
+     *                         "id": "1"
+     *                     }
+     *                 },
+     *                 "tracks": {
+     *                     "data": [
+     *                         {
+     *                             "type": "tracks",
+     *                             "id": "1"
+     *                         }
+     *                     ]
+     *                 }
+     *             }
+     *         }
+     *     }
      */
     public function create(
         AlbumCreate|AlbumCreateBuilder|array $input,

@@ -61,6 +61,12 @@ namespace haddowg\JsonApiCodegen\Spec;
  * already read a choice of raw request media types, so it adds only the form media types:
  * `multipart/form-data` and `application/x-www-form-urlencoded` are field arrays the runtime
  * encodes, whatever their schema, since a multipart body needs a boundary only the encoder knows.
+ *
+ * Contract 12 puts a whole worked `example` on each operation's JSON:API request body and success
+ * responses, and is stamped only on a document that carries one. The descriptor reads them into
+ * each operation's `examples`, a raw media type keeps its own `example`, and a generated method's
+ * docblock quotes one as its `@example`. Nothing else changes shape, so an older document
+ * generates exactly as before.
  */
 final class ContractCompatibility
 {
@@ -68,7 +74,7 @@ final class ContractCompatibility
     public const int MINIMUM = 1;
 
     /** Above this the document carries structures this codegen does not read. */
-    public const int MAXIMUM = 11;
+    public const int MAXIMUM = 12;
 
     /**
      * Check a document's declared contract against the supported range.

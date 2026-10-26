@@ -374,6 +374,35 @@ final class DeviceHandle
      * @throws ServerError        when the server fails
      * @throws TransportException when no response is received at all
      * @throws MalformedDocument  when the response carries no primary resource
+     *
+     * @example 200 response:
+     *     {
+     *         "data": {
+     *             "type": "devices",
+     *             "id": "01J9Z8K4QK3V6W2X9Y5T7R1M0N",
+     *             "links": {
+     *                 "self": {
+     *                     "href": "https://music.example/devices/01J9Z8K4QK3V6W2X9Y5T7R1M0N",
+     *                     "describedby": "/docs.json#/paths/~1devices~1%7Bid%7D/get"
+     *                 }
+     *             },
+     *             "attributes": {
+     *                 "label": "Living room speaker"
+     *             }
+     *         },
+     *         "links": {
+     *             "self": {
+     *                 "href": "https://music.example/devices/01J9Z8K4QK3V6W2X9Y5T7R1M0N",
+     *                 "describedby": "/docs.json#/paths/~1devices~1%7Bid%7D/get"
+     *             },
+     *             "describedby": {
+     *                 "href": "/docs.json#/paths/~1devices~1%7Bid%7D/get"
+     *             }
+     *         },
+     *         "jsonapi": {
+     *             "version": "1.1"
+     *         }
+     *     }
      */
     public function get(callable|DeviceProjection|null $projection = null): DeviceBase
     {
@@ -409,6 +438,17 @@ final class DeviceHandle
      * @throws ServerError          when the server fails
      * @throws TransportException   when no response is received at all
      * @throws MalformedDocument    when the response carries no primary resource
+     *
+     * @example Request body:
+     *     {
+     *         "data": {
+     *             "type": "devices",
+     *             "id": "01J9Z8K4QK3V6W2X9Y5T7R1M0N",
+     *             "attributes": {
+     *                 "label": "Living room speaker"
+     *             }
+     *         }
+     *     }
      */
     public function update(
         DeviceUpdate|array $input,
@@ -555,6 +595,57 @@ final class DeviceQuery extends Query
      * @throws NotAcceptable      when the negotiated media type cannot be satisfied
      * @throws ServerError        when the server fails
      * @throws TransportException when no response is received at all
+     *
+     * @example 200 response:
+     *     {
+     *         "data": [
+     *             {
+     *                 "type": "devices",
+     *                 "id": "01J9Z8K4QK3V6W2X9Y5T7R1M0N",
+     *                 "links": {
+     *                     "self": {
+     *                         "href": "https://music.example/devices/01J9Z8K4QK3V6W2X9Y5T7R1M0N",
+     *                         "describedby": "/docs.json#/paths/~1devices~1%7Bid%7D/get"
+     *                     }
+     *                 },
+     *                 "attributes": {
+     *                     "label": "Living room speaker"
+     *                 }
+     *             }
+     *         ],
+     *         "links": {
+     *             "self": {
+     *                 "href": "https://music.example/devices?page%5Bnumber%5D=2&page%5Bsize%5D=15",
+     *                 "describedby": "/docs.json#/paths/~1devices/get"
+     *             },
+     *             "first": {
+     *                 "href": "https://music.example/devices?page%5Bnumber%5D=1&page%5Bsize%5D=15",
+     *                 "describedby": "/docs.json#/paths/~1devices/get"
+     *             },
+     *             "prev": {
+     *                 "href": "https://music.example/devices?page%5Bnumber%5D=1&page%5Bsize%5D=15",
+     *                 "describedby": "/docs.json#/paths/~1devices/get"
+     *             },
+     *             "next": {
+     *                 "href": "https://music.example/devices?page%5Bnumber%5D=3&page%5Bsize%5D=15",
+     *                 "describedby": "/docs.json#/paths/~1devices/get"
+     *             },
+     *             "describedby": {
+     *                 "href": "/docs.json#/paths/~1devices/get"
+     *             }
+     *         },
+     *         "meta": {
+     *             "page": {
+     *                 "currentPage": 2,
+     *                 "perPage": 15,
+     *                 "from": 16,
+     *                 "to": 30
+     *             }
+     *         },
+     *         "jsonapi": {
+     *             "version": "1.1"
+     *         }
+     *     }
      */
     public function get(): PaginatedCollection
     {
@@ -764,6 +855,16 @@ final class Devices
      * @throws ServerError          when the server fails
      * @throws TransportException   when no response is received at all
      * @throws MalformedDocument    when the response carries no primary resource
+     *
+     * @example Request body:
+     *     {
+     *         "data": {
+     *             "type": "devices",
+     *             "attributes": {
+     *                 "label": "Living room speaker"
+     *             }
+     *         }
+     *     }
      */
     public function create(
         DeviceCreate|DeviceCreateBuilder|array $input,

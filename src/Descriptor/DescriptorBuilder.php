@@ -1382,7 +1382,59 @@ final class DescriptorBuilder
 
         return $operation === null
             ? null
-            : new OperationDescriptor($path, \strtoupper($method), $this->errorStatuses($operation), $this->projection($operation));
+            : new OperationDescriptor($path, \strtoupper($method), $this->errorStatuses($operation), $this->projection($operation), $this->examples($operation));
+    }
+
+    /**
+     * The `example` on the operation's JSON:API request body and on each success response, which
+     * a contract-12 document carries. Null when it carries none of them.
+     */
+    private function examples(Node $operation): ?OperationExamples
+    {
+        $request = $this->jsonApiExample($operation->path('requestBody', 'content'));
+
+        $responses = [];
+        foreach ($operation->find('responses')?->members() ?? [] as $code => $response) {
+            if (\preg_match('/^2\d\d$/', (string) $code) !== 1) {
+                continue;
+            }
+            // A shared response is a `$ref` with no content of its own; success responses are inline.
+            $example = $this->jsonApiExample($response->find('content'));
+            if ($example !== null) {
+                $responses[(int) $code] = $example;
+            }
+        }
+        \ksort($responses);
+
+        return $request === null && $responses === [] ? null : new OperationExamples($request, $responses);
+    }
+
+    /**
+     * The example on the JSON:API media type of a `content` map, extension parameters and all.
+     * A JSON:API document is an object, so an example that is not one is malformed.
+     *
+     * @return array<array-key, mixed>|null
+     */
+    private function jsonApiExample(?Node $content): ?array
+    {
+        foreach ($content?->members() ?? [] as $media => $body) {
+            if (!\str_starts_with((string) $media, self::JSON_API_MEDIA_TYPE)) {
+                continue;
+            }
+            $example = $body->find('example');
+            if ($example === null) {
+                continue;
+            }
+            if (!$example->isObject()) {
+                throw SpecException::wrongType($example->pointer(), 'a JSON:API document', $example->raw());
+            }
+            $value = $example->raw();
+            \assert(\is_array($value));
+
+            return $value;
+        }
+
+        return null;
     }
 
     /**
@@ -1526,7 +1578,9 @@ final class DescriptorBuilder
         } elseif ($input === ActionInput::Raw && (\count($rawRequests) > 1 || \str_contains($rawRequests[0] ?? '', '*') || RawMediaKind::formOf($rawRequests[0] ?? '') !== null)) {
             foreach ($rawRequests as $media) {
                 $form = RawMediaKind::formOf($media);
-                $requests[] = $form === null ? $this->rawMedia($media, $content?->path($media, 'schema')) : $this->formMedia($media, $form, $content?->path($media, 'schema'));
+                $schema = $content?->path($media, 'schema');
+                $example = $content?->path($media, 'example')?->raw();
+                $requests[] = $form === null ? $this->rawMedia($media, $schema, $example) : $this->formMedia($media, $form, $schema, $example);
             }
         }
 
@@ -1540,7 +1594,7 @@ final class DescriptorBuilder
                 if (\str_starts_with($media, self::JSON_API_MEDIA_TYPE) || isset($responses[$media])) {
                     continue;
                 }
-                $responses[$media] = $this->rawMedia($media, $body->find('schema'));
+                $responses[$media] = $this->rawMedia($media, $body->find('schema'), $body->find('example')?->raw());
             }
         }
 
@@ -1562,6 +1616,7 @@ final class DescriptorBuilder
             self::authored($operation->find('description')?->string(), '/^Invokes the `[^`]*` custom action on [^\n]*\.$/'),
             \array_values($responses),
             $requests,
+            $this->examples($operation),
         );
     }
 
@@ -1576,7 +1631,7 @@ final class DescriptorBuilder
      * bytes. A JSON media type is JSON, typed by its schema; a string schema or a `text/*` type
      * without one is text; anything else is bytes.
      */
-    private function rawMedia(string $media, ?Node $schema): RawMediaDescriptor
+    private function rawMedia(string $media, ?Node $schema, mixed $example = null): RawMediaDescriptor
     {
         $target = $schema === null ? null : $this->document->dereference($schema);
         $essence = \strtolower(\trim(\explode(';', $media, 2)[0]));
@@ -1594,6 +1649,7 @@ final class DescriptorBuilder
             $kind,
             $kind === RawMediaKind::Json && $schema !== null ? $this->valueSchema($schema) : null,
             $kind === RawMediaKind::Json && $schema !== null ? $this->document->refName($schema) : null,
+            example: $example,
         );
     }
 
@@ -1601,12 +1657,12 @@ final class DescriptorBuilder
      * A form request body, narrowed to its schema's `properties` when it lists any. Without them
      * the form is a generic field array and keeps no schema.
      */
-    private function formMedia(string $media, RawMediaKind $kind, ?Node $schema): RawMediaDescriptor
+    private function formMedia(string $media, RawMediaKind $kind, ?Node $schema, mixed $example = null): RawMediaDescriptor
     {
         $target = $schema === null ? null : $this->document->dereference($schema);
         $properties = $target?->find('properties');
         if ($target === null || $properties === null || $properties->members() === []) {
-            return new RawMediaDescriptor($media, $kind);
+            return new RawMediaDescriptor($media, $kind, example: $example);
         }
 
         $additional = $target->find('additionalProperties');
@@ -1620,6 +1676,7 @@ final class DescriptorBuilder
                 $additional->isObject() => $this->valueSchema($additional, false),
                 default => $additional->bool(),
             },
+            example: $example,
         );
     }
 

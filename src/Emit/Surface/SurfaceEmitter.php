@@ -12,6 +12,7 @@ use haddowg\JsonApiCodegen\Descriptor\PaginatorKind;
 use haddowg\JsonApiCodegen\Descriptor\ResourceDescriptor;
 use haddowg\JsonApiCodegen\Emit\ClassUnit;
 use haddowg\JsonApiCodegen\Emit\Emitter;
+use haddowg\JsonApiCodegen\Emit\ExampleTag;
 use haddowg\JsonApiCodegen\Emit\GeneratorConfig;
 use haddowg\JsonApiCodegen\Emit\Naming;
 use haddowg\JsonApiCodegen\Emit\Php;
@@ -196,7 +197,7 @@ final class SurfaceEmitter implements Emitter
         }
         $doc = [...$doc, ...Throws::tags($create->errorStatuses, $imports, [
             'Forbidden' => 'when the create is not permitted',
-        ], $resource)];
+        ], $resource), ...ExampleTag::lines($create->examples)];
 
         $json = '\\json_encode($document->toDocument(), \\JSON_THROW_ON_ERROR)';
         $path = Php::string($create->path);
@@ -267,6 +268,7 @@ final class SurfaceEmitter implements Emitter
                     'Forbidden' => 'when the delete is not permitted',
                     'NotFound' => 'when no ' . $type->label() . ' has this id',
                 ]),
+                ...ExampleTag::lines($delete->examples),
             ], 4, false)
                 . "    public function delete(): void\n    {\n"
                 . '        $this->fetcher->send(' . TypeSurface::request($delete->method, TypeSurface::path($delete->path)) . ");\n"
@@ -329,6 +331,7 @@ final class SurfaceEmitter implements Emitter
             'Forbidden' => 'when the read is not permitted',
             'NotFound' => 'when no ' . $type->label() . ' has this id',
         ], true);
+        $throws = [...$throws, ...ExampleTag::lines($fetchOne->examples)];
 
         if ($fetchOne->projection === null) {
             return Php::docblock([...Php::wrap('Fetch the ' . $type->label() . '. The endpoint advertises no `include` or `fields`, so there is nothing to project.', 4), '', ...$throws], 4, false)
@@ -397,7 +400,7 @@ final class SurfaceEmitter implements Emitter
             'Forbidden' => 'when the update is not permitted',
             'NotFound' => 'when no ' . $type->label() . ' has this id',
             'Conflict' => "when the document's type or id disagrees with the endpoint",
-        ], $resource)];
+        ], $resource), ...ExampleTag::lines($update->examples)];
 
         $body = TypeSurface::updateInput($type->type()) . "\n";
         if (!$resource) {

@@ -18,7 +18,8 @@ namespace haddowg\JsonApiCodegen\Descriptor;
  * `$responses`, and the caller picks one through `Accept`. `$requests` lists the media types a raw
  * body may be sent as when there is a choice to make: more than one, or a range such as
  * `image/*`, and from contract 11 also a lone form media type, whose body is a field array. `$summary` and `$description` are the operation's own prose, left null when they are
- * the projector's defaults.
+ * the projector's defaults. `$examples` holds the JSON:API request and response examples of a
+ * contract-12 document, null when it has none; a raw media type keeps its own.
  */
 final class ActionDescriptor
 {
@@ -45,6 +46,7 @@ final class ActionDescriptor
         public readonly ?string $description = null,
         public readonly array $responses = [],
         public readonly array $requests = [],
+        public readonly ?OperationExamples $examples = null,
     ) {}
 
     /** Whether the action answers with JSON:API as well as, or instead of, a raw body. */

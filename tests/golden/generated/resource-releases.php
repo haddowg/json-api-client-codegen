@@ -526,6 +526,30 @@ final class ReleaseAlbumRelation
      * @throws NotAcceptable      when the negotiated media type cannot be satisfied
      * @throws ServerError        when the server fails
      * @throws TransportException when no response is received at all
+     *
+     * @example 200 response:
+     *     {
+     *         "data": {
+     *             "type": "albums",
+     *             "id": "1"
+     *         },
+     *         "links": {
+     *             "self": {
+     *                 "href": "https://music.example/releases/1/relationships/album",
+     *                 "describedby": "/docs.json#/paths/~1releases~1%7Bid%7D~1relationships~1album/get"
+     *             },
+     *             "related": {
+     *                 "href": "https://music.example/releases/1/album",
+     *                 "describedby": "/docs.json#/paths/~1releases~1%7Bid%7D~1album/get"
+     *             },
+     *             "describedby": {
+     *                 "href": "/docs.json#/paths/~1releases~1%7Bid%7D~1relationships~1album/get"
+     *             }
+     *         },
+     *         "jsonapi": {
+     *             "version": "1.1"
+     *         }
+     *     }
      */
     public function get(): ?Identifier
     {
@@ -568,6 +592,14 @@ final class ReleaseAlbumRelation
      * @throws ValidationFailed     when the linkage fails validation
      * @throws ServerError          when the server fails
      * @throws TransportException   when no response is received at all
+     *
+     * @example Request body:
+     *     {
+     *         "data": {
+     *             "type": "albums",
+     *             "id": "1"
+     *         }
+     *     }
      */
     public function set(Album|Identifier|null $target): void
     {
@@ -1011,6 +1043,42 @@ final class ReleaseHandle
      * @throws ServerError          when the server fails
      * @throws TransportException   when no response is received at all
      * @throws MalformedDocument    when the response carries no primary resource
+     *
+     * @example Request body:
+     *     {
+     *         "data": {
+     *             "type": "releases",
+     *             "id": "1",
+     *             "attributes": {
+     *                 "catalogNumber": "PCS 7088",
+     *                 "format": {
+     *                     "medium": "vinyl",
+     *                     "rpm": 33,
+     *                     "coloured": false
+     *                 },
+     *                 "packaging": {
+     *                     "material": "card",
+     *                     "gatefold": true
+     *                 },
+     *                 "availability": {
+     *                     "worldwide": true
+     *                 },
+     *                 "dimensions": {
+     *                     "widthMm": 315,
+     *                     "heightMm": 315,
+     *                     "depthMm": 4
+     *                 }
+     *             },
+     *             "relationships": {
+     *                 "album": {
+     *                     "data": {
+     *                         "type": "albums",
+     *                         "id": "1"
+     *                     }
+     *                 }
+     *             }
+     *         }
+     *     }
      */
     public function update(
         ReleaseUpdate|array $input,
@@ -1541,6 +1609,41 @@ final class Releases
      * @throws ServerError          when the server fails
      * @throws TransportException   when no response is received at all
      * @throws MalformedDocument    when the response carries no primary resource
+     *
+     * @example Request body:
+     *     {
+     *         "data": {
+     *             "type": "releases",
+     *             "attributes": {
+     *                 "catalogNumber": "PCS 7088",
+     *                 "format": {
+     *                     "medium": "vinyl",
+     *                     "rpm": 33,
+     *                     "coloured": false
+     *                 },
+     *                 "packaging": {
+     *                     "material": "card",
+     *                     "gatefold": true
+     *                 },
+     *                 "availability": {
+     *                     "worldwide": true
+     *                 },
+     *                 "dimensions": {
+     *                     "widthMm": 315,
+     *                     "heightMm": 315,
+     *                     "depthMm": 4
+     *                 }
+     *             },
+     *             "relationships": {
+     *                 "album": {
+     *                     "data": {
+     *                         "type": "albums",
+     *                         "id": "1"
+     *                     }
+     *                 }
+     *             }
+     *         }
+     *     }
      */
     public function create(
         ReleaseCreate|ReleaseCreateBuilder|array $input,

@@ -207,6 +207,35 @@ final class ExportJobHandle
      * @throws ServerError        when the server fails
      * @throws TransportException when no response is received at all
      * @throws MalformedDocument  when the response carries no primary resource
+     *
+     * @example 200 response:
+     *     {
+     *         "data": {
+     *             "type": "export-jobs",
+     *             "id": "job-processing",
+     *             "links": {
+     *                 "self": {
+     *                     "href": "https://music.example/export-jobs/job-processing",
+     *                     "describedby": "/docs.json#/paths/~1export-jobs~1%7Bid%7D/get"
+     *                 }
+     *             },
+     *             "attributes": {
+     *                 "state": "processing"
+     *             }
+     *         },
+     *         "links": {
+     *             "self": {
+     *                 "href": "https://music.example/export-jobs/job-processing",
+     *                 "describedby": "/docs.json#/paths/~1export-jobs~1%7Bid%7D/get"
+     *             },
+     *             "describedby": {
+     *                 "href": "/docs.json#/paths/~1export-jobs~1%7Bid%7D/get"
+     *             }
+     *         },
+     *         "jsonapi": {
+     *             "version": "1.1"
+     *         }
+     *     }
      */
     public function get(callable|ExportJobProjection|null $projection = null): ExportJobBase
     {
@@ -323,6 +352,57 @@ final class ExportJobQuery extends Query
      * @throws NotAcceptable      when the negotiated media type cannot be satisfied
      * @throws ServerError        when the server fails
      * @throws TransportException when no response is received at all
+     *
+     * @example 200 response:
+     *     {
+     *         "data": [
+     *             {
+     *                 "type": "export-jobs",
+     *                 "id": "job-processing",
+     *                 "links": {
+     *                     "self": {
+     *                         "href": "https://music.example/export-jobs/job-processing",
+     *                         "describedby": "/docs.json#/paths/~1export-jobs~1%7Bid%7D/get"
+     *                     }
+     *                 },
+     *                 "attributes": {
+     *                     "state": "processing"
+     *                 }
+     *             }
+     *         ],
+     *         "links": {
+     *             "self": {
+     *                 "href": "https://music.example/export-jobs?page%5Bnumber%5D=2&page%5Bsize%5D=15",
+     *                 "describedby": "/docs.json#/paths/~1export-jobs/get"
+     *             },
+     *             "first": {
+     *                 "href": "https://music.example/export-jobs?page%5Bnumber%5D=1&page%5Bsize%5D=15",
+     *                 "describedby": "/docs.json#/paths/~1export-jobs/get"
+     *             },
+     *             "prev": {
+     *                 "href": "https://music.example/export-jobs?page%5Bnumber%5D=1&page%5Bsize%5D=15",
+     *                 "describedby": "/docs.json#/paths/~1export-jobs/get"
+     *             },
+     *             "next": {
+     *                 "href": "https://music.example/export-jobs?page%5Bnumber%5D=3&page%5Bsize%5D=15",
+     *                 "describedby": "/docs.json#/paths/~1export-jobs/get"
+     *             },
+     *             "describedby": {
+     *                 "href": "/docs.json#/paths/~1export-jobs/get"
+     *             }
+     *         },
+     *         "meta": {
+     *             "page": {
+     *                 "currentPage": 2,
+     *                 "perPage": 15,
+     *                 "from": 16,
+     *                 "to": 30
+     *             }
+     *         },
+     *         "jsonapi": {
+     *             "version": "1.1"
+     *         }
+     *     }
      */
     public function get(): PaginatedCollection
     {

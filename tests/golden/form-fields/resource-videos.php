@@ -398,6 +398,36 @@ final class VideoHandle
      * @throws ServerError        when the server fails
      * @throws TransportException when no response is received at all
      * @throws MalformedDocument  when the response carries no primary resource
+     *
+     * @example 200 response:
+     *     {
+     *         "data": {
+     *             "type": "videos",
+     *             "id": "vid-1",
+     *             "links": {
+     *                 "self": {
+     *                     "href": "https://api.example.com/videos/vid-1",
+     *                     "describedby": "/docs/openapi.json#/paths/~1videos~1%7Bid%7D/get"
+     *                 }
+     *             },
+     *             "attributes": {
+     *                 "url": "https://cdn.example.com/intro.mp4",
+     *                 "seconds": 90
+     *             }
+     *         },
+     *         "links": {
+     *             "self": {
+     *                 "href": "https://api.example.com/videos/vid-1",
+     *                 "describedby": "/docs/openapi.json#/paths/~1videos~1%7Bid%7D/get"
+     *             },
+     *             "describedby": {
+     *                 "href": "/docs/openapi.json#/paths/~1videos~1%7Bid%7D/get"
+     *             }
+     *         },
+     *         "jsonapi": {
+     *             "version": "1.1"
+     *         }
+     *     }
      */
     public function get(callable|VideoProjection|null $projection = null): VideoBase
     {
@@ -428,6 +458,18 @@ final class VideoHandle
      * @throws ValidationFailed     when the document fails validation
      * @throws ServerError          when the server fails
      * @throws TransportException   when no response is received at all
+     *
+     * @example Request body:
+     *     {
+     *         "data": {
+     *             "type": "videos",
+     *             "id": "vid-1",
+     *             "attributes": {
+     *                 "url": "https://cdn.example.com/intro.mp4",
+     *                 "seconds": 90
+     *             }
+     *         }
+     *     }
      */
     public function update(VideoUpdate|array $input): Response
     {
@@ -595,6 +637,41 @@ final class VideoQuery extends Query
      * @throws NotAcceptable      when the negotiated media type cannot be satisfied
      * @throws ServerError        when the server fails
      * @throws TransportException when no response is received at all
+     *
+     * @example 200 response:
+     *     {
+     *         "data": [
+     *             {
+     *                 "type": "videos",
+     *                 "id": "vid-1",
+     *                 "links": {
+     *                     "self": {
+     *                         "href": "https://api.example.com/videos/vid-1",
+     *                         "describedby": "/docs/openapi.json#/paths/~1videos~1%7Bid%7D/get"
+     *                     }
+     *                 },
+     *                 "attributes": {
+     *                     "url": "https://cdn.example.com/intro.mp4",
+     *                     "seconds": 90
+     *                 }
+     *             }
+     *         ],
+     *         "links": {
+     *             "self": {
+     *                 "href": "https://api.example.com/videos",
+     *                 "describedby": "/docs/openapi.json#/paths/~1videos/get"
+     *             },
+     *             "describedby": {
+     *                 "href": "/docs/openapi.json#/paths/~1videos/get"
+     *             }
+     *         },
+     *         "meta": {
+     *             "total": 1
+     *         },
+     *         "jsonapi": {
+     *             "version": "1.1"
+     *         }
+     *     }
      */
     public function get(): ResourceCollection
     {
@@ -834,6 +911,17 @@ final class Videos
      * @throws ServerError          when the server fails
      * @throws TransportException   when no response is received at all
      * @throws MalformedDocument    when the response carries no primary resource
+     *
+     * @example Request body:
+     *     {
+     *         "data": {
+     *             "type": "videos",
+     *             "attributes": {
+     *                 "url": "https://cdn.example.com/intro.mp4",
+     *                 "seconds": 90
+     *             }
+     *         }
+     *     }
      */
     public function create(
         VideoCreate|VideoCreateBuilder|array $input,

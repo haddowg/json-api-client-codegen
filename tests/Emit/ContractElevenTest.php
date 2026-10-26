@@ -12,7 +12,6 @@ use haddowg\JsonApiCodegen\Emit\Generator;
 use haddowg\JsonApiCodegen\Emit\GeneratorConfig;
 use haddowg\JsonApiCodegen\Emit\PhpTarget;
 use haddowg\JsonApiCodegen\Emit\Surface\ActionSource;
-use haddowg\JsonApiCodegen\Spec\ContractCompatibility;
 use haddowg\JsonApiCodegen\Spec\SpecDocument;
 use haddowg\JsonApiCodegen\Tests\Support\Fixtures;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -29,14 +28,6 @@ use PHPUnit\Framework\TestCase;
 final class ContractElevenTest extends TestCase
 {
     private const array BULK_IMPORT = ['paths', '/articles/-actions/bulk-import', 'post', 'requestBody'];
-
-    public function testTheWitnessIsAContractElevenDocumentThisCodegenReads(): void
-    {
-        $document = SpecDocument::fromJson(self::json(), 'the witness');
-
-        self::assertSame(11, $document->contract());
-        self::assertNull(ContractCompatibility::check($document->contract()));
-    }
 
     public function testAMultipartBodyIsAFormWhateverItsSchemaSays(): void
     {

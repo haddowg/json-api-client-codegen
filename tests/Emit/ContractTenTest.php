@@ -100,7 +100,7 @@ final class ContractTenTest extends TestCase
         $source = self::generate($json)['resource-articles.php'];
         self::assertStringContainsString("     * @template TContentType of 'text/csv'|'application/json'|non-empty-string\n", $source);
         self::assertStringContainsString('     * @param TContentType ', $source);
-        self::assertStringContainsString("(TContentType is 'text/csv' ? string : (TContentType is 'application/json' ? array{total: int<0, max>, byStatus?: array<string, mixed>} : StreamInterface|string)) \$body", $source);
+        self::assertStringContainsString("(TContentType is 'text/csv' ? StreamInterface|string : (TContentType is 'application/json' ? array{total: int<0, max>, byStatus?: array<string, mixed>} : StreamInterface|string)) \$body", $source);
         self::assertStringContainsString("public function import(\n        string \$contentType,\n        StreamInterface|string|array \$body,\n    ): void {", $source);
         self::assertStringContainsString("if (!\\in_array(\$contentType, ['text/csv', 'application/json'], true) && !\\str_starts_with(\$contentType, 'image/')) {", $source);
         self::assertStringContainsString("\$contentType === 'application/json' => \\json_encode(\$body, \\JSON_THROW_ON_ERROR),", $source);

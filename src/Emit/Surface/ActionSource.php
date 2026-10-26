@@ -93,6 +93,7 @@ final class ActionSource
         $raw = $action->responses !== [];
         $multi = $action->input === ActionInput::Raw && $action->requests !== [];
         $encodes = false;
+        $formRequest = null;
 
         $params = [];
         $signature = [];
@@ -106,15 +107,35 @@ final class ActionSource
                 $prose[] = 'It declares no request body, so it takes no input.';
                 break;
             case ActionInput::Raw:
+                $lone = $multi && \count($action->requests) === 1 && $action->requests[0]->kind->isForm() ? $action->requests[0] : null;
+                if ($lone !== null) {
+                    $fields = self::formFields($lone->kind, $imports);
+                    $prose[] = 'The body is ' . ($lone->kind === RawMediaKind::Multipart ? 'a set of form fields and files' : 'a set of form fields') . ', encoded as `' . $lone->mediaType . '`.'
+                        . ($action->bodyRequired ? '' : ' The body is optional, so it may be left out.');
+                    $params[] = [$action->bodyRequired ? $fields : $fields . '|null', '$body'];
+                    $signature[] = $action->bodyRequired ? 'array $body' : '?array $body = null';
+                    $formRequest = '        $request = ' . TypeSurface::request($action->method, '%URI%') . ";\n\n"
+                        . '        $request = ' . ($action->bodyRequired ? '' : '$body === null ? $request : ') . '$request->' . ($lone->kind === RawMediaKind::Multipart ? 'withMultipartBody' : 'withFormBody') . "(\$body);\n\n";
+                    break;
+                }
                 $stream = $imports->add('Psr\\Http\\Message\\StreamInterface');
                 if ($multi) {
-                    [$template, $contentTypeDoc, $bodyDoc, $bodyNative, $check, $payload] = self::requestChoice($action, $stream);
+                    [$template, $contentTypeDoc, $bodyDoc, $bodyNative, $check, $payload, $builds] = self::requestChoice($action, $stream, $imports);
                     if ($template !== null) {
                         $templates[] = $template;
                     }
                     $encodes = $payload !== '';
+                    if ($builds) {
+                        $formRequest = '        $request = ' . TypeSurface::request($action->method, '%URI%') . ";\n\n" . $payload;
+                        $payload = '';
+                    }
                     $choices = \array_map(static fn(RawMediaDescriptor $media): string => '`' . $media->mediaType . '`', $action->requests);
-                    $prose[] = 'The body goes over the wire ' . ($encodes ? 'verbatim, or JSON-encoded for a JSON media type,' : 'verbatim') . ' as `$contentType`, '
+                    $how = match (true) {
+                        $builds => 'as form fields for a form media type, JSON-encoded for a JSON one and verbatim otherwise,',
+                        $encodes => 'verbatim, or JSON-encoded for a JSON media type,',
+                        default => 'verbatim',
+                    };
+                    $prose[] = 'The body goes over the wire ' . $how . ' as `$contentType`, '
                         . (\count($choices) === 1 ? 'a media type within ' . $choices[0] : 'which is one of ' . self::list($choices, 'or')) . '.'
                         . ($action->bodyRequired ? '' : ' The body is optional, so it may be left out.');
                     $params[] = [$contentTypeDoc, '$contentType'];
@@ -154,7 +175,10 @@ final class ActionSource
             $requestBody !== null => TypeSurface::request($action->method, $uri, $requestBody, $output === null ? 8 : 12),
             default => TypeSurface::request($action->method, $uri),
         };
-        if ($action->input === ActionInput::Raw && !$action->bodyRequired) {
+        if ($formRequest !== null) {
+            $body .= \str_replace('%URI%', $uri, $formRequest);
+            $build = '$request';
+        } elseif ($action->input === ActionInput::Raw && !$action->bodyRequired) {
             $body .= '        $request = ' . TypeSurface::request($action->method, $uri) . ";\n\n";
             $build = ($multi && $encodes ? '$payload' : '$body') . ' === null ? $request : $request->withRawBody(' . $rawBody . ')';
         }
@@ -193,7 +217,7 @@ final class ActionSource
         switch ($action->output) {
             case ActionOutput::None:
                 $return = 'void';
-                $read = $action->input === ActionInput::Raw && !$action->bodyRequired
+                $read = $action->input === ActionInput::Raw && !$action->bodyRequired && $build !== '$request'
                     ? "        \$this->fetcher->send(\n            " . $build . ",\n        );\n"
                     : '        $this->fetcher->send(' . $build . ");\n";
                 break;
@@ -346,9 +370,12 @@ final class ActionSource
      * The template, PHPDoc and native types of an action that takes its body in one of several
      * media types, and the statements that check the media type and encode the body.
      *
-     * @return array{string|null, string, string, string, string, string}
+     * The last member says whether those statements build `$request` themselves, which they do
+     * when a form is among the choices, since the runtime encodes a form and sets its media type.
+     *
+     * @return array{string|null, string, string, string, string, string, bool}
      */
-    private static function requestChoice(ActionDescriptor $action, string $stream): array
+    private static function requestChoice(ActionDescriptor $action, string $stream, Imports $imports): array
     {
         $concrete = [];
         $ranges = [];
@@ -357,6 +384,7 @@ final class ActionSource
                 RawMediaKind::Json => self::jsonBodyType($media),
                 RawMediaKind::Text => ['string', 'string'],
                 RawMediaKind::Binary => [$stream . '|string', $stream . '|string'],
+                RawMediaKind::Multipart, RawMediaKind::Form => [self::formFields($media->kind, $imports), 'array'],
             };
             if ($media->wildcard()) {
                 $ranges[] = ['media' => $media, 'doc' => $doc, 'native' => $native];
@@ -382,6 +410,7 @@ final class ActionSource
                 RawMediaKind::Json => self::jsonBodyType($media)[1],
                 RawMediaKind::Text => 'string',
                 RawMediaKind::Binary => $stream . '|string',
+                RawMediaKind::Multipart, RawMediaKind::Form => 'array',
             }) as $native) {
                 $natives[$native] = true;
             }
@@ -414,12 +443,16 @@ final class ActionSource
         }
 
         $json = \array_values(\array_filter($action->requests, static fn(RawMediaDescriptor $media): bool => $media->kind === RawMediaKind::Json));
+        $forms = \array_values(\array_filter($action->requests, static fn(RawMediaDescriptor $media): bool => $media->kind->isForm()));
         // A template only where there is a literal to key the body's type on.
         $template = $literals === [] ? null : '@template TContentType of ' . $bound;
         $contentTypeDoc = $literals === [] ? 'non-empty-string' : 'TContentType';
+        if ($forms !== []) {
+            return [$template, $contentTypeDoc, $chain, $native, $check, self::formChoice($action, $stream, $json, $forms, $imports), true];
+        }
         if ($json === []) {
             // Every body is already a string or a stream, so it goes over the wire as it is.
-            return [$template, $contentTypeDoc, $chain, $native, $check, ''];
+            return [$template, $contentTypeDoc, $chain, $native, $check, '', false];
         }
         $arms = [];
         if (!$action->bodyRequired) {
@@ -443,7 +476,48 @@ final class ActionSource
             $native,
             $check,
             $payload,
+            false,
         ];
+    }
+
+    /**
+     * The statement that puts a body chosen by `$contentType` on `$request` when a form is among
+     * the choices. A form goes to the runtime's encoder, which checks the fields and sets the
+     * media type with its boundary; JSON is encoded; a string or a stream goes as it is.
+     *
+     * @param list<RawMediaDescriptor> $json
+     * @param list<RawMediaDescriptor> $forms
+     */
+    private static function formChoice(ActionDescriptor $action, string $stream, array $json, array $forms, Imports $imports): string
+    {
+        $encoding = $imports->runtime('Http\\FormEncoding');
+        $arms = [];
+        if (!$action->bodyRequired) {
+            $arms[] = '            $body === null => $request,';
+        }
+        foreach ($forms as $form) {
+            $arms[] = '            $contentType === ' . Php::string($form->mediaType) . ' && \\is_array($body) => $request->'
+                . ($form->kind === RawMediaKind::Multipart ? 'withMultipartBody(' . $encoding . '::multipartFields($body))' : 'withFormBody(' . $encoding . '::formFields($body))') . ',';
+        }
+        $exactJson = \array_values(\array_filter($json, static fn(RawMediaDescriptor $media): bool => !$media->wildcard()));
+        if ($exactJson !== []) {
+            $arms[] = '            ' . \implode(', ', \array_map(static fn(RawMediaDescriptor $media): string => '$contentType === ' . Php::string($media->mediaType), $exactJson)) . ' => $request->withRawBody(\\json_encode($body, \\JSON_THROW_ON_ERROR), $contentType),';
+        }
+        if (\count($exactJson) < \count($json)) {
+            $arms[] = "            \\str_ends_with(\\strtolower(\\explode(';', \$contentType, 2)[0]), 'json') => \$request->withRawBody(\\json_encode(\$body, \\JSON_THROW_ON_ERROR), \$contentType),";
+        }
+        $arms[] = '            $body instanceof ' . $stream . ', \\is_string($body) => $request->withRawBody($body, $contentType),';
+        $arms[] = '            default => throw new \\InvalidArgumentException(\\sprintf(' . Php::string('The "' . $action->name . '" action cannot send this body as %s.') . ', $contentType)),';
+
+        return "        \$request = match (true) {\n" . \implode("\n", $arms) . "\n        };\n\n";
+    }
+
+    /** The PHPDoc type of a form body: its fields, and for multipart its files. */
+    private static function formFields(RawMediaKind $kind, Imports $imports): string
+    {
+        return $kind === RawMediaKind::Multipart
+            ? 'array<string, string|int|float|bool|' . $imports->runtime('Http\\FilePart') . '>'
+            : 'array<string, string|int|float|bool>';
     }
 
     /**

@@ -61,7 +61,7 @@ the projector whenever the emitted structure changes. This codegen declares a su
 this is the only thing that catches it. A feature-token list was rejected: it names what
 changed, at the cost of two hand-maintained lists that must agree.
 
-The supported range is `[1, 10]`. Contract 2 (json-api 1.1.0) added the error catalogue, shared
+The supported range is `[1, 11]`. Contract 2 (json-api 1.1.0) added the error catalogue, shared
 error responses and write-side `include`/`fields`; the descriptor reads the first into `errors`,
 and the last into each operation's `projection`. Contract 3 added `x-paginator` on page schemas,
 which the descriptor reads into each `PaginatorDescriptor`: the strategy, its role-to-key map, and
@@ -91,7 +91,11 @@ action answer in media types other than JSON:API, listed beside or instead of
 `application/vnd.api+json` under its success `content`, and only a document that declares one
 carries it. The descriptor reads each as binary, text or JSON, and the action's method takes
 `$accept` with a conditional return type: a stream, a string, or a value class generated from an
-object schema (ADR 0008). Raise `MAXIMUM` only in the change that
+object schema (ADR 0008). Contract 11 (json-api 1.12.0) lets an action accept several request bodies under its
+`requestBody.content`, and only a document that declares one carries it. The choice by
+`$contentType` was already read; a `multipart/form-data` or `application/x-www-form-urlencoded`
+body is now a field array that the runtime encodes, boundary included, rather than bytes (ADR 0009).
+Raise `MAXIMUM` only in the change that
 teaches the descriptor to read whatever the next contract adds.
 
 **Pagination warns rather than errors.** An unknown strategy, an unstamped member set outside the

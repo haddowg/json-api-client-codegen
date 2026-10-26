@@ -22,7 +22,8 @@ use PHPUnit\Framework\TestCase;
 /**
  * Generator contract 10 lets a custom action answer in media types other than JSON:API (core ADR
  * 0173), and an action can take its raw body in several. The witness declares the first; the
- * second is patched into a copy of it here, since no released server projects one yet.
+ * shapes of the second that its contract 11 `bulk-import` action does not reach are patched into
+ * a copy of it here.
  */
 #[CoversClass(DescriptorBuilder::class)]
 #[CoversClass(DescriptorSerializer::class)]
@@ -114,7 +115,8 @@ final class ContractTenTest extends TestCase
         ]);
 
         $source = self::generate($json)['resource-articles.php'];
-        self::assertStringNotContainsString('TContentType', $source);
+        // From contract 11 the witness has a bulk-import action with a choice of its own.
+        self::assertStringNotContainsString('TContentType', self::method($source, 'Import: `POST /articles/-actions/import`'));
         self::assertMatchesRegularExpression('/@param non-empty-string +\$contentType\n     \* @param StreamInterface\|string\|null \$body\n/', $source);
         self::assertStringContainsString("public function import(\n        string \$contentType,\n        StreamInterface|string|null \$body = null,\n    ): void {", $source);
         self::assertStringContainsString("\$body === null ? \$request : \$request->withRawBody(\$body, \$contentType)", $source);
@@ -200,6 +202,17 @@ final class ContractTenTest extends TestCase
         $node[$key] = self::with($node[$key], $at, $value);
 
         return $node;
+    }
+
+    /** One generated method, from the head of its docblock to its closing brace. */
+    private static function method(string $source, string $headline): string
+    {
+        $start = \strpos($source, '     * ' . $headline);
+        self::assertIsInt($start);
+        $end = \strpos($source, "\n    }\n", $start);
+        self::assertIsInt($end);
+
+        return \substr($source, $start, $end - $start);
     }
 
     private static function json(): string

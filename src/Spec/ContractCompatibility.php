@@ -55,6 +55,12 @@ namespace haddowg\JsonApiCodegen\Spec;
  * declares one; every other document stays at 9. The descriptor reads each raw media type as
  * binary, text or JSON, and the generated method takes the choice as `$accept` with a return
  * type conditional on it. A JSON body whose schema is an object becomes a value class.
+ *
+ * Contract 11 lets a custom action accept several request bodies, each listed under its
+ * `requestBody.content`, and is stamped only on a document that declares one. The descriptor
+ * already read a choice of raw request media types, so it adds only the form media types:
+ * `multipart/form-data` and `application/x-www-form-urlencoded` are field arrays the runtime
+ * encodes, whatever their schema, since a multipart body needs a boundary only the encoder knows.
  */
 final class ContractCompatibility
 {
@@ -62,7 +68,7 @@ final class ContractCompatibility
     public const int MINIMUM = 1;
 
     /** Above this the document carries structures this codegen does not read. */
-    public const int MAXIMUM = 10;
+    public const int MAXIMUM = 11;
 
     /**
      * Check a document's declared contract against the supported range.

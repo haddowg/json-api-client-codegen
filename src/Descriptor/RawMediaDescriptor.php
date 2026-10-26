@@ -10,7 +10,8 @@ namespace haddowg\JsonApiCodegen\Descriptor;
  *
  * `$kind` decides the PHP type. A `format: binary` schema is binary; a JSON media type is JSON,
  * typed by `$schema`; a string schema or a `text/*` type without one is text; anything else is
- * binary. `$component` names the schema component a `$ref` pointed at, which a generated value
+ * binary. A `multipart/form-data` or `application/x-www-form-urlencoded` request body is a form,
+ * whatever its schema says. `$component` names the schema component a `$ref` pointed at, which a generated value
  * class takes its name from.
  */
 final class RawMediaDescriptor

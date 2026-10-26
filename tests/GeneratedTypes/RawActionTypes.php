@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace haddowg\JsonApiCodegen\Tests\GeneratedTypes;
 
+use haddowg\JsonApiClient\Http\FilePart;
 use haddowg\JsonApiCodegen\Tests\Golden\Witness\WitnessClient;
 
 use function PHPStan\Testing\assertType;
@@ -39,5 +40,16 @@ final class RawActionTypes
 
         assertType('int<0, max>', $summary->total);
         assertType('array<string, mixed>|null', $summary->byStatus);
+    }
+
+    public function aRequestBodyIsTypedByTheMediaTypeItIsSentAs(WitnessClient $client): void
+    {
+        $actions = $client->articles->actions();
+
+        $actions->bulkImport('multipart/form-data', ['title' => 'x', 'cover' => new FilePart('bytes', 'cover.png', 'image/png')]);
+        $actions->bulkImport('text/csv', "title\nx\n");
+        $actions->bulkImport('image/png', 'bytes');
+        $actions->bulkImport('application/json', [['title' => 'x']]);
+        $actions->bulkImport('multipart/form-data');
     }
 }

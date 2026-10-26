@@ -17,7 +17,7 @@ namespace haddowg\JsonApiCodegen\Descriptor;
  * From contract 10 an action can answer in media types other than JSON:API, listed in
  * `$responses`, and the caller picks one through `Accept`. `$requests` lists the media types a raw
  * body may be sent as when there is a choice to make: more than one, or a range such as
- * `image/*`. `$summary` and `$description` are the operation's own prose, left null when they are
+ * `image/*`, and from contract 11 also a lone form media type, whose body is a field array. `$summary` and `$description` are the operation's own prose, left null when they are
  * the projector's defaults.
  */
 final class ActionDescriptor

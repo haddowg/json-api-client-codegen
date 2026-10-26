@@ -31,15 +31,16 @@ final class ContractCompatibilityTest extends TestCase
         self::assertNull(ContractCompatibility::check(ContractCompatibility::MAXIMUM));
     }
 
-    public function testContractNineIsReadAndTenIsNot(): void
+    public function testContractElevenIsReadAndTwelveIsNot(): void
     {
-        // Contract 10 lets an action answer in raw media types, which this codegen reads;
-        // whatever 11 adds, it does not.
+        // Contract 10 lets an action answer in raw media types and 11 lets it accept several
+        // request bodies, both of which this codegen reads; whatever 12 adds, it does not.
         self::assertNull(ContractCompatibility::check(9));
         self::assertNull(ContractCompatibility::check(10));
+        self::assertNull(ContractCompatibility::check(11));
 
-        $warning = ContractCompatibility::check(11);
-        self::assertSame('the document declares contract 11 and this codegen reads up to 10. It describes capabilities that were not generated; upgrade the codegen to pick them up.', $warning);
+        $warning = ContractCompatibility::check(12);
+        self::assertSame('the document declares contract 12 and this codegen reads up to 11. It describes capabilities that were not generated; upgrade the codegen to pick them up.', $warning);
     }
 
     public function testANewerContractWarnsThatCapabilitiesWereNotGenerated(): void

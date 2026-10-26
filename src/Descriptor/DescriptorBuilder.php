@@ -1523,9 +1523,10 @@ final class DescriptorBuilder
                 $path,
                 \implode(', ', $rawRequests),
             ));
-        } elseif ($input === ActionInput::Raw && (\count($rawRequests) > 1 || \str_contains($rawRequests[0] ?? '', '*'))) {
+        } elseif ($input === ActionInput::Raw && (\count($rawRequests) > 1 || \str_contains($rawRequests[0] ?? '', '*') || RawMediaKind::formOf($rawRequests[0] ?? '') !== null)) {
             foreach ($rawRequests as $media) {
-                $requests[] = $this->rawMedia($media, $content?->path($media, 'schema'));
+                $form = RawMediaKind::formOf($media);
+                $requests[] = $form === null ? $this->rawMedia($media, $content?->path($media, 'schema')) : new RawMediaDescriptor($media, $form);
             }
         }
 

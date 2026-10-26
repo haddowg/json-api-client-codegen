@@ -24,6 +24,8 @@ use haddowg\JsonApiClient\Exceptions\UnknownFilterException;
 use haddowg\JsonApiClient\Exceptions\UnknownSortException;
 use haddowg\JsonApiClient\Exceptions\UnsupportedMediaType;
 use haddowg\JsonApiClient\Exceptions\ValidationFailed;
+use haddowg\JsonApiClient\Http\FilePart;
+use haddowg\JsonApiClient\Http\FormEncoding;
 use haddowg\JsonApiClient\Http\Request;
 use haddowg\JsonApiClient\Pagination\PageLinks;
 use haddowg\JsonApiClient\Pagination\PageNumber;
@@ -1565,11 +1567,53 @@ final class ArticleBlockImage
  * The collection-scoped custom actions of `articles`, reached through the type accessor. Each
  * signature is derived from the action's own request body and response.
  *
- * @generated from `POST /articles/-actions/import` and `GET /articles/-actions/report` and `GET /articles/-actions/stats`
+ * @generated from `POST /articles/-actions/bulk-import` and `POST /articles/-actions/import` and `GET /articles/-actions/report` and `GET /articles/-actions/stats`
  */
 final class ArticleCollectionActions
 {
     public function __construct(private readonly Fetcher $fetcher) {}
+
+    /**
+     * Bulk import: `POST /articles/-actions/bulk-import`. The body goes over the wire as form
+     * fields for a form media type, JSON-encoded for a JSON one and verbatim otherwise, as
+     * `$contentType`, which is one of `text/csv`, `image/*`, `multipart/form-data` or
+     * `application/json`. The body is optional, so it may be left out.
+     *
+     * @template TContentType of 'text/csv'|'multipart/form-data'|'application/json'|non-empty-string
+     *
+     * @param TContentType                                                                                                                                                                                                                      $contentType
+     * @param (TContentType is 'text/csv' ? string : (TContentType is 'multipart/form-data' ? array<string, string|int|float|bool|FilePart> : (TContentType is 'application/json' ? list<array{title: string}> : StreamInterface|string)))|null $body
+     *
+     * @throws BadRequest           when the request is malformed
+     * @throws Unauthorized         when credentials are missing or invalid
+     * @throws Forbidden            when the action is not permitted
+     * @throws NotFound             when the endpoint does not exist
+     * @throws NotAcceptable        when the negotiated media type cannot be satisfied
+     * @throws UnsupportedMediaType when the `Content-Type` is refused
+     * @throws ValidationFailed     when the payload fails validation
+     * @throws ServerError          when the server fails
+     * @throws TransportException   when no response is received at all
+     */
+    public function bulkImport(
+        string $contentType,
+        StreamInterface|string|array|null $body = null,
+    ): void {
+        if (!\in_array($contentType, ['text/csv', 'multipart/form-data', 'application/json'], true) && !\str_starts_with($contentType, 'image/')) {
+            throw new \InvalidArgumentException(\sprintf('The "bulk-import" action takes its body as one of text/csv, image/*, multipart/form-data, application/json, not %s.', $contentType));
+        }
+
+        $request = Request::post('/articles/-actions/bulk-import');
+
+        $request = match (true) {
+            $body === null => $request,
+            $contentType === 'multipart/form-data' && \is_array($body) => $request->withMultipartBody(FormEncoding::multipartFields($body)),
+            $contentType === 'application/json' => $request->withRawBody(\json_encode($body, \JSON_THROW_ON_ERROR), $contentType),
+            $body instanceof StreamInterface, \is_string($body) => $request->withRawBody($body, $contentType),
+            default => throw new \InvalidArgumentException(\sprintf('The "bulk-import" action cannot send this body as %s.', $contentType)),
+        };
+
+        $this->fetcher->send($request);
+    }
 
     /**
      * Import: `POST /articles/-actions/import`. The body goes over the wire verbatim as

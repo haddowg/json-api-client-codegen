@@ -8,11 +8,13 @@ parameters:
         - tests/golden/generated
         - tests/golden/paginators
         - tests/golden/witness
+        - tests/golden/form-fields
         # Asserts the page type a menu query's pickers leave it reading.
         - tests/GeneratedTypes
     bootstrapFiles:
         - tests/golden/generated/autoload.php
         - tests/golden/paginators/autoload.php
         - tests/golden/witness/autoload.php
+        - tests/golden/form-fields/autoload.php
     tmpDir: .phpstan.cache/generated
     treatPhpDocTypesAsCertain: false

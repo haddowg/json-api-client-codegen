@@ -148,11 +148,16 @@ final class DescriptorSerializer
     /** @return array<string, mixed> */
     private static function rawMedia(RawMediaDescriptor $media): array
     {
+        $form = $media->kind->isForm() && $media->schema !== null
+            ? ['additional' => \is_bool($media->additional) ? $media->additional : self::valueSchema($media->additional)]
+            : [];
+
         return [
             'mediaType' => $media->mediaType,
             'kind' => $media->kind->value,
             'component' => $media->component,
             'schema' => self::valueSchema($media->schema),
+            ...$form,
         ];
     }
 

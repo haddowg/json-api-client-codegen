@@ -94,7 +94,8 @@ carries it. The descriptor reads each as binary, text or JSON, and the action's 
 object schema (ADR 0008). Contract 11 (json-api 1.12.0) lets an action accept several request bodies under its
 `requestBody.content`, and only a document that declares one carries it. The choice by
 `$contentType` was already read; a `multipart/form-data` or `application/x-www-form-urlencoded`
-body is now a field array that the runtime encodes, boundary included, rather than bytes (ADR 0009).
+body is now a field array that the runtime encodes, boundary included, rather than bytes (ADR 0009),
+narrowed to an array shape when its schema lists `properties` (ADR 0010).
 Raise `MAXIMUM` only in the change that
 teaches the descriptor to read whatever the next contract adds.
 

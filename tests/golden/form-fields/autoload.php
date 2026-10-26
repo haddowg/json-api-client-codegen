@@ -7,7 +7,7 @@ declare(strict_types=1);
  * so this map is how each one is found. Register it once through composer.json's
  * `autoload.files`; regenerating rewrites it, so a new type never needs a `dump-autoload`.
  *
- * @generated from an OpenAPI document with sha256 2530b7c131a1a2e301804c77e7bd2331b4fda242073695857e94a5bf641440fa
+ * @generated from an OpenAPI document with sha256 d70161dbe9aecc732b26eb731d80b260eab1755e73d82f22a3550106bbc020fd
  */
 
 \spl_autoload_register(static function (string $class): void {
@@ -45,7 +45,10 @@ declare(strict_types=1);
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\FormFields\\Image' => 'resource-images.php',
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\FormFields\\ImageBase' => 'resource-images.php',
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\FormFields\\ImageClipsRelation' => 'resource-images.php',
+        'haddowg\\JsonApiCodegen\\Tests\\Golden\\FormFields\\ImageDownloadLink' => 'resource-images.php',
+        'haddowg\\JsonApiCodegen\\Tests\\Golden\\FormFields\\ImageDownloadLinkMeta' => 'resource-images.php',
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\FormFields\\ImageHandle' => 'resource-images.php',
+        'haddowg\\JsonApiCodegen\\Tests\\Golden\\FormFields\\ImageLinks' => 'resource-images.php',
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\FormFields\\ImageProjecting' => 'resource-images.php',
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\FormFields\\ImageProjection' => 'resource-images.php',
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\FormFields\\ImageQuery' => 'resource-images.php',

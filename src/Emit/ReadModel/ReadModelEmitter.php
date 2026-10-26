@@ -8,6 +8,8 @@ use haddowg\JsonApiCodegen\Descriptor\ApiDescriptor;
 use haddowg\JsonApiCodegen\Descriptor\AttributeDescriptor;
 use haddowg\JsonApiCodegen\Descriptor\Cardinality;
 use haddowg\JsonApiCodegen\Descriptor\Constraints;
+use haddowg\JsonApiCodegen\Descriptor\DeclaredLinkDescriptor;
+use haddowg\JsonApiCodegen\Descriptor\LinkMetaDescriptor;
 use haddowg\JsonApiCodegen\Descriptor\OperationDescriptor;
 use haddowg\JsonApiCodegen\Descriptor\OperationKind;
 use haddowg\JsonApiCodegen\Descriptor\RelationDescriptor;
@@ -166,6 +168,9 @@ final class ReadModelEmitter implements Emitter, Warns
             if (self::readsPivot($relation)) {
                 $out[] = $this->pivot($api, $resource, $relation, $file, $hooks);
             }
+        }
+        if ($resource->links !== []) {
+            \array_push($out, ...$this->declaredLinks($api, $resource, $file, $hooks));
         }
 
         $tags = [];
@@ -348,6 +353,12 @@ final class ReadModelEmitter implements Emitter, Warns
                 '@param ' . \implode('|', \array_map(Php::docString(...), $names)) . ' $name',
             ], 4, false)
                 . "    public function _rel(string \$name): Relationship\n    {\n        return \$this->_relationship(\$name, " . $isToOne . ");\n    }\n";
+        }
+
+        if ($resource->links !== []) {
+            $members[] = Php::docblock(Php::wrap('The links ' . self::article($type) . ' `' . $type . '` resource declares, each typed. A link the response left out reads as null. Every link, declared or not, is in `_links()`.', 4), 4, false)
+                . '    public function _declaredLinks(): ' . self::linksClass($type) . "\n    {\n"
+                . '        return new ' . self::linksClass($type) . "(\$this->_links(), \$this->_subject());\n    }\n";
         }
 
         $source = Php::docblock($doc, 0, false)
@@ -924,6 +935,209 @@ final class ReadModelEmitter implements Emitter, Warns
             . "}\n";
 
         return new ClassUnit($class, UnitKind::FinalClass, $file, $source, \array_values(\array_unique($imports)));
+    }
+
+    /** `images` → `ImageLinks`, the typed declared links of the type. */
+    private static function linksClass(string $type): string
+    {
+        return Naming::perType($type, 'Links');
+    }
+
+    /** `images`, `download` → `ImageDownloadLink`, the class of one declared link object. */
+    private static function linkClass(string $type, string $link): string
+    {
+        return Naming::perType($type, Naming::pascal($link) . 'Link');
+    }
+
+    /**
+     * The typed declared links of a type: the `<Type>Links` the resource base hands out, and for
+     * each link object its class and, when it declares `meta` members, its meta class.
+     *
+     * @return list<ClassUnit>
+     */
+    private function declaredLinks(ApiDescriptor $api, ResourceDescriptor $resource, string $file, bool $hooks): array
+    {
+        $type = $resource->type;
+        $class = self::linksClass($type);
+        $out = [];
+
+        $hooked = '';
+        $methods = [];
+        $claimed = [];
+        foreach ($resource->links as $link) {
+            $method = Naming::member($link->name);
+            if (isset($claimed[\strtolower($method)])) {
+                throw new \LogicException(\sprintf('The links "%s" and "%s" of "%s" would both generate %s().', $claimed[\strtolower($method)], $link->name, $type, $method));
+            }
+            $claimed[\strtolower($method)] = $link->name;
+
+            $prose = Php::wrap($link->description ?? 'The `' . $link->name . '` link.', 4);
+            if ($link->object) {
+                $linkClass = self::linkClass($type, $link->name);
+                $native = '?' . $linkClass;
+                $body = 'return $this->_object(' . Php::string($link->name) . ', ' . $linkClass . '::class);';
+                \array_push($out, ...$this->linkObject($api, $resource, $link, $file, $hooks));
+            } else {
+                $native = '?string';
+                $body = 'return $this->_href(' . Php::string($link->name) . ');';
+                $prose = [...$prose, '', ...Php::wrap('A bare link, read as its URL from either a string or a link object.', 4)];
+            }
+            $methods[] = Php::docblock($prose, 4, false)
+                . '    public function ' . $method . '(): ' . $native . "\n    {\n        " . $body . "\n    }\n";
+            $hooked .= '    public ' . $native . ' $' . $method . ' { get => $this->' . $method . "(); }\n";
+        }
+
+        $doc = [
+            ...Php::wrap('The links ' . self::article($type) . ' `' . $type . '` resource declares, one typed accessor each.'),
+            '',
+            ...Php::wrap('Every declared link is optional, because the server leaves one out when it does not apply, so each accessor returns null for a link the response left out. A link the type does not declare is in the resource\'s `_links()`.'),
+            '',
+            '@generated from `components.schemas.' . self::schema($type) . 'Links`',
+        ];
+        \array_unshift($out, new ClassUnit(
+            $class,
+            UnitKind::FinalClass,
+            $file,
+            Php::docblock($doc, 0, false)
+                . 'final class ' . $class . " extends DeclaredLinks\n{\n"
+                . \implode("\n", $hooks ? [$hooked, ...$methods] : $methods)
+                . "}\n",
+            [self::RUNTIME . 'Resources\\DeclaredLinks'],
+        ));
+
+        return $out;
+    }
+
+    /**
+     * One declared link object: its `href`, an accessor per static member, and `meta()` when it
+     * declares `meta` members.
+     *
+     * @return list<ClassUnit>
+     */
+    private function linkObject(ApiDescriptor $api, ResourceDescriptor $resource, DeclaredLinkDescriptor $link, string $file, bool $hooks): array
+    {
+        $type = $resource->type;
+        $class = self::linkClass($type, $link->name);
+        $metaClass = $class . 'Meta';
+        $out = [];
+
+        $hooked = '    public string $href { get => $this->href(); }' . "\n";
+        $methods = [];
+        foreach ($link->members as $member) {
+            $method = Naming::member($member->name);
+            $native = $member->required ? 'string' : '?string';
+            $prose = $member->const === null ? [] : ['Always `' . $member->const . '`.'];
+            $methods[] = ($prose === [] ? '' : Php::docblock($prose, 4, false))
+                . '    public function ' . $method . '(): ' . $native . "\n    {\n"
+                . '        return $this->' . ($member->required ? '_string' : '_nullableString') . '(' . Php::string($member->name) . ");\n    }\n";
+            $hooked .= '    public ' . $native . ' $' . $method . ' { get => $this->' . $method . "(); }\n";
+        }
+        if ($link->meta !== []) {
+            $methods[] = Php::docblock(['The link\'s `meta`, each member typed.'], 4, false)
+                . '    public function meta(): ' . $metaClass . "\n    {\n"
+                . '        return $this->_metaAs(' . $metaClass . "::class);\n    }\n";
+            $hooked .= '    public ' . $metaClass . ' $meta { get => $this->meta(); }' . "\n";
+            $out[] = $this->linkMeta($api, $resource, $link, $file, $hooks);
+        }
+
+        $doc = [
+            ...Php::wrap('The `' . $link->name . '` link of ' . self::article($type) . ' `' . $type . '` resource.' . ($link->description === null ? '' : ' ' . $link->description)),
+            '',
+            '@generated from `components.schemas.' . self::schema($type) . 'Links.properties.' . $link->name . '`',
+        ];
+        \array_unshift($out, new ClassUnit(
+            $class,
+            UnitKind::FinalClass,
+            $file,
+            Php::docblock($doc, 0, false)
+                . 'final class ' . $class . " extends DeclaredLink\n{\n"
+                . \implode("\n", $hooks ? [$hooked, ...$methods] : $methods)
+                . "}\n",
+            [self::RUNTIME . 'Resources\\DeclaredLink'],
+        ));
+
+        return $out;
+    }
+
+    /**
+     * A declared link's `meta`, an accessor per member read the way an attribute is. A member a
+     * request cannot hide reads strictly; any other is nullable, because the response leaves it
+     * out.
+     */
+    private function linkMeta(ApiDescriptor $api, ResourceDescriptor $resource, DeclaredLinkDescriptor $link, string $file, bool $hooks): ClassUnit
+    {
+        $type = $resource->type;
+        $class = self::linkClass($type, $link->name) . 'Meta';
+        $imports = [self::RUNTIME . 'Resources\\LinkMeta'];
+
+        $hooked = '';
+        $methods = [];
+        $claimed = [];
+        foreach ($link->meta as $member) {
+            $attribute = new AttributeDescriptor(
+                $member->name,
+                $member->format,
+                $member->enum,
+                $member->nullable || !$member->required,
+                $member->schema,
+                $member->constraints,
+            );
+            $shape = $member->schema === null ? null : Shape::of($member->schema)->kind;
+            $read = \in_array($shape, [ShapeKind::Object, ShapeKind::Tagged], true)
+                ? new AttributeRead($member->name, Naming::member($member->name), $attribute->nullable ? '?array' : 'array', 'array<string, mixed>' . ($attribute->nullable ? '|null' : ''), ['return $this->' . ($attribute->nullable ? '_nullableMap' : '_map') . '(' . Php::string($member->name) . ');'])
+                : $this->attribute($api, $resource, $attribute);
+            $method = Naming::member($member->name);
+            if (isset($claimed[\strtolower($method)])) {
+                throw new \LogicException(\sprintf('The meta members "%s" and "%s" of the "%s" link of "%s" would both generate %s().', $claimed[\strtolower($method)], $member->name, $link->name, $type, $method));
+            }
+            $claimed[\strtolower($method)] = $member->name;
+
+            $lines = [...self::metaProse($member), ...$read->prose];
+            if ($read->docType !== null) {
+                $lines = [...$lines, ...($lines === [] ? [] : ['']), '@return ' . $read->docType];
+            }
+            $methods[] = ($lines === [] ? '' : Php::docblock($lines, 4, false))
+                . '    public function ' . $method . '(): ' . $read->nativeType . "\n    {\n"
+                . \implode("\n", Guard::indent($read->body, 8)) . "\n    }\n";
+            $hooked .= ($read->docType === null ? '' : '    ' . Php::comment('@var ' . $read->docType) . "\n")
+                . '    public ' . $read->nativeType . ' $' . $method . ' { get => $this->' . $method . "(); }\n";
+            \array_push($imports, ...$read->imports);
+        }
+
+        $doc = [
+            ...Php::wrap('The `meta` of the `' . $link->name . '` link of ' . self::article($type) . ' `' . $type . '` resource.'),
+            '',
+            ...Php::wrap('A member the server always renders reads as its type. Any other reads as nullable, because a request can hide it and the response then leaves it out.'),
+            '',
+            '@generated from `components.schemas.' . self::schema($type) . 'Links.properties.' . $link->name . '.properties.meta`',
+        ];
+
+        return new ClassUnit(
+            $class,
+            UnitKind::FinalClass,
+            $file,
+            Php::docblock($doc, 0, false)
+                . 'final class ' . $class . " extends LinkMeta\n{\n"
+                . \implode("\n", $hooks ? [$hooked, ...$methods] : $methods)
+                . "}\n",
+            \array_values(\array_unique($imports)),
+        );
+    }
+
+    /**
+     * A meta member's description, then its example as one line of JSON.
+     *
+     * @return list<string>
+     */
+    private static function metaProse(LinkMetaDescriptor $member): array
+    {
+        $lines = $member->description === null ? [] : Php::wrap($member->description, 4);
+        if ($member->example !== null) {
+            $example = \json_encode($member->example, \JSON_UNESCAPED_SLASHES | \JSON_UNESCAPED_UNICODE | \JSON_PRESERVE_ZERO_FRACTION | \JSON_THROW_ON_ERROR);
+            $lines = [...$lines, ...($lines === [] ? [] : ['']), 'Example: `' . $example . '`'];
+        }
+
+        return $lines;
     }
 
     public static function native(Shape $shape): string

@@ -27,6 +27,7 @@ final class ResourceDescriptor
      * @param list<string>                       $updateRelations relations the update document accepts, in document order
      * @param list<string>                       $memberOrder     every attribute then every relation, in the order the resource schema declares them
      * @param array<string, RelationDescriptor>  $writeOnlyRelations relations a write accepts that no read shows, keyed and sorted by name
+     * @param array<string, DeclaredLinkDescriptor> $links       the links the type declares, in document order
      */
     public function __construct(
         public readonly string $type,
@@ -46,6 +47,7 @@ final class ResourceDescriptor
         public readonly array $updateRelations = [],
         public readonly array $memberOrder = [],
         public readonly array $writeOnlyRelations = [],
+        public readonly array $links = [],
     ) {}
 
     /**

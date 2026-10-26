@@ -181,6 +181,7 @@ final class DescriptorBuilder
         $update = $single?->find('patch');
         $writeOnly = $this->markedWriteOnly($create, $update);
         $relations = $this->relations($type, $schema, $collection, $writeOnly, $create, $update);
+        $actions = $collection === null ? [] : $this->actions($collection);
 
         return new ResourceDescriptor(
             $type,
@@ -195,12 +196,111 @@ final class DescriptorBuilder
             \array_values(\array_diff($this->tokenEnum($list, 'include'), $writeOnly)),
             $this->tokenEnum($list, 'sort'),
             $this->filterable($list),
-            $collection === null ? [] : $this->actions($collection),
+            $actions,
             $this->writeRelations($create),
             $this->writeRelations($update),
             \array_values(\array_diff($this->memberOrder($schema), $writeOnly)),
             $this->writeOnlyRelations($type, $relations, $collection, $create, $update),
+            $this->declaredLinks($schema, \array_keys($actions)),
         );
+    }
+
+    /**
+     * The links a type declares, read from its `<Type>ResourceLinks` (core ADR 0178). Contract 14
+     * lists each as a named property beside `self`: a link object as an inline object schema with
+     * an `href`, a bare link as a `$ref` to `LinkObject`. `self` is never declared, an action's
+     * link is the action's, and a `RenderedLink` is a link the server builds, so none of those is
+     * read. An older document declares no links.
+     *
+     * @param list<string> $actions the type's action names, whose links a server that renders
+     *                              strings points at `LinkObject` just as it does a bare link
+     *
+     * @return array<string, DeclaredLinkDescriptor>
+     */
+    private function declaredLinks(Node $schema, array $actions): array
+    {
+        $links = $schema->path('properties', 'links');
+        if ($links === null || ($this->document->contract() ?? 0) < 14) {
+            return [];
+        }
+
+        $out = [];
+        foreach ($this->document->dereference($links)->find('properties')?->members() ?? [] as $key => $link) {
+            $name = (string) $key;
+            if ($name === 'self' || \in_array($name, $actions, true)) {
+                continue;
+            }
+
+            $reference = $this->document->refName($link);
+            if ($reference === 'RenderedLink') {
+                continue;
+            }
+            $description = $link->find('description')?->string();
+            if ($reference === 'LinkObject') {
+                $out[$name] = new DeclaredLinkDescriptor($name, false, $description);
+
+                continue;
+            }
+            if ($reference !== null || $link->path('properties', 'href') === null) {
+                throw SpecException::malformed($link->pointer(), 'expected a declared link to be a link object schema with an `href`, or a `$ref` to LinkObject');
+            }
+
+            $required = $link->find('required')?->strings() ?? [];
+            $members = [];
+            foreach ($link->get('properties')->members() as $memberKey => $member) {
+                $memberName = (string) $memberKey;
+                if ($memberName === 'href' || $memberName === 'meta') {
+                    continue;
+                }
+                $members[$memberName] = new LinkMemberDescriptor(
+                    $memberName,
+                    $member->find('const')?->string(),
+                    \in_array($memberName, $required, true),
+                );
+            }
+
+            $out[$name] = new DeclaredLinkDescriptor(
+                $name,
+                true,
+                $description,
+                $members,
+                $this->linkMeta($link->path('properties', 'meta')),
+            );
+        }
+
+        return $out;
+    }
+
+    /**
+     * A declared link's `meta` members, each projected the way a read attribute is. `required`
+     * lists those a request cannot hide.
+     *
+     * @return array<string, LinkMetaDescriptor>
+     */
+    private function linkMeta(?Node $meta): array
+    {
+        $meta = $meta === null ? null : $this->document->dereference($meta);
+        $required = $meta?->find('required')?->strings() ?? [];
+
+        $out = [];
+        foreach ($meta?->find('properties')?->members() ?? [] as $key => $member) {
+            $name = (string) $key;
+            $hint = $this->formatHint($member);
+            $description = $member->find('description')?->string();
+            $out[$name] = new LinkMetaDescriptor(
+                $name,
+                $hint['format'],
+                $hint['enum'],
+                $hint['nullable'],
+                $this->compositeSchema($member, $hint['format']),
+                \in_array($name, $required, true),
+                $this->attributeConstraints($member),
+                $description === '' ? null : $description,
+                $member->find('example')?->raw(),
+            );
+        }
+
+        return $out;
     }
 
     /**

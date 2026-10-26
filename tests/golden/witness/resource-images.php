@@ -22,7 +22,10 @@ use haddowg\JsonApiClient\Pagination\PageNumber;
 use haddowg\JsonApiClient\Query\Projection;
 use haddowg\JsonApiClient\Query\Query;
 use haddowg\JsonApiClient\Query\ReadQuery;
+use haddowg\JsonApiClient\Resources\DeclaredLink;
+use haddowg\JsonApiClient\Resources\DeclaredLinks;
 use haddowg\JsonApiClient\Resources\Fetcher;
+use haddowg\JsonApiClient\Resources\LinkMeta;
 use haddowg\JsonApiClient\Resources\Relationship;
 use haddowg\JsonApiClient\Resources\ResourceContext;
 use haddowg\JsonApiClient\Resources\ResourceObject;
@@ -140,6 +143,15 @@ abstract class ImageBase extends ResourceObject
     public function _rel(string $name): Relationship
     {
         return $this->_relationship($name, false);
+    }
+
+    /**
+     * The links an `images` resource declares, each typed. A link the response left out reads as
+     * null. Every link, declared or not, is in `_links()`.
+     */
+    public function _declaredLinks(): ImageLinks
+    {
+        return new ImageLinks($this->_links(), $this->_subject());
     }
 }
 
@@ -359,6 +371,89 @@ final class ImageClipsRelation
 }
 
 /**
+ * The `download` link of an `images` resource. Where to fetch the original file.
+ *
+ * @generated from `components.schemas.ImagesResourceLinks.properties.download`
+ */
+final class ImageDownloadLink extends DeclaredLink
+{
+    public string $href { get => $this->href(); }
+    public string $title { get => $this->title(); }
+    public string $type { get => $this->type(); }
+    public ImageDownloadLinkMeta $meta { get => $this->meta(); }
+
+    /**
+     * Always `Original`.
+     */
+    public function title(): string
+    {
+        return $this->_string('title');
+    }
+
+    /**
+     * Always `image/png`.
+     */
+    public function type(): string
+    {
+        return $this->_string('type');
+    }
+
+    /**
+     * The link's `meta`, each member typed.
+     */
+    public function meta(): ImageDownloadLinkMeta
+    {
+        return $this->_metaAs(ImageDownloadLinkMeta::class);
+    }
+}
+
+/**
+ * The `meta` of the `download` link of an `images` resource.
+ *
+ * A member the server always renders reads as its type. Any other reads as nullable, because a
+ * request can hide it and the response then leaves it out.
+ *
+ * @generated from `components.schemas.ImagesResourceLinks.properties.download.properties.meta`
+ */
+final class ImageDownloadLinkMeta extends LinkMeta
+{
+    public string $method { get => $this->method(); }
+    public \DateTimeImmutable $expiresAt { get => $this->expiresAt(); }
+    /** @var array<string, mixed>|null */
+    public ?array $headers { get => $this->headers(); }
+
+    /**
+     * The HTTP method to use.
+     *
+     * Example: `"GET"`
+     */
+    public function method(): string
+    {
+        return $this->_string('method');
+    }
+
+    /**
+     * When the URL stops working.
+     *
+     * Example: `"2026-10-26T12:00:00+00:00"`
+     */
+    public function expiresAt(): \DateTimeImmutable
+    {
+        return $this->_dateTime('expiresAt');
+    }
+
+    /**
+     * Example: `{"Range":"bytes=0-"}`
+     *
+     * @return array<string, mixed>|null
+     */
+    public function headers(): ?array
+    {
+        return $this->_nullableMap('headers');
+    }
+}
+
+/**
  * One image by id, before anything has been fetched. Creating the handle performs no IO; each
  * method on it is one request.
  *
@@ -407,7 +502,20 @@ final class ImageHandle
      *                 "self": {
      *                     "href": "https://api.example.com/images/img-1",
      *                     "describedby": "/docs/openapi.json#/paths/~1images~1%7Bid%7D/get"
-     *                 }
+     *                 },
+     *                 "download": {
+     *                     "href": "https://cdn.example.com/originals/img-1.png",
+     *                     "title": "Original",
+     *                     "type": "image/png",
+     *                     "meta": {
+     *                         "method": "GET",
+     *                         "expiresAt": "2026-10-26T12:00:00+00:00",
+     *                         "headers": {
+     *                             "Range": "bytes=0-"
+     *                         }
+     *                     }
+     *                 },
+     *                 "thumbnail": "https://cdn.example.com/thumbs/img-1.png"
      *             },
      *             "attributes": {
      *                 "url": "https://cdn.example.com/cover.png"
@@ -463,6 +571,39 @@ final class ImageHandle
     public function clips(): ImageClipsRelation
     {
         return new ImageClipsRelation($this->fetcher, $this->id);
+    }
+}
+
+/**
+ * The links an `images` resource declares, one typed accessor each.
+ *
+ * Every declared link is optional, because the server leaves one out when it does not apply, so
+ * each accessor returns null for a link the response left out. A link the type does not declare is
+ * in the resource's `_links()`.
+ *
+ * @generated from `components.schemas.ImagesResourceLinks`
+ */
+final class ImageLinks extends DeclaredLinks
+{
+    public ?ImageDownloadLink $download { get => $this->download(); }
+    public ?string $thumbnail { get => $this->thumbnail(); }
+
+    /**
+     * Where to fetch the original file.
+     */
+    public function download(): ?ImageDownloadLink
+    {
+        return $this->_object('download', ImageDownloadLink::class);
+    }
+
+    /**
+     * The `thumbnail` link, absent when it does not apply to the resource.
+     *
+     * A bare link, read as its URL from either a string or a link object.
+     */
+    public function thumbnail(): ?string
+    {
+        return $this->_href('thumbnail');
     }
 }
 

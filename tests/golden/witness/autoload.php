@@ -7,7 +7,7 @@ declare(strict_types=1);
  * so this map is how each one is found. Register it once through composer.json's
  * `autoload.files`; regenerating rewrites it, so a new type never needs a `dump-autoload`.
  *
- * @generated from an OpenAPI document with sha256 56044e9a274b855081ce6e5df01f9606f36f7d464620ea1c7a56d8865cf9b286
+ * @generated from an OpenAPI document with sha256 3c8471c786ca0a00005c865e37730be3aeb0fbe53a05ebd1e35c21bae795f834
  */
 
 \spl_autoload_register(static function (string $class): void {
@@ -43,7 +43,10 @@ declare(strict_types=1);
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\Witness\\Image' => 'resource-images.php',
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\Witness\\ImageBase' => 'resource-images.php',
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\Witness\\ImageClipsRelation' => 'resource-images.php',
+        'haddowg\\JsonApiCodegen\\Tests\\Golden\\Witness\\ImageDownloadLink' => 'resource-images.php',
+        'haddowg\\JsonApiCodegen\\Tests\\Golden\\Witness\\ImageDownloadLinkMeta' => 'resource-images.php',
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\Witness\\ImageHandle' => 'resource-images.php',
+        'haddowg\\JsonApiCodegen\\Tests\\Golden\\Witness\\ImageLinks' => 'resource-images.php',
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\Witness\\ImageProjecting' => 'resource-images.php',
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\Witness\\ImageProjection' => 'resource-images.php',
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\Witness\\ImageQuery' => 'resource-images.php',

@@ -321,9 +321,9 @@ final class RelationSource
         $collect = "        foreach (\$context->primaryList() as \$raw) {\n"
             . '            $' . $variable . '[] = ' . $hydrate . ";\n"
             . "        }\n\n";
-        $readQuery = $imports->runtime('Query\\ReadQuery');
+        $follow = $page === null ? '' : '$this->fetcher->readUrl($url, new ' . $imports->runtime('Query\\ReadQuery') . '())';
 
-        return self::collector('resources', $variable, self::union($classes), $collect, $context, $imports, $page, '$this->fetcher->readUrl($url, new ' . $readQuery . '())');
+        return self::collector('resources', $variable, self::union($classes), $collect, $context, $imports, $page, $follow);
     }
 
     /**

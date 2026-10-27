@@ -714,6 +714,7 @@ final class DescriptorBuilder
         $relationship = $relationshipPath === null ? null : $this->document->pathItem($relationshipPath);
         $relatedGet = $related?->find('get');
         $relationshipGet = $relationship?->find('get');
+        $polymorphic = $linkage['polymorphic'] || \count($linkage['types']) > 1;
 
         return new RelationDescriptor(
             $name,
@@ -725,9 +726,9 @@ final class DescriptorBuilder
             $this->operationAt($relationship, 'get', (string) $relationshipPath),
             $this->relationMutations($relationship, $cardinality, (string) $relationshipPath),
             $this->countable($relatedGet) ?? $this->countable($relationshipGet),
-            $this->relationPaginator($cardinality, $linkage['types'], $relatedGet, $relationshipGet),
+            $this->relationPaginator($cardinality, $linkage['types'], $polymorphic, $relatedGet, $relationshipGet),
             $linkage['pivot'] ? $this->writePivotFields($relationship, $written, $linkage['pivotFields']) : [],
-            $linkage['polymorphic'] || \count($linkage['types']) > 1,
+            $polymorphic,
         );
     }
 
@@ -945,9 +946,12 @@ final class DescriptorBuilder
      * applies. The member keys are compared too, not just the kind — a strategy that matches but
      * renames its page key is still a different thing to put on the wire.
      *
+     * A polymorphic to-many has no one related type to agree with, so it always carries its own,
+     * which is none when its endpoints advertise no `page`.
+     *
      * @param list<string> $types
      */
-    private function relationPaginator(Cardinality $cardinality, array $types, ?Node $relatedGet, ?Node $relationshipGet): ?PaginatorDescriptor
+    private function relationPaginator(Cardinality $cardinality, array $types, bool $polymorphic, ?Node $relatedGet, ?Node $relationshipGet): ?PaginatorDescriptor
     {
         if ($cardinality === Cardinality::One) {
             return null;
@@ -956,6 +960,9 @@ final class DescriptorBuilder
         $paginator = $this->paginator($relatedGet);
         if (!$paginator->paginated()) {
             $paginator = $this->paginator($relationshipGet);
+        }
+        if ($polymorphic) {
+            return $paginator;
         }
 
         $relatedType = $types[0] ?? null;

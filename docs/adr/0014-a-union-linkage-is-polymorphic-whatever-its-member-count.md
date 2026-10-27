@@ -34,7 +34,16 @@ class. An older document collapses such a relation to a plain `$ref`, so it gene
 The serialised descriptor writes `polymorphic` only when it is true, so the music-catalog descriptor
 gains it on its two multi-type relations and nothing else moves.
 
-A polymorphic to-many relation whose related endpoint advertises no `page` parameter still reads
-into its first type's page class, as a multi-type relation always has. From contract 16 core leaves
-the related type's `page` off a single-type polymorphic endpoint too, so neither shape is paged by
-what the document says. That is unchanged here and left for its own change.
+A polymorphic to-many has no one related type whose collection could decide how it pages, so its
+reads follow its own endpoints. The descriptor always gives such a relation its own paginator: the
+one its related endpoint advertises, or failing that its relationship endpoint, and none when
+neither advertises `page`. It keeps that paginator even when it matches a member type's, which a
+monomorphic relation would defer to. With a `page` its `get()` and `related()` return a
+`PaginatedCollection` of the member union in that page class, as `libraries.items` does in the
+music catalog. Without one they return a `ResourceCollection` of it, as the witness's `gallery`
+and `attachments` do, where both used to read into the `images` page class because `images` was
+the first type and pages. A monomorphic relation is decided as before.
+
+The element type was already the union of the member classes in every relation read, sorted, so
+`attachments` reads `Image|Video`. The include accessors read a hydrated to-many as a
+`ResourceCollection` of the union and never page, so they needed no change.

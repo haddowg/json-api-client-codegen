@@ -41,3 +41,9 @@ member's description and example go into the docblocks. Attributes don't get tho
 Adding a declared link puts it in every example of a read that renders the type, so an example
 can grow past the 60 lines ADR 0011 allows. The witness's related `articles.attachments` read
 lost its `@example` this way.
+
+## Amendment: contract 18 reads them from an `allOf`
+
+From contract 18 `<Type>ResourceLinks` is an `allOf` of the shared `ResourceLinks` and an object
+holding the named links, and a type without any points at `ResourceLinks` directly (ADR 0017). The
+rules above for what counts as a declared link are unchanged.

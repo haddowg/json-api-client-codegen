@@ -61,7 +61,7 @@ the projector whenever the emitted structure changes. This codegen declares a su
 this is the only thing that catches it. A feature-token list was rejected: it names what
 changed, at the cost of two hand-maintained lists that must agree.
 
-The supported range is `[1, 17]`. Contract 2 (json-api 1.1.0) added the error catalogue, shared
+The supported range is `[1, 18]`. Contract 2 (json-api 1.1.0) added the error catalogue, shared
 error responses and write-side `include`/`fields`; the descriptor reads the first into `errors`,
 and the last into each operation's `projection`. Contract 3 added `x-paginator` on page schemas,
 which the descriptor reads into each `PaginatorDescriptor`: the strategy, its role-to-key map, and
@@ -127,6 +127,11 @@ does. The declared media type is read into the action's `locationType`, and the 
 returns the runtime's `ActionLocation`, or a union of it with the action's other result when the
 `200` is a `oneOf`, never following the URL. A bare `SeeOther` documents only its `303` and
 generates as before (ADR 0016).
+Contract 18 shares one links component per context and drops the per-type and per-relation ones.
+A type with named links points at a `<Type>ResourceLinks` that is an `allOf` of the shared
+`ResourceLinks` and an object holding them; every other type points at `ResourceLinks` itself.
+The descriptor reads declared links from either that `allOf` or the older flat component, and
+nothing else here read a links component, so the generated output is unchanged (ADR 0017).
 Raise `MAXIMUM` only in the change that
 teaches the descriptor to read whatever the next contract adds.
 

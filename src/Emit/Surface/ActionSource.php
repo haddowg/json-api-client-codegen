@@ -167,6 +167,12 @@ final class ActionSource
         if ($action->safety !== null) {
             $prose[] = self::safetyProse($action->safety);
         }
+        $location = $action->locationType === null ? null : $imports->runtime('ActionLocation');
+        if ($action->locationType !== null) {
+            $prose[] = $action->output === ActionOutput::None
+                ? 'It answers with the URL it produced, which serves `' . $action->locationType . '`, as an `ActionLocation`. The URL is not followed.'
+                : 'It answers with its result or with the URL it produced, which serves `' . $action->locationType . '`, as an `ActionLocation`, told apart by the document\'s shape. The URL is not followed.';
+        }
 
         if ($projection !== null) {
             \assert($outputBase !== null);
@@ -224,35 +230,55 @@ final class ActionSource
         $malformed = false;
         switch ($action->output) {
             case ActionOutput::None:
-                $return = 'void';
+                $return = $location ?? 'void';
+                $call = $location === null ? '$this->fetcher->send(' : 'return $this->fetcher->location(';
                 $read = $action->input === ActionInput::Raw && !$action->bodyRequired && $build !== '$request'
-                    ? "        \$this->fetcher->send(\n            " . $build . ",\n        );\n"
-                    : '        $this->fetcher->send(' . $build . ");\n";
+                    ? '        ' . $call . "\n            " . $build . ",\n        );\n"
+                    : '        ' . $call . $build . ");\n";
+                if ($location !== null) {
+                    $malformed = true;
+                    $reasons['MalformedDocument'] = 'when the response is not a location document';
+                }
                 break;
             case ActionOutput::Meta:
-                $return = 'array';
-                $jsonDoc = 'array<string, mixed>';
-                $read = '        return $this->fetcher->meta(' . $build . ");\n";
+                $return = $location === null ? 'array' : 'array|' . $location;
+                $jsonDoc = $location === null ? 'array<string, mixed>' : 'array<string, mixed>|' . $location;
+                $read = $location === null
+                    ? '        return $this->fetcher->meta(' . $build . ");\n"
+                    : '        $context = $this->fetcher->readOrLocation(' . $build . ");\n\n"
+                      . '        return $context instanceof ' . $location . " ? \$context : \$context->document()->meta();\n";
+                if ($location !== null) {
+                    $malformed = true;
+                    $reasons['MalformedDocument'] = 'when the response is not a JSON:API document';
+                }
                 break;
             default:
                 \assert($outputClass !== null && $outputBase !== null);
+                $reader = $location === null ? 'read' : 'readOrLocation';
                 $read = $projection === null
-                    ? '        $context = $this->fetcher->read(' . $build . ");\n"
-                    : "        \$context = \$this->fetcher->read(\n            " . $build . ",\n            \$query,\n        );\n\n";
+                    ? '        $context = $this->fetcher->' . $reader . '(' . $build . ");\n"
+                    : "        \$context = \$this->fetcher->" . $reader . "(\n            " . $build . ",\n            \$query,\n        );\n\n";
+                if ($location !== null) {
+                    $read = \rtrim($read, "\n") . "\n\n"
+                        . '        if ($context instanceof ' . $location . ") {\n"
+                        . "            return \$context;\n"
+                        . "        }\n\n";
+                }
+                $or = $location === null ? '' : '|' . $location;
                 if ($many) {
                     $collection = $imports->runtime('Collections\\ResourceCollection');
-                    $return = $collection;
+                    $return = $collection . $or;
                     $read .= self::collect($outputClass, $outputBase, $projection !== null);
                     $jsonDoc = $projection === null
-                        ? $collection . '<' . $outputClass . '>'
-                        : '($projection is null ? ' . $collection . '<' . $outputBase . '> : ' . $collection . '<' . $outputBase . '&TProj>)';
+                        ? $collection . '<' . $outputClass . '>' . $or
+                        : '($projection is null ? ' . $collection . '<' . $outputBase . '>' . $or . ' : ' . $collection . '<' . $outputBase . '&TProj>' . $or . ')';
                 } else {
                     $imports->runtime('Exceptions\\MalformedDocument');
-                    $return = $outputBase;
+                    $return = $outputBase . $or;
                     $malformed = true;
                     $read .= TypeSurface::hydratePrimary($outputClass, $outputBase, $action->name, $projection !== null);
                     if ($projection !== null) {
-                        $jsonDoc = '($projection is null ? ' . $outputBase . ' : ' . $outputBase . '&TProj)';
+                        $jsonDoc = '($projection is null ? ' . $outputBase . $or . ' : ' . ($or === '' ? $outputBase . '&TProj' : '(' . $outputBase . '&TProj)' . $or) . ')';
                     }
                 }
         }

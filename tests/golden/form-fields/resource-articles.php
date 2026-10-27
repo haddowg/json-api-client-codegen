@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace haddowg\JsonApiCodegen\Tests\Golden\FormFields;
 
+use haddowg\JsonApiClient\ActionLocation;
 use haddowg\JsonApiClient\Collections\PaginatedCollection;
 use haddowg\JsonApiClient\Collections\ResourceCollection;
 use haddowg\JsonApiClient\Exceptions\BadRequest;
@@ -1169,7 +1170,7 @@ final class Article extends ArticleBase implements ArticleHasAuthor, ArticleHasT
  *
  * @phpstan-import-type ArticleCreateShape from Article
  *
- * @generated from `GET /articles/{id}/-actions/cover` and `POST /articles/{id}/-actions/draft` and `GET /articles/{id}/-actions/preview` and `POST /articles/{id}/-actions/publish` and `POST /articles/{id}/-actions/purge`
+ * @generated from `GET /articles/{id}/-actions/cover` and `GET /articles/{id}/-actions/download` and `POST /articles/{id}/-actions/draft` and `GET /articles/{id}/-actions/preview` and `POST /articles/{id}/-actions/publish` and `POST /articles/{id}/-actions/purge` and `GET /articles/{id}/-actions/revision`
  */
 final class ArticleActions
 {
@@ -1199,6 +1200,53 @@ final class ArticleActions
         $request = Request::get('/articles/' . $this->id . '/-actions/cover');
 
         return $this->fetcher->stream($request->withAccept('image/png'));
+    }
+
+    /**
+     * Download: `GET /articles/{id}/-actions/download`. It declares no request body, so it takes no
+     * input. The server declares it read-only. It answers with the URL it produced, which serves
+     * `text/csv`, as an `ActionLocation`. The URL is not followed.
+     *
+     * @throws BadRequest           when the request is malformed
+     * @throws Unauthorized         when credentials are missing or invalid
+     * @throws Forbidden            when the action is not permitted
+     * @throws NotFound             when no article has this id
+     * @throws NotAcceptable        when the negotiated media type cannot be satisfied
+     * @throws UnsupportedMediaType when the `Content-Type` is refused
+     * @throws ValidationFailed     when the payload fails validation
+     * @throws ServerError          when the server fails
+     * @throws TransportException   when no response is received at all
+     * @throws MalformedDocument    when the response is not a location document
+     *
+     * @example 200 response:
+     *     {
+     *         "links": {
+     *             "self": {
+     *                 "href": "https://api.example.com/articles/art-1/-actions/download",
+     *                 "describedby": "/docs/openapi.json#/paths/~1articles~1%7Bid%7D~1-actions~1download/get"
+     *             },
+     *             "location": {
+     *                 "href": "https://storage.example.com/downloads/example?signature=example",
+     *                 "type": "text/csv",
+     *                 "meta": {
+     *                     "expiresAt": "2030-01-01T00:00:00+00:00"
+     *                 }
+     *             },
+     *             "describedby": {
+     *                 "href": "/docs/openapi.json#/paths/~1articles~1%7Bid%7D~1-actions~1download/get"
+     *             }
+     *         },
+     *         "meta": {
+     *             "expiresAt": "2030-01-01T00:00:00+00:00"
+     *         },
+     *         "jsonapi": {
+     *             "version": "1.1"
+     *         }
+     *     }
+     */
+    public function download(): ActionLocation
+    {
+        return $this->fetcher->location(Request::get('/articles/' . $this->id . '/-actions/download'));
     }
 
     /**
@@ -1324,6 +1372,48 @@ final class ArticleActions
     public function purge(): void
     {
         $this->fetcher->send(Request::post('/articles/' . $this->id . '/-actions/purge'));
+    }
+
+    /**
+     * Revision: `GET /articles/{id}/-actions/revision`. It declares no request body, so it takes no
+     * input. It answers with its result or with the URL it produced, which serves
+     * `application/octet-stream`, as an `ActionLocation`, told apart by the document's shape. The
+     * URL is not followed.
+     *
+     * @template TProj of object
+     *
+     * @param (callable(ArticleProjection<ArticleBase>): ArticleProjection<TProj>)|ArticleProjection<TProj>|null $projection
+     *
+     * @return ($projection is null ? ArticleBase|ActionLocation : (ArticleBase&TProj)|ActionLocation)
+     *
+     * @throws BadRequest           when the request is malformed
+     * @throws Unauthorized         when credentials are missing or invalid
+     * @throws Forbidden            when the action is not permitted
+     * @throws NotFound             when no article has this id
+     * @throws NotAcceptable        when the negotiated media type cannot be satisfied
+     * @throws UnsupportedMediaType when the `Content-Type` is refused
+     * @throws ValidationFailed     when the payload fails validation
+     * @throws ServerError          when the server fails
+     * @throws TransportException   when no response is received at all
+     * @throws MalformedDocument    when the response carries no primary resource
+     */
+    public function revision(callable|ArticleProjection|null $projection = null): ArticleBase|ActionLocation
+    {
+        $query = ArticleProjection::resolve($projection);
+
+        $context = $this->fetcher->readOrLocation(
+            Request::get($query->appendTo('/articles/' . $this->id . '/-actions/revision')),
+            $query,
+        );
+
+        if ($context instanceof ActionLocation) {
+            return $context;
+        }
+
+        $raw = $context->primary() ?? throw MalformedDocument::missingMember('The revision response', 'data');
+
+        /** @var ArticleBase&TProj */
+        return $context->hydrate($raw, Article::_hydrate(...));
     }
 }
 
@@ -1758,11 +1848,29 @@ final class ArticleBlockImage
  * The collection-scoped custom actions of `articles`, reached through the type accessor. Each
  * signature is derived from the action's own request body and response.
  *
- * @generated from `POST /articles/-actions/bulk-import` and `POST /articles/-actions/export` and `GET /articles/-actions/export` and `POST /articles/-actions/import` and `GET /articles/-actions/report` and `GET /articles/-actions/stats`
+ * @generated from `GET /articles/-actions/archive` and `POST /articles/-actions/bulk-import` and `POST /articles/-actions/export` and `GET /articles/-actions/export` and `POST /articles/-actions/import` and `GET /articles/-actions/report` and `GET /articles/-actions/stats`
  */
 final class ArticleCollectionActions
 {
     public function __construct(private readonly Fetcher $fetcher) {}
+
+    /**
+     * Archive: `GET /articles/-actions/archive`. It declares no request body, so it takes no input.
+     *
+     * @throws BadRequest           when the request is malformed
+     * @throws Unauthorized         when credentials are missing or invalid
+     * @throws Forbidden            when the action is not permitted
+     * @throws NotFound             when the endpoint does not exist
+     * @throws NotAcceptable        when the negotiated media type cannot be satisfied
+     * @throws UnsupportedMediaType when the `Content-Type` is refused
+     * @throws ValidationFailed     when the payload fails validation
+     * @throws ServerError          when the server fails
+     * @throws TransportException   when no response is received at all
+     */
+    public function archive(): void
+    {
+        $this->fetcher->send(Request::get('/articles/-actions/archive'));
+    }
 
     /**
      * Bulk import: `POST /articles/-actions/bulk-import`. The body goes over the wire as form
@@ -3493,7 +3601,7 @@ final class ArticleLockedRelation
  *
  * @extends Projection<TProj>
  *
- * @generated from the `include` and `fields` parameters of `GET /articles/{id}`, `POST /articles`, `PATCH /articles/{id}`, `GET /articles/{id}/-actions/preview`, `POST /articles/{id}/-actions/publish`
+ * @generated from the `include` and `fields` parameters of `GET /articles/{id}`, `POST /articles`, `PATCH /articles/{id}`, `GET /articles/{id}/-actions/preview`, `POST /articles/{id}/-actions/publish`, `GET /articles/{id}/-actions/revision`
  */
 final class ArticleProjection extends Projection
 {

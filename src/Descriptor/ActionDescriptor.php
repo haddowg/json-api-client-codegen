@@ -27,6 +27,12 @@ namespace haddowg\JsonApiCodegen\Descriptor;
  * nothing.
  *
  * `$scopes` are the OAuth scopes a contract-16 document says the action needs, null when none.
+ *
+ * `$locationType` marks an action that answers with a URL: from contract 17 one declaring
+ * `SeeOther` with a media type answers a JSON:API request with a location document, and this is
+ * the media type it declares the URL serves. `$output` is then whatever else the action may answer
+ * with, `none` when the location document is all it sends. Null for any other action, including
+ * one with a bare `SeeOther`, which documents only its `303`.
  */
 final class ActionDescriptor
 {
@@ -58,6 +64,7 @@ final class ActionDescriptor
         public readonly ?string $alias = null,
         public readonly ?ActionSafety $safety = null,
         public readonly ?array $scopes = null,
+        public readonly ?string $locationType = null,
     ) {}
 
     /** The name the action is keyed and generated under: its alias when it has one, else its own. */
@@ -69,6 +76,6 @@ final class ActionDescriptor
     /** Whether the action answers with JSON:API as well as, or instead of, a raw body. */
     public function answersJsonApi(): bool
     {
-        return $this->output !== ActionOutput::None || $this->responses === [];
+        return $this->output !== ActionOutput::None || $this->locationType !== null || $this->responses === [];
     }
 }

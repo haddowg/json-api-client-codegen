@@ -216,7 +216,8 @@ final class DescriptorBuilder
      * lists each as a named property beside `self`: a link object as an inline object schema with
      * an `href`, a bare link as a `$ref` to `LinkObject`. `self` is never declared, an action's
      * link is the action's, and a `RenderedLink` is a link the server builds, so none of those is
-     * read. An older document declares no links.
+     * read. An older document declares no links. Contract 18 moves the named links into the
+     * second entry of an `allOf` beside the shared `ResourceLinks`, see {@see namedLinks()}.
      *
      * @param list<string> $actions the type's action names, whose links a server that renders
      *                              strings points at `LinkObject` just as it does a bare link
@@ -231,7 +232,7 @@ final class DescriptorBuilder
         }
 
         $out = [];
-        foreach ($this->document->dereference($links)->find('properties')?->members() ?? [] as $key => $link) {
+        foreach ($this->namedLinks($links) as $key => $link) {
             $name = (string) $key;
             if ($name === 'self' || \in_array($name, $actions, true)) {
                 continue;
@@ -272,6 +273,42 @@ final class DescriptorBuilder
                 $members,
                 $this->linkMeta($link->path('properties', 'meta')),
             );
+        }
+
+        return $out;
+    }
+
+    /**
+     * The named members of a resource's `links` schema. From contract 18 a type without named
+     * links points at the shared `ResourceLinks`, and one with them at a `<Type>ResourceLinks`
+     * that is an `allOf` of `ResourceLinks` and an object holding them (core ADR 0187). Before
+     * that, the type's own component listed them beside `self`.
+     *
+     * @return array<string|int, Node>
+     */
+    private function namedLinks(Node $links): array
+    {
+        if ($this->document->refName($links) === 'ResourceLinks') {
+            return [];
+        }
+
+        $schema = $this->document->dereference($links);
+        $allOf = $schema->find('allOf');
+        if ($allOf === null) {
+            return $schema->find('properties')?->members() ?? [];
+        }
+
+        $out = [];
+        foreach ($allOf->items() as $entry) {
+            if ($this->document->refName($entry) === 'ResourceLinks') {
+                continue;
+            }
+            if (!$entry->isObject() || $entry->find('$ref') !== null) {
+                throw SpecException::malformed($entry->pointer(), 'expected a resource\'s links to be an allOf of a `$ref` to ResourceLinks and an object of named links');
+            }
+            foreach ($entry->find('properties')?->members() ?? [] as $key => $link) {
+                $out[$key] = $link;
+            }
         }
 
         return $out;

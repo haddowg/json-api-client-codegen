@@ -23,7 +23,8 @@ use PHPUnit\Framework\TestCase;
 
 /**
  * Generator contract 14 lists the links a type declares as named properties of its
- * `<Type>ResourceLinks` (core ADR 0178). The witness's `images` declares a link object,
+ * `<Type>ResourceLinks` (core ADR 0178), which from contract 18 holds them in the second entry of
+ * an `allOf`. The witness's `images` declares a link object,
  * `download`, with two static members and three meta members, and a bare link, `thumbnail`.
  */
 #[CoversClass(DescriptorBuilder::class)]
@@ -34,15 +35,15 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(ReadModelEmitter::class)]
 final class ContractFourteenTest extends TestCase
 {
-    private const array ARTICLE_LINKS = ['components', 'schemas', 'ArticlesResourceLinks', 'properties'];
+    private const array ARTICLE_LINKS = ['components', 'schemas', 'ArticlesResourceLinks', 'allOf', 1, 'properties'];
 
-    private const array IMAGE_LINKS = ['components', 'schemas', 'ImagesResourceLinks', 'properties'];
+    private const array IMAGE_LINKS = ['components', 'schemas', 'ImagesResourceLinks', 'allOf', 1, 'properties'];
 
     public function testTheWitnessIsAContractThisCodegenReads(): void
     {
         $document = SpecDocument::fromJson(self::json(), 'the witness');
 
-        self::assertSame(17, $document->contract());
+        self::assertSame(18, $document->contract());
         self::assertNull(ContractCompatibility::check($document->contract()));
     }
 
@@ -107,7 +108,7 @@ final class ContractFourteenTest extends TestCase
         $json = self::patched([...self::IMAGE_LINKS, 'download'], ['type' => 'object', 'properties' => ['url' => ['type' => 'string']]]);
 
         $this->expectException(SpecException::class);
-        $this->expectExceptionMessage('components.schemas.ImagesResourceLinks.properties.download');
+        $this->expectExceptionMessage('components.schemas.ImagesResourceLinks.allOf.1.properties.download');
 
         self::resource($json, 'images');
     }
@@ -174,7 +175,7 @@ final class ContractFourteenTest extends TestCase
     /**
      * The witness with the value at `$keys` replaced.
      *
-     * @param list<string> $keys
+     * @param list<int|string> $keys
      */
     private static function patched(array $keys, mixed $value): string
     {

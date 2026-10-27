@@ -100,6 +100,13 @@ namespace haddowg\JsonApiCodegen\Spec;
  * type into the action's `locationType`, and the generated method returns the runtime's
  * `ActionLocation`, or a union of it with the action's declared document. A bare `SeeOther`
  * documents only the `303` and generates as before.
+ *
+ * Contract 18 shares one links component per context, so every document carries it. A type with
+ * declared or action links points at a `<Type>ResourceLinks` that is an `allOf` of the shared
+ * `ResourceLinks` and an object holding its named links, and every other type points at
+ * `ResourceLinks` itself. The descriptor reads declared links from that `allOf` as it read them
+ * from the flat component before, and nothing else read a links component, so a document
+ * generates exactly as it did at contract 17.
  */
 final class ContractCompatibility
 {
@@ -107,7 +114,7 @@ final class ContractCompatibility
     public const int MINIMUM = 1;
 
     /** Above this the document carries structures this codegen does not read. */
-    public const int MAXIMUM = 17;
+    public const int MAXIMUM = 18;
 
     /**
      * Check a document's declared contract against the supported range.

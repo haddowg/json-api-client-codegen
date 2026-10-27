@@ -20,6 +20,7 @@ use haddowg\JsonApiCodegen\Emit\Naming;
 use haddowg\JsonApiCodegen\Emit\Php;
 use haddowg\JsonApiCodegen\Emit\ReadModel\ReadModelEmitter;
 use haddowg\JsonApiCodegen\Emit\ReadModel\Shape;
+use haddowg\JsonApiCodegen\Emit\ScopeNote;
 use haddowg\JsonApiCodegen\Emit\UnitKind;
 
 /**
@@ -266,7 +267,7 @@ final class ActionSource
             }
             $doc = [...$doc, ...Throws::tags($action->errorStatuses, $imports, $reasons, $malformed), ...ExampleTag::lines($action->examples)];
 
-            return Php::docblock($doc, 4, false)
+            return Php::docblock(ScopeNote::insert($doc, $action->scopes), 4, false)
                 . SurfaceEmitter::signature($method, $signature, $return)
                 . $body
                 . "    }\n";
@@ -337,7 +338,7 @@ final class ActionSource
         }
         $doc = [...$doc, ...Throws::tags($action->errorStatuses, $imports, $reasons, $malformed), ...ExampleTag::lines($action->examples)];
 
-        return Php::docblock($doc, 4, false)
+        return Php::docblock(ScopeNote::insert($doc, $action->scopes), 4, false)
             . SurfaceEmitter::signature($method, $signature, $return)
             . $body
             . "    }\n";

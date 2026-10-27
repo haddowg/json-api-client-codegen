@@ -494,7 +494,7 @@ final class ReadModelEmitter implements Emitter, Warns
             $doc = Php::docblock([$throws], 4, false);
             $signature = '    public function ' . $method . '(): ' . self::nullable($related) . "\n    {\n";
             $fetch = '$raw = $this->_includedOne(' . Php::string($name) . ', ' . $companion . ');';
-            if (\count($classes) === 1) {
+            if (\count($classes) === 1 && !$relation->polymorphic) {
                 return $doc . $signature
                     . '        ' . $fetch . "\n\n"
                     . '        return $raw === null ? null : ' . $classes[0] . '::_hydrate($raw, $this->_child(' . Php::string($name) . "));\n    }\n";
@@ -510,7 +510,7 @@ final class ReadModelEmitter implements Emitter, Warns
         }
 
         $list = \in_array($method, ['raw', 'context'], true) ? $method . 'List' : $method;
-        $hydrate = \count($classes) === 1
+        $hydrate = \count($classes) === 1 && !$relation->polymorphic
             ? '            $' . $list . '[] = ' . $classes[0] . "::_hydrate(\$raw, \$context);\n"
             : '            $' . $list . "[] = match (\$raw['type'] ?? null) {\n" . self::dispatch($relation, 16) . "            };\n";
 

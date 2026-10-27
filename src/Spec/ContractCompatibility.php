@@ -86,6 +86,13 @@ namespace haddowg\JsonApiCodegen\Spec;
  * method is renamed. The declared flags are read into the action's `safety` and stated in its
  * docblock. A vendor extension describes nothing a client is generated from, so it is not read,
  * as on any other operation.
+ *
+ * Contract 16 lists the OAuth scopes an operation needs in its `security`, under the document's
+ * `oauth2` scheme, and projects a polymorphic relation over one type as a one-member union rather
+ * than a plain `$ref`. Each is stamped only on a document that uses it. The scopes are read into
+ * each operation's and action's `scopes` and stated in its method's docblock. A relation whose
+ * linkage is a union is marked `polymorphic` whatever its member count, so a single-type
+ * `MorphTo` hydrates its members by `type` just as one over several types does.
  */
 final class ContractCompatibility
 {
@@ -93,7 +100,7 @@ final class ContractCompatibility
     public const int MINIMUM = 1;
 
     /** Above this the document carries structures this codegen does not read. */
-    public const int MAXIMUM = 15;
+    public const int MAXIMUM = 16;
 
     /**
      * Check a document's declared contract against the supported range.

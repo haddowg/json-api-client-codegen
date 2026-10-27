@@ -36,6 +36,7 @@ final class DescriptorSerializer
             'atomic' => $descriptor->atomic === null ? null : [
                 'path' => $descriptor->atomic->path,
                 'mediaType' => $descriptor->atomic->mediaType,
+                ...($descriptor->atomic->scopes === null ? [] : ['scopes' => $descriptor->atomic->scopes]),
             ],
             'enums' => \array_map(self::enum(...), $descriptor->enums),
             'errors' => \array_map(self::error(...), $descriptor->errors),
@@ -129,6 +130,7 @@ final class DescriptorSerializer
             'pivot' => $relation->pivot,
             'pivotFields' => \array_map(self::pivotField(...), $relation->pivotFields),
             'writePivotFields' => \array_map(self::pivotField(...), $relation->writePivotFields),
+            ...($relation->polymorphic ? ['polymorphic' => true] : []),
         ];
     }
 
@@ -149,7 +151,7 @@ final class DescriptorSerializer
     /** @return array<string, mixed> */
     private static function action(ActionDescriptor $action): array
     {
-        // Contract-10, -12 and -15 members appear only when present, so an older document serialises as it did.
+        // Contract-10, -12, -15 and -16 members appear only when present, so an older document serialises as it did.
         $raw = \array_filter([
             'summary' => $action->summary,
             'description' => $action->description,
@@ -157,6 +159,7 @@ final class DescriptorSerializer
             'requests' => \array_map(self::rawMedia(...), $action->requests),
             'examples' => self::examples($action->examples),
             'safety' => $action->safety?->declared(),
+            'scopes' => $action->scopes,
         ], static fn(mixed $value): bool => $value !== null && $value !== []);
 
         return [...[
@@ -233,6 +236,7 @@ final class DescriptorSerializer
             'errorStatuses' => $operation->errorStatuses,
             'projection' => self::projection($operation->projection),
             ...($operation->examples === null ? [] : ['examples' => self::examples($operation->examples)]),
+            ...($operation->scopes === null ? [] : ['scopes' => $operation->scopes]),
         ];
     }
 

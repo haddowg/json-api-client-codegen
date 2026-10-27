@@ -778,14 +778,48 @@ abstract class ArticleBase extends ResourceObject
     }
 
     /**
+     * The `subject` linkage, without hydrating anything. Never throws.
+     */
+    public function subjectRef(): ?Identifier
+    {
+        return $this->_relationship('subject', true)->identifier();
+    }
+
+    /**
+     * Whether the `subject` linkage points at anything. Never throws.
+     */
+    public function hasSubject(): bool
+    {
+        return !$this->_relationship('subject', true)->isEmpty();
+    }
+
+    /**
+     * The `gallery` linkage, without hydrating anything. Never throws.
+     *
+     * @return list<Identifier>
+     */
+    public function galleryRef(): array
+    {
+        return $this->_relationship('gallery', false)->identifiers();
+    }
+
+    /**
+     * Whether the `gallery` linkage points at anything. Never throws.
+     */
+    public function hasGallery(): bool
+    {
+        return !$this->_relationship('gallery', false)->isEmpty();
+    }
+
+    /**
      * A relationship object: linkage, links, and the `meta.total` a `withCount` read leaves behind.
      * This is the door to a relation that carries no value.
      *
-     * @param 'author'|'tags'|'publisher'|'cover'|'locked'|'attachments'|'editor' $name
+     * @param 'author'|'tags'|'publisher'|'cover'|'locked'|'attachments'|'editor'|'subject'|'gallery' $name
      */
     public function _rel(string $name): Relationship
     {
-        return $this->_relationship($name, \in_array($name, ['author', 'publisher', 'cover', 'editor'], true));
+        return $this->_relationship($name, \in_array($name, ['author', 'publisher', 'cover', 'editor', 'subject'], true));
     }
 }
 
@@ -815,14 +849,16 @@ abstract class ArticleBase extends ResourceObject
  * @phpstan-type ArticleReviewerInput Identifier|People|null
  * @phpstan-type ArticleWatchersInput list<Identifier|People>
  * @phpstan-type ArticleEditorInput Identifier|People|null
- * @phpstan-type ArticleCreateShape array{title: non-empty-string, slug?: string, status?: ArticleStatusInput, priority?: ArticlePriorityInput, wordCount?: int<0, max>|null, rating?: float, featured?: bool, releasedOn?: ArticleDateInput, publishedAt?: ArticleDateInput|null, syncedAt?: ArticleDateInput, archivedAt?: string, embargoLifts?: string, editorEmail?: string, canonicalUrl?: string, excerpt?: string, revision?: positive-int, reviewNote?: string|null, originIp?: string, keywords?: non-empty-list<string>, analytics?: array<string, mixed>|null, address?: array{street: non-empty-string, city?: string}, block?: array{text: non-empty-string, kind: string}|array{src?: string, kind: string}, contact?: array{firstName?: string, nickname?: string, pin?: string, phone?: string, geo?: array{lat?: int}}|null, authorName?: string, score?: int, author?: ArticleAuthorInput, tags?: ArticleTagsInput, publisher?: ArticlePublisherInput, cover?: ArticleCoverInput, locked?: ArticleLockedInput, attachments?: ArticleAttachmentsInput, editor?: ArticleEditorInput, reviewer?: ArticleReviewerInput, watchers?: ArticleWatchersInput}
- * @phpstan-type ArticleUpdateShape array{title?: non-empty-string, slug?: string, status?: ArticleStatusInput, priority?: ArticlePriorityInput, wordCount?: int<0, max>|null, rating?: float, featured?: bool, releasedOn?: ArticleDateInput, publishedAt?: ArticleDateInput|null, syncedAt?: ArticleDateInput, archivedAt?: string, embargoLifts?: string, editorEmail?: string, canonicalUrl?: string, excerpt?: string, reviewNote?: string|null, originIp?: string, keywords?: non-empty-list<string>, analytics?: array<string, mixed>|null, address?: array{street?: non-empty-string, city?: string}, block?: array{text?: non-empty-string, kind?: string}|array{src?: string, kind?: string}, contact?: array{firstName?: string, nickname?: string, pin?: string, phone?: string, geo?: array{lat?: int}}|null, authorName?: string, score?: int, author?: ArticleAuthorInput, tags?: ArticleTagsInput, publisher?: ArticlePublisherInput, cover?: ArticleCoverInput, attachments?: ArticleAttachmentsInput, editor?: ArticleEditorInput, reviewer?: ArticleReviewerInput, watchers?: ArticleWatchersInput}
+ * @phpstan-type ArticleSubjectInput Identifier|People|null
+ * @phpstan-type ArticleGalleryInput list<Identifier|Image>
+ * @phpstan-type ArticleCreateShape array{title: non-empty-string, slug?: string, status?: ArticleStatusInput, priority?: ArticlePriorityInput, wordCount?: int<0, max>|null, rating?: float, featured?: bool, releasedOn?: ArticleDateInput, publishedAt?: ArticleDateInput|null, syncedAt?: ArticleDateInput, archivedAt?: string, embargoLifts?: string, editorEmail?: string, canonicalUrl?: string, excerpt?: string, revision?: positive-int, reviewNote?: string|null, originIp?: string, keywords?: non-empty-list<string>, analytics?: array<string, mixed>|null, address?: array{street: non-empty-string, city?: string}, block?: array{text: non-empty-string, kind: string}|array{src?: string, kind: string}, contact?: array{firstName?: string, nickname?: string, pin?: string, phone?: string, geo?: array{lat?: int}}|null, authorName?: string, score?: int, author?: ArticleAuthorInput, tags?: ArticleTagsInput, publisher?: ArticlePublisherInput, cover?: ArticleCoverInput, locked?: ArticleLockedInput, attachments?: ArticleAttachmentsInput, editor?: ArticleEditorInput, subject?: ArticleSubjectInput, gallery?: ArticleGalleryInput, reviewer?: ArticleReviewerInput, watchers?: ArticleWatchersInput}
+ * @phpstan-type ArticleUpdateShape array{title?: non-empty-string, slug?: string, status?: ArticleStatusInput, priority?: ArticlePriorityInput, wordCount?: int<0, max>|null, rating?: float, featured?: bool, releasedOn?: ArticleDateInput, publishedAt?: ArticleDateInput|null, syncedAt?: ArticleDateInput, archivedAt?: string, embargoLifts?: string, editorEmail?: string, canonicalUrl?: string, excerpt?: string, reviewNote?: string|null, originIp?: string, keywords?: non-empty-list<string>, analytics?: array<string, mixed>|null, address?: array{street?: non-empty-string, city?: string}, block?: array{text?: non-empty-string, kind?: string}|array{src?: string, kind?: string}, contact?: array{firstName?: string, nickname?: string, pin?: string, phone?: string, geo?: array{lat?: int}}|null, authorName?: string, score?: int, author?: ArticleAuthorInput, tags?: ArticleTagsInput, publisher?: ArticlePublisherInput, cover?: ArticleCoverInput, attachments?: ArticleAttachmentsInput, editor?: ArticleEditorInput, subject?: ArticleSubjectInput, gallery?: ArticleGalleryInput, reviewer?: ArticleReviewerInput, watchers?: ArticleWatchersInput}
  * @phpstan-type ArticleRangeShape array{min?: float, max?: float}
  * @phpstan-type ArticleDateRangeShape array{min?: ArticleDateInput, max?: ArticleDateInput}
  * @phpstan-type ArticleFilterShape array{status?: string, wordCount?: int, archived?: string, rating?: ArticleRangeShape, publishedAt?: ArticleDateRangeShape, labels?: list<string>, search?: string, urgent?: string, featured?: bool, releasedOn?: string, keywords?: list<string>, 'author.name'?: string, unpublished?: string}
  * @phpstan-type ArticleSortToken '-title'|'-wordCount'|'title'|'wordCount'
  * @phpstan-type ArticleIncludePath 'author'|'author.company'|'tags'
- * @phpstan-type ArticleFieldToken 'address'|'analytics'|'archivedAt'|'attachments'|'author'|'authorName'|'block'|'canonicalUrl'|'commentCount'|'contact'|'cover'|'createdAt'|'editor'|'editorEmail'|'embargoLifts'|'excerpt'|'featured'|'keywords'|'legacyRef'|'locked'|'originIp'|'priority'|'publishedAt'|'publisher'|'rating'|'releasedOn'|'reviewNote'|'revision'|'score'|'slug'|'status'|'syncedAt'|'tags'|'title'|'wordCount'
+ * @phpstan-type ArticleFieldToken 'address'|'analytics'|'archivedAt'|'attachments'|'author'|'authorName'|'block'|'canonicalUrl'|'commentCount'|'contact'|'cover'|'createdAt'|'editor'|'editorEmail'|'embargoLifts'|'excerpt'|'featured'|'gallery'|'keywords'|'legacyRef'|'locked'|'originIp'|'priority'|'publishedAt'|'publisher'|'rating'|'releasedOn'|'reviewNote'|'revision'|'score'|'slug'|'status'|'subject'|'syncedAt'|'tags'|'title'|'wordCount'
  * @phpstan-type ArticleCountToken '_self_'|'tags'
  *
  * @generated from `components.schemas.ArticlesResource`
@@ -868,6 +904,8 @@ final class Article extends ArticleBase implements ArticleHasAuthor, ArticleHasT
         'locked',
         'attachments',
         'editor',
+        'subject',
+        'gallery',
         'reviewer',
         'watchers',
     ];
@@ -908,6 +946,8 @@ final class Article extends ArticleBase implements ArticleHasAuthor, ArticleHasT
         'cover',
         'attachments',
         'editor',
+        'subject',
+        'gallery',
         'reviewer',
         'watchers',
     ];
@@ -1001,6 +1041,8 @@ final class Article extends ArticleBase implements ArticleHasAuthor, ArticleHasT
         'locked',
         'attachments',
         'editor',
+        'subject',
+        'gallery',
     ];
 
     /**
@@ -1231,6 +1273,8 @@ final class ArticleActions
      * Publish the article: `POST /articles/{id}/-actions/publish`. It declares no request body, so
      * it takes no input.
      *
+     * Needs an access token granting the `articles:publish` scope.
+     *
      * @template TProj of object
      *
      * @param (callable(ArticleProjection<ArticleBase>): ArticleProjection<TProj>)|ArticleProjection<TProj>|null $projection
@@ -1300,6 +1344,8 @@ final class ArticleAttachmentsRelation
     /**
      * The linkage alone, a page at a time, without fetching the related resources.
      *
+     * Needs an access token granting the `articles:read` scope.
+     *
      * @return PaginatedCollection<Identifier, PageNumber>
      *
      * @throws BadRequest         when a query parameter is rejected
@@ -1346,6 +1392,8 @@ final class ArticleAttachmentsRelation
     /**
      * The related resources themselves, a page at a time.
      *
+     * Needs an access token granting the `articles:read` scope.
+     *
      * @return PaginatedCollection<Image|Video, PageNumber>
      *
      * @throws BadRequest         when a query parameter is rejected
@@ -1363,6 +1411,8 @@ final class ArticleAttachmentsRelation
 
     /**
      * Add members to the relationship, leaving the rest alone.
+     *
+     * Needs an access token granting the `articles:write` scope.
      *
      * @param list<Identifier|Image|Video> $attachments
      *
@@ -1398,6 +1448,8 @@ final class ArticleAttachmentsRelation
     /**
      * Remove members from the relationship, leaving the rest alone.
      *
+     * Needs an access token granting the `articles:write` scope.
+     *
      * @param list<Identifier|Image|Video> $attachments
      *
      * @throws BadRequest           when the document is malformed
@@ -1431,6 +1483,8 @@ final class ArticleAttachmentsRelation
 
     /**
      * Replace every member of the relationship.
+     *
+     * Needs an access token granting the `articles:write` scope.
      *
      * @param list<Identifier|Image|Video> $attachments
      *
@@ -1539,6 +1593,8 @@ final class ArticleAuthorRelation
     /**
      * The linkage alone: the identifier of the related resource, or null, without fetching it.
      *
+     * Needs an access token granting the `articles:read` and `people:read` scopes.
+     *
      * @throws BadRequest         when a query parameter is rejected
      * @throws Unauthorized       when credentials are missing or invalid
      * @throws Forbidden          when the read is not permitted
@@ -1583,6 +1639,8 @@ final class ArticleAuthorRelation
     /**
      * The related resource itself, or null when the relationship is empty.
      *
+     * Needs an access token granting the `articles:read` and `people:read` scopes.
+     *
      * @throws BadRequest         when a query parameter is rejected
      * @throws Unauthorized       when credentials are missing or invalid
      * @throws Forbidden          when the read is not permitted
@@ -1601,6 +1659,8 @@ final class ArticleAuthorRelation
 
     /**
      * Point the relationship at another resource, or at nothing.
+     *
+     * Needs an access token granting the `articles:write` scope.
      *
      * @throws BadRequest           when the document is malformed
      * @throws Unauthorized         when credentials are missing or invalid
@@ -1906,6 +1966,8 @@ final class ArticleCoverRelation
     /**
      * The linkage alone: the identifier of the related resource, or null, without fetching it.
      *
+     * Needs an access token granting the `articles:read` scope.
+     *
      * @throws BadRequest         when a query parameter is rejected
      * @throws Unauthorized       when credentials are missing or invalid
      * @throws Forbidden          when the read is not permitted
@@ -1925,6 +1987,8 @@ final class ArticleCoverRelation
 
     /**
      * Point the relationship at another resource, or at nothing.
+     *
+     * Needs an access token granting the `articles:write` scope.
      *
      * @throws BadRequest           when the document is malformed
      * @throws Unauthorized         when credentials are missing or invalid
@@ -1983,6 +2047,8 @@ final class ArticleCreate
      * @param Identifier|People|Missing|null $reviewer
      * @param list<Identifier|People>|Missing $watchers
      * @param Identifier|People|Missing|null $editor
+     * @param Identifier|People|Missing|null $subject
+     * @param list<Identifier|Image>|Missing $gallery
      */
     public function __construct(
         public readonly string $title,
@@ -2019,6 +2085,8 @@ final class ArticleCreate
         public readonly Identifier|People|Missing|null $reviewer = Missing::Value,
         public readonly array|Missing $watchers = Missing::Value,
         public readonly Identifier|People|Missing|null $editor = Missing::Value,
+        public readonly Identifier|People|Missing|null $subject = Missing::Value,
+        public readonly array|Missing $gallery = Missing::Value,
     ) {}
 
     /**
@@ -2072,6 +2140,8 @@ final class ArticleCreate
             reviewer: \array_key_exists('reviewer', $input) ? $input['reviewer'] : Missing::Value,
             watchers: \array_key_exists('watchers', $input) ? $input['watchers'] : Missing::Value,
             editor: \array_key_exists('editor', $input) ? $input['editor'] : Missing::Value,
+            subject: \array_key_exists('subject', $input) ? $input['subject'] : Missing::Value,
+            gallery: \array_key_exists('gallery', $input) ? $input['gallery'] : Missing::Value,
         );
     }
 
@@ -2222,6 +2292,14 @@ final class ArticleCreate
             $relationships['editor'] = ['data' => Coerce::linkage($this->editor)];
         }
 
+        if (!$this->subject instanceof Missing) {
+            $relationships['subject'] = ['data' => Coerce::linkage($this->subject)];
+        }
+
+        if (!$this->gallery instanceof Missing) {
+            $relationships['gallery'] = ['data' => Coerce::linkageList($this->gallery)];
+        }
+
         if ($relationships !== []) {
             $data['relationships'] = $relationships;
         }
@@ -2343,6 +2421,13 @@ final class ArticleCreateBuilder
     private array|Missing $watchers = Missing::Value;
 
     private Identifier|People|Missing|null $editor = Missing::Value;
+
+    private Identifier|People|Missing|null $subject = Missing::Value;
+
+    /**
+     * @var list<Identifier|Image>|Missing
+     */
+    private array|Missing $gallery = Missing::Value;
 
     /**
      * Between 3 and 120 characters.
@@ -2639,6 +2724,23 @@ final class ArticleCreateBuilder
         return $this;
     }
 
+    public function subject(Identifier|People|null $subject): self
+    {
+        $this->subject = $subject;
+
+        return $this;
+    }
+
+    /**
+     * @param list<Identifier|Image> $gallery
+     */
+    public function gallery(array $gallery): self
+    {
+        $this->gallery = $gallery;
+
+        return $this;
+    }
+
     /**
      * Produce the DTO, which is the only form that ever reaches the serialiser.
      *
@@ -2685,6 +2787,8 @@ final class ArticleCreateBuilder
             reviewer: $this->reviewer,
             watchers: $this->watchers,
             editor: $this->editor,
+            subject: $this->subject,
+            gallery: $this->gallery,
         );
     }
 }
@@ -2705,6 +2809,8 @@ final class ArticleEditorRelation
 
     /**
      * The linkage alone: the identifier of the related resource, or null, without fetching it.
+     *
+     * Needs an access token granting the `articles:read` and `people:read` scopes.
      *
      * @throws BadRequest         when a query parameter is rejected
      * @throws Unauthorized       when credentials are missing or invalid
@@ -2750,6 +2856,8 @@ final class ArticleEditorRelation
     /**
      * The related resource itself, or null when the relationship is empty.
      *
+     * Needs an access token granting the `articles:read` and `people:read` scopes.
+     *
      * @throws BadRequest         when a query parameter is rejected
      * @throws Unauthorized       when credentials are missing or invalid
      * @throws Forbidden          when the read is not permitted
@@ -2768,6 +2876,8 @@ final class ArticleEditorRelation
 
     /**
      * Point the relationship at another resource, or at nothing.
+     *
+     * Needs an access token granting the `articles:write` scope.
      *
      * @throws BadRequest           when the document is malformed
      * @throws Unauthorized         when credentials are missing or invalid
@@ -2798,6 +2908,254 @@ final class ArticleEditorRelation
 }
 
 /**
+ * The `gallery` relationship of one article. `get()` reads the linkage and `related()` reads the
+ * related resources; any read the server switched off is absent. The writes are `add()`, `remove()`
+ * and `replace()`, the methods the relationship endpoint declares, and no others.
+ *
+ * @generated from `/articles/{id}/gallery` and `/articles/{id}/relationships/gallery`
+ */
+final class ArticleGalleryRelation
+{
+    public function __construct(
+        private readonly Fetcher $fetcher,
+        private readonly string $id,
+    ) {}
+
+    /**
+     * The linkage alone, a page at a time, without fetching the related resources.
+     *
+     * Needs an access token granting the `articles:read` scope.
+     *
+     * @return PaginatedCollection<Identifier, PageNumber>
+     *
+     * @throws BadRequest         when a query parameter is rejected
+     * @throws Unauthorized       when credentials are missing or invalid
+     * @throws Forbidden          when the read is not permitted
+     * @throws NotFound           when no article has this id
+     * @throws NotAcceptable      when the negotiated media type cannot be satisfied
+     * @throws ServerError        when the server fails
+     * @throws TransportException when no response is received at all
+     *
+     * @example 200 response:
+     *     {
+     *         "data": [
+     *             {
+     *                 "type": "images",
+     *                 "id": "img-1"
+     *             }
+     *         ],
+     *         "links": {
+     *             "self": {
+     *                 "href": "https://api.example.com/articles/art-1/relationships/gallery",
+     *                 "describedby": "/docs/openapi.json#/paths/~1articles~1%7Bid%7D~1relationships~1gallery/get"
+     *             },
+     *             "related": {
+     *                 "href": "https://api.example.com/articles/art-1/gallery",
+     *                 "describedby": "/docs/openapi.json#/paths/~1articles~1%7Bid%7D~1gallery/get"
+     *             },
+     *             "describedby": {
+     *                 "href": "/docs/openapi.json#/paths/~1articles~1%7Bid%7D~1relationships~1gallery/get"
+     *             }
+     *         },
+     *         "jsonapi": {
+     *             "version": "1.1"
+     *         }
+     *     }
+     */
+    public function get(): PaginatedCollection
+    {
+        return $this->linkage(
+            $this->fetcher->read(Request::get('/articles/' . $this->id . '/relationships/gallery')),
+        );
+    }
+
+    /**
+     * The related resources themselves, a page at a time.
+     *
+     * Needs an access token granting the `articles:read` scope.
+     *
+     * @return PaginatedCollection<Image, PageNumber>
+     *
+     * @throws BadRequest         when a query parameter is rejected
+     * @throws Unauthorized       when credentials are missing or invalid
+     * @throws Forbidden          when the read is not permitted
+     * @throws NotFound           when no article has this id
+     * @throws NotAcceptable      when the negotiated media type cannot be satisfied
+     * @throws ServerError        when the server fails
+     * @throws TransportException when no response is received at all
+     */
+    public function related(): PaginatedCollection
+    {
+        return $this->resources($this->fetcher->read(Request::get('/articles/' . $this->id . '/gallery')));
+    }
+
+    /**
+     * Add members to the relationship, leaving the rest alone.
+     *
+     * Needs an access token granting the `articles:write` scope.
+     *
+     * @param list<Identifier|Image> $gallery
+     *
+     * @throws BadRequest           when the document is malformed
+     * @throws Unauthorized         when credentials are missing or invalid
+     * @throws Forbidden            when the write is not permitted
+     * @throws NotFound             when no article has this id
+     * @throws NotAcceptable        when the negotiated media type cannot be satisfied
+     * @throws Conflict             when the linkage conflicts with the relationship
+     * @throws UnsupportedMediaType when the `Content-Type` is refused
+     * @throws ValidationFailed     when the linkage fails validation
+     * @throws ServerError          when the server fails
+     * @throws TransportException   when no response is received at all
+     *
+     * @example Request body:
+     *     {
+     *         "data": [
+     *             {
+     *                 "type": "images",
+     *                 "id": "img-1"
+     *             }
+     *         ]
+     *     }
+     */
+    public function add(array $gallery): void
+    {
+        $this->fetcher->send(Request::post(
+            '/articles/' . $this->id . '/relationships/gallery',
+            \json_encode(['data' => Coerce::linkageList($gallery)], \JSON_THROW_ON_ERROR),
+        ));
+    }
+
+    /**
+     * Remove members from the relationship, leaving the rest alone.
+     *
+     * Needs an access token granting the `articles:write` scope.
+     *
+     * @param list<Identifier|Image> $gallery
+     *
+     * @throws BadRequest           when the document is malformed
+     * @throws Unauthorized         when credentials are missing or invalid
+     * @throws Forbidden            when the write is not permitted
+     * @throws NotFound             when no article has this id
+     * @throws NotAcceptable        when the negotiated media type cannot be satisfied
+     * @throws Conflict             when the linkage conflicts with the relationship
+     * @throws UnsupportedMediaType when the `Content-Type` is refused
+     * @throws ValidationFailed     when the linkage fails validation
+     * @throws ServerError          when the server fails
+     * @throws TransportException   when no response is received at all
+     *
+     * @example Request body:
+     *     {
+     *         "data": [
+     *             {
+     *                 "type": "images",
+     *                 "id": "img-1"
+     *             }
+     *         ]
+     *     }
+     */
+    public function remove(array $gallery): void
+    {
+        $this->fetcher->send(Request::delete(
+            '/articles/' . $this->id . '/relationships/gallery',
+            \json_encode(['data' => Coerce::linkageList($gallery)], \JSON_THROW_ON_ERROR),
+        ));
+    }
+
+    /**
+     * Replace every member of the relationship.
+     *
+     * Needs an access token granting the `articles:write` scope.
+     *
+     * @param list<Identifier|Image> $gallery
+     *
+     * @throws BadRequest           when the document is malformed
+     * @throws Unauthorized         when credentials are missing or invalid
+     * @throws Forbidden            when the write is not permitted
+     * @throws NotFound             when no article has this id
+     * @throws NotAcceptable        when the negotiated media type cannot be satisfied
+     * @throws Conflict             when the linkage conflicts with the relationship
+     * @throws UnsupportedMediaType when the `Content-Type` is refused
+     * @throws ValidationFailed     when the linkage fails validation
+     * @throws ServerError          when the server fails
+     * @throws TransportException   when no response is received at all
+     *
+     * @example Request body:
+     *     {
+     *         "data": [
+     *             {
+     *                 "type": "images",
+     *                 "id": "img-1"
+     *             }
+     *         ]
+     *     }
+     */
+    public function replace(array $gallery): void
+    {
+        $this->fetcher->send(Request::patch(
+            '/articles/' . $this->id . '/relationships/gallery',
+            \json_encode(['data' => Coerce::linkageList($gallery)], \JSON_THROW_ON_ERROR),
+        ));
+    }
+
+    /**
+     * @return PaginatedCollection<Identifier, PageNumber>
+     */
+    private function linkage(ResourceContext $context): PaginatedCollection
+    {
+        $document = $context->document();
+        $identifiers = [];
+
+        foreach ($context->primaryList() as $raw) {
+            $identifiers[] = Identifier::fromArray($raw, 'the "gallery" linkage');
+        }
+
+        return new PaginatedCollection(
+            $identifiers,
+            PageNumber::read($document->pageMeta(), PageLinks::fromArray($document->links())),
+            $document->meta(),
+            $document->links(),
+            fn(string $url): PaginatedCollection => $this->linkage($this->fetcher->readUrl($url)),
+        );
+    }
+
+    /**
+     * @return PaginatedCollection<Image, PageNumber>
+     */
+    private function resources(ResourceContext $context): PaginatedCollection
+    {
+        $document = $context->document();
+        $gallery = [];
+
+        foreach ($context->primaryList() as $raw) {
+            $gallery[] = self::member($raw, $context);
+        }
+
+        return new PaginatedCollection(
+            $gallery,
+            PageNumber::read($document->pageMeta(), PageLinks::fromArray($document->links())),
+            $document->meta(),
+            $document->links(),
+            fn(string $url): PaginatedCollection => $this->resources($this->fetcher->readUrl($url, new ReadQuery())),
+        );
+    }
+
+    /**
+     * The related resource as the class its own `type` names.
+     *
+     * @param array<string, mixed> $raw
+     *
+     * @throws MalformedDocument when the resource is of a type the relation does not declare
+     */
+    private static function member(array $raw, ResourceContext $context): Image
+    {
+        return match ($raw['type'] ?? null) {
+            'images' => Image::_hydrate($raw, $context),
+            default => throw MalformedDocument::unexpectedMember('The related resource', 'type', 'one of "images"'),
+        };
+    }
+}
+
+/**
  * One article by id, before anything has been fetched. Creating the handle performs no IO; each
  * method on it is one request.
  *
@@ -2823,6 +3181,8 @@ final class ArticleHandle
     /**
      * Fetch the article, shaped by the optional projection: a closure over a fresh projection, or a
      * prebuilt one.
+     *
+     * Needs an access token granting the `articles:read` scope.
      *
      * @template TProj of object
      *
@@ -2862,6 +3222,8 @@ final class ArticleHandle
      *
      * The id comes from the handle and is written into the document, so the body and the URL cannot
      * disagree.
+     *
+     * Needs an access token granting the `articles:write` scope.
      *
      * @template TProj of object
      *
@@ -2909,6 +3271,8 @@ final class ArticleHandle
 
     /**
      * Delete the article.
+     *
+     * Needs an access token granting the `articles:write` scope.
      *
      * @throws BadRequest         when the request is malformed
      * @throws Unauthorized       when credentials are missing or invalid
@@ -2964,6 +3328,15 @@ final class ArticleHandle
     }
 
     /**
+     * The `gallery` relationship, a to-many whose endpoint advertises `add()`, `remove()` and
+     * `replace()`.
+     */
+    public function gallery(): ArticleGalleryRelation
+    {
+        return new ArticleGalleryRelation($this->fetcher, $this->id);
+    }
+
+    /**
      * The `locked` relationship, a to-many the document advertises no write for.
      */
     public function locked(): ArticleLockedRelation
@@ -2977,6 +3350,14 @@ final class ArticleHandle
     public function publisher(): ArticlePublisherRelation
     {
         return new ArticlePublisherRelation($this->fetcher, $this->id);
+    }
+
+    /**
+     * The `subject` relationship, a to-one whose endpoint advertises `set()`.
+     */
+    public function subject(): ArticleSubjectRelation
+    {
+        return new ArticleSubjectRelation($this->fetcher, $this->id);
     }
 
     /**
@@ -3014,6 +3395,8 @@ final class ArticleLockedRelation
 
     /**
      * The linkage alone, a page at a time, without fetching the related resources.
+     *
+     * Needs an access token granting the `articles:read` scope.
      *
      * @return PaginatedCollection<Identifier, PageNumber>
      *
@@ -3060,6 +3443,8 @@ final class ArticleLockedRelation
 
     /**
      * The related resources themselves, a page at a time.
+     *
+     * Needs an access token granting the `articles:read` scope.
      *
      * @return PaginatedCollection<People, PageNumber>
      *
@@ -3183,6 +3568,8 @@ final class ArticlePublisherRelation
     /**
      * The linkage alone: the identifier of the related resource, or null, without fetching it.
      *
+     * Needs an access token granting the `articles:read` and `people:read` scopes.
+     *
      * @throws BadRequest         when a query parameter is rejected
      * @throws Unauthorized       when credentials are missing or invalid
      * @throws Forbidden          when the read is not permitted
@@ -3227,6 +3614,8 @@ final class ArticlePublisherRelation
     /**
      * The related resource itself, or null when the relationship is empty.
      *
+     * Needs an access token granting the `articles:read` and `people:read` scopes.
+     *
      * @throws BadRequest         when a query parameter is rejected
      * @throws Unauthorized       when credentials are missing or invalid
      * @throws Forbidden          when the read is not permitted
@@ -3245,6 +3634,8 @@ final class ArticlePublisherRelation
 
     /**
      * Point the relationship at another resource, or at nothing.
+     *
+     * Needs an access token granting the `articles:write` scope.
      *
      * @throws BadRequest           when the document is malformed
      * @throws Unauthorized         when credentials are missing or invalid
@@ -3547,6 +3938,8 @@ final class ArticleQuery extends Query
     /**
      * Run the read.
      *
+     * Needs an access token granting the `articles:read` scope.
+     *
      * @return PaginatedCollection<TProj, PageNumber>
      *
      * @throws BadRequest         when a query parameter is rejected
@@ -3565,6 +3958,8 @@ final class ArticleQuery extends Query
 
     /**
      * The first article the read matches, fetching a single-resource page rather than a whole one.
+     *
+     * Needs an access token granting the `articles:read` scope.
      *
      * @return TProj|null
      *
@@ -3659,6 +4054,135 @@ final class ArticleQuery extends Query
     {
         /** @var TProj */
         return $context->hydrate($raw, Article::_hydrate(...));
+    }
+}
+
+/**
+ * The `subject` relationship of one article. `get()` reads the linkage and `related()` reads the
+ * related resources; any read the server switched off is absent. The writes are `set()`, the
+ * methods the relationship endpoint declares, and no others.
+ *
+ * @generated from `/articles/{id}/subject` and `/articles/{id}/relationships/subject`
+ */
+final class ArticleSubjectRelation
+{
+    public function __construct(
+        private readonly Fetcher $fetcher,
+        private readonly string $id,
+    ) {}
+
+    /**
+     * The linkage alone: the identifier of the related resource, or null, without fetching it.
+     *
+     * Needs an access token granting the `articles:read` and `people:read` scopes.
+     *
+     * @throws BadRequest         when a query parameter is rejected
+     * @throws Unauthorized       when credentials are missing or invalid
+     * @throws Forbidden          when the read is not permitted
+     * @throws NotFound           when no article has this id
+     * @throws NotAcceptable      when the negotiated media type cannot be satisfied
+     * @throws ServerError        when the server fails
+     * @throws TransportException when no response is received at all
+     *
+     * @example 200 response:
+     *     {
+     *         "data": {
+     *             "type": "people",
+     *             "id": "per-1"
+     *         },
+     *         "links": {
+     *             "self": {
+     *                 "href": "https://api.example.com/articles/art-1/relationships/subject",
+     *                 "describedby": "/docs/openapi.json#/paths/~1articles~1%7Bid%7D~1relationships~1subject/get"
+     *             },
+     *             "related": {
+     *                 "href": "https://api.example.com/articles/art-1/subject",
+     *                 "describedby": "/docs/openapi.json#/paths/~1articles~1%7Bid%7D~1subject/get"
+     *             },
+     *             "describedby": {
+     *                 "href": "/docs/openapi.json#/paths/~1articles~1%7Bid%7D~1relationships~1subject/get"
+     *             }
+     *         },
+     *         "jsonapi": {
+     *             "version": "1.1"
+     *         }
+     *     }
+     */
+    public function get(): ?Identifier
+    {
+        $raw = $this->fetcher
+            ->read(Request::get('/articles/' . $this->id . '/relationships/subject'))
+            ->primary();
+
+        return $raw === null ? null : Identifier::fromArray($raw, 'the "subject" linkage');
+    }
+
+    /**
+     * The related resource itself, or null when the relationship is empty.
+     *
+     * Needs an access token granting the `articles:read` and `people:read` scopes.
+     *
+     * @throws BadRequest         when a query parameter is rejected
+     * @throws Unauthorized       when credentials are missing or invalid
+     * @throws Forbidden          when the read is not permitted
+     * @throws NotFound           when no article has this id
+     * @throws NotAcceptable      when the negotiated media type cannot be satisfied
+     * @throws ServerError        when the server fails
+     * @throws TransportException when no response is received at all
+     */
+    public function related(): ?People
+    {
+        $context = $this->fetcher->read(Request::get('/articles/' . $this->id . '/subject'));
+        $raw = $context->primary();
+
+        return $raw === null ? null : self::member($raw, $context);
+    }
+
+    /**
+     * Point the relationship at another resource, or at nothing.
+     *
+     * Needs an access token granting the `articles:write` scope.
+     *
+     * @throws BadRequest           when the document is malformed
+     * @throws Unauthorized         when credentials are missing or invalid
+     * @throws Forbidden            when the write is not permitted
+     * @throws NotFound             when no article has this id
+     * @throws NotAcceptable        when the negotiated media type cannot be satisfied
+     * @throws Conflict             when the linkage conflicts with the relationship
+     * @throws UnsupportedMediaType when the `Content-Type` is refused
+     * @throws ValidationFailed     when the linkage fails validation
+     * @throws ServerError          when the server fails
+     * @throws TransportException   when no response is received at all
+     *
+     * @example Request body:
+     *     {
+     *         "data": {
+     *             "type": "people",
+     *             "id": "per-1"
+     *         }
+     *     }
+     */
+    public function set(Identifier|People|null $target): void
+    {
+        $this->fetcher->send(Request::patch(
+            '/articles/' . $this->id . '/relationships/subject',
+            \json_encode(['data' => Coerce::linkage($target)], \JSON_THROW_ON_ERROR),
+        ));
+    }
+
+    /**
+     * The related resource as the class its own `type` names.
+     *
+     * @param array<string, mixed> $raw
+     *
+     * @throws MalformedDocument when the resource is of a type the relation does not declare
+     */
+    private static function member(array $raw, ResourceContext $context): People
+    {
+        return match ($raw['type'] ?? null) {
+            'people' => People::_hydrate($raw, $context),
+            default => throw MalformedDocument::unexpectedMember('The related resource', 'type', 'one of "people"'),
+        };
     }
 }
 
@@ -3802,6 +4326,8 @@ final class ArticleTagsRelation
     /**
      * The linkage alone, a page at a time, without fetching the related resources.
      *
+     * Needs an access token granting the `articles:read` scope.
+     *
      * @return PaginatedCollection<Identifier, PageNumber>
      *
      * @throws BadRequest         when a query parameter is rejected
@@ -3822,6 +4348,8 @@ final class ArticleTagsRelation
     /**
      * The related resources themselves, a page at a time.
      *
+     * Needs an access token granting the `articles:read` scope.
+     *
      * @return PaginatedCollection<Tag, PageNumber>
      *
      * @throws BadRequest         when a query parameter is rejected
@@ -3839,6 +4367,8 @@ final class ArticleTagsRelation
 
     /**
      * Add members to the relationship, leaving the rest alone.
+     *
+     * Needs an access token granting the `articles:write` scope.
      *
      * @param list<ArticleTagsEdge> $tags
      *
@@ -3864,6 +4394,8 @@ final class ArticleTagsRelation
     /**
      * Remove members from the relationship, leaving the rest alone.
      *
+     * Needs an access token granting the `articles:write` scope.
+     *
      * @param list<Identifier|Tag> $tags
      *
      * @throws BadRequest           when the document is malformed
@@ -3887,6 +4419,8 @@ final class ArticleTagsRelation
 
     /**
      * Replace every member of the relationship.
+     *
+     * Needs an access token granting the `articles:write` scope.
      *
      * @param list<ArticleTagsEdge> $tags
      *
@@ -3991,6 +4525,8 @@ final class ArticleUpdate
      * @param Identifier|People|Missing|null $reviewer
      * @param list<Identifier|People>|Missing $watchers
      * @param Identifier|People|Missing|null $editor
+     * @param Identifier|People|Missing|null $subject
+     * @param list<Identifier|Image>|Missing $gallery
      *
      * @phpstan-pure
      */
@@ -4027,6 +4563,8 @@ final class ArticleUpdate
         public readonly Identifier|People|Missing|null $reviewer = Missing::Value,
         public readonly array|Missing $watchers = Missing::Value,
         public readonly Identifier|People|Missing|null $editor = Missing::Value,
+        public readonly Identifier|People|Missing|null $subject = Missing::Value,
+        public readonly array|Missing $gallery = Missing::Value,
     ) {}
 
     /**
@@ -4071,6 +4609,8 @@ final class ArticleUpdate
             reviewer: $this->reviewer,
             watchers: $this->watchers,
             editor: $this->editor,
+            subject: $this->subject,
+            gallery: $this->gallery,
         );
     }
 
@@ -4114,6 +4654,8 @@ final class ArticleUpdate
             reviewer: $this->reviewer,
             watchers: $this->watchers,
             editor: $this->editor,
+            subject: $this->subject,
+            gallery: $this->gallery,
         );
     }
 
@@ -4155,6 +4697,8 @@ final class ArticleUpdate
             reviewer: $this->reviewer,
             watchers: $this->watchers,
             editor: $this->editor,
+            subject: $this->subject,
+            gallery: $this->gallery,
         );
     }
 
@@ -4196,6 +4740,8 @@ final class ArticleUpdate
             reviewer: $this->reviewer,
             watchers: $this->watchers,
             editor: $this->editor,
+            subject: $this->subject,
+            gallery: $this->gallery,
         );
     }
 
@@ -4241,6 +4787,8 @@ final class ArticleUpdate
             reviewer: $this->reviewer,
             watchers: $this->watchers,
             editor: $this->editor,
+            subject: $this->subject,
+            gallery: $this->gallery,
         );
     }
 
@@ -4284,6 +4832,8 @@ final class ArticleUpdate
             reviewer: $this->reviewer,
             watchers: $this->watchers,
             editor: $this->editor,
+            subject: $this->subject,
+            gallery: $this->gallery,
         );
     }
 
@@ -4325,6 +4875,8 @@ final class ArticleUpdate
             reviewer: $this->reviewer,
             watchers: $this->watchers,
             editor: $this->editor,
+            subject: $this->subject,
+            gallery: $this->gallery,
         );
     }
 
@@ -4366,6 +4918,8 @@ final class ArticleUpdate
             reviewer: $this->reviewer,
             watchers: $this->watchers,
             editor: $this->editor,
+            subject: $this->subject,
+            gallery: $this->gallery,
         );
     }
 
@@ -4407,6 +4961,8 @@ final class ArticleUpdate
             reviewer: $this->reviewer,
             watchers: $this->watchers,
             editor: $this->editor,
+            subject: $this->subject,
+            gallery: $this->gallery,
         );
     }
 
@@ -4448,6 +5004,8 @@ final class ArticleUpdate
             reviewer: $this->reviewer,
             watchers: $this->watchers,
             editor: $this->editor,
+            subject: $this->subject,
+            gallery: $this->gallery,
         );
     }
 
@@ -4489,6 +5047,8 @@ final class ArticleUpdate
             reviewer: $this->reviewer,
             watchers: $this->watchers,
             editor: $this->editor,
+            subject: $this->subject,
+            gallery: $this->gallery,
         );
     }
 
@@ -4530,6 +5090,8 @@ final class ArticleUpdate
             reviewer: $this->reviewer,
             watchers: $this->watchers,
             editor: $this->editor,
+            subject: $this->subject,
+            gallery: $this->gallery,
         );
     }
 
@@ -4573,6 +5135,8 @@ final class ArticleUpdate
             reviewer: $this->reviewer,
             watchers: $this->watchers,
             editor: $this->editor,
+            subject: $this->subject,
+            gallery: $this->gallery,
         );
     }
 
@@ -4616,6 +5180,8 @@ final class ArticleUpdate
             reviewer: $this->reviewer,
             watchers: $this->watchers,
             editor: $this->editor,
+            subject: $this->subject,
+            gallery: $this->gallery,
         );
     }
 
@@ -4657,6 +5223,8 @@ final class ArticleUpdate
             reviewer: $this->reviewer,
             watchers: $this->watchers,
             editor: $this->editor,
+            subject: $this->subject,
+            gallery: $this->gallery,
         );
     }
 
@@ -4698,6 +5266,8 @@ final class ArticleUpdate
             reviewer: $this->reviewer,
             watchers: $this->watchers,
             editor: $this->editor,
+            subject: $this->subject,
+            gallery: $this->gallery,
         );
     }
 
@@ -4739,6 +5309,8 @@ final class ArticleUpdate
             reviewer: $this->reviewer,
             watchers: $this->watchers,
             editor: $this->editor,
+            subject: $this->subject,
+            gallery: $this->gallery,
         );
     }
 
@@ -4784,6 +5356,8 @@ final class ArticleUpdate
             reviewer: $this->reviewer,
             watchers: $this->watchers,
             editor: $this->editor,
+            subject: $this->subject,
+            gallery: $this->gallery,
         );
     }
 
@@ -4827,6 +5401,8 @@ final class ArticleUpdate
             reviewer: $this->reviewer,
             watchers: $this->watchers,
             editor: $this->editor,
+            subject: $this->subject,
+            gallery: $this->gallery,
         );
     }
 
@@ -4870,6 +5446,8 @@ final class ArticleUpdate
             reviewer: $this->reviewer,
             watchers: $this->watchers,
             editor: $this->editor,
+            subject: $this->subject,
+            gallery: $this->gallery,
         );
     }
 
@@ -4913,6 +5491,8 @@ final class ArticleUpdate
             reviewer: $this->reviewer,
             watchers: $this->watchers,
             editor: $this->editor,
+            subject: $this->subject,
+            gallery: $this->gallery,
         );
     }
 
@@ -4956,6 +5536,8 @@ final class ArticleUpdate
             reviewer: $this->reviewer,
             watchers: $this->watchers,
             editor: $this->editor,
+            subject: $this->subject,
+            gallery: $this->gallery,
         );
     }
 
@@ -4997,6 +5579,8 @@ final class ArticleUpdate
             reviewer: $this->reviewer,
             watchers: $this->watchers,
             editor: $this->editor,
+            subject: $this->subject,
+            gallery: $this->gallery,
         );
     }
 
@@ -5038,6 +5622,8 @@ final class ArticleUpdate
             reviewer: $this->reviewer,
             watchers: $this->watchers,
             editor: $this->editor,
+            subject: $this->subject,
+            gallery: $this->gallery,
         );
     }
 
@@ -5079,6 +5665,8 @@ final class ArticleUpdate
             reviewer: $this->reviewer,
             watchers: $this->watchers,
             editor: $this->editor,
+            subject: $this->subject,
+            gallery: $this->gallery,
         );
     }
 
@@ -5122,6 +5710,8 @@ final class ArticleUpdate
             reviewer: $this->reviewer,
             watchers: $this->watchers,
             editor: $this->editor,
+            subject: $this->subject,
+            gallery: $this->gallery,
         );
     }
 
@@ -5163,6 +5753,8 @@ final class ArticleUpdate
             reviewer: $this->reviewer,
             watchers: $this->watchers,
             editor: $this->editor,
+            subject: $this->subject,
+            gallery: $this->gallery,
         );
     }
 
@@ -5204,6 +5796,8 @@ final class ArticleUpdate
             reviewer: $this->reviewer,
             watchers: $this->watchers,
             editor: $this->editor,
+            subject: $this->subject,
+            gallery: $this->gallery,
         );
     }
 
@@ -5247,6 +5841,8 @@ final class ArticleUpdate
             reviewer: $this->reviewer,
             watchers: $this->watchers,
             editor: $this->editor,
+            subject: $this->subject,
+            gallery: $this->gallery,
         );
     }
 
@@ -5288,6 +5884,8 @@ final class ArticleUpdate
             reviewer: $reviewer,
             watchers: $this->watchers,
             editor: $this->editor,
+            subject: $this->subject,
+            gallery: $this->gallery,
         );
     }
 
@@ -5331,6 +5929,8 @@ final class ArticleUpdate
             reviewer: $this->reviewer,
             watchers: $watchers,
             editor: $this->editor,
+            subject: $this->subject,
+            gallery: $this->gallery,
         );
     }
 
@@ -5372,6 +5972,96 @@ final class ArticleUpdate
             reviewer: $this->reviewer,
             watchers: $this->watchers,
             editor: $editor,
+            subject: $this->subject,
+            gallery: $this->gallery,
+        );
+    }
+
+    /**
+     * @phpstan-pure
+     */
+    public function subject(Identifier|People|null $subject): self
+    {
+        return new self(
+            title: $this->title,
+            slug: $this->slug,
+            status: $this->status,
+            priority: $this->priority,
+            wordCount: $this->wordCount,
+            rating: $this->rating,
+            featured: $this->featured,
+            releasedOn: $this->releasedOn,
+            publishedAt: $this->publishedAt,
+            syncedAt: $this->syncedAt,
+            archivedAt: $this->archivedAt,
+            embargoLifts: $this->embargoLifts,
+            editorEmail: $this->editorEmail,
+            canonicalUrl: $this->canonicalUrl,
+            excerpt: $this->excerpt,
+            reviewNote: $this->reviewNote,
+            originIp: $this->originIp,
+            keywords: $this->keywords,
+            analytics: $this->analytics,
+            address: $this->address,
+            block: $this->block,
+            contact: $this->contact,
+            authorName: $this->authorName,
+            score: $this->score,
+            author: $this->author,
+            tags: $this->tags,
+            publisher: $this->publisher,
+            cover: $this->cover,
+            attachments: $this->attachments,
+            reviewer: $this->reviewer,
+            watchers: $this->watchers,
+            editor: $this->editor,
+            subject: $subject,
+            gallery: $this->gallery,
+        );
+    }
+
+    /**
+     * @param list<Identifier|Image> $gallery
+     *
+     * @phpstan-pure
+     */
+    public function gallery(array $gallery): self
+    {
+        return new self(
+            title: $this->title,
+            slug: $this->slug,
+            status: $this->status,
+            priority: $this->priority,
+            wordCount: $this->wordCount,
+            rating: $this->rating,
+            featured: $this->featured,
+            releasedOn: $this->releasedOn,
+            publishedAt: $this->publishedAt,
+            syncedAt: $this->syncedAt,
+            archivedAt: $this->archivedAt,
+            embargoLifts: $this->embargoLifts,
+            editorEmail: $this->editorEmail,
+            canonicalUrl: $this->canonicalUrl,
+            excerpt: $this->excerpt,
+            reviewNote: $this->reviewNote,
+            originIp: $this->originIp,
+            keywords: $this->keywords,
+            analytics: $this->analytics,
+            address: $this->address,
+            block: $this->block,
+            contact: $this->contact,
+            authorName: $this->authorName,
+            score: $this->score,
+            author: $this->author,
+            tags: $this->tags,
+            publisher: $this->publisher,
+            cover: $this->cover,
+            attachments: $this->attachments,
+            reviewer: $this->reviewer,
+            watchers: $this->watchers,
+            editor: $this->editor,
+            subject: $this->subject,
+            gallery: $gallery,
         );
     }
 
@@ -5434,6 +6124,8 @@ final class ArticleUpdate
             reviewer: \array_key_exists('reviewer', $input) ? $input['reviewer'] : Missing::Value,
             watchers: \array_key_exists('watchers', $input) ? $input['watchers'] : Missing::Value,
             editor: \array_key_exists('editor', $input) ? $input['editor'] : Missing::Value,
+            subject: \array_key_exists('subject', $input) ? $input['subject'] : Missing::Value,
+            gallery: \array_key_exists('gallery', $input) ? $input['gallery'] : Missing::Value,
         );
     }
 
@@ -5583,6 +6275,14 @@ final class ArticleUpdate
             $relationships['editor'] = ['data' => Coerce::linkage($this->editor)];
         }
 
+        if (!$this->subject instanceof Missing) {
+            $relationships['subject'] = ['data' => Coerce::linkage($this->subject)];
+        }
+
+        if (!$this->gallery instanceof Missing) {
+            $relationships['gallery'] = ['data' => Coerce::linkageList($this->gallery)];
+        }
+
         if ($relationships !== []) {
             $data['relationships'] = $relationships;
         }
@@ -5625,6 +6325,8 @@ final class Articles
     /**
      * Create an article, in any of the three input forms, and return it shaped by the optional
      * projection: a closure over a fresh projection, or a prebuilt one.
+     *
+     * Needs an access token granting the `articles:write` scope.
      *
      * @template TProj of object
      *

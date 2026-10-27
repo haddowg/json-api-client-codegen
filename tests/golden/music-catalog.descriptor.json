@@ -5241,7 +5241,8 @@
                     "countable": null,
                     "pivot": false,
                     "pivotFields": [],
-                    "writePivotFields": []
+                    "writePivotFields": [],
+                    "polymorphic": true
                 },
                 "user": {
                     "cardinality": "one",
@@ -6655,7 +6656,8 @@
                     "countable": null,
                     "pivot": false,
                     "pivotFields": [],
-                    "writePivotFields": []
+                    "writePivotFields": [],
+                    "polymorphic": true
                 },
                 "owner": {
                     "cardinality": "one",

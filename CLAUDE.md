@@ -61,7 +61,7 @@ the projector whenever the emitted structure changes. This codegen declares a su
 this is the only thing that catches it. A feature-token list was rejected: it names what
 changed, at the cost of two hand-maintained lists that must agree.
 
-The supported range is `[1, 15]`. Contract 2 (json-api 1.1.0) added the error catalogue, shared
+The supported range is `[1, 16]`. Contract 2 (json-api 1.1.0) added the error catalogue, shared
 error responses and write-side `include`/`fields`; the descriptor reads the first into `errors`,
 and the last into each operation's `projection`. Contract 3 added `x-paginator` on page schemas,
 which the descriptor reads into each `PaginatorDescriptor`: the strategy, its role-to-key map, and
@@ -114,7 +114,13 @@ keyed with the method as a suffix, as the TypeScript codegen does: `export` and 
 `bulk-import-put` for a dashed name, generated as `bulkImportPut()`. Methods sharing one id, as in
 an older document, still give only the preferred one. The declared `readOnly`, `destructive` and
 `idempotent` flags are read into the action's `safety` and stated in its docblock. Vendor extensions
-are not read (ADR 0013).
+are not read (ADR 0013). Contract 16 lists the OAuth scopes an operation needs in its `security`,
+under the document's `oauth2` scheme, and projects a polymorphic relation over one type as a
+one-member `anyOf` rather than a plain `$ref`, each only on a document that uses it. The scopes
+are read into the `scopes` of each operation, action and the atomic endpoint, null when there are
+none, and each generated method's docblock names them (ADR 0015). A relation whose linkage is a
+union is marked `polymorphic` whatever its member count, so a single-type `MorphTo` hydrates its
+related resources by `type` exactly as a multi-type one does (ADR 0014).
 Raise `MAXIMUM` only in the change that
 teaches the descriptor to read whatever the next contract adds.
 

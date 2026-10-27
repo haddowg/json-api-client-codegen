@@ -7,7 +7,7 @@ declare(strict_types=1);
  * so this map is how each one is found. Register it once through composer.json's
  * `autoload.files`; regenerating rewrites it, so a new type never needs a `dump-autoload`.
  *
- * @generated from an OpenAPI document with sha256 0559ac64570d66d5e384de4954bac687681ef5e0aa9eac143d48145f0f59e025
+ * @generated from an OpenAPI document with sha256 f922fa802bdd90a2fcec14e7a7ef065267bdad06f2ea054e74d053ca9e5e21a2
  */
 
 \spl_autoload_register(static function (string $class): void {
@@ -24,6 +24,7 @@ declare(strict_types=1);
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\FormFields\\ArticleCreate' => 'resource-articles.php',
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\FormFields\\ArticleCreateBuilder' => 'resource-articles.php',
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\FormFields\\ArticleEditorRelation' => 'resource-articles.php',
+        'haddowg\\JsonApiCodegen\\Tests\\Golden\\FormFields\\ArticleGalleryRelation' => 'resource-articles.php',
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\FormFields\\ArticleHandle' => 'resource-articles.php',
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\FormFields\\ArticleHasAuthor' => 'resource-articles.php',
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\FormFields\\ArticleHasTags' => 'resource-articles.php',
@@ -32,6 +33,7 @@ declare(strict_types=1);
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\FormFields\\ArticleProjection' => 'resource-articles.php',
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\FormFields\\ArticlePublisherRelation' => 'resource-articles.php',
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\FormFields\\ArticleQuery' => 'resource-articles.php',
+        'haddowg\\JsonApiCodegen\\Tests\\Golden\\FormFields\\ArticleSubjectRelation' => 'resource-articles.php',
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\FormFields\\ArticleSummary' => 'resource-articles.php',
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\FormFields\\ArticleTagsEdge' => 'resource-articles.php',
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\FormFields\\ArticleTagsPivot' => 'resource-articles.php',

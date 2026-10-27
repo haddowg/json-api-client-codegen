@@ -305,6 +305,8 @@ final class TagArticlesRelation
     /**
      * The linkage alone, a page at a time, without fetching the related resources.
      *
+     * Needs an access token granting the `articles:read` scope.
+     *
      * @return PaginatedCollection<Identifier, PageNumber>
      *
      * @throws BadRequest         when a query parameter is rejected
@@ -350,6 +352,8 @@ final class TagArticlesRelation
 
     /**
      * The related resources themselves, a page at a time.
+     *
+     * Needs an access token granting the `articles:read` scope.
      *
      * @return PaginatedCollection<Article, PageNumber>
      *

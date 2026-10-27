@@ -13,6 +13,7 @@ use haddowg\JsonApiCodegen\Emit\ExampleTag;
 use haddowg\JsonApiCodegen\Emit\Naming;
 use haddowg\JsonApiCodegen\Emit\Narrowing;
 use haddowg\JsonApiCodegen\Emit\Php;
+use haddowg\JsonApiCodegen\Emit\ScopeNote;
 use haddowg\JsonApiCodegen\Emit\Surface\TypeSurface;
 use haddowg\JsonApiCodegen\Emit\UnitKind;
 
@@ -256,7 +257,7 @@ final class ReadSources
 
         $throws = Throws::for($collection->errorStatuses);
         \array_push($imports, ...Throws::imports($throws));
-        $members[] = $this->terminals($throws, ExampleTag::lines($collection->examples));
+        $members[] = $this->terminals($throws, ExampleTag::lines($collection->examples), $collection->scopes);
 
         if ($s->filters !== []) {
             $members[] = $this->guardFilters();
@@ -739,8 +740,9 @@ final class ReadSources
     /**
      * @param list<array{string, string}> $throws
      * @param list<string>                $example the `@example` lines for `get()`
+     * @param list<string>|null           $scopes  the OAuth scopes the read needs
      */
-    private function terminals(array $throws, array $example): string
+    private function terminals(array $throws, array $example, ?array $scopes): string
     {
         $s = $this->surface;
         $paginated = $s->paginator->paginated();
@@ -758,7 +760,7 @@ final class ReadSources
 
         $singular = Naming::singular($this->type);
 
-        return Php::docblock(['Run the read.', '', '@return ' . $collection, '', ...Throws::lines($throws), ...$example], 4)
+        return Php::docblock(ScopeNote::insert(['Run the read.', '', '@return ' . $collection, '', ...Throws::lines($throws), ...$example], $scopes), 4)
             . '    public function get(): ' . ($paginated ? 'PaginatedCollection' : 'ResourceCollection') . "\n"
             . "    {\n"
             . "        \$query = \$this->toReadQuery();\n"
@@ -766,13 +768,13 @@ final class ReadSources
             . '        return ' . $collect . ";\n"
             . "    }\n"
             . "\n"
-            . Php::docblock([
+            . Php::docblock(ScopeNote::insert([
                 ...Php::wrap(\sprintf('The first %s the read matches%s.', $singular, $sized ? ', fetching a single-resource page rather than a whole one' : ''), 4),
                 '',
                 '@return TProj|null',
                 '',
                 ...Throws::lines($throws),
-            ], 4)
+            ], $scopes), 4)
             . "    public function first(): ?object\n"
             . "    {\n"
             . '        return ' . $first . ";\n"

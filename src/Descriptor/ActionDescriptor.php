@@ -25,6 +25,8 @@ namespace haddowg\JsonApiCodegen\Descriptor;
  * descriptor, per method. The preferred method keeps the action's name, and each other one goes
  * under `$alias`. `$safety` is what the operation's `x-safety` declares, null when it declares
  * nothing.
+ *
+ * `$scopes` are the OAuth scopes a contract-16 document says the action needs, null when none.
  */
 final class ActionDescriptor
 {
@@ -32,6 +34,7 @@ final class ActionDescriptor
      * @param list<int>                $errorStatuses sorted ascending
      * @param list<RawMediaDescriptor> $responses     in document order
      * @param list<RawMediaDescriptor> $requests      in document order
+     * @param list<string>|null        $scopes
      */
     public function __construct(
         public readonly string $name,
@@ -54,6 +57,7 @@ final class ActionDescriptor
         public readonly ?OperationExamples $examples = null,
         public readonly ?string $alias = null,
         public readonly ?ActionSafety $safety = null,
+        public readonly ?array $scopes = null,
     ) {}
 
     /** The name the action is keyed and generated under: its alias when it has one, else its own. */

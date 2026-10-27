@@ -22,11 +22,15 @@ namespace haddowg\JsonApiCodegen\Descriptor;
  *
  * The related and relationship reads carry their own paths, which from contract 8 use the
  * relation's URI field name and so may differ from `$name` (core ADR 0161).
+ *
+ * `$polymorphic` says the relation's linkage is a union of identifiers, which is how a `MorphTo`
+ * or `MorphToMany` is projected. From contract 16 that holds even with one member, so it is read
+ * from the linkage's shape rather than inferred from how many types it names.
  */
 final class RelationDescriptor
 {
     /**
-     * @param list<string>                        $types            related JSON:API types; more than one is polymorphic
+     * @param list<string>                        $types            related JSON:API types
      * @param array<string, PivotFieldDescriptor> $pivotFields      the `meta.pivot` a read renders, keyed and sorted by field name
      * @param array<string, OperationDescriptor>  $mutations        keyed by {@see RelationVerb} value
      * @param array<string, PivotFieldDescriptor> $writePivotFields the `meta.pivot` a write may send, keyed and sorted by field name
@@ -43,6 +47,7 @@ final class RelationDescriptor
         public readonly ?CountableDescriptor $countable,
         public readonly ?PaginatorDescriptor $paginator,
         public readonly array $writePivotFields = [],
+        public readonly bool $polymorphic = false,
     ) {}
 
     /** False when the related-resources read is suppressed (`withoutRelatedEndpoint()`). */

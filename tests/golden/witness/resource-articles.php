@@ -1342,11 +1342,11 @@ final class ArticleAttachmentsRelation
     ) {}
 
     /**
-     * The linkage alone, a page at a time, without fetching the related resources.
+     * The linkage alone, without fetching the related resources.
      *
      * Needs an access token granting the `articles:read` scope.
      *
-     * @return PaginatedCollection<Identifier, PageNumber>
+     * @return ResourceCollection<Identifier>
      *
      * @throws BadRequest         when a query parameter is rejected
      * @throws Unauthorized       when credentials are missing or invalid
@@ -1382,7 +1382,7 @@ final class ArticleAttachmentsRelation
      *         }
      *     }
      */
-    public function get(): PaginatedCollection
+    public function get(): ResourceCollection
     {
         return $this->linkage(
             $this->fetcher->read(Request::get('/articles/' . $this->id . '/relationships/attachments')),
@@ -1390,11 +1390,11 @@ final class ArticleAttachmentsRelation
     }
 
     /**
-     * The related resources themselves, a page at a time.
+     * The related resources themselves.
      *
      * Needs an access token granting the `articles:read` scope.
      *
-     * @return PaginatedCollection<Image|Video, PageNumber>
+     * @return ResourceCollection<Image|Video>
      *
      * @throws BadRequest         when a query parameter is rejected
      * @throws Unauthorized       when credentials are missing or invalid
@@ -1404,7 +1404,7 @@ final class ArticleAttachmentsRelation
      * @throws ServerError        when the server fails
      * @throws TransportException when no response is received at all
      */
-    public function related(): PaginatedCollection
+    public function related(): ResourceCollection
     {
         return $this->resources($this->fetcher->read(Request::get('/articles/' . $this->id . '/attachments')));
     }
@@ -1518,9 +1518,9 @@ final class ArticleAttachmentsRelation
     }
 
     /**
-     * @return PaginatedCollection<Identifier, PageNumber>
+     * @return ResourceCollection<Identifier>
      */
-    private function linkage(ResourceContext $context): PaginatedCollection
+    private function linkage(ResourceContext $context): ResourceCollection
     {
         $document = $context->document();
         $identifiers = [];
@@ -1529,19 +1529,13 @@ final class ArticleAttachmentsRelation
             $identifiers[] = Identifier::fromArray($raw, 'the "attachments" linkage');
         }
 
-        return new PaginatedCollection(
-            $identifiers,
-            PageNumber::read($document->pageMeta(), PageLinks::fromArray($document->links())),
-            $document->meta(),
-            $document->links(),
-            fn(string $url): PaginatedCollection => $this->linkage($this->fetcher->readUrl($url)),
-        );
+        return new ResourceCollection($identifiers, $document->meta(), $document->links());
     }
 
     /**
-     * @return PaginatedCollection<Image|Video, PageNumber>
+     * @return ResourceCollection<Image|Video>
      */
-    private function resources(ResourceContext $context): PaginatedCollection
+    private function resources(ResourceContext $context): ResourceCollection
     {
         $document = $context->document();
         $attachments = [];
@@ -1550,13 +1544,7 @@ final class ArticleAttachmentsRelation
             $attachments[] = self::member($raw, $context);
         }
 
-        return new PaginatedCollection(
-            $attachments,
-            PageNumber::read($document->pageMeta(), PageLinks::fromArray($document->links())),
-            $document->meta(),
-            $document->links(),
-            fn(string $url): PaginatedCollection => $this->resources($this->fetcher->readUrl($url, new ReadQuery())),
-        );
+        return new ResourceCollection($attachments, $document->meta(), $document->links());
     }
 
     /**
@@ -2922,11 +2910,11 @@ final class ArticleGalleryRelation
     ) {}
 
     /**
-     * The linkage alone, a page at a time, without fetching the related resources.
+     * The linkage alone, without fetching the related resources.
      *
      * Needs an access token granting the `articles:read` scope.
      *
-     * @return PaginatedCollection<Identifier, PageNumber>
+     * @return ResourceCollection<Identifier>
      *
      * @throws BadRequest         when a query parameter is rejected
      * @throws Unauthorized       when credentials are missing or invalid
@@ -2962,7 +2950,7 @@ final class ArticleGalleryRelation
      *         }
      *     }
      */
-    public function get(): PaginatedCollection
+    public function get(): ResourceCollection
     {
         return $this->linkage(
             $this->fetcher->read(Request::get('/articles/' . $this->id . '/relationships/gallery')),
@@ -2970,11 +2958,11 @@ final class ArticleGalleryRelation
     }
 
     /**
-     * The related resources themselves, a page at a time.
+     * The related resources themselves.
      *
      * Needs an access token granting the `articles:read` scope.
      *
-     * @return PaginatedCollection<Image, PageNumber>
+     * @return ResourceCollection<Image>
      *
      * @throws BadRequest         when a query parameter is rejected
      * @throws Unauthorized       when credentials are missing or invalid
@@ -2984,7 +2972,7 @@ final class ArticleGalleryRelation
      * @throws ServerError        when the server fails
      * @throws TransportException when no response is received at all
      */
-    public function related(): PaginatedCollection
+    public function related(): ResourceCollection
     {
         return $this->resources($this->fetcher->read(Request::get('/articles/' . $this->id . '/gallery')));
     }
@@ -3098,9 +3086,9 @@ final class ArticleGalleryRelation
     }
 
     /**
-     * @return PaginatedCollection<Identifier, PageNumber>
+     * @return ResourceCollection<Identifier>
      */
-    private function linkage(ResourceContext $context): PaginatedCollection
+    private function linkage(ResourceContext $context): ResourceCollection
     {
         $document = $context->document();
         $identifiers = [];
@@ -3109,19 +3097,13 @@ final class ArticleGalleryRelation
             $identifiers[] = Identifier::fromArray($raw, 'the "gallery" linkage');
         }
 
-        return new PaginatedCollection(
-            $identifiers,
-            PageNumber::read($document->pageMeta(), PageLinks::fromArray($document->links())),
-            $document->meta(),
-            $document->links(),
-            fn(string $url): PaginatedCollection => $this->linkage($this->fetcher->readUrl($url)),
-        );
+        return new ResourceCollection($identifiers, $document->meta(), $document->links());
     }
 
     /**
-     * @return PaginatedCollection<Image, PageNumber>
+     * @return ResourceCollection<Image>
      */
-    private function resources(ResourceContext $context): PaginatedCollection
+    private function resources(ResourceContext $context): ResourceCollection
     {
         $document = $context->document();
         $gallery = [];
@@ -3130,13 +3112,7 @@ final class ArticleGalleryRelation
             $gallery[] = self::member($raw, $context);
         }
 
-        return new PaginatedCollection(
-            $gallery,
-            PageNumber::read($document->pageMeta(), PageLinks::fromArray($document->links())),
-            $document->meta(),
-            $document->links(),
-            fn(string $url): PaginatedCollection => $this->resources($this->fetcher->readUrl($url, new ReadQuery())),
-        );
+        return new ResourceCollection($gallery, $document->meta(), $document->links());
     }
 
     /**

@@ -19,6 +19,8 @@ namespace haddowg\JsonApiCodegen\Descriptor;
  *
  * `$paginator` is set only when this relation's own related endpoint paginates differently from
  * the related type's collection. Null means the two agree and the related type's kind applies.
+ * A polymorphic to-many always sets it, to none when its endpoints advertise no `page`, because
+ * no single related type's collection speaks for the union.
  *
  * The related and relationship reads carry their own paths, which from contract 8 use the
  * relation's URI field name and so may differ from `$name` (core ADR 0161).

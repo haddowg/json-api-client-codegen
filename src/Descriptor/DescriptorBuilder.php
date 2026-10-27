@@ -61,6 +61,9 @@ final class DescriptorBuilder
     /** @var list<string> what the document says that this codegen read around rather than generated */
     private array $warnings = [];
 
+    /** @var list<string> the names of the document's `oauth2` security schemes, whose requirements list scopes */
+    private array $scopeSchemes = [];
+
     private function __construct(private readonly SpecDocument $document) {}
 
     public static function build(SpecDocument $document): ApiDescriptor
@@ -72,6 +75,7 @@ final class DescriptorBuilder
     {
         $this->collectResourceSchemas();
         $this->indexOperationIds();
+        $this->scopeSchemes = $this->oauth2Schemes();
         $this->resolveCollectionPaths();
 
         $resources = [];
@@ -723,6 +727,7 @@ final class DescriptorBuilder
             $this->countable($relatedGet) ?? $this->countable($relationshipGet),
             $this->relationPaginator($cardinality, $linkage['types'], $relatedGet, $relationshipGet),
             $linkage['pivot'] ? $this->writePivotFields($relationship, $written, $linkage['pivotFields']) : [],
+            $linkage['polymorphic'] || \count($linkage['types']) > 1,
         );
     }
 
@@ -784,19 +789,24 @@ final class DescriptorBuilder
     }
 
     /**
-     * The related types a linkage names, plus its pivot shape.
+     * The related types a linkage names, its pivot shape, and whether it is a union.
      *
      * Four shapes reach here: a `$ref` to an identifier, an `allOf` pairing one with a
      * `meta.pivot` block, an `anyOf` (a nullable to-one, or a polymorphic set), and an `anyOf`
      * nested one level deeper for a polymorphic to-one. Anything else is a linkage grammar this
      * codegen has not been taught, and errors rather than being dropped.
      *
-     * @return array{types: list<string>, pivot: bool, pivotFields: array<string, PivotFieldDescriptor>}
+     * An `anyOf` with no `null` branch is a polymorphic set, whatever its member count: from
+     * contract 16 a `MorphTo` or `MorphToMany` over one type is a one-member union (core ADR
+     * 0184). The `anyOf` that only makes a to-one nullable is not, so a nullable `BelongsTo` is
+     * not mistaken for one.
+     *
+     * @return array{types: list<string>, pivot: bool, pivotFields: array<string, PivotFieldDescriptor>, polymorphic: bool}
      */
     private function linkage(Node $node, bool $constrained): array
     {
         if ($this->document->refName($node) !== null) {
-            return ['types' => [$this->identifierType($node)], 'pivot' => false, 'pivotFields' => []];
+            return ['types' => [$this->identifierType($node)], 'pivot' => false, 'pivotFields' => [], 'polymorphic' => false];
         }
 
         $allOf = $node->find('allOf');
@@ -816,7 +826,7 @@ final class DescriptorBuilder
             }
             \ksort($fields, \SORT_STRING);
 
-            return ['types' => $types, 'pivot' => true, 'pivotFields' => $fields];
+            return ['types' => $types, 'pivot' => true, 'pivotFields' => $fields, 'polymorphic' => false];
         }
 
         $anyOf = $node->find('anyOf');
@@ -824,20 +834,25 @@ final class DescriptorBuilder
             $types = [];
             $pivot = false;
             $fields = [];
+            $nullable = false;
+            $polymorphic = false;
             foreach ($anyOf->items() as $entry) {
                 if ($entry->find('type')?->string() === 'null') {
+                    $nullable = true;
+
                     continue;
                 }
                 $nested = $this->linkage($entry, $constrained);
                 $types = [...$types, ...$nested['types']];
                 $pivot = $pivot || $nested['pivot'];
                 $fields = [...$fields, ...$nested['pivotFields']];
+                $polymorphic = $polymorphic || $nested['polymorphic'];
             }
             if ($types === []) {
                 throw SpecException::malformed($anyOf->pointer(), 'to reference at least one resource identifier');
             }
 
-            return ['types' => $types, 'pivot' => $pivot, 'pivotFields' => $fields];
+            return ['types' => $types, 'pivot' => $pivot, 'pivotFields' => $fields, 'polymorphic' => $polymorphic || !$nullable || \count($types) > 1];
         }
 
         throw SpecException::malformed(
@@ -1482,7 +1497,54 @@ final class DescriptorBuilder
 
         return $operation === null
             ? null
-            : new OperationDescriptor($path, \strtoupper($method), $this->errorStatuses($operation), $this->projection($operation), $this->examples($operation));
+            : new OperationDescriptor($path, \strtoupper($method), $this->errorStatuses($operation), $this->projection($operation), $this->examples($operation), $this->scopes($operation));
+    }
+
+    /**
+     * The names of the document's `oauth2` security schemes.
+     *
+     * @return list<string>
+     */
+    private function oauth2Schemes(): array
+    {
+        $out = [];
+        foreach ($this->document->root()->path('components', 'securitySchemes')?->members() ?? [] as $name => $scheme) {
+            if ($scheme->find('type')?->string() === 'oauth2') {
+                $out[] = (string) $name;
+            }
+        }
+
+        return $out;
+    }
+
+    /**
+     * The OAuth scopes an operation needs: what its `security` lists under an `oauth2` scheme,
+     * from contract 16 (core ADR 0182). An operation without its own `security` inherits the
+     * document's. Null when nothing names a scope, so an older document reads as it did.
+     *
+     * Core fills the same scopes into every requirement that names the scheme, so taking them
+     * across requirements in order, once each, reads the one set it means.
+     *
+     * @return list<string>|null
+     */
+    private function scopes(Node $operation): ?array
+    {
+        if ($this->scopeSchemes === []) {
+            return null;
+        }
+
+        $scopes = [];
+        foreach (($operation->find('security') ?? $this->document->root()->find('security'))?->items() ?? [] as $requirement) {
+            foreach ($this->scopeSchemes as $scheme) {
+                foreach ($requirement->find($scheme)?->strings() ?? [] as $scope) {
+                    if (!\in_array($scope, $scopes, true)) {
+                        $scopes[] = $scope;
+                    }
+                }
+            }
+        }
+
+        return $scopes === [] ? null : $scopes;
     }
 
     /**
@@ -1736,6 +1798,7 @@ final class DescriptorBuilder
             $this->examples($operation),
             $alias,
             $this->safety($operation),
+            $this->scopes($operation),
         );
     }
 
@@ -1935,7 +1998,7 @@ final class DescriptorBuilder
             foreach (\array_keys($content?->members() ?? []) as $mediaType) {
                 $mediaType = (string) $mediaType;
                 if (\str_starts_with($mediaType, self::JSON_API_MEDIA_TYPE) && \str_contains($mediaType, self::ATOMIC_EXT)) {
-                    return new AtomicDescriptor($path, $mediaType);
+                    return new AtomicDescriptor($path, $mediaType, $this->scopes($item->get('post')));
                 }
             }
         }

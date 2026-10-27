@@ -31,12 +31,13 @@ final class ContractCompatibilityTest extends TestCase
         self::assertNull(ContractCompatibility::check(ContractCompatibility::MAXIMUM));
     }
 
-    public function testContractFifteenIsReadAndSixteenIsNot(): void
+    public function testContractSixteenIsReadAndSeventeenIsNot(): void
     {
         // Contract 10 lets an action answer in raw media types, 11 lets it accept several request
         // bodies, 12 adds operation examples, 13 an example detail on every error code, 14 the
-        // links a type declares and 15 per-method action ids and declared action safety, all of
-        // which this codegen reads; whatever 16 adds, it does not.
+        // links a type declares, 15 per-method action ids and declared action safety, and 16
+        // operation scopes and one-member polymorphic unions, all of which this codegen reads;
+        // whatever 17 adds, it does not.
         self::assertNull(ContractCompatibility::check(9));
         self::assertNull(ContractCompatibility::check(10));
         self::assertNull(ContractCompatibility::check(11));
@@ -44,9 +45,10 @@ final class ContractCompatibilityTest extends TestCase
         self::assertNull(ContractCompatibility::check(13));
         self::assertNull(ContractCompatibility::check(14));
         self::assertNull(ContractCompatibility::check(15));
+        self::assertNull(ContractCompatibility::check(16));
 
-        $warning = ContractCompatibility::check(16);
-        self::assertSame('the document declares contract 16 and this codegen reads up to 15. It describes capabilities that were not generated; upgrade the codegen to pick them up.', $warning);
+        $warning = ContractCompatibility::check(17);
+        self::assertSame('the document declares contract 17 and this codegen reads up to 16. It describes capabilities that were not generated; upgrade the codegen to pick them up.', $warning);
     }
 
     public function testANewerContractWarnsThatCapabilitiesWereNotGenerated(): void

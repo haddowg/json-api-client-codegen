@@ -386,6 +386,8 @@ final class PeopleCompanyRelation
     /**
      * The linkage alone: the identifier of the related resource, or null, without fetching it.
      *
+     * Needs an access token granting the `companies:read` scope.
+     *
      * @throws BadRequest         when a query parameter is rejected
      * @throws Unauthorized       when credentials are missing or invalid
      * @throws Forbidden          when the read is not permitted
@@ -605,6 +607,8 @@ final class PeopleHandle
     /**
      * Fetch the people, shaped by the optional projection: a closure over a fresh projection, or a
      * prebuilt one.
+     *
+     * Needs an access token granting the `people:read` scope.
      *
      * @template TProj of object
      *

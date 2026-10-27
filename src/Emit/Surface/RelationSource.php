@@ -13,6 +13,7 @@ use haddowg\JsonApiCodegen\Emit\ClassUnit;
 use haddowg\JsonApiCodegen\Emit\ExampleTag;
 use haddowg\JsonApiCodegen\Emit\Naming;
 use haddowg\JsonApiCodegen\Emit\Php;
+use haddowg\JsonApiCodegen\Emit\ScopeNote;
 use haddowg\JsonApiCodegen\Emit\UnitKind;
 
 /**
@@ -126,7 +127,7 @@ final class RelationSource
         if ($edge !== null && ($relation->permits(RelationVerb::Add) || $relation->permits(RelationVerb::Replace))) {
             $members[] = self::edgesHelper($edge);
         }
-        if (\count($classes) > 1 && $relation->relatedRead !== null) {
+        if (self::dispatches($relation, $classes) && $relation->relatedRead !== null) {
             $members[] = self::dispatcher($relation, $imports, $classes);
         }
 
@@ -173,12 +174,12 @@ final class RelationSource
         $identifier = $imports->runtime('Support\\Identifier');
         $request = $imports->runtime('Http\\Request');
 
-        return Php::docblock([
+        return Php::docblock(ScopeNote::insert([
             ...Php::wrap('The linkage alone: the identifier of the related resource, or null, without fetching it.', 4),
             '',
             ...Throws::tags($read->errorStatuses, $imports, [...self::READ_REASONS, ...$notFound]),
             ...ExampleTag::lines($read->examples),
-        ], 4, false)
+        ], $read->scopes), 4, false)
             . '    public function get(): ?' . $identifier . "\n    {\n"
             . "        \$raw = \$this->fetcher\n"
             . '            ->read(' . $request . '::get(' . TypeSurface::path($read->path) . "))\n"
@@ -194,14 +195,14 @@ final class RelationSource
     {
         $imports->runtime('Http\\Request');
 
-        return Php::docblock([
+        return Php::docblock(ScopeNote::insert([
             ...Php::wrap($page === null ? 'The linkage alone, without fetching the related resources.' : 'The linkage alone, a page at a time, without fetching the related resources.', 4),
             '',
             '@return ' . self::collectionType($imports, 'Identifier', $page),
             '',
             ...Throws::tags($read->errorStatuses, $imports, [...self::READ_REASONS, ...$notFound]),
             ...ExampleTag::lines($read->examples),
-        ], 4, false)
+        ], $read->scopes), 4, false)
             . '    public function get(): ' . self::collectionClass($imports, $page) . "\n    {\n"
             . "        return \$this->linkage(\n"
             . '            $this->fetcher->read(' . TypeSurface::request('GET', TypeSurface::path($read->path)) . "),\n"
@@ -216,14 +217,14 @@ final class RelationSource
     private static function relatedOne(RelationDescriptor $relation, OperationDescriptor $read, Imports $imports, array $notFound, array $classes): string
     {
         $imports->runtime('Http\\Request');
-        $hydrate = \count($classes) === 1 ? $classes[0] . '::_hydrate($raw, $context)' : 'self::member($raw, $context)';
+        $hydrate = self::dispatches($relation, $classes) ? 'self::member($raw, $context)' : $classes[0] . '::_hydrate($raw, $context)';
 
-        return Php::docblock([
+        return Php::docblock(ScopeNote::insert([
             ...Php::wrap('The related resource itself, or null when the relationship is empty.', 4),
             '',
             ...Throws::tags($read->errorStatuses, $imports, [...self::READ_REASONS, ...$notFound]),
             ...ExampleTag::lines($read->examples),
-        ], 4, false)
+        ], $read->scopes), 4, false)
             . '    public function related(): ' . (\count($classes) === 1 ? '?' . $classes[0] : self::union($classes) . '|null') . "\n    {\n"
             . '        $context = $this->fetcher->read(' . TypeSurface::request('GET', TypeSurface::path($read->path)) . ");\n"
             . "        \$raw = \$context->primary();\n\n"
@@ -239,14 +240,14 @@ final class RelationSource
     {
         $imports->runtime('Http\\Request');
 
-        return Php::docblock([
+        return Php::docblock(ScopeNote::insert([
             ...Php::wrap($page === null ? 'The related resources themselves.' : 'The related resources themselves, a page at a time.', 4),
             '',
             '@return ' . self::collectionType($imports, self::union($classes), $page),
             '',
             ...Throws::tags($read->errorStatuses, $imports, [...self::READ_REASONS, ...$notFound]),
             ...ExampleTag::lines($read->examples),
-        ], 4, false)
+        ], $read->scopes), 4, false)
             . '    public function related(): ' . self::collectionClass($imports, $page) . "\n    {\n"
             . '        return $this->resources($this->fetcher->read(' . TypeSurface::request('GET', TypeSurface::path($read->path)) . "));\n"
             . "    }\n";
@@ -281,13 +282,13 @@ final class RelationSource
             };
         }
 
-        return Php::docblock([
+        return Php::docblock(ScopeNote::insert([
             ...Php::wrap($summary, 4),
             '',
             ...($param === null ? [] : [$param, '']),
             ...Throws::tags($operation->errorStatuses, $imports, [...self::WRITE_REASONS, ...$notFound]),
             ...ExampleTag::lines($operation->examples),
-        ], 4, false)
+        ], $operation->scopes), 4, false)
             . '    public function ' . $verb->value . '(' . $signature . "): void\n    {\n"
             . '        $this->fetcher->send(' . TypeSurface::request(
                 $operation->method,
@@ -316,7 +317,7 @@ final class RelationSource
     {
         $context = $imports->runtime('Resources\\ResourceContext');
         $variable = self::variable($relation, 'members');
-        $hydrate = \count($classes) === 1 ? $classes[0] . '::_hydrate($raw, $context)' : 'self::member($raw, $context)';
+        $hydrate = self::dispatches($relation, $classes) ? 'self::member($raw, $context)' : $classes[0] . '::_hydrate($raw, $context)';
         $collect = "        foreach (\$context->primaryList() as \$raw) {\n"
             . '            $' . $variable . '[] = ' . $hydrate . ";\n"
             . "        }\n\n";
@@ -554,6 +555,18 @@ final class RelationSource
         \sort($classes, \SORT_STRING);
 
         return $classes;
+    }
+
+    /**
+     * Whether a related member is hydrated through `member()`, which picks its class by `type` and
+     * refuses one the relation does not declare. A polymorphic relation always is, even over one
+     * type, so a one-member union reads exactly as it will once a second type joins.
+     *
+     * @param list<string> $classes
+     */
+    private static function dispatches(RelationDescriptor $relation, array $classes): bool
+    {
+        return \count($classes) > 1 || ($relation->polymorphic && $classes !== []);
     }
 
     /**

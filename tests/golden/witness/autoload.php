@@ -7,7 +7,7 @@ declare(strict_types=1);
  * so this map is how each one is found. Register it once through composer.json's
  * `autoload.files`; regenerating rewrites it, so a new type never needs a `dump-autoload`.
  *
- * @generated from an OpenAPI document with sha256 b51f7b0831227c06c0e8628536173952fe997305001e285545b1376de28e55eb
+ * @generated from an OpenAPI document with sha256 82e8d73f1d72a80fc638227046f4985ea30cb8e060758934726a4f7d64c5ddc8
  */
 
 \spl_autoload_register(static function (string $class): void {
@@ -24,6 +24,7 @@ declare(strict_types=1);
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\Witness\\ArticleCreate' => 'resource-articles.php',
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\Witness\\ArticleCreateBuilder' => 'resource-articles.php',
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\Witness\\ArticleEditorRelation' => 'resource-articles.php',
+        'haddowg\\JsonApiCodegen\\Tests\\Golden\\Witness\\ArticleGalleryRelation' => 'resource-articles.php',
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\Witness\\ArticleHandle' => 'resource-articles.php',
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\Witness\\ArticleHasAuthor' => 'resource-articles.php',
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\Witness\\ArticleHasTags' => 'resource-articles.php',
@@ -32,6 +33,7 @@ declare(strict_types=1);
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\Witness\\ArticleProjection' => 'resource-articles.php',
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\Witness\\ArticlePublisherRelation' => 'resource-articles.php',
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\Witness\\ArticleQuery' => 'resource-articles.php',
+        'haddowg\\JsonApiCodegen\\Tests\\Golden\\Witness\\ArticleSubjectRelation' => 'resource-articles.php',
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\Witness\\ArticleSummary' => 'resource-articles.php',
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\Witness\\ArticleTagsEdge' => 'resource-articles.php',
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\Witness\\ArticleTagsPivot' => 'resource-articles.php',

@@ -61,7 +61,7 @@ the projector whenever the emitted structure changes. This codegen declares a su
 this is the only thing that catches it. A feature-token list was rejected: it names what
 changed, at the cost of two hand-maintained lists that must agree.
 
-The supported range is `[1, 16]`. Contract 2 (json-api 1.1.0) added the error catalogue, shared
+The supported range is `[1, 17]`. Contract 2 (json-api 1.1.0) added the error catalogue, shared
 error responses and write-side `include`/`fields`; the descriptor reads the first into `errors`,
 and the last into each operation's `projection`. Contract 3 added `x-paginator` on page schemas,
 which the descriptor reads into each `PaginatorDescriptor`: the strategy, its role-to-key map, and
@@ -121,6 +121,12 @@ are read into the `scopes` of each operation, action and the atomic endpoint, nu
 none, and each generated method's docblock names them (ADR 0015). A relation whose linkage is a
 union is marked `polymorphic` whatever its member count, so a single-type `MorphTo` hydrates its
 related resources by `type` exactly as a multi-type one does (ADR 0014).
+Contract 17 lets an action declaring `SeeOther` with a media type answer a JSON:API request with
+a `200` location document, the URL in its top-level `links.location`, stamped only where an action
+does. The declared media type is read into the action's `locationType`, and the generated method
+returns the runtime's `ActionLocation`, or a union of it with the action's other result when the
+`200` is a `oneOf`, never following the URL. A bare `SeeOther` documents only its `303` and
+generates as before (ADR 0016).
 Raise `MAXIMUM` only in the change that
 teaches the descriptor to read whatever the next contract adds.
 

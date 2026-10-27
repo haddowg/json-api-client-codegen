@@ -93,6 +93,13 @@ namespace haddowg\JsonApiCodegen\Spec;
  * each operation's and action's `scopes` and stated in its method's docblock. A relation whose
  * linkage is a union is marked `polymorphic` whatever its member count, so a single-type
  * `MorphTo` hydrates its members by `type` just as one over several types does.
+ *
+ * Contract 17 lets an action that declares `SeeOther` with a media type answer a JSON:API request
+ * with a `200` location document, the URL in its top-level `links.location`, beside the `303`. It
+ * is stamped only on a document whose actions declare one. The descriptor reads the declared media
+ * type into the action's `locationType`, and the generated method returns the runtime's
+ * `ActionLocation`, or a union of it with the action's declared document. A bare `SeeOther`
+ * documents only the `303` and generates as before.
  */
 final class ContractCompatibility
 {
@@ -100,7 +107,7 @@ final class ContractCompatibility
     public const int MINIMUM = 1;
 
     /** Above this the document carries structures this codegen does not read. */
-    public const int MAXIMUM = 16;
+    public const int MAXIMUM = 17;
 
     /**
      * Check a document's declared contract against the supported range.

@@ -29,6 +29,8 @@ final class DescriptorBuilder
 
     private const string META_DOCUMENT = 'MetaDocument';
 
+    private const string LOCATION_DOCUMENT = 'LocationDocument';
+
     /**
      * The roles each single strategy's `x-paginator.keys` may name. A key under any other role is
      * not one this codegen generates a parameter for.
@@ -1724,7 +1726,7 @@ final class DescriptorBuilder
             default => ActionInput::Raw,
         };
 
-        $response = $this->okResponseSchema($operation);
+        [$response, $locationType] = $this->actionResponse($operation);
         $output = match (true) {
             $response === null => ActionOutput::None,
             $this->document->refName($response) === self::META_DOCUMENT => ActionOutput::Meta,
@@ -1806,7 +1808,84 @@ final class DescriptorBuilder
             $alias,
             $this->safety($operation),
             $this->scopes($operation),
+            $locationType,
         );
+    }
+
+    /**
+     * An action's JSON:API success body, apart from a contract-17 location document, and the
+     * media type that location document declares.
+     *
+     * A location document is an `allOf` of the `LocationDocument` component and the declared
+     * `type` const, either the whole `200` or one branch of a `oneOf` beside the body the action
+     * also declares. Without one this is the first 2xx JSON:API body, as it always was.
+     *
+     * @return array{Node|null, string|null}
+     */
+    private function actionResponse(Node $operation): array
+    {
+        $body = null;
+        $locationType = null;
+        foreach ($operation->find('responses')?->members() ?? [] as $code => $response) {
+            if (!\str_starts_with((string) $code, '2')) {
+                continue;
+            }
+            $schema = $response->path('content', self::JSON_API_MEDIA_TYPE, 'schema');
+            if ($schema === null) {
+                continue;
+            }
+
+            $branches = $schema->find('oneOf')?->items() ?? [$schema];
+            $others = [];
+            foreach ($branches as $branch) {
+                $type = $this->locationType($branch);
+                if ($type === null) {
+                    $others[] = $branch;
+                } else {
+                    $locationType ??= $type;
+                }
+            }
+            if ($others === [] || $body !== null) {
+                continue;
+            }
+            if (\count($others) === \count($branches)) {
+                // No location branch, so the schema is read whole, as it always was.
+                $body = $schema;
+            } elseif (\count($others) === 1) {
+                $body = $others[0];
+            } else {
+                throw SpecException::malformed($schema->pointer(), 'to offer one JSON:API document beside the location document');
+            }
+        }
+
+        return [$body, $locationType];
+    }
+
+    /**
+     * The media type a location document declares its URL serves, or null when the schema is not
+     * a location document.
+     */
+    private function locationType(Node $schema): ?string
+    {
+        $parts = $schema->find('allOf')?->items() ?? [$schema];
+        $location = false;
+        $type = null;
+        foreach ($parts as $part) {
+            if ($this->document->refName($part) === self::LOCATION_DOCUMENT) {
+                $location = true;
+
+                continue;
+            }
+            $const = $part->path('properties', 'links', 'properties', 'location', 'properties', 'type', 'const');
+            if ($const !== null) {
+                $type = $const->string();
+            }
+        }
+        if (!$location) {
+            return null;
+        }
+
+        return $type ?? throw SpecException::malformed($schema->pointer(), 'to narrow the location document\'s links.location.type to the media type the action declares');
     }
 
     /**

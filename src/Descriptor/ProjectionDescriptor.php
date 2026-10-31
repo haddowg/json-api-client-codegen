@@ -20,10 +20,14 @@ final class ProjectionDescriptor
      * @param array<string, list<string>> $fieldsets  member tokens keyed and sorted by type
      * @param string|null                 $relatedQuery the Relationship Queries profile, when the
      *                                                  operation declares `relatedQuery`
+     * @param list<string>|null           $included   the types the success document's typed
+     *                                                `included` names, or null when the document
+     *                                                types it loosely
      */
     public function __construct(
         public readonly array $includable,
         public readonly array $fieldsets,
         public readonly ?string $relatedQuery = null,
+        public readonly ?array $included = null,
     ) {}
 }

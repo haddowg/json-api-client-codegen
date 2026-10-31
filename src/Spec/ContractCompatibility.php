@@ -107,6 +107,14 @@ namespace haddowg\JsonApiCodegen\Spec;
  * `ResourceLinks` itself. The descriptor reads declared links from that `allOf` as it read them
  * from the flat component before, and nothing else read a links component, so a document
  * generates exactly as it did at contract 17.
+ *
+ * Contract 19 makes every polymorphic linkage and related resource a `oneOf` discriminated by
+ * `type`, and types each document's `included` as a `oneOf` over the resources its include paths
+ * reach. The descriptor reads a `oneOf` linkage as a polymorphic set, checking the discriminator
+ * mapping against each member's `type`, and records each operation's included types on its
+ * projection. The read model already reaches included resources through typed relation accessors
+ * and hydrates a polymorphic member by its `type`, so a document generates exactly as it did at
+ * contract 18.
  */
 final class ContractCompatibility
 {
@@ -114,7 +122,7 @@ final class ContractCompatibility
     public const int MINIMUM = 1;
 
     /** Above this the document carries structures this codegen does not read. */
-    public const int MAXIMUM = 18;
+    public const int MAXIMUM = 19;
 
     /**
      * Check a document's declared contract against the supported range.

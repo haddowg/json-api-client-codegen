@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace haddowg\JsonApiClient\Tests\Generated\MusicCatalog;
 
+use haddowg\JsonApiClient\Atomic\Created;
 use haddowg\JsonApiClient\Collections\PaginatedCollection;
 use haddowg\JsonApiClient\Exceptions\BadRequest;
 use haddowg\JsonApiClient\Exceptions\Conflict;
@@ -38,6 +39,8 @@ use haddowg\JsonApiClient\Support\Identifier;
 use haddowg\JsonApiClient\Support\ImmutableConditionable;
 use haddowg\JsonApiClient\Support\Missing;
 use haddowg\JsonApiClient\Support\QueryConditionable;
+use haddowg\JsonApiClient\Writes\CreateInput;
+use haddowg\JsonApiClient\Writes\UpdateInput;
 
 /**
  * The `album` relation of a `releases` resource, hydrated.
@@ -370,7 +373,7 @@ abstract class ReleaseBase extends ResourceObject
  * @phpstan-type ReleasePackagingShape array{material: non-empty-string, gatefold: bool|null}
  * @phpstan-type ReleaseAvailabilityShape array{worldwide?: bool, regions?: non-empty-list<string>}
  * @phpstan-type ReleaseDimensionsShape array{widthMm: float, heightMm: float, depthMm?: float}
- * @phpstan-type ReleaseAlbumInput Album|Identifier|null
+ * @phpstan-type ReleaseAlbumInput Album|Created<AlbumBase>|Identifier|null
  * @phpstan-type ReleaseCreateShape array{catalogNumber: non-empty-string, format?: array{rpm: int<16, 78>, coloured?: bool, medium: string}|array{discs: positive-int, medium: string}|array{codec: non-empty-string, bitrateKbps?: int<32, max>, medium: string}|null, packaging?: array{material: non-empty-string, gatefold?: bool}|null, availability?: array{worldwide?: bool, regions?: non-empty-list<string>}|null, dimensions?: array{widthMm: float, heightMm: float, depthMm?: float}|null, album?: ReleaseAlbumInput}
  * @phpstan-type ReleaseUpdateShape array{catalogNumber?: non-empty-string, format?: array{rpm?: int<16, 78>, coloured?: bool, medium?: string}|array{discs?: positive-int, medium?: string}|array{codec?: non-empty-string, bitrateKbps?: int<32, max>, medium?: string}|null, packaging?: array{material?: non-empty-string, gatefold?: bool}|null, availability?: array{worldwide?: bool, regions?: non-empty-list<string>}|null, dimensions?: array{widthMm: float, heightMm: float, depthMm?: float}|null, album?: ReleaseAlbumInput}
  * @phpstan-type ReleaseSortToken '-catalogNumber'|'catalogNumber'
@@ -617,9 +620,11 @@ final class ReleaseAlbumRelation
  *
  * @phpstan-import-type ReleaseCreateShape from Release
  *
+ * @implements CreateInput<ReleaseBase>
+ *
  * @generated from `POST /releases`
  */
-final class ReleaseCreate
+final class ReleaseCreate implements CreateInput
 {
     /**
      * @param non-empty-string $catalogNumber
@@ -627,7 +632,7 @@ final class ReleaseCreate
      * @param array{material: non-empty-string, gatefold?: bool}|Missing|null $packaging
      * @param array{worldwide?: bool, regions?: non-empty-list<string>}|Missing|null $availability
      * @param array{widthMm: float, heightMm: float, depthMm?: float}|Missing|null $dimensions
-     * @param Album|Identifier|Missing|null $album
+     * @param Album|Created<AlbumBase>|Identifier|Missing|null $album
      */
     public function __construct(
         public readonly string $catalogNumber,
@@ -635,7 +640,7 @@ final class ReleaseCreate
         public readonly array|Missing|null $packaging = Missing::Value,
         public readonly array|Missing|null $availability = Missing::Value,
         public readonly array|Missing|null $dimensions = Missing::Value,
-        public readonly Album|Identifier|Missing|null $album = Missing::Value,
+        public readonly Album|Created|Identifier|Missing|null $album = Missing::Value,
     ) {}
 
     /**
@@ -705,15 +710,27 @@ final class ReleaseCreate
 
         return ['data' => $data];
     }
+
+    /**
+     * Read the resource a write of this input answered with.
+     *
+     * @param array<string, mixed> $raw
+     */
+    public function _hydrate(array $raw, ResourceContext $context): ReleaseBase
+    {
+        return Release::_hydrate($raw, $context);
+    }
 }
 
 /**
  * The fluent create input for `releases`, for assembly that is conditional. `build()` rejects a
  * missing required member, which this form cannot check statically.
  *
+ * @implements CreateInput<ReleaseBase>
+ *
  * @generated from `POST /releases`
  */
-final class ReleaseCreateBuilder
+final class ReleaseCreateBuilder implements CreateInput
 {
     use Conditionable;
 
@@ -742,7 +759,10 @@ final class ReleaseCreateBuilder
      */
     private array|Missing|null $dimensions = Missing::Value;
 
-    private Album|Identifier|Missing|null $album = Missing::Value;
+    /**
+     * @var Album|Created<AlbumBase>|Identifier|Missing|null
+     */
+    private Album|Created|Identifier|Missing|null $album = Missing::Value;
 
     /**
      * At most 40 characters.
@@ -796,7 +816,10 @@ final class ReleaseCreateBuilder
         return $this;
     }
 
-    public function album(Album|Identifier|null $album): self
+    /**
+     * @param Album|Created<AlbumBase>|Identifier|null $album
+     */
+    public function album(Album|Created|Identifier|null $album): self
     {
         $this->album = $album;
 
@@ -822,6 +845,28 @@ final class ReleaseCreateBuilder
             dimensions: $this->dimensions,
             album: $this->album,
         );
+    }
+
+    /**
+     * The `POST /releases` request document, from the DTO this builds.
+     *
+     * @return array<string, mixed>
+     *
+     * @throws MissingRequiredMemberException when a member the create document requires was never set
+     */
+    public function toDocument(): array
+    {
+        return $this->build()->toDocument();
+    }
+
+    /**
+     * Read the resource a write of this input answered with.
+     *
+     * @param array<string, mixed> $raw
+     */
+    public function _hydrate(array $raw, ResourceContext $context): ReleaseBase
+    {
+        return Release::_hydrate($raw, $context);
     }
 }
 
@@ -1343,9 +1388,11 @@ final class ReleaseQuery extends Query
  *
  * @phpstan-import-type ReleaseUpdateShape from Release
  *
+ * @implements UpdateInput<ReleaseBase>
+ *
  * @generated from `PATCH /releases/{id}`
  */
-final class ReleaseUpdate
+final class ReleaseUpdate implements UpdateInput
 {
     use ImmutableConditionable;
 
@@ -1355,7 +1402,7 @@ final class ReleaseUpdate
      * @param array{material?: non-empty-string, gatefold?: bool}|Missing|null $packaging
      * @param array{worldwide?: bool, regions?: non-empty-list<string>}|Missing|null $availability
      * @param array{widthMm: float, heightMm: float, depthMm?: float}|Missing|null $dimensions
-     * @param Album|Identifier|Missing|null $album
+     * @param Album|Created<AlbumBase>|Identifier|Missing|null $album
      *
      * @phpstan-pure
      */
@@ -1365,7 +1412,7 @@ final class ReleaseUpdate
         public readonly array|Missing|null $packaging = Missing::Value,
         public readonly array|Missing|null $availability = Missing::Value,
         public readonly array|Missing|null $dimensions = Missing::Value,
-        public readonly Album|Identifier|Missing|null $album = Missing::Value,
+        public readonly Album|Created|Identifier|Missing|null $album = Missing::Value,
     ) {}
 
     /**
@@ -1456,9 +1503,11 @@ final class ReleaseUpdate
     }
 
     /**
+     * @param Album|Created<AlbumBase>|Identifier|null $album
+     *
      * @phpstan-pure
      */
-    public function album(Album|Identifier|null $album): self
+    public function album(Album|Created|Identifier|null $album): self
     {
         return new self(
             catalogNumber: $this->catalogNumber,
@@ -1553,6 +1602,16 @@ final class ReleaseUpdate
         }
 
         return ['data' => $data];
+    }
+
+    /**
+     * Read the resource a write of this input answered with.
+     *
+     * @param array<string, mixed> $raw
+     */
+    public function _hydrate(array $raw, ResourceContext $context): ReleaseBase
+    {
+        return Release::_hydrate($raw, $context);
     }
 }
 

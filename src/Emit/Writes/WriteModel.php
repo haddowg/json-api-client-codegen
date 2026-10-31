@@ -110,16 +110,24 @@ final class WriteModel
             if ($relation === null) {
                 continue;
             }
+            // Inside an atomic batch, a resource created earlier in the batch is a valid target too,
+            // through the handle its create returned; a server without the extension has none.
             $classes = [];
+            $handles = [];
             foreach ($relation->types as $related) {
                 if ($api->resource($related) !== null) {
                     $classes[] = Naming::resource($related);
+                    $handles[] = 'Created<' . Naming::base($related) . '>';
                 }
             }
             $classes[] = 'Identifier';
-            $classes = \array_values(\array_unique($classes));
-            \sort($classes, \SORT_STRING);
-            $union = \implode('|', $classes);
+            $native = $docs = $classes;
+            if ($api->atomic !== null && $handles !== []) {
+                $native[] = 'Created';
+                \array_push($docs, ...$handles);
+            }
+            $union = self::union($native);
+            $docUnion = self::union($docs);
             $toMany = $relation->cardinality === Cardinality::Many;
 
             $members[] = new WriteMember(
@@ -130,8 +138,8 @@ final class WriteModel
                 false,
                 !$toMany,
                 $toMany ? 'array' : $union,
-                $toMany ? 'list<' . $union . '>' : $union,
-                $toMany ? 'list<' . $union . '>' : $union,
+                $toMany ? 'list<' . $docUnion . '>' : $docUnion,
+                $toMany ? 'list<' . $docUnion . '>' : $docUnion,
                 Naming::alias($type, Naming::pascal($name) . 'Input'),
                 Coercion::None,
                 null,
@@ -152,6 +160,17 @@ final class WriteModel
         $optional = \array_values(\array_filter($members, static fn(WriteMember $member): bool => !$member->required));
 
         return [...$required, ...$optional];
+    }
+
+    /**
+     * @param list<string> $types
+     */
+    private static function union(array $types): string
+    {
+        $types = \array_values(\array_unique($types));
+        \sort($types, \SORT_STRING);
+
+        return \implode('|', $types);
     }
 
     private static function attribute(ApiDescriptor $api, ResourceDescriptor $resource, WriteAttributeDescriptor $attribute, bool $required): WriteMember

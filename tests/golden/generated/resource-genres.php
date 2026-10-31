@@ -34,6 +34,8 @@ use haddowg\JsonApiClient\Support\Identifier;
 use haddowg\JsonApiClient\Support\ImmutableConditionable;
 use haddowg\JsonApiClient\Support\Missing;
 use haddowg\JsonApiClient\Support\QueryConditionable;
+use haddowg\JsonApiClient\Writes\CreateInput;
+use haddowg\JsonApiClient\Writes\UpdateInput;
 
 /**
  * The projection surface of `genres`: the `withX()` include methods and the checked `fields()`,
@@ -242,9 +244,11 @@ final class Genre extends GenreBase
  *
  * @phpstan-import-type GenreCreateShape from Genre
  *
+ * @implements CreateInput<GenreBase>
+ *
  * @generated from `POST /genres`
  */
-final class GenreCreate
+final class GenreCreate implements CreateInput
 {
     /**
      * @param non-empty-string $name
@@ -291,15 +295,27 @@ final class GenreCreate
 
         return ['data' => $data];
     }
+
+    /**
+     * Read the resource a write of this input answered with.
+     *
+     * @param array<string, mixed> $raw
+     */
+    public function _hydrate(array $raw, ResourceContext $context): GenreBase
+    {
+        return Genre::_hydrate($raw, $context);
+    }
 }
 
 /**
  * The fluent create input for `genres`, for assembly that is conditional. `build()` rejects a
  * missing required member, which this form cannot check statically.
  *
+ * @implements CreateInput<GenreBase>
+ *
  * @generated from `POST /genres`
  */
-final class GenreCreateBuilder
+final class GenreCreateBuilder implements CreateInput
 {
     use Conditionable;
 
@@ -346,6 +362,28 @@ final class GenreCreateBuilder
             id: $this->id,
             name: $this->name,
         );
+    }
+
+    /**
+     * The `POST /genres` request document, from the DTO this builds.
+     *
+     * @return array<string, mixed>
+     *
+     * @throws MissingRequiredMemberException when a member the create document requires was never set
+     */
+    public function toDocument(): array
+    {
+        return $this->build()->toDocument();
+    }
+
+    /**
+     * Read the resource a write of this input answered with.
+     *
+     * @param array<string, mixed> $raw
+     */
+    public function _hydrate(array $raw, ResourceContext $context): GenreBase
+    {
+        return Genre::_hydrate($raw, $context);
     }
 }
 
@@ -736,9 +774,11 @@ final class GenreQuery extends Query
  *
  * @phpstan-import-type GenreUpdateShape from Genre
  *
+ * @implements UpdateInput<GenreBase>
+ *
  * @generated from `PATCH /genres/{id}`
  */
-final class GenreUpdate
+final class GenreUpdate implements UpdateInput
 {
     use ImmutableConditionable;
 
@@ -815,6 +855,16 @@ final class GenreUpdate
         }
 
         return ['data' => $data];
+    }
+
+    /**
+     * Read the resource a write of this input answered with.
+     *
+     * @param array<string, mixed> $raw
+     */
+    public function _hydrate(array $raw, ResourceContext $context): GenreBase
+    {
+        return Genre::_hydrate($raw, $context);
     }
 }
 

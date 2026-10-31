@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace haddowg\JsonApiClient\Tests\Generated\MusicCatalog;
 
+use haddowg\JsonApiClient\Atomic\Created;
 use haddowg\JsonApiClient\Collections\PaginatedCollection;
 use haddowg\JsonApiClient\Collections\ResourceCollection;
 use haddowg\JsonApiClient\Exceptions\BadRequest;
@@ -43,6 +44,8 @@ use haddowg\JsonApiClient\Support\Identifier;
 use haddowg\JsonApiClient\Support\ImmutableConditionable;
 use haddowg\JsonApiClient\Support\Missing;
 use haddowg\JsonApiClient\Support\QueryConditionable;
+use haddowg\JsonApiClient\Writes\CreateInput;
+use haddowg\JsonApiClient\Writes\UpdateInput;
 
 /**
  * The `album` relation of a `tracks` resource, hydrated.
@@ -337,8 +340,8 @@ abstract class TrackBase extends ResourceObject
  * runtime guards check against. `@phpstan-type` aliases are class-local, so every other class using
  * one imports it from here.
  *
- * @phpstan-type TrackAlbumInput Album|Identifier|null
- * @phpstan-type TrackPlaylistsInput list<Identifier|Playlist>
+ * @phpstan-type TrackAlbumInput Album|Created<AlbumBase>|Identifier|null
+ * @phpstan-type TrackPlaylistsInput list<Created<PlaylistBase>|Identifier|Playlist>
  * @phpstan-type TrackCreateShape array{title: non-empty-string, trackNumber: positive-int, durationSeconds?: int, explicit?: bool, genres: non-empty-list<non-empty-string>, previewOffset?: string|null, album?: TrackAlbumInput, playlists?: TrackPlaylistsInput}
  * @phpstan-type TrackUpdateShape array{title?: non-empty-string, trackNumber?: positive-int, durationSeconds?: int, explicit?: bool, genres?: non-empty-list<non-empty-string>, previewOffset?: string|null, album?: TrackAlbumInput}
  * @phpstan-type TrackFilterShape array{title?: string, explicit?: bool, genres?: list<string>, q?: string}
@@ -655,16 +658,18 @@ final class TrackAlbumRelation
  *
  * @phpstan-import-type TrackCreateShape from Track
  *
+ * @implements CreateInput<TrackBase>
+ *
  * @generated from `POST /tracks`
  */
-final class TrackCreate
+final class TrackCreate implements CreateInput
 {
     /**
      * @param non-empty-string $title
      * @param positive-int $trackNumber
      * @param non-empty-list<non-empty-string> $genres
-     * @param Album|Identifier|Missing|null $album
-     * @param list<Identifier|Playlist>|Missing $playlists
+     * @param Album|Created<AlbumBase>|Identifier|Missing|null $album
+     * @param list<Created<PlaylistBase>|Identifier|Playlist>|Missing $playlists
      */
     public function __construct(
         public readonly string $title,
@@ -673,7 +678,7 @@ final class TrackCreate
         public readonly int|Missing $durationSeconds = Missing::Value,
         public readonly bool|Missing $explicit = Missing::Value,
         public readonly string|Missing|null $previewOffset = Missing::Value,
-        public readonly Album|Identifier|Missing|null $album = Missing::Value,
+        public readonly Album|Created|Identifier|Missing|null $album = Missing::Value,
         public readonly array|Missing $playlists = Missing::Value,
     ) {}
 
@@ -746,15 +751,27 @@ final class TrackCreate
 
         return ['data' => $data];
     }
+
+    /**
+     * Read the resource a write of this input answered with.
+     *
+     * @param array<string, mixed> $raw
+     */
+    public function _hydrate(array $raw, ResourceContext $context): TrackBase
+    {
+        return Track::_hydrate($raw, $context);
+    }
 }
 
 /**
  * The fluent create input for `tracks`, for assembly that is conditional. `build()` rejects a
  * missing required member, which this form cannot check statically.
  *
+ * @implements CreateInput<TrackBase>
+ *
  * @generated from `POST /tracks`
  */
-final class TrackCreateBuilder
+final class TrackCreateBuilder implements CreateInput
 {
     use Conditionable;
 
@@ -779,10 +796,13 @@ final class TrackCreateBuilder
 
     private string|Missing|null $previewOffset = Missing::Value;
 
-    private Album|Identifier|Missing|null $album = Missing::Value;
+    /**
+     * @var Album|Created<AlbumBase>|Identifier|Missing|null
+     */
+    private Album|Created|Identifier|Missing|null $album = Missing::Value;
 
     /**
-     * @var list<Identifier|Playlist>|Missing
+     * @var list<Created<PlaylistBase>|Identifier|Playlist>|Missing
      */
     private array|Missing $playlists = Missing::Value;
 
@@ -839,7 +859,10 @@ final class TrackCreateBuilder
         return $this;
     }
 
-    public function album(Album|Identifier|null $album): self
+    /**
+     * @param Album|Created<AlbumBase>|Identifier|null $album
+     */
+    public function album(Album|Created|Identifier|null $album): self
     {
         $this->album = $album;
 
@@ -847,7 +870,7 @@ final class TrackCreateBuilder
     }
 
     /**
-     * @param list<Identifier|Playlist> $playlists
+     * @param list<Created<PlaylistBase>|Identifier|Playlist> $playlists
      */
     public function playlists(array $playlists): self
     {
@@ -885,6 +908,28 @@ final class TrackCreateBuilder
             album: $this->album,
             playlists: $this->playlists,
         );
+    }
+
+    /**
+     * The `POST /tracks` request document, from the DTO this builds.
+     *
+     * @return array<string, mixed>
+     *
+     * @throws MissingRequiredMemberException when a member the create document requires was never set
+     */
+    public function toDocument(): array
+    {
+        return $this->build()->toDocument();
+    }
+
+    /**
+     * Read the resource a write of this input answered with.
+     *
+     * @param array<string, mixed> $raw
+     */
+    public function _hydrate(array $raw, ResourceContext $context): TrackBase
+    {
+        return Track::_hydrate($raw, $context);
     }
 }
 
@@ -1714,9 +1759,11 @@ final class TrackQuery extends Query
  *
  * @phpstan-import-type TrackUpdateShape from Track
  *
+ * @implements UpdateInput<TrackBase>
+ *
  * @generated from `PATCH /tracks/{id}`
  */
-final class TrackUpdate
+final class TrackUpdate implements UpdateInput
 {
     use ImmutableConditionable;
 
@@ -1724,7 +1771,7 @@ final class TrackUpdate
      * @param non-empty-string|Missing $title
      * @param positive-int|Missing $trackNumber
      * @param non-empty-list<non-empty-string>|Missing $genres
-     * @param Album|Identifier|Missing|null $album
+     * @param Album|Created<AlbumBase>|Identifier|Missing|null $album
      *
      * @phpstan-pure
      */
@@ -1735,7 +1782,7 @@ final class TrackUpdate
         public readonly bool|Missing $explicit = Missing::Value,
         public readonly array|Missing $genres = Missing::Value,
         public readonly string|Missing|null $previewOffset = Missing::Value,
-        public readonly Album|Identifier|Missing|null $album = Missing::Value,
+        public readonly Album|Created|Identifier|Missing|null $album = Missing::Value,
     ) {}
 
     /**
@@ -1843,9 +1890,11 @@ final class TrackUpdate
     }
 
     /**
+     * @param Album|Created<AlbumBase>|Identifier|null $album
+     *
      * @phpstan-pure
      */
-    public function album(Album|Identifier|null $album): self
+    public function album(Album|Created|Identifier|null $album): self
     {
         return new self(
             title: $this->title,
@@ -1946,6 +1995,16 @@ final class TrackUpdate
         }
 
         return ['data' => $data];
+    }
+
+    /**
+     * Read the resource a write of this input answered with.
+     *
+     * @param array<string, mixed> $raw
+     */
+    public function _hydrate(array $raw, ResourceContext $context): TrackBase
+    {
+        return Track::_hydrate($raw, $context);
     }
 }
 

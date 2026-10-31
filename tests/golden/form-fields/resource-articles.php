@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace haddowg\JsonApiCodegen\Tests\Golden\FormFields;
 
 use haddowg\JsonApiClient\ActionLocation;
+use haddowg\JsonApiClient\Atomic\Created;
 use haddowg\JsonApiClient\Collections\PaginatedCollection;
 use haddowg\JsonApiClient\Collections\ResourceCollection;
 use haddowg\JsonApiClient\Exceptions\BadRequest;
@@ -44,6 +45,8 @@ use haddowg\JsonApiClient\Support\Identifier;
 use haddowg\JsonApiClient\Support\ImmutableConditionable;
 use haddowg\JsonApiClient\Support\Missing;
 use haddowg\JsonApiClient\Support\QueryConditionable;
+use haddowg\JsonApiClient\Writes\CreateInput;
+use haddowg\JsonApiClient\Writes\UpdateInput;
 use Psr\Http\Message\StreamInterface;
 
 /**
@@ -841,17 +844,17 @@ abstract class ArticleBase extends ResourceObject
  * @phpstan-type ArticleStatusInput Status|'archived'|'draft'|'published'
  * @phpstan-type ArticlePriorityInput Priority|1|2
  * @phpstan-type ArticleDateInput \DateTimeImmutable|string
- * @phpstan-type ArticleAuthorInput Identifier|People|null
- * @phpstan-type ArticleTagsInput list<Identifier|Tag>
- * @phpstan-type ArticlePublisherInput Identifier|People|null
- * @phpstan-type ArticleCoverInput Identifier|Image|null
- * @phpstan-type ArticleLockedInput list<Identifier|People>
- * @phpstan-type ArticleAttachmentsInput list<Identifier|Image|Video>
- * @phpstan-type ArticleReviewerInput Identifier|People|null
- * @phpstan-type ArticleWatchersInput list<Identifier|People>
- * @phpstan-type ArticleEditorInput Identifier|People|null
- * @phpstan-type ArticleSubjectInput Identifier|People|null
- * @phpstan-type ArticleGalleryInput list<Identifier|Image>
+ * @phpstan-type ArticleAuthorInput Created<PeopleBase>|Identifier|People|null
+ * @phpstan-type ArticleTagsInput list<Created<TagBase>|Identifier|Tag>
+ * @phpstan-type ArticlePublisherInput Created<PeopleBase>|Identifier|People|null
+ * @phpstan-type ArticleCoverInput Created<ImageBase>|Identifier|Image|null
+ * @phpstan-type ArticleLockedInput list<Created<PeopleBase>|Identifier|People>
+ * @phpstan-type ArticleAttachmentsInput list<Created<ImageBase>|Created<VideoBase>|Identifier|Image|Video>
+ * @phpstan-type ArticleReviewerInput Created<PeopleBase>|Identifier|People|null
+ * @phpstan-type ArticleWatchersInput list<Created<PeopleBase>|Identifier|People>
+ * @phpstan-type ArticleEditorInput Created<PeopleBase>|Identifier|People|null
+ * @phpstan-type ArticleSubjectInput Created<PeopleBase>|Identifier|People|null
+ * @phpstan-type ArticleGalleryInput list<Created<ImageBase>|Identifier|Image>
  * @phpstan-type ArticleCreateShape array{title: non-empty-string, slug?: string, status?: ArticleStatusInput, priority?: ArticlePriorityInput, wordCount?: int<0, max>|null, rating?: float, featured?: bool, releasedOn?: ArticleDateInput, publishedAt?: ArticleDateInput|null, syncedAt?: ArticleDateInput, archivedAt?: string, embargoLifts?: string, editorEmail?: string, canonicalUrl?: string, excerpt?: string, revision?: positive-int, reviewNote?: string|null, originIp?: string, keywords?: non-empty-list<string>, analytics?: array<string, mixed>|null, address?: array{street: non-empty-string, city?: string}, block?: array{text: non-empty-string, kind: string}|array{src?: string, kind: string}, contact?: array{firstName?: string, nickname?: string, pin?: string, phone?: string, geo?: array{lat?: int}}|null, authorName?: string, score?: int, author?: ArticleAuthorInput, tags?: ArticleTagsInput, publisher?: ArticlePublisherInput, cover?: ArticleCoverInput, locked?: ArticleLockedInput, attachments?: ArticleAttachmentsInput, editor?: ArticleEditorInput, subject?: ArticleSubjectInput, gallery?: ArticleGalleryInput, reviewer?: ArticleReviewerInput, watchers?: ArticleWatchersInput}
  * @phpstan-type ArticleUpdateShape array{title?: non-empty-string, slug?: string, status?: ArticleStatusInput, priority?: ArticlePriorityInput, wordCount?: int<0, max>|null, rating?: float, featured?: bool, releasedOn?: ArticleDateInput, publishedAt?: ArticleDateInput|null, syncedAt?: ArticleDateInput, archivedAt?: string, embargoLifts?: string, editorEmail?: string, canonicalUrl?: string, excerpt?: string, reviewNote?: string|null, originIp?: string, keywords?: non-empty-list<string>, analytics?: array<string, mixed>|null, address?: array{street?: non-empty-string, city?: string}, block?: array{text?: non-empty-string, kind?: string}|array{src?: string, kind?: string}, contact?: array{firstName?: string, nickname?: string, pin?: string, phone?: string, geo?: array{lat?: int}}|null, authorName?: string, score?: int, author?: ArticleAuthorInput, tags?: ArticleTagsInput, publisher?: ArticlePublisherInput, cover?: ArticleCoverInput, attachments?: ArticleAttachmentsInput, editor?: ArticleEditorInput, subject?: ArticleSubjectInput, gallery?: ArticleGalleryInput, reviewer?: ArticleReviewerInput, watchers?: ArticleWatchersInput}
  * @phpstan-type ArticleRangeShape array{min?: float, max?: float}
@@ -2123,9 +2126,11 @@ final class ArticleCoverRelation
  *
  * @phpstan-import-type ArticleCreateShape from Article
  *
+ * @implements CreateInput<ArticleBase>
+ *
  * @generated from `POST /articles`
  */
-final class ArticleCreate
+final class ArticleCreate implements CreateInput
 {
     /**
      * @param non-empty-string $title
@@ -2136,17 +2141,17 @@ final class ArticleCreate
      * @param array{street: non-empty-string, city?: string}|Missing $address
      * @param array{text: non-empty-string, kind: string}|array{src?: string, kind: string}|Missing $block
      * @param array{firstName?: string, nickname?: string, pin?: string, phone?: string, geo?: array{lat?: int}}|Missing|null $contact
-     * @param Identifier|People|Missing|null $author
-     * @param list<Identifier|Tag>|Missing $tags
-     * @param Identifier|People|Missing|null $publisher
-     * @param Identifier|Image|Missing|null $cover
-     * @param list<Identifier|People>|Missing $locked
-     * @param list<Identifier|Image|Video>|Missing $attachments
-     * @param Identifier|People|Missing|null $reviewer
-     * @param list<Identifier|People>|Missing $watchers
-     * @param Identifier|People|Missing|null $editor
-     * @param Identifier|People|Missing|null $subject
-     * @param list<Identifier|Image>|Missing $gallery
+     * @param Created<PeopleBase>|Identifier|People|Missing|null $author
+     * @param list<Created<TagBase>|Identifier|Tag>|Missing $tags
+     * @param Created<PeopleBase>|Identifier|People|Missing|null $publisher
+     * @param Created<ImageBase>|Identifier|Image|Missing|null $cover
+     * @param list<Created<PeopleBase>|Identifier|People>|Missing $locked
+     * @param list<Created<ImageBase>|Created<VideoBase>|Identifier|Image|Video>|Missing $attachments
+     * @param Created<PeopleBase>|Identifier|People|Missing|null $reviewer
+     * @param list<Created<PeopleBase>|Identifier|People>|Missing $watchers
+     * @param Created<PeopleBase>|Identifier|People|Missing|null $editor
+     * @param Created<PeopleBase>|Identifier|People|Missing|null $subject
+     * @param list<Created<ImageBase>|Identifier|Image>|Missing $gallery
      */
     public function __construct(
         public readonly string $title,
@@ -2174,16 +2179,16 @@ final class ArticleCreate
         public readonly array|Missing|null $contact = Missing::Value,
         public readonly string|Missing $authorName = Missing::Value,
         public readonly int|Missing $score = Missing::Value,
-        public readonly Identifier|People|Missing|null $author = Missing::Value,
+        public readonly Created|Identifier|People|Missing|null $author = Missing::Value,
         public readonly array|Missing $tags = Missing::Value,
-        public readonly Identifier|People|Missing|null $publisher = Missing::Value,
-        public readonly Identifier|Image|Missing|null $cover = Missing::Value,
+        public readonly Created|Identifier|People|Missing|null $publisher = Missing::Value,
+        public readonly Created|Identifier|Image|Missing|null $cover = Missing::Value,
         public readonly array|Missing $locked = Missing::Value,
         public readonly array|Missing $attachments = Missing::Value,
-        public readonly Identifier|People|Missing|null $reviewer = Missing::Value,
+        public readonly Created|Identifier|People|Missing|null $reviewer = Missing::Value,
         public readonly array|Missing $watchers = Missing::Value,
-        public readonly Identifier|People|Missing|null $editor = Missing::Value,
-        public readonly Identifier|People|Missing|null $subject = Missing::Value,
+        public readonly Created|Identifier|People|Missing|null $editor = Missing::Value,
+        public readonly Created|Identifier|People|Missing|null $subject = Missing::Value,
         public readonly array|Missing $gallery = Missing::Value,
     ) {}
 
@@ -2404,15 +2409,27 @@ final class ArticleCreate
 
         return ['data' => $data];
     }
+
+    /**
+     * Read the resource a write of this input answered with.
+     *
+     * @param array<string, mixed> $raw
+     */
+    public function _hydrate(array $raw, ResourceContext $context): ArticleBase
+    {
+        return Article::_hydrate($raw, $context);
+    }
 }
 
 /**
  * The fluent create input for `articles`, for assembly that is conditional. `build()` rejects a
  * missing required member, which this form cannot check statically.
  *
+ * @implements CreateInput<ArticleBase>
+ *
  * @generated from `POST /articles`
  */
-final class ArticleCreateBuilder
+final class ArticleCreateBuilder implements CreateInput
 {
     use Conditionable;
 
@@ -2490,40 +2507,58 @@ final class ArticleCreateBuilder
 
     private int|Missing $score = Missing::Value;
 
-    private Identifier|People|Missing|null $author = Missing::Value;
+    /**
+     * @var Created<PeopleBase>|Identifier|People|Missing|null
+     */
+    private Created|Identifier|People|Missing|null $author = Missing::Value;
 
     /**
-     * @var list<Identifier|Tag>|Missing
+     * @var list<Created<TagBase>|Identifier|Tag>|Missing
      */
     private array|Missing $tags = Missing::Value;
 
-    private Identifier|People|Missing|null $publisher = Missing::Value;
-
-    private Identifier|Image|Missing|null $cover = Missing::Value;
+    /**
+     * @var Created<PeopleBase>|Identifier|People|Missing|null
+     */
+    private Created|Identifier|People|Missing|null $publisher = Missing::Value;
 
     /**
-     * @var list<Identifier|People>|Missing
+     * @var Created<ImageBase>|Identifier|Image|Missing|null
+     */
+    private Created|Identifier|Image|Missing|null $cover = Missing::Value;
+
+    /**
+     * @var list<Created<PeopleBase>|Identifier|People>|Missing
      */
     private array|Missing $locked = Missing::Value;
 
     /**
-     * @var list<Identifier|Image|Video>|Missing
+     * @var list<Created<ImageBase>|Created<VideoBase>|Identifier|Image|Video>|Missing
      */
     private array|Missing $attachments = Missing::Value;
 
-    private Identifier|People|Missing|null $reviewer = Missing::Value;
+    /**
+     * @var Created<PeopleBase>|Identifier|People|Missing|null
+     */
+    private Created|Identifier|People|Missing|null $reviewer = Missing::Value;
 
     /**
-     * @var list<Identifier|People>|Missing
+     * @var list<Created<PeopleBase>|Identifier|People>|Missing
      */
     private array|Missing $watchers = Missing::Value;
 
-    private Identifier|People|Missing|null $editor = Missing::Value;
-
-    private Identifier|People|Missing|null $subject = Missing::Value;
+    /**
+     * @var Created<PeopleBase>|Identifier|People|Missing|null
+     */
+    private Created|Identifier|People|Missing|null $editor = Missing::Value;
 
     /**
-     * @var list<Identifier|Image>|Missing
+     * @var Created<PeopleBase>|Identifier|People|Missing|null
+     */
+    private Created|Identifier|People|Missing|null $subject = Missing::Value;
+
+    /**
+     * @var list<Created<ImageBase>|Identifier|Image>|Missing
      */
     private array|Missing $gallery = Missing::Value;
 
@@ -2747,7 +2782,10 @@ final class ArticleCreateBuilder
         return $this;
     }
 
-    public function author(Identifier|People|null $author): self
+    /**
+     * @param Created<PeopleBase>|Identifier|People|null $author
+     */
+    public function author(Created|Identifier|People|null $author): self
     {
         $this->author = $author;
 
@@ -2755,7 +2793,7 @@ final class ArticleCreateBuilder
     }
 
     /**
-     * @param list<Identifier|Tag> $tags
+     * @param list<Created<TagBase>|Identifier|Tag> $tags
      */
     public function tags(array $tags): self
     {
@@ -2764,14 +2802,20 @@ final class ArticleCreateBuilder
         return $this;
     }
 
-    public function publisher(Identifier|People|null $publisher): self
+    /**
+     * @param Created<PeopleBase>|Identifier|People|null $publisher
+     */
+    public function publisher(Created|Identifier|People|null $publisher): self
     {
         $this->publisher = $publisher;
 
         return $this;
     }
 
-    public function cover(Identifier|Image|null $cover): self
+    /**
+     * @param Created<ImageBase>|Identifier|Image|null $cover
+     */
+    public function cover(Created|Identifier|Image|null $cover): self
     {
         $this->cover = $cover;
 
@@ -2779,7 +2823,7 @@ final class ArticleCreateBuilder
     }
 
     /**
-     * @param list<Identifier|People> $locked
+     * @param list<Created<PeopleBase>|Identifier|People> $locked
      */
     public function locked(array $locked): self
     {
@@ -2789,7 +2833,7 @@ final class ArticleCreateBuilder
     }
 
     /**
-     * @param list<Identifier|Image|Video> $attachments
+     * @param list<Created<ImageBase>|Created<VideoBase>|Identifier|Image|Video> $attachments
      */
     public function attachments(array $attachments): self
     {
@@ -2798,7 +2842,10 @@ final class ArticleCreateBuilder
         return $this;
     }
 
-    public function reviewer(Identifier|People|null $reviewer): self
+    /**
+     * @param Created<PeopleBase>|Identifier|People|null $reviewer
+     */
+    public function reviewer(Created|Identifier|People|null $reviewer): self
     {
         $this->reviewer = $reviewer;
 
@@ -2806,7 +2853,7 @@ final class ArticleCreateBuilder
     }
 
     /**
-     * @param list<Identifier|People> $watchers
+     * @param list<Created<PeopleBase>|Identifier|People> $watchers
      */
     public function watchers(array $watchers): self
     {
@@ -2815,14 +2862,20 @@ final class ArticleCreateBuilder
         return $this;
     }
 
-    public function editor(Identifier|People|null $editor): self
+    /**
+     * @param Created<PeopleBase>|Identifier|People|null $editor
+     */
+    public function editor(Created|Identifier|People|null $editor): self
     {
         $this->editor = $editor;
 
         return $this;
     }
 
-    public function subject(Identifier|People|null $subject): self
+    /**
+     * @param Created<PeopleBase>|Identifier|People|null $subject
+     */
+    public function subject(Created|Identifier|People|null $subject): self
     {
         $this->subject = $subject;
 
@@ -2830,7 +2883,7 @@ final class ArticleCreateBuilder
     }
 
     /**
-     * @param list<Identifier|Image> $gallery
+     * @param list<Created<ImageBase>|Identifier|Image> $gallery
      */
     public function gallery(array $gallery): self
     {
@@ -2888,6 +2941,28 @@ final class ArticleCreateBuilder
             subject: $this->subject,
             gallery: $this->gallery,
         );
+    }
+
+    /**
+     * The `POST /articles` request document, from the DTO this builds.
+     *
+     * @return array<string, mixed>
+     *
+     * @throws MissingRequiredMemberException when a member the create document requires was never set
+     */
+    public function toDocument(): array
+    {
+        return $this->build()->toDocument();
+    }
+
+    /**
+     * Read the resource a write of this input answered with.
+     *
+     * @param array<string, mixed> $raw
+     */
+    public function _hydrate(array $raw, ResourceContext $context): ArticleBase
+    {
+        return Article::_hydrate($raw, $context);
     }
 }
 
@@ -4589,9 +4664,11 @@ final class ArticleTagsRelation
  *
  * @phpstan-import-type ArticleUpdateShape from Article
  *
+ * @implements UpdateInput<ArticleBase>
+ *
  * @generated from `PATCH /articles/{id}`
  */
-final class ArticleUpdate
+final class ArticleUpdate implements UpdateInput
 {
     use ImmutableConditionable;
 
@@ -4603,16 +4680,16 @@ final class ArticleUpdate
      * @param array{street?: non-empty-string, city?: string}|Missing $address
      * @param array{text?: non-empty-string, kind?: string}|array{src?: string, kind?: string}|Missing $block
      * @param array{firstName?: string, nickname?: string, pin?: string, phone?: string, geo?: array{lat?: int}}|Missing|null $contact
-     * @param Identifier|People|Missing|null $author
-     * @param list<Identifier|Tag>|Missing $tags
-     * @param Identifier|People|Missing|null $publisher
-     * @param Identifier|Image|Missing|null $cover
-     * @param list<Identifier|Image|Video>|Missing $attachments
-     * @param Identifier|People|Missing|null $reviewer
-     * @param list<Identifier|People>|Missing $watchers
-     * @param Identifier|People|Missing|null $editor
-     * @param Identifier|People|Missing|null $subject
-     * @param list<Identifier|Image>|Missing $gallery
+     * @param Created<PeopleBase>|Identifier|People|Missing|null $author
+     * @param list<Created<TagBase>|Identifier|Tag>|Missing $tags
+     * @param Created<PeopleBase>|Identifier|People|Missing|null $publisher
+     * @param Created<ImageBase>|Identifier|Image|Missing|null $cover
+     * @param list<Created<ImageBase>|Created<VideoBase>|Identifier|Image|Video>|Missing $attachments
+     * @param Created<PeopleBase>|Identifier|People|Missing|null $reviewer
+     * @param list<Created<PeopleBase>|Identifier|People>|Missing $watchers
+     * @param Created<PeopleBase>|Identifier|People|Missing|null $editor
+     * @param Created<PeopleBase>|Identifier|People|Missing|null $subject
+     * @param list<Created<ImageBase>|Identifier|Image>|Missing $gallery
      *
      * @phpstan-pure
      */
@@ -4641,15 +4718,15 @@ final class ArticleUpdate
         public readonly array|Missing|null $contact = Missing::Value,
         public readonly string|Missing $authorName = Missing::Value,
         public readonly int|Missing $score = Missing::Value,
-        public readonly Identifier|People|Missing|null $author = Missing::Value,
+        public readonly Created|Identifier|People|Missing|null $author = Missing::Value,
         public readonly array|Missing $tags = Missing::Value,
-        public readonly Identifier|People|Missing|null $publisher = Missing::Value,
-        public readonly Identifier|Image|Missing|null $cover = Missing::Value,
+        public readonly Created|Identifier|People|Missing|null $publisher = Missing::Value,
+        public readonly Created|Identifier|Image|Missing|null $cover = Missing::Value,
         public readonly array|Missing $attachments = Missing::Value,
-        public readonly Identifier|People|Missing|null $reviewer = Missing::Value,
+        public readonly Created|Identifier|People|Missing|null $reviewer = Missing::Value,
         public readonly array|Missing $watchers = Missing::Value,
-        public readonly Identifier|People|Missing|null $editor = Missing::Value,
-        public readonly Identifier|People|Missing|null $subject = Missing::Value,
+        public readonly Created|Identifier|People|Missing|null $editor = Missing::Value,
+        public readonly Created|Identifier|People|Missing|null $subject = Missing::Value,
         public readonly array|Missing $gallery = Missing::Value,
     ) {}
 
@@ -5714,9 +5791,11 @@ final class ArticleUpdate
     }
 
     /**
+     * @param Created<PeopleBase>|Identifier|People|null $author
+     *
      * @phpstan-pure
      */
-    public function author(Identifier|People|null $author): self
+    public function author(Created|Identifier|People|null $author): self
     {
         return new self(
             title: $this->title,
@@ -5757,7 +5836,7 @@ final class ArticleUpdate
     }
 
     /**
-     * @param list<Identifier|Tag> $tags
+     * @param list<Created<TagBase>|Identifier|Tag> $tags
      *
      * @phpstan-pure
      */
@@ -5802,9 +5881,11 @@ final class ArticleUpdate
     }
 
     /**
+     * @param Created<PeopleBase>|Identifier|People|null $publisher
+     *
      * @phpstan-pure
      */
-    public function publisher(Identifier|People|null $publisher): self
+    public function publisher(Created|Identifier|People|null $publisher): self
     {
         return new self(
             title: $this->title,
@@ -5845,9 +5926,11 @@ final class ArticleUpdate
     }
 
     /**
+     * @param Created<ImageBase>|Identifier|Image|null $cover
+     *
      * @phpstan-pure
      */
-    public function cover(Identifier|Image|null $cover): self
+    public function cover(Created|Identifier|Image|null $cover): self
     {
         return new self(
             title: $this->title,
@@ -5888,7 +5971,7 @@ final class ArticleUpdate
     }
 
     /**
-     * @param list<Identifier|Image|Video> $attachments
+     * @param list<Created<ImageBase>|Created<VideoBase>|Identifier|Image|Video> $attachments
      *
      * @phpstan-pure
      */
@@ -5933,9 +6016,11 @@ final class ArticleUpdate
     }
 
     /**
+     * @param Created<PeopleBase>|Identifier|People|null $reviewer
+     *
      * @phpstan-pure
      */
-    public function reviewer(Identifier|People|null $reviewer): self
+    public function reviewer(Created|Identifier|People|null $reviewer): self
     {
         return new self(
             title: $this->title,
@@ -5976,7 +6061,7 @@ final class ArticleUpdate
     }
 
     /**
-     * @param list<Identifier|People> $watchers
+     * @param list<Created<PeopleBase>|Identifier|People> $watchers
      *
      * @phpstan-pure
      */
@@ -6021,9 +6106,11 @@ final class ArticleUpdate
     }
 
     /**
+     * @param Created<PeopleBase>|Identifier|People|null $editor
+     *
      * @phpstan-pure
      */
-    public function editor(Identifier|People|null $editor): self
+    public function editor(Created|Identifier|People|null $editor): self
     {
         return new self(
             title: $this->title,
@@ -6064,9 +6151,11 @@ final class ArticleUpdate
     }
 
     /**
+     * @param Created<PeopleBase>|Identifier|People|null $subject
+     *
      * @phpstan-pure
      */
-    public function subject(Identifier|People|null $subject): self
+    public function subject(Created|Identifier|People|null $subject): self
     {
         return new self(
             title: $this->title,
@@ -6107,7 +6196,7 @@ final class ArticleUpdate
     }
 
     /**
-     * @param list<Identifier|Image> $gallery
+     * @param list<Created<ImageBase>|Identifier|Image> $gallery
      *
      * @phpstan-pure
      */
@@ -6374,6 +6463,16 @@ final class ArticleUpdate
         }
 
         return ['data' => $data];
+    }
+
+    /**
+     * Read the resource a write of this input answered with.
+     *
+     * @param array<string, mixed> $raw
+     */
+    public function _hydrate(array $raw, ResourceContext $context): ArticleBase
+    {
+        return Article::_hydrate($raw, $context);
     }
 }
 

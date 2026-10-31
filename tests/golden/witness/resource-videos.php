@@ -33,6 +33,8 @@ use haddowg\JsonApiClient\Support\Identifier;
 use haddowg\JsonApiClient\Support\ImmutableConditionable;
 use haddowg\JsonApiClient\Support\Missing;
 use haddowg\JsonApiClient\Support\QueryConditionable;
+use haddowg\JsonApiClient\Writes\CreateInput;
+use haddowg\JsonApiClient\Writes\UpdateInput;
 
 /**
  * The projection surface of `videos`: the `withX()` include methods and the checked `fields()`,
@@ -256,9 +258,11 @@ final class Video extends VideoBase
  *
  * @phpstan-import-type VideoCreateShape from Video
  *
+ * @implements CreateInput<VideoBase>
+ *
  * @generated from `POST /videos`
  */
-final class VideoCreate
+final class VideoCreate implements CreateInput
 {
     public function __construct(
         public readonly string|Missing $url = Missing::Value,
@@ -312,15 +316,27 @@ final class VideoCreate
 
         return ['data' => $data];
     }
+
+    /**
+     * Read the resource a write of this input answered with.
+     *
+     * @param array<string, mixed> $raw
+     */
+    public function _hydrate(array $raw, ResourceContext $context): VideoBase
+    {
+        return Video::_hydrate($raw, $context);
+    }
 }
 
 /**
  * The fluent create input for `videos`, for assembly that is conditional. `build()` rejects a
  * missing required member, which this form cannot check statically.
  *
+ * @implements CreateInput<VideoBase>
+ *
  * @generated from `POST /videos`
  */
-final class VideoCreateBuilder
+final class VideoCreateBuilder implements CreateInput
 {
     use Conditionable;
 
@@ -354,6 +370,26 @@ final class VideoCreateBuilder
             url: $this->url,
             seconds: $this->seconds,
         );
+    }
+
+    /**
+     * The `POST /videos` request document, from the DTO this builds.
+     *
+     * @return array<string, mixed>
+     */
+    public function toDocument(): array
+    {
+        return $this->build()->toDocument();
+    }
+
+    /**
+     * Read the resource a write of this input answered with.
+     *
+     * @param array<string, mixed> $raw
+     */
+    public function _hydrate(array $raw, ResourceContext $context): VideoBase
+    {
+        return Video::_hydrate($raw, $context);
     }
 }
 
@@ -760,9 +796,11 @@ final class VideoQuery extends Query
  *
  * @phpstan-import-type VideoUpdateShape from Video
  *
+ * @implements UpdateInput<VideoBase>
+ *
  * @generated from `PATCH /videos/{id}`
  */
-final class VideoUpdate
+final class VideoUpdate implements UpdateInput
 {
     use ImmutableConditionable;
 
@@ -855,6 +893,16 @@ final class VideoUpdate
         }
 
         return ['data' => $data];
+    }
+
+    /**
+     * Read the resource a write of this input answered with.
+     *
+     * @param array<string, mixed> $raw
+     */
+    public function _hydrate(array $raw, ResourceContext $context): VideoBase
+    {
+        return Video::_hydrate($raw, $context);
     }
 }
 

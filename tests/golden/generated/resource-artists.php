@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace haddowg\JsonApiClient\Tests\Generated\MusicCatalog;
 
+use haddowg\JsonApiClient\Atomic\Created;
 use haddowg\JsonApiClient\Collections\PaginatedCollection;
 use haddowg\JsonApiClient\Collections\ResourceCollection;
 use haddowg\JsonApiClient\Exceptions\BadRequest;
@@ -40,6 +41,8 @@ use haddowg\JsonApiClient\Support\Identifier;
 use haddowg\JsonApiClient\Support\ImmutableConditionable;
 use haddowg\JsonApiClient\Support\Missing;
 use haddowg\JsonApiClient\Support\QueryConditionable;
+use haddowg\JsonApiClient\Writes\CreateInput;
+use haddowg\JsonApiClient\Writes\UpdateInput;
 
 /**
  * The `albums` relation of an `artists` resource, hydrated.
@@ -276,7 +279,7 @@ abstract class ArtistBase extends ResourceObject
  * one imports it from here.
  *
  * @phpstan-type ArtistDateInput \DateTimeImmutable|string
- * @phpstan-type ArtistAlbumsInput list<Album|Identifier>
+ * @phpstan-type ArtistAlbumsInput list<Album|Created<AlbumBase>|Identifier>
  * @phpstan-type ArtistCreateShape array{name: non-empty-string, slug?: non-empty-string, website?: string|null, bio?: string|null, createdAt?: ArtistDateInput, albums?: ArtistAlbumsInput}
  * @phpstan-type ArtistUpdateShape array{name?: non-empty-string, slug?: non-empty-string, website?: string|null, bio?: string|null, albums?: ArtistAlbumsInput}
  * @phpstan-type ArtistFilterShape array{slug?: string, q?: string}
@@ -682,14 +685,16 @@ final class ArtistAlbumsRelation
  *
  * @phpstan-import-type ArtistCreateShape from Artist
  *
+ * @implements CreateInput<ArtistBase>
+ *
  * @generated from `POST /artists`
  */
-final class ArtistCreate
+final class ArtistCreate implements CreateInput
 {
     /**
      * @param non-empty-string $name
      * @param non-empty-string|Missing $slug
-     * @param list<Album|Identifier>|Missing $albums
+     * @param list<Album|Created<AlbumBase>|Identifier>|Missing $albums
      */
     public function __construct(
         public readonly string $name,
@@ -767,15 +772,27 @@ final class ArtistCreate
 
         return ['data' => $data];
     }
+
+    /**
+     * Read the resource a write of this input answered with.
+     *
+     * @param array<string, mixed> $raw
+     */
+    public function _hydrate(array $raw, ResourceContext $context): ArtistBase
+    {
+        return Artist::_hydrate($raw, $context);
+    }
 }
 
 /**
  * The fluent create input for `artists`, for assembly that is conditional. `build()` rejects a
  * missing required member, which this form cannot check statically.
  *
+ * @implements CreateInput<ArtistBase>
+ *
  * @generated from `POST /artists`
  */
-final class ArtistCreateBuilder
+final class ArtistCreateBuilder implements CreateInput
 {
     use Conditionable;
 
@@ -796,7 +813,7 @@ final class ArtistCreateBuilder
     private \DateTimeImmutable|Missing $createdAt = Missing::Value;
 
     /**
-     * @var list<Album|Identifier>|Missing
+     * @var list<Album|Created<AlbumBase>|Identifier>|Missing
      */
     private array|Missing $albums = Missing::Value;
 
@@ -850,7 +867,7 @@ final class ArtistCreateBuilder
     }
 
     /**
-     * @param list<Album|Identifier> $albums
+     * @param list<Album|Created<AlbumBase>|Identifier> $albums
      */
     public function albums(array $albums): self
     {
@@ -878,6 +895,28 @@ final class ArtistCreateBuilder
             createdAt: $this->createdAt,
             albums: $this->albums,
         );
+    }
+
+    /**
+     * The `POST /artists` request document, from the DTO this builds.
+     *
+     * @return array<string, mixed>
+     *
+     * @throws MissingRequiredMemberException when a member the create document requires was never set
+     */
+    public function toDocument(): array
+    {
+        return $this->build()->toDocument();
+    }
+
+    /**
+     * Read the resource a write of this input answered with.
+     *
+     * @param array<string, mixed> $raw
+     */
+    public function _hydrate(array $raw, ResourceContext $context): ArtistBase
+    {
+        return Artist::_hydrate($raw, $context);
     }
 }
 
@@ -1371,16 +1410,18 @@ final class ArtistQuery extends Query
  *
  * @phpstan-import-type ArtistUpdateShape from Artist
  *
+ * @implements UpdateInput<ArtistBase>
+ *
  * @generated from `PATCH /artists/{id}`
  */
-final class ArtistUpdate
+final class ArtistUpdate implements UpdateInput
 {
     use ImmutableConditionable;
 
     /**
      * @param non-empty-string|Missing $name
      * @param non-empty-string|Missing $slug
-     * @param list<Album|Identifier>|Missing $albums
+     * @param list<Album|Created<AlbumBase>|Identifier>|Missing $albums
      *
      * @phpstan-pure
      */
@@ -1459,7 +1500,7 @@ final class ArtistUpdate
     }
 
     /**
-     * @param list<Album|Identifier> $albums
+     * @param list<Album|Created<AlbumBase>|Identifier> $albums
      *
      * @phpstan-pure
      */
@@ -1552,6 +1593,16 @@ final class ArtistUpdate
         }
 
         return ['data' => $data];
+    }
+
+    /**
+     * Read the resource a write of this input answered with.
+     *
+     * @param array<string, mixed> $raw
+     */
+    public function _hydrate(array $raw, ResourceContext $context): ArtistBase
+    {
+        return Artist::_hydrate($raw, $context);
     }
 }
 

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace haddowg\JsonApiCodegen\Emit\Writes;
 
+use haddowg\JsonApiCodegen\Emit\Naming;
 use haddowg\JsonApiCodegen\Emit\Php;
 
 /**
@@ -16,12 +17,23 @@ final class WriteSource
     public const array IMPORTS = [
         'Coerce' => 'haddowg\JsonApiClient\Support\Coerce',
         'Conditionable' => 'haddowg\JsonApiClient\Support\Conditionable',
+        'Created' => 'haddowg\JsonApiClient\Atomic\Created',
+        'CreateInput' => 'haddowg\JsonApiClient\Writes\CreateInput',
         'Identifier' => 'haddowg\JsonApiClient\Support\Identifier',
         'ImmutableConditionable' => 'haddowg\JsonApiClient\Support\ImmutableConditionable',
         'Missing' => 'haddowg\JsonApiClient\Support\Missing',
         'MissingRequiredMemberException' => 'haddowg\JsonApiClient\Exceptions\MissingRequiredMemberException',
+        'ResourceContext' => 'haddowg\JsonApiClient\Resources\ResourceContext',
         'UnknownAttributeException' => 'haddowg\JsonApiClient\Exceptions\UnknownAttributeException',
+        'UpdateInput' => 'haddowg\JsonApiClient\Writes\UpdateInput',
     ];
+
+    /**
+     * What must follow a short name for it to count as a use, where the name is also an English
+     * word a document's prose could put in a docblock. `Created` only ever appears in a type, as
+     * `Created<…>` or in a union.
+     */
+    private const array FOLLOWED_BY = ['Created' => '(?=[<|])'];
 
     /**
      * The imports a declaration's source actually uses.
@@ -32,7 +44,7 @@ final class WriteSource
     {
         $imports = [];
         foreach (self::IMPORTS as $short => $class) {
-            if (\preg_match('/(?<![\\\\\w])' . $short . '(?!\w)/', $source) === 1) {
+            if (\preg_match('/(?<![\\\\\w])' . $short . (self::FOLLOWED_BY[$short] ?? '(?!\w)') . '/', $source) === 1) {
                 $imports[] = $class;
             }
         }
@@ -124,6 +136,25 @@ final class WriteSource
         }
 
         return $out . ($out === '' ? '' : "\n") . "        return ['data' => \$data];\n";
+    }
+
+    /**
+     * `_hydrate()`: how the input reads the resource a write of it answered with. A runtime
+     * recorder that takes every type's input, such as an atomic batch, calls it, since only the
+     * input knows its type.
+     */
+    public static function hydrate(WriteModel $model): string
+    {
+        $type = $model->resource->type;
+
+        return Php::docblock([
+            'Read the resource a write of this input answered with.',
+            '',
+            '@param array<string, mixed> $raw',
+        ], 4, false)
+            . '    public function _hydrate(array $raw, ResourceContext $context): ' . Naming::base($type) . "\n    {\n"
+            . '        return ' . Naming::resource($type) . "::_hydrate(\$raw, \$context);\n"
+            . "    }\n";
     }
 
     /**

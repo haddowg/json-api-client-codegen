@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace haddowg\JsonApiClient\Tests\Generated\MusicCatalog;
 
+use haddowg\JsonApiClient\Atomic\Created;
 use haddowg\JsonApiClient\Collections\PaginatedCollection;
 use haddowg\JsonApiClient\Collections\ResourceCollection;
 use haddowg\JsonApiClient\Exceptions\BadRequest;
@@ -42,6 +43,8 @@ use haddowg\JsonApiClient\Support\Identifier;
 use haddowg\JsonApiClient\Support\ImmutableConditionable;
 use haddowg\JsonApiClient\Support\Missing;
 use haddowg\JsonApiClient\Support\QueryConditionable;
+use haddowg\JsonApiClient\Writes\CreateInput;
+use haddowg\JsonApiClient\Writes\UpdateInput;
 use Psr\Http\Message\StreamInterface;
 
 /**
@@ -431,8 +434,8 @@ abstract class AlbumBase extends ResourceObject
  * @phpstan-type AlbumReleaseInfoShape array{label?: string|null, catalogueNumber?: string|null}
  * @phpstan-type AlbumStatusInput AlbumStatus|'released'|'upcoming'|'withdrawn'
  * @phpstan-type AlbumDateInput \DateTimeImmutable|string
- * @phpstan-type AlbumArtistInput Artist|Identifier|null
- * @phpstan-type AlbumTracksInput list<Identifier|Track>
+ * @phpstan-type AlbumArtistInput Artist|Created<ArtistBase>|Identifier|null
+ * @phpstan-type AlbumTracksInput list<Created<TrackBase>|Identifier|Track>
  * @phpstan-type AlbumCreateShape array{title: non-empty-string, releasedAt?: AlbumDateInput, explicit?: bool, status?: AlbumStatusInput, availableFrom?: AlbumDateInput|null, availableUntil?: AlbumDateInput|null, releaseInfo?: array{label?: string, catalogueNumber?: string}|null, artist?: AlbumArtistInput, tracks?: AlbumTracksInput}
  * @phpstan-type AlbumUpdateShape array{title?: non-empty-string, releasedAt?: AlbumDateInput, explicit?: bool, status?: AlbumStatusInput, availableFrom?: AlbumDateInput|null, availableUntil?: AlbumDateInput|null, releaseInfo?: array{label?: string, catalogueNumber?: string}|null, artist?: AlbumArtistInput, tracks?: AlbumTracksInput}
  * @phpstan-type AlbumRangeShape array{min?: float, max?: float}
@@ -1028,15 +1031,17 @@ final class AlbumCollectionActions
  *
  * @phpstan-import-type AlbumCreateShape from Album
  *
+ * @implements CreateInput<AlbumBase>
+ *
  * @generated from `components.schemas.AlbumsCreateRequest`
  */
-final class AlbumCreate
+final class AlbumCreate implements CreateInput
 {
     /**
      * @param non-empty-string                                             $title
      * @param array{label?: string, catalogueNumber?: string}|Missing|null $releaseInfo
-     * @param Artist|Identifier|Missing|null                               $artist
-     * @param list<Identifier|Track>|Missing                               $tracks
+     * @param Artist|Created<ArtistBase>|Identifier|Missing|null           $artist
+     * @param list<Created<TrackBase>|Identifier|Track>|Missing            $tracks
      */
     public function __construct(
         public readonly string $title,
@@ -1046,7 +1051,7 @@ final class AlbumCreate
         public readonly \DateTimeImmutable|Missing|null $availableFrom = Missing::Value,
         public readonly \DateTimeImmutable|Missing|null $availableUntil = Missing::Value,
         public readonly array|Missing|null $releaseInfo = Missing::Value,
-        public readonly Artist|Identifier|Missing|null $artist = Missing::Value,
+        public readonly Artist|Created|Identifier|Missing|null $artist = Missing::Value,
         public readonly array|Missing $tracks = Missing::Value,
     ) {}
 
@@ -1146,6 +1151,16 @@ final class AlbumCreate
 
         return ['data' => $data];
     }
+
+    /**
+     * Read the album a write of this input answered with.
+     *
+     * @param array<string, mixed> $raw
+     */
+    public function _hydrate(array $raw, ResourceContext $context): AlbumBase
+    {
+        return Album::_hydrate($raw, $context);
+    }
 }
 
 /**
@@ -1159,9 +1174,11 @@ final class AlbumCreate
  * Mutable and self-returning, unlike the immutable query builders. Write builders narrow
  * nothing, so there is no projection to lose and the callback's return can simply be honoured.
  *
+ * @implements CreateInput<AlbumBase>
+ *
  * @generated from `components.schemas.AlbumsCreateRequest`
  */
-final class AlbumCreateBuilder
+final class AlbumCreateBuilder implements CreateInput
 {
     use Conditionable;
 
@@ -1185,10 +1202,13 @@ final class AlbumCreateBuilder
      */
     private array|Missing|null $releaseInfo = Missing::Value;
 
-    private Artist|Identifier|Missing|null $artist = Missing::Value;
+    /**
+     * @var Artist|Created<ArtistBase>|Identifier|Missing|null
+     */
+    private Artist|Created|Identifier|Missing|null $artist = Missing::Value;
 
     /**
-     * @var list<Identifier|Track>|Missing
+     * @var list<Created<TrackBase>|Identifier|Track>|Missing
      */
     private array|Missing $tracks = Missing::Value;
 
@@ -1249,9 +1269,12 @@ final class AlbumCreateBuilder
 
     /**
      * A relation setter takes the resource itself or a bare reference, so a value in hand and
-     * an id you happen to know are the same call.
+     * an id you happen to know are the same call. Inside an atomic batch it also takes the
+     * handle of a resource created earlier in the batch.
+     *
+     * @param Artist|Created<ArtistBase>|Identifier|null $artist
      */
-    public function artist(Artist|Identifier|null $artist): self
+    public function artist(Artist|Created|Identifier|null $artist): self
     {
         $this->artist = $artist;
 
@@ -1259,7 +1282,7 @@ final class AlbumCreateBuilder
     }
 
     /**
-     * @param list<Identifier|Track> $tracks
+     * @param list<Created<TrackBase>|Identifier|Track> $tracks
      */
     public function tracks(array $tracks): self
     {
@@ -1295,6 +1318,28 @@ final class AlbumCreateBuilder
             artist: $this->artist,
             tracks: $this->tracks,
         );
+    }
+
+    /**
+     * The `POST /albums` request document, from the DTO this builds.
+     *
+     * @return array<string, mixed>
+     *
+     * @throws MissingRequiredMemberException when a member the create document requires was never set
+     */
+    public function toDocument(): array
+    {
+        return $this->build()->toDocument();
+    }
+
+    /**
+     * Read the album a write of this input answered with.
+     *
+     * @param array<string, mixed> $raw
+     */
+    public function _hydrate(array $raw, ResourceContext $context): AlbumBase
+    {
+        return Album::_hydrate($raw, $context);
     }
 }
 
@@ -2022,17 +2067,19 @@ final class AlbumTracksRelation
  *
  * @phpstan-import-type AlbumUpdateShape from Album
  *
+ * @implements UpdateInput<AlbumBase>
+ *
  * @generated from `components.schemas.AlbumsUpdateRequest`
  */
-final class AlbumUpdate
+final class AlbumUpdate implements UpdateInput
 {
     use ImmutableConditionable;
 
     /**
      * @param non-empty-string|Missing                                     $title
      * @param array{label?: string, catalogueNumber?: string}|Missing|null $releaseInfo
-     * @param Artist|Identifier|Missing|null                               $artist
-     * @param list<Identifier|Track>|Missing                               $tracks
+     * @param Artist|Created<ArtistBase>|Identifier|Missing|null           $artist
+     * @param list<Created<TrackBase>|Identifier|Track>|Missing            $tracks
      *
      * @phpstan-pure
      */
@@ -2044,7 +2091,7 @@ final class AlbumUpdate
         public readonly \DateTimeImmutable|Missing|null $availableFrom = Missing::Value,
         public readonly \DateTimeImmutable|Missing|null $availableUntil = Missing::Value,
         public readonly array|Missing|null $releaseInfo = Missing::Value,
-        public readonly Artist|Identifier|Missing|null $artist = Missing::Value,
+        public readonly Artist|Created|Identifier|Missing|null $artist = Missing::Value,
         public readonly array|Missing $tracks = Missing::Value,
     ) {}
 
@@ -2179,9 +2226,11 @@ final class AlbumUpdate
     }
 
     /**
+     * @param Artist|Created<ArtistBase>|Identifier|null $artist
+     *
      * @phpstan-pure
      */
-    public function artist(Artist|Identifier|null $artist): self
+    public function artist(Artist|Created|Identifier|null $artist): self
     {
         return new self(
             title: $this->title,
@@ -2197,7 +2246,7 @@ final class AlbumUpdate
     }
 
     /**
-     * @param list<Identifier|Track> $tracks
+     * @param list<Created<TrackBase>|Identifier|Track> $tracks
      *
      * @phpstan-pure
      */
@@ -2319,6 +2368,16 @@ final class AlbumUpdate
         }
 
         return ['data' => $data];
+    }
+
+    /**
+     * Read the album a write of this input answered with.
+     *
+     * @param array<string, mixed> $raw
+     */
+    public function _hydrate(array $raw, ResourceContext $context): AlbumBase
+    {
+        return Album::_hydrate($raw, $context);
     }
 }
 

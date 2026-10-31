@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace haddowg\JsonApiClient\Tests\Generated\MusicCatalog;
 
+use haddowg\JsonApiClient\Atomic\Created;
 use haddowg\JsonApiClient\Collections\PaginatedCollection;
 use haddowg\JsonApiClient\Collections\ResourceCollection;
 use haddowg\JsonApiClient\Exceptions\BadRequest;
@@ -39,6 +40,8 @@ use haddowg\JsonApiClient\Support\Identifier;
 use haddowg\JsonApiClient\Support\ImmutableConditionable;
 use haddowg\JsonApiClient\Support\Missing;
 use haddowg\JsonApiClient\Support\QueryConditionable;
+use haddowg\JsonApiClient\Writes\CreateInput;
+use haddowg\JsonApiClient\Writes\UpdateInput;
 
 /**
  * The `orderedTracks` relation of a `playlists` resource, hydrated.
@@ -379,9 +382,9 @@ abstract class PlaylistBase extends ResourceObject
  * using one imports it from here.
  *
  * @phpstan-type PlaylistOwnerInput Identifier|null
- * @phpstan-type PlaylistPublicOwnerInput Identifier|PublicProfile|null
- * @phpstan-type PlaylistTracksInput list<Identifier|Track>
- * @phpstan-type PlaylistOrderedTracksInput list<Identifier|Track>
+ * @phpstan-type PlaylistPublicOwnerInput Created<PublicProfileBase>|Identifier|PublicProfile|null
+ * @phpstan-type PlaylistTracksInput list<Created<TrackBase>|Identifier|Track>
+ * @phpstan-type PlaylistOrderedTracksInput list<Created<TrackBase>|Identifier|Track>
  * @phpstan-type PlaylistCreateShape array{title: non-empty-string, public?: bool, externalId?: string|null, owner?: PlaylistOwnerInput, publicOwner?: PlaylistPublicOwnerInput, tracks?: PlaylistTracksInput, orderedTracks?: PlaylistOrderedTracksInput}
  * @phpstan-type PlaylistUpdateShape array{title?: non-empty-string, public?: bool, externalId?: string|null, owner?: PlaylistOwnerInput, publicOwner?: PlaylistPublicOwnerInput, tracks?: PlaylistTracksInput, orderedTracks?: PlaylistOrderedTracksInput}
  * @phpstan-type PlaylistIncludePath 'orderedTracks'|'orderedTracks.album'|'orderedTracks.playlists'|'publicOwner'|'tracks'|'tracks.album'|'tracks.playlists'
@@ -568,23 +571,25 @@ final class Playlist extends PlaylistBase implements PlaylistHasPublicOwner, Pla
  *
  * @phpstan-import-type PlaylistCreateShape from Playlist
  *
+ * @implements CreateInput<PlaylistBase>
+ *
  * @generated from `POST /playlists`
  */
-final class PlaylistCreate
+final class PlaylistCreate implements CreateInput
 {
     /**
      * @param non-empty-string $title
      * @param Identifier|Missing|null $owner
-     * @param Identifier|PublicProfile|Missing|null $publicOwner
-     * @param list<Identifier|Track>|Missing $tracks
-     * @param list<Identifier|Track>|Missing $orderedTracks
+     * @param Created<PublicProfileBase>|Identifier|PublicProfile|Missing|null $publicOwner
+     * @param list<Created<TrackBase>|Identifier|Track>|Missing $tracks
+     * @param list<Created<TrackBase>|Identifier|Track>|Missing $orderedTracks
      */
     public function __construct(
         public readonly string $title,
         public readonly bool|Missing $public = Missing::Value,
         public readonly string|Missing|null $externalId = Missing::Value,
         public readonly Identifier|Missing|null $owner = Missing::Value,
-        public readonly Identifier|PublicProfile|Missing|null $publicOwner = Missing::Value,
+        public readonly Created|Identifier|PublicProfile|Missing|null $publicOwner = Missing::Value,
         public readonly array|Missing $tracks = Missing::Value,
         public readonly array|Missing $orderedTracks = Missing::Value,
     ) {}
@@ -661,15 +666,27 @@ final class PlaylistCreate
 
         return ['data' => $data];
     }
+
+    /**
+     * Read the resource a write of this input answered with.
+     *
+     * @param array<string, mixed> $raw
+     */
+    public function _hydrate(array $raw, ResourceContext $context): PlaylistBase
+    {
+        return Playlist::_hydrate($raw, $context);
+    }
 }
 
 /**
  * The fluent create input for `playlists`, for assembly that is conditional. `build()` rejects a
  * missing required member, which this form cannot check statically.
  *
+ * @implements CreateInput<PlaylistBase>
+ *
  * @generated from `POST /playlists`
  */
-final class PlaylistCreateBuilder
+final class PlaylistCreateBuilder implements CreateInput
 {
     use Conditionable;
 
@@ -684,15 +701,18 @@ final class PlaylistCreateBuilder
 
     private Identifier|Missing|null $owner = Missing::Value;
 
-    private Identifier|PublicProfile|Missing|null $publicOwner = Missing::Value;
+    /**
+     * @var Created<PublicProfileBase>|Identifier|PublicProfile|Missing|null
+     */
+    private Created|Identifier|PublicProfile|Missing|null $publicOwner = Missing::Value;
 
     /**
-     * @var list<Identifier|Track>|Missing
+     * @var list<Created<TrackBase>|Identifier|Track>|Missing
      */
     private array|Missing $tracks = Missing::Value;
 
     /**
-     * @var list<Identifier|Track>|Missing
+     * @var list<Created<TrackBase>|Identifier|Track>|Missing
      */
     private array|Missing $orderedTracks = Missing::Value;
 
@@ -730,7 +750,10 @@ final class PlaylistCreateBuilder
         return $this;
     }
 
-    public function publicOwner(Identifier|PublicProfile|null $publicOwner): self
+    /**
+     * @param Created<PublicProfileBase>|Identifier|PublicProfile|null $publicOwner
+     */
+    public function publicOwner(Created|Identifier|PublicProfile|null $publicOwner): self
     {
         $this->publicOwner = $publicOwner;
 
@@ -738,7 +761,7 @@ final class PlaylistCreateBuilder
     }
 
     /**
-     * @param list<Identifier|Track> $tracks
+     * @param list<Created<TrackBase>|Identifier|Track> $tracks
      */
     public function tracks(array $tracks): self
     {
@@ -748,7 +771,7 @@ final class PlaylistCreateBuilder
     }
 
     /**
-     * @param list<Identifier|Track> $orderedTracks
+     * @param list<Created<TrackBase>|Identifier|Track> $orderedTracks
      */
     public function orderedTracks(array $orderedTracks): self
     {
@@ -777,6 +800,28 @@ final class PlaylistCreateBuilder
             tracks: $this->tracks,
             orderedTracks: $this->orderedTracks,
         );
+    }
+
+    /**
+     * The `POST /playlists` request document, from the DTO this builds.
+     *
+     * @return array<string, mixed>
+     *
+     * @throws MissingRequiredMemberException when a member the create document requires was never set
+     */
+    public function toDocument(): array
+    {
+        return $this->build()->toDocument();
+    }
+
+    /**
+     * Read the resource a write of this input answered with.
+     *
+     * @param array<string, mixed> $raw
+     */
+    public function _hydrate(array $raw, ResourceContext $context): PlaylistBase
+    {
+        return Playlist::_hydrate($raw, $context);
     }
 }
 
@@ -1991,18 +2036,20 @@ final class PlaylistTracksRelation
  *
  * @phpstan-import-type PlaylistUpdateShape from Playlist
  *
+ * @implements UpdateInput<PlaylistBase>
+ *
  * @generated from `PATCH /playlists/{id}`
  */
-final class PlaylistUpdate
+final class PlaylistUpdate implements UpdateInput
 {
     use ImmutableConditionable;
 
     /**
      * @param non-empty-string|Missing $title
      * @param Identifier|Missing|null $owner
-     * @param Identifier|PublicProfile|Missing|null $publicOwner
-     * @param list<Identifier|Track>|Missing $tracks
-     * @param list<Identifier|Track>|Missing $orderedTracks
+     * @param Created<PublicProfileBase>|Identifier|PublicProfile|Missing|null $publicOwner
+     * @param list<Created<TrackBase>|Identifier|Track>|Missing $tracks
+     * @param list<Created<TrackBase>|Identifier|Track>|Missing $orderedTracks
      *
      * @phpstan-pure
      */
@@ -2011,7 +2058,7 @@ final class PlaylistUpdate
         public readonly bool|Missing $public = Missing::Value,
         public readonly string|Missing|null $externalId = Missing::Value,
         public readonly Identifier|Missing|null $owner = Missing::Value,
-        public readonly Identifier|PublicProfile|Missing|null $publicOwner = Missing::Value,
+        public readonly Created|Identifier|PublicProfile|Missing|null $publicOwner = Missing::Value,
         public readonly array|Missing $tracks = Missing::Value,
         public readonly array|Missing $orderedTracks = Missing::Value,
     ) {}
@@ -2085,9 +2132,11 @@ final class PlaylistUpdate
     }
 
     /**
+     * @param Created<PublicProfileBase>|Identifier|PublicProfile|null $publicOwner
+     *
      * @phpstan-pure
      */
-    public function publicOwner(Identifier|PublicProfile|null $publicOwner): self
+    public function publicOwner(Created|Identifier|PublicProfile|null $publicOwner): self
     {
         return new self(
             title: $this->title,
@@ -2101,7 +2150,7 @@ final class PlaylistUpdate
     }
 
     /**
-     * @param list<Identifier|Track> $tracks
+     * @param list<Created<TrackBase>|Identifier|Track> $tracks
      *
      * @phpstan-pure
      */
@@ -2119,7 +2168,7 @@ final class PlaylistUpdate
     }
 
     /**
-     * @param list<Identifier|Track> $orderedTracks
+     * @param list<Created<TrackBase>|Identifier|Track> $orderedTracks
      *
      * @phpstan-pure
      */
@@ -2224,6 +2273,16 @@ final class PlaylistUpdate
         }
 
         return ['data' => $data];
+    }
+
+    /**
+     * Read the resource a write of this input answered with.
+     *
+     * @param array<string, mixed> $raw
+     */
+    public function _hydrate(array $raw, ResourceContext $context): PlaylistBase
+    {
+        return Playlist::_hydrate($raw, $context);
     }
 }
 

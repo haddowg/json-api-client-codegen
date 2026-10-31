@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace haddowg\JsonApiClient\Tests\Generated\MusicCatalog;
 
+use haddowg\JsonApiClient\Atomic\Created;
 use haddowg\JsonApiClient\Collections\PaginatedCollection;
 use haddowg\JsonApiClient\Collections\ResourceCollection;
 use haddowg\JsonApiClient\Exceptions\BadRequest;
@@ -36,6 +37,8 @@ use haddowg\JsonApiClient\Support\Identifier;
 use haddowg\JsonApiClient\Support\ImmutableConditionable;
 use haddowg\JsonApiClient\Support\Missing;
 use haddowg\JsonApiClient\Support\QueryConditionable;
+use haddowg\JsonApiClient\Writes\CreateInput;
+use haddowg\JsonApiClient\Writes\UpdateInput;
 
 /**
  * The `items` relation of a `libraries` resource, hydrated.
@@ -233,8 +236,8 @@ abstract class LibraryBase extends ResourceObject
  * the runtime guards check against. `@phpstan-type` aliases are class-local, so every other class
  * using one imports it from here.
  *
- * @phpstan-type LibraryOwnerInput Identifier|PublicProfile|null
- * @phpstan-type LibraryItemsInput list<Album|Artist|Identifier|Track>
+ * @phpstan-type LibraryOwnerInput Created<PublicProfileBase>|Identifier|PublicProfile|null
+ * @phpstan-type LibraryItemsInput list<Album|Artist|Created<AlbumBase>|Created<ArtistBase>|Created<TrackBase>|Identifier|Track>
  * @phpstan-type LibraryCreateShape array{owner?: LibraryOwnerInput, items?: LibraryItemsInput}
  * @phpstan-type LibraryUpdateShape array{owner?: LibraryOwnerInput, items?: LibraryItemsInput}
  * @phpstan-type LibraryIncludePath 'items'|'owner'
@@ -484,16 +487,18 @@ final class Libraries
  *
  * @phpstan-import-type LibraryCreateShape from Library
  *
+ * @implements CreateInput<LibraryBase>
+ *
  * @generated from `POST /libraries`
  */
-final class LibraryCreate
+final class LibraryCreate implements CreateInput
 {
     /**
-     * @param Identifier|PublicProfile|Missing|null $owner
-     * @param list<Album|Artist|Identifier|Track>|Missing $items
+     * @param Created<PublicProfileBase>|Identifier|PublicProfile|Missing|null $owner
+     * @param list<Album|Artist|Created<AlbumBase>|Created<ArtistBase>|Created<TrackBase>|Identifier|Track>|Missing $items
      */
     public function __construct(
-        public readonly Identifier|PublicProfile|Missing|null $owner = Missing::Value,
+        public readonly Created|Identifier|PublicProfile|Missing|null $owner = Missing::Value,
         public readonly array|Missing $items = Missing::Value,
     ) {}
 
@@ -544,26 +549,44 @@ final class LibraryCreate
 
         return ['data' => $data];
     }
+
+    /**
+     * Read the resource a write of this input answered with.
+     *
+     * @param array<string, mixed> $raw
+     */
+    public function _hydrate(array $raw, ResourceContext $context): LibraryBase
+    {
+        return Library::_hydrate($raw, $context);
+    }
 }
 
 /**
  * The fluent create input for `libraries`, for assembly that is conditional. `build()` rejects a
  * missing required member, which this form cannot check statically.
  *
+ * @implements CreateInput<LibraryBase>
+ *
  * @generated from `POST /libraries`
  */
-final class LibraryCreateBuilder
+final class LibraryCreateBuilder implements CreateInput
 {
     use Conditionable;
 
-    private Identifier|PublicProfile|Missing|null $owner = Missing::Value;
+    /**
+     * @var Created<PublicProfileBase>|Identifier|PublicProfile|Missing|null
+     */
+    private Created|Identifier|PublicProfile|Missing|null $owner = Missing::Value;
 
     /**
-     * @var list<Album|Artist|Identifier|Track>|Missing
+     * @var list<Album|Artist|Created<AlbumBase>|Created<ArtistBase>|Created<TrackBase>|Identifier|Track>|Missing
      */
     private array|Missing $items = Missing::Value;
 
-    public function owner(Identifier|PublicProfile|null $owner): self
+    /**
+     * @param Created<PublicProfileBase>|Identifier|PublicProfile|null $owner
+     */
+    public function owner(Created|Identifier|PublicProfile|null $owner): self
     {
         $this->owner = $owner;
 
@@ -571,7 +594,7 @@ final class LibraryCreateBuilder
     }
 
     /**
-     * @param list<Album|Artist|Identifier|Track> $items
+     * @param list<Album|Artist|Created<AlbumBase>|Created<ArtistBase>|Created<TrackBase>|Identifier|Track> $items
      */
     public function items(array $items): self
     {
@@ -589,6 +612,26 @@ final class LibraryCreateBuilder
             owner: $this->owner,
             items: $this->items,
         );
+    }
+
+    /**
+     * The `POST /libraries` request document, from the DTO this builds.
+     *
+     * @return array<string, mixed>
+     */
+    public function toDocument(): array
+    {
+        return $this->build()->toDocument();
+    }
+
+    /**
+     * Read the resource a write of this input answered with.
+     *
+     * @param array<string, mixed> $raw
+     */
+    public function _hydrate(array $raw, ResourceContext $context): LibraryBase
+    {
+        return Library::_hydrate($raw, $context);
     }
 }
 
@@ -1390,27 +1433,31 @@ final class LibraryQuery extends Query
  *
  * @phpstan-import-type LibraryUpdateShape from Library
  *
+ * @implements UpdateInput<LibraryBase>
+ *
  * @generated from `PATCH /libraries/{id}`
  */
-final class LibraryUpdate
+final class LibraryUpdate implements UpdateInput
 {
     use ImmutableConditionable;
 
     /**
-     * @param Identifier|PublicProfile|Missing|null $owner
-     * @param list<Album|Artist|Identifier|Track>|Missing $items
+     * @param Created<PublicProfileBase>|Identifier|PublicProfile|Missing|null $owner
+     * @param list<Album|Artist|Created<AlbumBase>|Created<ArtistBase>|Created<TrackBase>|Identifier|Track>|Missing $items
      *
      * @phpstan-pure
      */
     public function __construct(
-        public readonly Identifier|PublicProfile|Missing|null $owner = Missing::Value,
+        public readonly Created|Identifier|PublicProfile|Missing|null $owner = Missing::Value,
         public readonly array|Missing $items = Missing::Value,
     ) {}
 
     /**
+     * @param Created<PublicProfileBase>|Identifier|PublicProfile|null $owner
+     *
      * @phpstan-pure
      */
-    public function owner(Identifier|PublicProfile|null $owner): self
+    public function owner(Created|Identifier|PublicProfile|null $owner): self
     {
         return new self(
             owner: $owner,
@@ -1419,7 +1466,7 @@ final class LibraryUpdate
     }
 
     /**
-     * @param list<Album|Artist|Identifier|Track> $items
+     * @param list<Album|Artist|Created<AlbumBase>|Created<ArtistBase>|Created<TrackBase>|Identifier|Track> $items
      *
      * @phpstan-pure
      */
@@ -1488,5 +1535,15 @@ final class LibraryUpdate
         }
 
         return ['data' => $data];
+    }
+
+    /**
+     * Read the resource a write of this input answered with.
+     *
+     * @param array<string, mixed> $raw
+     */
+    public function _hydrate(array $raw, ResourceContext $context): LibraryBase
+    {
+        return Library::_hydrate($raw, $context);
     }
 }

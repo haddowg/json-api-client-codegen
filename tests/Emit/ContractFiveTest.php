@@ -88,8 +88,8 @@ final class ContractFiveTest extends TestCase
 
         self::assertStringNotContainsString('public function artist()', $source, 'no read model accessor');
         self::assertStringNotContainsString('interface AlbumHasArtist', $source, 'nothing to include');
-        self::assertStringContainsString('public readonly Artist|Identifier|Missing|null $artist = Missing::Value,', $source, 'the create DTO keeps it');
-        self::assertStringContainsString('public function artist(Artist|Identifier|null $artist): self', $source, 'and both builders set it');
+        self::assertStringContainsString('public readonly Artist|Created|Identifier|Missing|null $artist = Missing::Value,', $source, 'the create DTO keeps it');
+        self::assertStringContainsString('public function artist(Artist|Created|Identifier|null $artist): self', $source, 'and both builders set it');
         self::assertStringContainsString("'artist'", $source);
     }
 

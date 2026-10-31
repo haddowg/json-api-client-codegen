@@ -94,6 +94,10 @@ through `Generator::warnings()`. This is the one deliberate exception to "unread
   at build time and route the colliding member through a fallback.
 - Reserved accessors take a **leading underscore**, which JSON:API guarantees can never begin a
   member name. See ADR 0002 in the runtime repo.
+- **A document string reaches generated PHP through one helper per position**: `Php::string()`
+  for a literal, `Php::docblock()`/`Php::comment()` (or `Php::docString()`/`Php::docKey()` for a
+  literal type or shape key) inside a docblock, and `Identifier` before it becomes a name. Never
+  escape at the call site.
 
 ## Working with the siblings
 

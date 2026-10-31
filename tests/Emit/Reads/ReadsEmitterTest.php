@@ -6,11 +6,11 @@ namespace haddowg\JsonApiCodegen\Tests\Emit\Reads;
 
 use haddowg\JsonApiCodegen\Descriptor\ApiDescriptor;
 use haddowg\JsonApiCodegen\Descriptor\FilterDescriptor;
-use haddowg\JsonApiCodegen\Descriptor\RelationDescriptor;
 use haddowg\JsonApiCodegen\Descriptor\OperationDescriptor;
 use haddowg\JsonApiCodegen\Descriptor\OperationKind;
 use haddowg\JsonApiCodegen\Descriptor\PaginatorDescriptor;
 use haddowg\JsonApiCodegen\Descriptor\PaginatorKind;
+use haddowg\JsonApiCodegen\Descriptor\RelationDescriptor;
 use haddowg\JsonApiCodegen\Descriptor\ResourceDescriptor;
 use haddowg\JsonApiCodegen\Descriptor\ValueSchema;
 use haddowg\JsonApiCodegen\Emit\ClassUnit;

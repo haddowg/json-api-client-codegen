@@ -65,9 +65,11 @@ final class UpdateSource
             '',
             ...\array_map(static fn(string $alias): string => '@phpstan-import-type ' . $alias . ' from ' . $resource, $imports),
             '',
+            '@implements UpdateInput<' . $base . '>',
+            '',
             WritesEmitter::operationLine($model, OperationKind::Update),
         ], 0, false)
-            . 'final class ' . $class . "\n{\n"
+            . 'final class ' . $class . " implements UpdateInput\n{\n"
             . "    use ImmutableConditionable;\n\n"
             . Php::docblock($constructorDoc, 4, false)
             . ($parameters === []
@@ -90,6 +92,8 @@ final class UpdateSource
             . "        \$data = ['type' => " . $base . "::TYPE, 'id' => \$id];\n\n"
             . WriteSource::documentBody($members)
             . "    }\n"
+            . "\n"
+            . WriteSource::hydrate($model)
             . "}\n";
     }
 }

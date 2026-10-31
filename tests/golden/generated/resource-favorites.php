@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace haddowg\JsonApiClient\Tests\Generated\MusicCatalog;
 
+use haddowg\JsonApiClient\Atomic\Created;
 use haddowg\JsonApiClient\Collections\PaginatedCollection;
 use haddowg\JsonApiClient\Exceptions\BadRequest;
 use haddowg\JsonApiClient\Exceptions\Conflict;
@@ -36,6 +37,8 @@ use haddowg\JsonApiClient\Support\Identifier;
 use haddowg\JsonApiClient\Support\ImmutableConditionable;
 use haddowg\JsonApiClient\Support\Missing;
 use haddowg\JsonApiClient\Support\QueryConditionable;
+use haddowg\JsonApiClient\Writes\CreateInput;
+use haddowg\JsonApiClient\Writes\UpdateInput;
 
 /**
  * The `user` relation of a `favorites` resource, hydrated.
@@ -215,8 +218,8 @@ abstract class FavoriteBase extends ResourceObject
  * using one imports it from here.
  *
  * @phpstan-type FavoriteDateInput \DateTimeImmutable|string
- * @phpstan-type FavoriteUserInput Identifier|PublicProfile|null
- * @phpstan-type FavoriteFavoritableInput Album|Artist|Identifier|Track|null
+ * @phpstan-type FavoriteUserInput Created<PublicProfileBase>|Identifier|PublicProfile|null
+ * @phpstan-type FavoriteFavoritableInput Album|Artist|Created<AlbumBase>|Created<ArtistBase>|Created<TrackBase>|Identifier|Track|null
  * @phpstan-type FavoriteCreateShape array{favoritedAt?: FavoriteDateInput, user?: FavoriteUserInput, favoritable?: FavoriteFavoritableInput}
  * @phpstan-type FavoriteUpdateShape array{user?: FavoriteUserInput, favoritable?: FavoriteFavoritableInput}
  * @phpstan-type FavoriteIncludePath 'user'
@@ -347,18 +350,20 @@ final class Favorite extends FavoriteBase implements FavoriteHasUser
  *
  * @phpstan-import-type FavoriteCreateShape from Favorite
  *
+ * @implements CreateInput<FavoriteBase>
+ *
  * @generated from `POST /favorites`
  */
-final class FavoriteCreate
+final class FavoriteCreate implements CreateInput
 {
     /**
-     * @param Identifier|PublicProfile|Missing|null $user
-     * @param Album|Artist|Identifier|Track|Missing|null $favoritable
+     * @param Created<PublicProfileBase>|Identifier|PublicProfile|Missing|null $user
+     * @param Album|Artist|Created<AlbumBase>|Created<ArtistBase>|Created<TrackBase>|Identifier|Track|Missing|null $favoritable
      */
     public function __construct(
         public readonly \DateTimeImmutable|Missing $favoritedAt = Missing::Value,
-        public readonly Identifier|PublicProfile|Missing|null $user = Missing::Value,
-        public readonly Album|Artist|Identifier|Track|Missing|null $favoritable = Missing::Value,
+        public readonly Created|Identifier|PublicProfile|Missing|null $user = Missing::Value,
+        public readonly Album|Artist|Created|Identifier|Track|Missing|null $favoritable = Missing::Value,
     ) {}
 
     /**
@@ -419,23 +424,41 @@ final class FavoriteCreate
 
         return ['data' => $data];
     }
+
+    /**
+     * Read the resource a write of this input answered with.
+     *
+     * @param array<string, mixed> $raw
+     */
+    public function _hydrate(array $raw, ResourceContext $context): FavoriteBase
+    {
+        return Favorite::_hydrate($raw, $context);
+    }
 }
 
 /**
  * The fluent create input for `favorites`, for assembly that is conditional. `build()` rejects a
  * missing required member, which this form cannot check statically.
  *
+ * @implements CreateInput<FavoriteBase>
+ *
  * @generated from `POST /favorites`
  */
-final class FavoriteCreateBuilder
+final class FavoriteCreateBuilder implements CreateInput
 {
     use Conditionable;
 
     private \DateTimeImmutable|Missing $favoritedAt = Missing::Value;
 
-    private Identifier|PublicProfile|Missing|null $user = Missing::Value;
+    /**
+     * @var Created<PublicProfileBase>|Identifier|PublicProfile|Missing|null
+     */
+    private Created|Identifier|PublicProfile|Missing|null $user = Missing::Value;
 
-    private Album|Artist|Identifier|Track|Missing|null $favoritable = Missing::Value;
+    /**
+     * @var Album|Artist|Created<AlbumBase>|Created<ArtistBase>|Created<TrackBase>|Identifier|Track|Missing|null
+     */
+    private Album|Artist|Created|Identifier|Track|Missing|null $favoritable = Missing::Value;
 
     public function favoritedAt(\DateTimeImmutable $favoritedAt): self
     {
@@ -444,14 +467,20 @@ final class FavoriteCreateBuilder
         return $this;
     }
 
-    public function user(Identifier|PublicProfile|null $user): self
+    /**
+     * @param Created<PublicProfileBase>|Identifier|PublicProfile|null $user
+     */
+    public function user(Created|Identifier|PublicProfile|null $user): self
     {
         $this->user = $user;
 
         return $this;
     }
 
-    public function favoritable(Album|Artist|Identifier|Track|null $favoritable): self
+    /**
+     * @param Album|Artist|Created<AlbumBase>|Created<ArtistBase>|Created<TrackBase>|Identifier|Track|null $favoritable
+     */
+    public function favoritable(Album|Artist|Created|Identifier|Track|null $favoritable): self
     {
         $this->favoritable = $favoritable;
 
@@ -468,6 +497,26 @@ final class FavoriteCreateBuilder
             user: $this->user,
             favoritable: $this->favoritable,
         );
+    }
+
+    /**
+     * The `POST /favorites` request document, from the DTO this builds.
+     *
+     * @return array<string, mixed>
+     */
+    public function toDocument(): array
+    {
+        return $this->build()->toDocument();
+    }
+
+    /**
+     * Read the resource a write of this input answered with.
+     *
+     * @param array<string, mixed> $raw
+     */
+    public function _hydrate(array $raw, ResourceContext $context): FavoriteBase
+    {
+        return Favorite::_hydrate($raw, $context);
     }
 }
 
@@ -932,27 +981,31 @@ final class FavoriteQuery extends Query
  *
  * @phpstan-import-type FavoriteUpdateShape from Favorite
  *
+ * @implements UpdateInput<FavoriteBase>
+ *
  * @generated from `PATCH /favorites/{id}`
  */
-final class FavoriteUpdate
+final class FavoriteUpdate implements UpdateInput
 {
     use ImmutableConditionable;
 
     /**
-     * @param Identifier|PublicProfile|Missing|null $user
-     * @param Album|Artist|Identifier|Track|Missing|null $favoritable
+     * @param Created<PublicProfileBase>|Identifier|PublicProfile|Missing|null $user
+     * @param Album|Artist|Created<AlbumBase>|Created<ArtistBase>|Created<TrackBase>|Identifier|Track|Missing|null $favoritable
      *
      * @phpstan-pure
      */
     public function __construct(
-        public readonly Identifier|PublicProfile|Missing|null $user = Missing::Value,
-        public readonly Album|Artist|Identifier|Track|Missing|null $favoritable = Missing::Value,
+        public readonly Created|Identifier|PublicProfile|Missing|null $user = Missing::Value,
+        public readonly Album|Artist|Created|Identifier|Track|Missing|null $favoritable = Missing::Value,
     ) {}
 
     /**
+     * @param Created<PublicProfileBase>|Identifier|PublicProfile|null $user
+     *
      * @phpstan-pure
      */
-    public function user(Identifier|PublicProfile|null $user): self
+    public function user(Created|Identifier|PublicProfile|null $user): self
     {
         return new self(
             user: $user,
@@ -961,9 +1014,11 @@ final class FavoriteUpdate
     }
 
     /**
+     * @param Album|Artist|Created<AlbumBase>|Created<ArtistBase>|Created<TrackBase>|Identifier|Track|null $favoritable
+     *
      * @phpstan-pure
      */
-    public function favoritable(Album|Artist|Identifier|Track|null $favoritable): self
+    public function favoritable(Album|Artist|Created|Identifier|Track|null $favoritable): self
     {
         return new self(
             user: $this->user,
@@ -1028,6 +1083,16 @@ final class FavoriteUpdate
         }
 
         return ['data' => $data];
+    }
+
+    /**
+     * Read the resource a write of this input answered with.
+     *
+     * @param array<string, mixed> $raw
+     */
+    public function _hydrate(array $raw, ResourceContext $context): FavoriteBase
+    {
+        return Favorite::_hydrate($raw, $context);
     }
 }
 

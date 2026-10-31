@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace haddowg\JsonApiClient\Tests\Generated\MusicCatalog;
 
+use haddowg\JsonApiClient\Atomic\Created;
 use haddowg\JsonApiClient\Collections\PaginatedCollection;
 use haddowg\JsonApiClient\Exceptions\BadRequest;
 use haddowg\JsonApiClient\Exceptions\Conflict;
@@ -37,6 +38,8 @@ use haddowg\JsonApiClient\Support\Identifier;
 use haddowg\JsonApiClient\Support\ImmutableConditionable;
 use haddowg\JsonApiClient\Support\Missing;
 use haddowg\JsonApiClient\Support\QueryConditionable;
+use haddowg\JsonApiClient\Writes\CreateInput;
+use haddowg\JsonApiClient\Writes\UpdateInput;
 
 /**
  * The `parent` relation of a `products` resource, hydrated.
@@ -205,7 +208,7 @@ abstract class ProductBase extends ResourceObject
  * the runtime guards check against. `@phpstan-type` aliases are class-local, so every other class
  * using one imports it from here.
  *
- * @phpstan-type ProductParentInput Identifier|Product|null
+ * @phpstan-type ProductParentInput Created<ProductBase>|Identifier|Product|null
  * @phpstan-type ProductCreateShape array{name: non-empty-string, parent?: ProductParentInput}
  * @phpstan-type ProductUpdateShape array{name?: non-empty-string, parent?: ProductParentInput}
  * @phpstan-type ProductIncludePath 'parent'
@@ -329,17 +332,19 @@ final class Product extends ProductBase implements ProductHasParent
  *
  * @phpstan-import-type ProductCreateShape from Product
  *
+ * @implements CreateInput<ProductBase>
+ *
  * @generated from `POST /products`
  */
-final class ProductCreate
+final class ProductCreate implements CreateInput
 {
     /**
      * @param non-empty-string $name
-     * @param Identifier|Product|Missing|null $parent
+     * @param Created<ProductBase>|Identifier|Product|Missing|null $parent
      */
     public function __construct(
         public readonly string $name,
-        public readonly Identifier|Product|Missing|null $parent = Missing::Value,
+        public readonly Created|Identifier|Product|Missing|null $parent = Missing::Value,
     ) {}
 
     /**
@@ -389,15 +394,27 @@ final class ProductCreate
 
         return ['data' => $data];
     }
+
+    /**
+     * Read the resource a write of this input answered with.
+     *
+     * @param array<string, mixed> $raw
+     */
+    public function _hydrate(array $raw, ResourceContext $context): ProductBase
+    {
+        return Product::_hydrate($raw, $context);
+    }
 }
 
 /**
  * The fluent create input for `products`, for assembly that is conditional. `build()` rejects a
  * missing required member, which this form cannot check statically.
  *
+ * @implements CreateInput<ProductBase>
+ *
  * @generated from `POST /products`
  */
-final class ProductCreateBuilder
+final class ProductCreateBuilder implements CreateInput
 {
     use Conditionable;
 
@@ -406,7 +423,10 @@ final class ProductCreateBuilder
      */
     private string|Missing $name = Missing::Value;
 
-    private Identifier|Product|Missing|null $parent = Missing::Value;
+    /**
+     * @var Created<ProductBase>|Identifier|Product|Missing|null
+     */
+    private Created|Identifier|Product|Missing|null $parent = Missing::Value;
 
     /**
      * @param non-empty-string $name
@@ -418,7 +438,10 @@ final class ProductCreateBuilder
         return $this;
     }
 
-    public function parent(Identifier|Product|null $parent): self
+    /**
+     * @param Created<ProductBase>|Identifier|Product|null $parent
+     */
+    public function parent(Created|Identifier|Product|null $parent): self
     {
         $this->parent = $parent;
 
@@ -440,6 +463,28 @@ final class ProductCreateBuilder
             name: $this->name,
             parent: $this->parent,
         );
+    }
+
+    /**
+     * The `POST /products` request document, from the DTO this builds.
+     *
+     * @return array<string, mixed>
+     *
+     * @throws MissingRequiredMemberException when a member the create document requires was never set
+     */
+    public function toDocument(): array
+    {
+        return $this->build()->toDocument();
+    }
+
+    /**
+     * Read the resource a write of this input answered with.
+     *
+     * @param array<string, mixed> $raw
+     */
+    public function _hydrate(array $raw, ResourceContext $context): ProductBase
+    {
+        return Product::_hydrate($raw, $context);
     }
 }
 
@@ -970,21 +1015,23 @@ final class ProductQuery extends Query
  *
  * @phpstan-import-type ProductUpdateShape from Product
  *
+ * @implements UpdateInput<ProductBase>
+ *
  * @generated from `PATCH /products/{id}`
  */
-final class ProductUpdate
+final class ProductUpdate implements UpdateInput
 {
     use ImmutableConditionable;
 
     /**
      * @param non-empty-string|Missing $name
-     * @param Identifier|Product|Missing|null $parent
+     * @param Created<ProductBase>|Identifier|Product|Missing|null $parent
      *
      * @phpstan-pure
      */
     public function __construct(
         public readonly string|Missing $name = Missing::Value,
-        public readonly Identifier|Product|Missing|null $parent = Missing::Value,
+        public readonly Created|Identifier|Product|Missing|null $parent = Missing::Value,
     ) {}
 
     /**
@@ -1001,9 +1048,11 @@ final class ProductUpdate
     }
 
     /**
+     * @param Created<ProductBase>|Identifier|Product|null $parent
+     *
      * @phpstan-pure
      */
-    public function parent(Identifier|Product|null $parent): self
+    public function parent(Created|Identifier|Product|null $parent): self
     {
         return new self(
             name: $this->name,
@@ -1074,6 +1123,16 @@ final class ProductUpdate
         }
 
         return ['data' => $data];
+    }
+
+    /**
+     * Read the resource a write of this input answered with.
+     *
+     * @param array<string, mixed> $raw
+     */
+    public function _hydrate(array $raw, ResourceContext $context): ProductBase
+    {
+        return Product::_hydrate($raw, $context);
     }
 }
 

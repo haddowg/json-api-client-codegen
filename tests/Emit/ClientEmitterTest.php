@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace haddowg\JsonApiCodegen\Tests\Emit;
 
 use haddowg\JsonApiCodegen\Descriptor\ApiDescriptor;
+use haddowg\JsonApiCodegen\Descriptor\AtomicDescriptor;
 use haddowg\JsonApiCodegen\Descriptor\ErrorCodeDescriptor;
 use haddowg\JsonApiCodegen\Emit\Assembler;
 use haddowg\JsonApiCodegen\Emit\ClassUnit;
@@ -42,14 +43,37 @@ final class ClientEmitterTest extends TestCase
         foreach (\array_keys(Fixtures::musicCatalogDescriptor()->resources) as $type) {
             self::assertStringContainsString(\sprintf('public readonly %s $%s;', Naming::accessor($type), Naming::member($type)), $client);
         }
-        self::assertStringContainsString('$this->publicProfiles = new PublicProfiles($fetcher);', $client);
+        self::assertStringContainsString('$this->publicProfiles = new PublicProfiles($this->fetcher);', $client);
         self::assertSame(\count(Fixtures::musicCatalogDescriptor()->resources), \substr_count($client, 'public readonly '));
     }
 
-    public function testAtomicIsNotGeneratedAlthoughTheServerAdvertisesIt(): void
+    public function testAtomicRunsAgainstTheEndpointTheServerAdvertises(): void
     {
-        self::assertNotNull(Fixtures::musicCatalogDescriptor()->atomic);
-        self::assertStringNotContainsString('atomic', Generated::file('client.php'));
+        self::assertSame('/operations', Fixtures::musicCatalogDescriptor()->atomic?->path);
+        self::assertStringContainsString("return \$this->fetcher->atomic('/operations', \$batch);", Generated::file('client.php'));
+    }
+
+    public function testAServerWithoutTheExtensionHasNoAtomic(): void
+    {
+        $full = Fixtures::musicCatalogDescriptor();
+        $api = new ApiDescriptor($full->resources, $full->enums, null, $full->contract, $full->errors);
+
+        $unit = [...(new ClientEmitter())->emit($api, Generated::config())][0];
+        self::assertInstanceOf(ClassUnit::class, $unit);
+
+        self::assertStringNotContainsString('atomic', $unit->source);
+        self::assertStringContainsString('$this->albums = new Albums($fetcher);', $unit->source);
+    }
+
+    public function testTheAtomicEndpointsScopesAreNamed(): void
+    {
+        $api = new ApiDescriptor([], [], new AtomicDescriptor('/batch', 'application/vnd.api+json; ext="https://jsonapi.org/ext/atomic"', ['catalog:write']), 2, []);
+
+        $unit = [...(new ClientEmitter())->emit($api, Generated::config())][0];
+        self::assertInstanceOf(ClassUnit::class, $unit);
+
+        self::assertStringContainsString('Needs an access token granting the `catalog:write` scope.', $unit->source);
+        self::assertStringContainsString("atomic('/batch', \$batch)", $unit->source);
     }
 
     public function testThe83TargetEmitsTheSameClient(): void

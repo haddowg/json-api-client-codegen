@@ -34,6 +34,8 @@ use haddowg\JsonApiClient\Support\Identifier;
 use haddowg\JsonApiClient\Support\ImmutableConditionable;
 use haddowg\JsonApiClient\Support\Missing;
 use haddowg\JsonApiClient\Support\QueryConditionable;
+use haddowg\JsonApiClient\Writes\CreateInput;
+use haddowg\JsonApiClient\Writes\UpdateInput;
 
 /**
  * The projection surface of `devices`: the `withX()` include methods and the checked `fields()`,
@@ -242,9 +244,11 @@ final class Device extends DeviceBase
  *
  * @phpstan-import-type DeviceCreateShape from Device
  *
+ * @implements CreateInput<DeviceBase>
+ *
  * @generated from `POST /devices`
  */
-final class DeviceCreate
+final class DeviceCreate implements CreateInput
 {
     /**
      * @param non-empty-string $label
@@ -289,15 +293,27 @@ final class DeviceCreate
 
         return ['data' => $data];
     }
+
+    /**
+     * Read the resource a write of this input answered with.
+     *
+     * @param array<string, mixed> $raw
+     */
+    public function _hydrate(array $raw, ResourceContext $context): DeviceBase
+    {
+        return Device::_hydrate($raw, $context);
+    }
 }
 
 /**
  * The fluent create input for `devices`, for assembly that is conditional. `build()` rejects a
  * missing required member, which this form cannot check statically.
  *
+ * @implements CreateInput<DeviceBase>
+ *
  * @generated from `POST /devices`
  */
-final class DeviceCreateBuilder
+final class DeviceCreateBuilder implements CreateInput
 {
     use Conditionable;
 
@@ -330,6 +346,28 @@ final class DeviceCreateBuilder
         return new DeviceCreate(
             label: $this->label,
         );
+    }
+
+    /**
+     * The `POST /devices` request document, from the DTO this builds.
+     *
+     * @return array<string, mixed>
+     *
+     * @throws MissingRequiredMemberException when a member the create document requires was never set
+     */
+    public function toDocument(): array
+    {
+        return $this->build()->toDocument();
+    }
+
+    /**
+     * Read the resource a write of this input answered with.
+     *
+     * @param array<string, mixed> $raw
+     */
+    public function _hydrate(array $raw, ResourceContext $context): DeviceBase
+    {
+        return Device::_hydrate($raw, $context);
     }
 }
 
@@ -720,9 +758,11 @@ final class DeviceQuery extends Query
  *
  * @phpstan-import-type DeviceUpdateShape from Device
  *
+ * @implements UpdateInput<DeviceBase>
+ *
  * @generated from `PATCH /devices/{id}`
  */
-final class DeviceUpdate
+final class DeviceUpdate implements UpdateInput
 {
     use ImmutableConditionable;
 
@@ -799,6 +839,16 @@ final class DeviceUpdate
         }
 
         return ['data' => $data];
+    }
+
+    /**
+     * Read the resource a write of this input answered with.
+     *
+     * @param array<string, mixed> $raw
+     */
+    public function _hydrate(array $raw, ResourceContext $context): DeviceBase
+    {
+        return Device::_hydrate($raw, $context);
     }
 }
 

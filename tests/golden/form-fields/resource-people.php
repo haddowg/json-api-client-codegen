@@ -39,6 +39,8 @@ use haddowg\JsonApiClient\Support\Identifier;
 use haddowg\JsonApiClient\Support\ImmutableConditionable;
 use haddowg\JsonApiClient\Support\Missing;
 use haddowg\JsonApiClient\Support\QueryConditionable;
+use haddowg\JsonApiClient\Writes\CreateInput;
+use haddowg\JsonApiClient\Writes\UpdateInput;
 
 /**
  * The projection surface of `people`: the `withX()` include methods and the checked `fields()`,
@@ -435,9 +437,11 @@ final class PeopleCompanyRelation
  *
  * @phpstan-import-type PeopleCreateShape from People
  *
+ * @implements CreateInput<PeopleBase>
+ *
  * @generated from `POST /people`
  */
-final class PeopleCreate
+final class PeopleCreate implements CreateInput
 {
     /**
      * @param non-empty-string $name
@@ -507,15 +511,27 @@ final class PeopleCreate
 
         return ['data' => $data];
     }
+
+    /**
+     * Read the resource a write of this input answered with.
+     *
+     * @param array<string, mixed> $raw
+     */
+    public function _hydrate(array $raw, ResourceContext $context): PeopleBase
+    {
+        return People::_hydrate($raw, $context);
+    }
 }
 
 /**
  * The fluent create input for `people`, for assembly that is conditional. `build()` rejects a
  * missing required member, which this form cannot check statically.
  *
+ * @implements CreateInput<PeopleBase>
+ *
  * @generated from `POST /people`
  */
-final class PeopleCreateBuilder
+final class PeopleCreateBuilder implements CreateInput
 {
     use Conditionable;
 
@@ -578,6 +594,28 @@ final class PeopleCreateBuilder
             role: $this->role,
             company: $this->company,
         );
+    }
+
+    /**
+     * The `POST /people` request document, from the DTO this builds.
+     *
+     * @return array<string, mixed>
+     *
+     * @throws MissingRequiredMemberException when a member the create document requires was never set
+     */
+    public function toDocument(): array
+    {
+        return $this->build()->toDocument();
+    }
+
+    /**
+     * Read the resource a write of this input answered with.
+     *
+     * @param array<string, mixed> $raw
+     */
+    public function _hydrate(array $raw, ResourceContext $context): PeopleBase
+    {
+        return People::_hydrate($raw, $context);
     }
 }
 
@@ -1018,9 +1056,11 @@ final class PeopleQuery extends Query
  *
  * @phpstan-import-type PeopleUpdateShape from People
  *
+ * @implements UpdateInput<PeopleBase>
+ *
  * @generated from `PATCH /people/{id}`
  */
-final class PeopleUpdate
+final class PeopleUpdate implements UpdateInput
 {
     use ImmutableConditionable;
 
@@ -1142,5 +1182,15 @@ final class PeopleUpdate
         }
 
         return ['data' => $data];
+    }
+
+    /**
+     * Read the resource a write of this input answered with.
+     *
+     * @param array<string, mixed> $raw
+     */
+    public function _hydrate(array $raw, ResourceContext $context): PeopleBase
+    {
+        return People::_hydrate($raw, $context);
     }
 }

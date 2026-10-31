@@ -34,6 +34,7 @@ use haddowg\JsonApiClient\Support\Conditionable;
 use haddowg\JsonApiClient\Support\Identifier;
 use haddowg\JsonApiClient\Support\Missing;
 use haddowg\JsonApiClient\Support\QueryConditionable;
+use haddowg\JsonApiClient\Writes\CreateInput;
 
 /**
  * The projection surface of `catalog-exports`: the `withX()` include methods and the checked
@@ -234,9 +235,11 @@ final class CatalogExport extends CatalogExportBase
  *
  * @phpstan-import-type CatalogExportCreateShape from CatalogExport
  *
+ * @implements CreateInput<CatalogExportBase>
+ *
  * @generated from `POST /catalog-exports`
  */
-final class CatalogExportCreate
+final class CatalogExportCreate implements CreateInput
 {
     /**
      * @param non-empty-string $format
@@ -281,15 +284,27 @@ final class CatalogExportCreate
 
         return ['data' => $data];
     }
+
+    /**
+     * Read the resource a write of this input answered with.
+     *
+     * @param array<string, mixed> $raw
+     */
+    public function _hydrate(array $raw, ResourceContext $context): CatalogExportBase
+    {
+        return CatalogExport::_hydrate($raw, $context);
+    }
 }
 
 /**
  * The fluent create input for `catalog-exports`, for assembly that is conditional. `build()`
  * rejects a missing required member, which this form cannot check statically.
  *
+ * @implements CreateInput<CatalogExportBase>
+ *
  * @generated from `POST /catalog-exports`
  */
-final class CatalogExportCreateBuilder
+final class CatalogExportCreateBuilder implements CreateInput
 {
     use Conditionable;
 
@@ -324,6 +339,28 @@ final class CatalogExportCreateBuilder
         return new CatalogExportCreate(
             format: $this->format,
         );
+    }
+
+    /**
+     * The `POST /catalog-exports` request document, from the DTO this builds.
+     *
+     * @return array<string, mixed>
+     *
+     * @throws MissingRequiredMemberException when a member the create document requires was never set
+     */
+    public function toDocument(): array
+    {
+        return $this->build()->toDocument();
+    }
+
+    /**
+     * Read the resource a write of this input answered with.
+     *
+     * @param array<string, mixed> $raw
+     */
+    public function _hydrate(array $raw, ResourceContext $context): CatalogExportBase
+    {
+        return CatalogExport::_hydrate($raw, $context);
     }
 }
 

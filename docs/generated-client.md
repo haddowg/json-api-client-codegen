@@ -90,3 +90,12 @@ reads as nullable.
 
 The links a type declares are typed through `_declaredLinks()`; every other link is read through
 the runtime's untyped `_links()` and `_link()`.
+
+## Atomic operations
+
+The atomic endpoint is the one whose request body declares the `ext="https://jsonapi.org/ext/atomic"`
+media type. When the document has one, the root client gets `atomic()`, which runs a batch against
+that endpoint's path, and every relation setter on a write input also accepts a `Created` handle of
+the related type. Without one there is no `atomic()`, and setters take only resources and
+identifiers. Every create and update input implements the runtime's `CreateInput` or `UpdateInput`
+whether or not the server has the extension.

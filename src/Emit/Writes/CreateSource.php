@@ -62,6 +62,8 @@ final class CreateSource
             '',
             ...\array_map(static fn(string $alias): string => '@phpstan-import-type ' . $alias . ' from ' . $resource, $imports),
             '',
+            '@implements CreateInput<' . $base . '>',
+            '',
             WritesEmitter::operationLine($model, OperationKind::Create),
         ];
 
@@ -87,7 +89,7 @@ final class CreateSource
         };
 
         return Php::docblock($doc, 0, false)
-            . 'final class ' . $class . "\n{\n"
+            . 'final class ' . $class . " implements CreateInput\n{\n"
             . ($parameterDoc === [] ? '' : Php::docblock($parameterDoc, 4, false))
             . ($parameters === []
                 ? "    public function __construct() {}\n"
@@ -101,6 +103,8 @@ final class CreateSource
             . "\n"
             . WriteSource::documentBody($members)
             . "    }\n"
+            . "\n"
+            . WriteSource::hydrate($model)
             . "}\n";
     }
 
@@ -153,9 +157,11 @@ final class CreateSource
         return Php::docblock([
             ...Php::wrap('The fluent create input for `' . $type . '`, for assembly that is conditional. `build()` rejects a missing required member, which this form cannot check statically.'),
             '',
+            '@implements CreateInput<' . $base . '>',
+            '',
             WritesEmitter::operationLine($model, OperationKind::Create),
         ], 0, false)
-            . 'final class ' . Naming::perType($type, 'CreateBuilder') . "\n{\n"
+            . 'final class ' . Naming::perType($type, 'CreateBuilder') . " implements CreateInput\n{\n"
             . "    use Conditionable;\n\n"
             . \implode("\n", $properties)
             . ($properties === [] ? '' : "\n")
@@ -166,6 +172,16 @@ final class CreateSource
             . \implode('', $guards)
             . '        return new ' . WriteSource::call(Naming::perType($type, 'Create'), $arguments, 8) . ";\n"
             . "    }\n"
+            . "\n"
+            . Php::docblock([
+                'The `' . self::method($model, OperationKind::Create) . '` request document, from the DTO this builds.',
+                '',
+                '@return array<string, mixed>',
+                ...($guards === [] ? [] : ['', '@throws MissingRequiredMemberException when a member the create document requires was never set']),
+            ], 4, false)
+            . "    public function toDocument(): array\n    {\n        return \$this->build()->toDocument();\n    }\n"
+            . "\n"
+            . WriteSource::hydrate($model)
             . "}\n";
     }
 

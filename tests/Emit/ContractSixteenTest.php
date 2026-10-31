@@ -269,8 +269,8 @@ final class ContractSixteenTest extends TestCase
     {
         $source = self::generate(self::json())['resource-articles.php'];
 
-        self::assertStringContainsString('@phpstan-type ArticleSubjectInput Identifier|People|null', $source);
-        self::assertStringContainsString('@phpstan-type ArticleGalleryInput list<Identifier|Image>', $source);
+        self::assertStringContainsString('@phpstan-type ArticleSubjectInput Created<PeopleBase>|Identifier|People|null', $source);
+        self::assertStringContainsString('@phpstan-type ArticleGalleryInput list<Created<ImageBase>|Identifier|Image>', $source);
     }
 
     public function testTheEightPointThreeTargetGeneratesTheSameDispatch(): void

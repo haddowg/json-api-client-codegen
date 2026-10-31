@@ -115,7 +115,7 @@ final class WritesEmitter implements Emitter
             self::ORDER,
             $tags,
             \implode("\n", $constants),
-            $relations === [] ? [] : [WriteSource::IMPORTS['Identifier']],
+            WriteSource::imports(\implode("\n", \array_values($relations))),
         );
     }
 

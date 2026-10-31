@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace haddowg\JsonApiCodegen\Tests\Golden\FormFields;
 
+use haddowg\JsonApiClient\Atomic\Created;
 use haddowg\JsonApiClient\Collections\PaginatedCollection;
 use haddowg\JsonApiClient\Exceptions\BadRequest;
 use haddowg\JsonApiClient\Exceptions\Conflict;
@@ -40,6 +41,8 @@ use haddowg\JsonApiClient\Support\Identifier;
 use haddowg\JsonApiClient\Support\ImmutableConditionable;
 use haddowg\JsonApiClient\Support\Missing;
 use haddowg\JsonApiClient\Support\QueryConditionable;
+use haddowg\JsonApiClient\Writes\CreateInput;
+use haddowg\JsonApiClient\Writes\UpdateInput;
 
 /**
  * The projection surface of `tags`: the `withX()` include methods and the checked `fields()`,
@@ -168,7 +171,7 @@ abstract class TagBase extends ResourceObject
  * runtime guards check against. `@phpstan-type` aliases are class-local, so every other class using
  * one imports it from here.
  *
- * @phpstan-type TagArticlesInput list<Article|Identifier>
+ * @phpstan-type TagArticlesInput list<Article|Created<ArticleBase>|Identifier>
  * @phpstan-type TagCreateShape array{id: string, label: non-empty-string, articles?: TagArticlesInput}
  * @phpstan-type TagUpdateShape array{label?: non-empty-string, articles?: TagArticlesInput}
  * @phpstan-type TagFilterShape array{color?: string, label?: list<string>, excludeId?: string}
@@ -522,13 +525,15 @@ final class TagArticlesRelation
  *
  * @phpstan-import-type TagCreateShape from Tag
  *
+ * @implements CreateInput<TagBase>
+ *
  * @generated from `POST /tags`
  */
-final class TagCreate
+final class TagCreate implements CreateInput
 {
     /**
      * @param non-empty-string $label
-     * @param list<Article|Identifier>|Missing $articles
+     * @param list<Article|Created<ArticleBase>|Identifier>|Missing $articles
      */
     public function __construct(
         public readonly string $id,
@@ -584,15 +589,27 @@ final class TagCreate
 
         return ['data' => $data];
     }
+
+    /**
+     * Read the resource a write of this input answered with.
+     *
+     * @param array<string, mixed> $raw
+     */
+    public function _hydrate(array $raw, ResourceContext $context): TagBase
+    {
+        return Tag::_hydrate($raw, $context);
+    }
 }
 
 /**
  * The fluent create input for `tags`, for assembly that is conditional. `build()` rejects a missing
  * required member, which this form cannot check statically.
  *
+ * @implements CreateInput<TagBase>
+ *
  * @generated from `POST /tags`
  */
-final class TagCreateBuilder
+final class TagCreateBuilder implements CreateInput
 {
     use Conditionable;
 
@@ -604,7 +621,7 @@ final class TagCreateBuilder
     private string|Missing $label = Missing::Value;
 
     /**
-     * @var list<Article|Identifier>|Missing
+     * @var list<Article|Created<ArticleBase>|Identifier>|Missing
      */
     private array|Missing $articles = Missing::Value;
 
@@ -626,7 +643,7 @@ final class TagCreateBuilder
     }
 
     /**
-     * @param list<Article|Identifier> $articles
+     * @param list<Article|Created<ArticleBase>|Identifier> $articles
      */
     public function articles(array $articles): self
     {
@@ -655,6 +672,28 @@ final class TagCreateBuilder
             label: $this->label,
             articles: $this->articles,
         );
+    }
+
+    /**
+     * The `POST /tags` request document, from the DTO this builds.
+     *
+     * @return array<string, mixed>
+     *
+     * @throws MissingRequiredMemberException when a member the create document requires was never set
+     */
+    public function toDocument(): array
+    {
+        return $this->build()->toDocument();
+    }
+
+    /**
+     * Read the resource a write of this input answered with.
+     *
+     * @param array<string, mixed> $raw
+     */
+    public function _hydrate(array $raw, ResourceContext $context): TagBase
+    {
+        return Tag::_hydrate($raw, $context);
     }
 }
 
@@ -1173,15 +1212,17 @@ final class TagQuery extends Query
  *
  * @phpstan-import-type TagUpdateShape from Tag
  *
+ * @implements UpdateInput<TagBase>
+ *
  * @generated from `PATCH /tags/{id}`
  */
-final class TagUpdate
+final class TagUpdate implements UpdateInput
 {
     use ImmutableConditionable;
 
     /**
      * @param non-empty-string|Missing $label
-     * @param list<Article|Identifier>|Missing $articles
+     * @param list<Article|Created<ArticleBase>|Identifier>|Missing $articles
      *
      * @phpstan-pure
      */
@@ -1204,7 +1245,7 @@ final class TagUpdate
     }
 
     /**
-     * @param list<Article|Identifier> $articles
+     * @param list<Article|Created<ArticleBase>|Identifier> $articles
      *
      * @phpstan-pure
      */
@@ -1279,6 +1320,16 @@ final class TagUpdate
         }
 
         return ['data' => $data];
+    }
+
+    /**
+     * Read the resource a write of this input answered with.
+     *
+     * @param array<string, mixed> $raw
+     */
+    public function _hydrate(array $raw, ResourceContext $context): TagBase
+    {
+        return Tag::_hydrate($raw, $context);
     }
 }
 

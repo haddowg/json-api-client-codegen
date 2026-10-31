@@ -2,7 +2,7 @@
 
 `self`, an action's link and the links of documents, collections and relationships are handed to
 the runtime untyped, which reads the `href` of either a string or a link object, so the codegen
-reads no links component for them. Links a resource type declares are the exception (ADR 0012).
+reads no links component for them. Links a resource type declares are the exception (ADR 0007).
 
 ## Considered options
 

@@ -195,6 +195,17 @@ abstract class ProductBase extends ResourceObject
     {
         return $this->_relationship($name, true);
     }
+
+    /**
+     * This product's id-handle, to write through: its update, delete, relationship writes and
+     * actions, exactly as `$client->products->id(…)` offers them.
+     *
+     * @throws \LogicException when the product was not read through a client
+     */
+    public function _handle(): ProductHandle
+    {
+        return new ProductHandle($this->_fetcher(), $this->id());
+    }
 }
 
 /**

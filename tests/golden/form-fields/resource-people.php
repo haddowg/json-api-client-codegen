@@ -164,6 +164,17 @@ abstract class PeopleBase extends ResourceObject
     {
         return $this->_relationship($name, true);
     }
+
+    /**
+     * This people's id-handle, to write through: its update, delete, relationship writes and
+     * actions, exactly as `$client->people->id(…)` offers them.
+     *
+     * @throws \LogicException when the people was not read through a client
+     */
+    public function _handle(): PeopleHandle
+    {
+        return new PeopleHandle($this->_fetcher(), $this->id());
+    }
 }
 
 /**

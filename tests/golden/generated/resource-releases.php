@@ -356,6 +356,17 @@ abstract class ReleaseBase extends ResourceObject
     {
         return $this->_relationship($name, true);
     }
+
+    /**
+     * This release's id-handle, to write through: its update, delete, relationship writes and
+     * actions, exactly as `$client->releases->id(…)` offers them.
+     *
+     * @throws \LogicException when the release was not read through a client
+     */
+    public function _handle(): ReleaseHandle
+    {
+        return new ReleaseHandle($this->_fetcher(), $this->id());
+    }
 }
 
 /**

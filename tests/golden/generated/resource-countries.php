@@ -50,6 +50,17 @@ abstract class CountryBase extends ResourceObject
     {
         return self::TYPE;
     }
+
+    /**
+     * This country's id-handle, to write through: its update, delete, relationship writes and
+     * actions, exactly as `$client->countries->id(…)` offers them.
+     *
+     * @throws \LogicException when the country was not read through a client
+     */
+    public function _handle(): CountryHandle
+    {
+        return new CountryHandle($this->_fetcher(), $this->id());
+    }
 }
 
 /**

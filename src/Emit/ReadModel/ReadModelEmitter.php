@@ -23,6 +23,7 @@ use haddowg\JsonApiCodegen\Emit\Identifier;
 use haddowg\JsonApiCodegen\Emit\Naming;
 use haddowg\JsonApiCodegen\Emit\Narrowing;
 use haddowg\JsonApiCodegen\Emit\Php;
+use haddowg\JsonApiCodegen\Emit\Surface\SurfaceEmitter;
 use haddowg\JsonApiCodegen\Emit\UnitKind;
 use haddowg\JsonApiCodegen\Emit\Warns;
 
@@ -162,7 +163,7 @@ final class ReadModelEmitter implements Emitter, Warns
         foreach ($hydrated as $relation) {
             $out[] = self::marker($resource, $relation, $file, $hooks);
         }
-        $out[] = self::base($resource, $reads, $relations, $file, $hooks);
+        $out[] = self::base($resource, $reads, $relations, $file, $hooks, SurfaceEmitter::hasHandle($api, $resource));
         $out[] = self::concrete($resource, $hydrated, $file, $hooks);
         foreach ($relations as $relation) {
             if (self::readsPivot($relation)) {
@@ -193,7 +194,7 @@ final class ReadModelEmitter implements Emitter, Warns
      */
     private static function assertNoCollisions(ResourceDescriptor $resource, array $reads, array $relations): void
     {
-        $names = ['id' => 'the id accessor', 'type' => 'the type accessor', '_rel' => '_rel()', '_hydrate' => '_hydrate()'];
+        $names = ['id' => 'the id accessor', 'type' => 'the type accessor', '_rel' => '_rel()', '_hydrate' => '_hydrate()', '_handle' => '_handle()'];
         foreach (self::RESERVED as $reserved) {
             $names[$reserved] = 'the static ' . $reserved . '()';
         }
@@ -262,7 +263,7 @@ final class ReadModelEmitter implements Emitter, Warns
      * @param list<AttributeRead>      $reads
      * @param list<RelationDescriptor> $relations
      */
-    private static function base(ResourceDescriptor $resource, array $reads, array $relations, string $file, bool $hooks): ClassUnit
+    private static function base(ResourceDescriptor $resource, array $reads, array $relations, string $file, bool $hooks, bool $handle): ClassUnit
     {
         $type = $resource->type;
         $class = Naming::resource($type);
@@ -359,6 +360,18 @@ final class ReadModelEmitter implements Emitter, Warns
             $members[] = Php::docblock(Php::wrap('The links ' . self::article($type) . ' `' . $type . '` resource declares, each typed. A link the response left out reads as null. Every link, declared or not, is in `_links()`.', 4), 4, false)
                 . '    public function _declaredLinks(): ' . self::linksClass($type) . "\n    {\n"
                 . '        return new ' . self::linksClass($type) . "(\$this->_links(), \$this->_subject());\n    }\n";
+        }
+
+        if ($handle) {
+            $label = \str_replace('-', ' ', Naming::singular($type));
+            $members[] = Php::docblock([
+                ...Php::wrap('This ' . $label . '\'s id-handle, to write through: its update, delete, relationship writes and actions, exactly as `$client->' . Naming::member($type) . '->id(…)` offers them.', 4),
+                '',
+                '@throws \LogicException when the ' . $label . ' was not read through a client',
+            ], 4, false)
+                . '    public function _handle(): ' . Naming::perType($type, 'Handle') . "\n    {\n"
+                . '        return new ' . Naming::perType($type, 'Handle') . "(\$this->_fetcher(), \$this->id());\n"
+                . "    }\n";
         }
 
         $source = Php::docblock($doc, 0, false)

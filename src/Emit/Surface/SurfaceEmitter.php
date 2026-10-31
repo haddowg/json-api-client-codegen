@@ -73,6 +73,27 @@ final class SurfaceEmitter implements Emitter
     }
 
     /**
+     * Whether a type gets an id-handle: it has a single-resource operation, a relation with a
+     * handle, or a resource-scoped action.
+     */
+    public static function hasHandle(ApiDescriptor $api, ResourceDescriptor $resource): bool
+    {
+        $type = new TypeSurface($api, $resource);
+        foreach ([OperationKind::FetchOne, OperationKind::Update, OperationKind::Delete] as $kind) {
+            if ($type->operation($kind) !== null) {
+                return true;
+            }
+        }
+        foreach ($resource->relations as $relation) {
+            if (RelationSource::units($type, $relation) !== []) {
+                return true;
+            }
+        }
+
+        return ActionSource::unit($type, ActionScope::Resource) !== null;
+    }
+
+    /**
      * Whether a type has an endpoint of any kind. A type the document describes only as a schema
      * has nothing to reach, so it gets no accessor and no client property.
      */

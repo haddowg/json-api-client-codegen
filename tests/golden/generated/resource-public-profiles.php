@@ -110,6 +110,17 @@ abstract class PublicProfileBase extends ResourceObject
     {
         return $this->_string('displayName');
     }
+
+    /**
+     * This public profile's id-handle, to write through: its update, delete, relationship writes
+     * and actions, exactly as `$client->publicProfiles->id(…)` offers them.
+     *
+     * @throws \LogicException when the public profile was not read through a client
+     */
+    public function _handle(): PublicProfileHandle
+    {
+        return new PublicProfileHandle($this->_fetcher(), $this->id());
+    }
 }
 
 /**

@@ -411,6 +411,17 @@ abstract class AlbumBase extends ResourceObject
     {
         return $this->_relationship($name, $name === 'artist');
     }
+
+    /**
+     * This album's id-handle, to write through: its update, delete, relationship writes and actions,
+     * exactly as `$client->albums->id(…)` offers them.
+     *
+     * @throws \LogicException when the album was not read through a client
+     */
+    public function _handle(): AlbumHandle
+    {
+        return new AlbumHandle($this->_fetcher(), $this->id());
+    }
 }
 
 /**

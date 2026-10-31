@@ -122,6 +122,17 @@ abstract class GenreBase extends ResourceObject
 
         return $value;
     }
+
+    /**
+     * This genre's id-handle, to write through: its update, delete, relationship writes and
+     * actions, exactly as `$client->genres->id(…)` offers them.
+     *
+     * @throws \LogicException when the genre was not read through a client
+     */
+    public function _handle(): GenreHandle
+    {
+        return new GenreHandle($this->_fetcher(), $this->id());
+    }
 }
 
 /**

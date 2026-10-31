@@ -1,0 +1,82 @@
+site_name: haddowg/json-api-client-codegen
+site_description: Reads the OpenAPI 3.1 document a haddowg/json-api service serves and writes a typed PHP client for it.
+site_url: https://haddowg.github.io/json-api-client-codegen/
+repo_url: https://github.com/haddowg/json-api-client-codegen
+repo_name: haddowg/json-api-client-codegen
+edit_uri: edit/main/docs/
+copyright: Released under the MIT Licence.
+
+theme:
+  name: material
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: blue grey
+      accent: blue grey
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: blue grey
+      accent: blue grey
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+  features:
+    - navigation.sections
+    - navigation.top
+    - navigation.tracking
+    - navigation.indexes
+    - content.code.copy
+    - content.code.annotate
+    - content.tabs.link
+    - search.highlight
+    - search.suggest
+    - toc.follow
+  icon:
+    repo: fontawesome/brands/github
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+      slugify: !!python/object/apply:pymdownx.slugs.slugify
+        kwds:
+          case: lower
+  - pymdownx.inlinehilite
+  - pymdownx.superfences
+  - pymdownx.details
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.tabbed:
+      alternate_style: true
+
+plugins:
+  - search
+
+hooks:
+  - mkdocs_hooks.py
+
+validation:
+  nav:
+    omitted_files: ignore
+  links:
+    anchors: warn
+
+# The ADRs are internal records, not published with the docs.
+exclude_docs: |
+  adr/
+
+nav:
+  - Home: index.md
+  - Getting started:
+      - getting-started.md
+      - cli.md
+  - Reference:
+      - output.md
+      - reading-the-document.md
+      - errors-and-warnings.md

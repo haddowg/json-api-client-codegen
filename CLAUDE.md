@@ -9,12 +9,14 @@ inside the runtime. It mirrors the split of `@haddowg/json-api-client` and
 
 ## Where the design lives
 
-The runtime repo is the authority on **what** gets generated:
-`../json-api-client/docs/generated-client.md` describes the emitted surface,
-`docs/server-prerequisites.md` what it needs from the server, `docs/json-api-ts-consistency.md`
-where it deliberately differs from the TypeScript client, and its `docs/adr/` why. This repo's
-`docs/generated-client.md` and `docs/adr/` cover how the codegen reads the document, and
-`CONTEXT.md` its terms (linking core's and the runtime's glossaries).
+The runtime repo is the authority on **what** gets generated: its `docs/` site describes the
+emitted surface page by page, `docs/server-prerequisites.md` what it needs from the server,
+`docs/json-api-ts-consistency.md` where it deliberately differs from the TypeScript client, and its
+`docs/adr/` why. Its `examples/music-catalog` is this codegen's output for the music catalog,
+committed and run end to end, so regenerate it there when the output moves. This repo's `docs/`
+site (MkDocs, deployed to Pages by `docs.yml`) covers using the CLI and how the codegen reads the
+document, `docs/adr/` its decisions, and `CONTEXT.md` its terms (linking core's and the runtime's
+glossaries).
 
 Read the runtime's docs before changing an emitter. Several of its decisions rule out designs that look
 obviously correct, and each was verified against PHPStan level 9 rather than reasoned about.

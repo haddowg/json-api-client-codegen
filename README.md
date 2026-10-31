@@ -18,7 +18,7 @@ its adapters. There is no generic fallback mode for other producers.
 ## Usage
 
 ```bash
-vendor/bin/json-api-client-codegen openapi.json generated/music --namespace='App\Api\Music'
+vendor/bin/json-api-client-codegen openapi.json generated/music-catalog --namespace='App\Api\MusicCatalog'
 ```
 
 That writes one file per resource type, plus `enums.php`, `client.php` and an `autoload.php`
@@ -32,8 +32,8 @@ for each configured client.
 
 The document is read through typed accessors that carry their own JSON pointer, so a structure the
 codegen needs but cannot find reports `expected components.schemas.AlbumsResource.properties.type.const`
-instead of failing somewhere downstream. [`docs/generated-client.md`](docs/generated-client.md)
-describes how each part of the document is read.
+instead of failing somewhere downstream. The documentation is at
+[haddowg.github.io/json-api-client-codegen](https://haddowg.github.io/json-api-client-codegen/).
 
 ## Status
 

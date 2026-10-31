@@ -101,7 +101,7 @@ final class DescriptorBuilderErrorTest extends TestCase
 
         $this->expectException(SpecException::class);
         $this->expectExceptionMessage(
-            'expected components.schemas.AlbumsArtistRelationship.properties.data to declare linkage as a $ref, an allOf carrying one, or an anyOf of them',
+            'expected components.schemas.AlbumsArtistRelationship.properties.data to declare linkage as a $ref, an allOf carrying one, or an anyOf or oneOf of them',
         );
 
         DescriptorBuilder::build($document);

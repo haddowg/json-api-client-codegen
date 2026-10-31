@@ -783,6 +783,24 @@ abstract class ArticleBase extends ResourceObject
     }
 
     /**
+     * The `sponsors` linkage, without hydrating anything. Never throws.
+     *
+     * @return list<Identifier>
+     */
+    public function sponsorsRef(): array
+    {
+        return $this->_relationship('sponsors', false)->identifiers();
+    }
+
+    /**
+     * Whether the `sponsors` linkage points at anything. Never throws.
+     */
+    public function hasSponsors(): bool
+    {
+        return !$this->_relationship('sponsors', false)->isEmpty();
+    }
+
+    /**
      * The `subject` linkage, without hydrating anything. Never throws.
      */
     public function subjectRef(): ?Identifier
@@ -820,7 +838,7 @@ abstract class ArticleBase extends ResourceObject
      * A relationship object: linkage, links, and the `meta.total` a `withCount` read leaves behind.
      * This is the door to a relation that carries no value.
      *
-     * @param 'author'|'tags'|'publisher'|'cover'|'locked'|'attachments'|'editor'|'subject'|'gallery' $name
+     * @param 'author'|'tags'|'publisher'|'cover'|'locked'|'attachments'|'editor'|'sponsors'|'subject'|'gallery' $name
      */
     public function _rel(string $name): Relationship
     {
@@ -865,17 +883,18 @@ abstract class ArticleBase extends ResourceObject
  * @phpstan-type ArticleReviewerInput Created<PeopleBase>|Identifier|People|null
  * @phpstan-type ArticleWatchersInput list<Created<PeopleBase>|Identifier|People>
  * @phpstan-type ArticleEditorInput Created<PeopleBase>|Identifier|People|null
+ * @phpstan-type ArticleSponsorsInput list<Created<ImageBase>|Created<PeopleBase>|Identifier|Image|People>
  * @phpstan-type ArticleSubjectInput Created<PeopleBase>|Identifier|People|null
  * @phpstan-type ArticleGalleryInput list<Created<ImageBase>|Identifier|Image>
- * @phpstan-type ArticleCreateShape array{title: non-empty-string, slug?: string, status?: ArticleStatusInput, priority?: ArticlePriorityInput, wordCount?: int<0, max>|null, rating?: float, featured?: bool, releasedOn?: ArticleDateInput, publishedAt?: ArticleDateInput|null, syncedAt?: ArticleDateInput, archivedAt?: string, embargoLifts?: string, editorEmail?: string, canonicalUrl?: string, excerpt?: string, revision?: positive-int, reviewNote?: string|null, originIp?: string, keywords?: non-empty-list<string>, analytics?: array<string, mixed>|null, address?: array{street: non-empty-string, city?: string}, block?: array{text: non-empty-string, kind: string}|array{src?: string, kind: string}, contact?: array{firstName?: string, nickname?: string, pin?: string, phone?: string, geo?: array{lat?: int}}|null, authorName?: string, score?: int, author?: ArticleAuthorInput, tags?: ArticleTagsInput, publisher?: ArticlePublisherInput, cover?: ArticleCoverInput, locked?: ArticleLockedInput, attachments?: ArticleAttachmentsInput, editor?: ArticleEditorInput, subject?: ArticleSubjectInput, gallery?: ArticleGalleryInput, reviewer?: ArticleReviewerInput, watchers?: ArticleWatchersInput}
- * @phpstan-type ArticleUpdateShape array{title?: non-empty-string, slug?: string, status?: ArticleStatusInput, priority?: ArticlePriorityInput, wordCount?: int<0, max>|null, rating?: float, featured?: bool, releasedOn?: ArticleDateInput, publishedAt?: ArticleDateInput|null, syncedAt?: ArticleDateInput, archivedAt?: string, embargoLifts?: string, editorEmail?: string, canonicalUrl?: string, excerpt?: string, reviewNote?: string|null, originIp?: string, keywords?: non-empty-list<string>, analytics?: array<string, mixed>|null, address?: array{street?: non-empty-string, city?: string}, block?: array{text?: non-empty-string, kind?: string}|array{src?: string, kind?: string}, contact?: array{firstName?: string, nickname?: string, pin?: string, phone?: string, geo?: array{lat?: int}}|null, authorName?: string, score?: int, author?: ArticleAuthorInput, tags?: ArticleTagsInput, publisher?: ArticlePublisherInput, cover?: ArticleCoverInput, attachments?: ArticleAttachmentsInput, editor?: ArticleEditorInput, subject?: ArticleSubjectInput, gallery?: ArticleGalleryInput, reviewer?: ArticleReviewerInput, watchers?: ArticleWatchersInput}
+ * @phpstan-type ArticleCreateShape array{title: non-empty-string, slug?: string, status?: ArticleStatusInput, priority?: ArticlePriorityInput, wordCount?: int<0, max>|null, rating?: float, featured?: bool, releasedOn?: ArticleDateInput, publishedAt?: ArticleDateInput|null, syncedAt?: ArticleDateInput, archivedAt?: string, embargoLifts?: string, editorEmail?: string, canonicalUrl?: string, excerpt?: string, revision?: positive-int, reviewNote?: string|null, originIp?: string, keywords?: non-empty-list<string>, analytics?: array<string, mixed>|null, address?: array{street: non-empty-string, city?: string}, block?: array{text: non-empty-string, kind: string}|array{src?: string, kind: string}, contact?: array{firstName?: string, nickname?: string, pin?: string, phone?: string, geo?: array{lat?: int}}|null, authorName?: string, score?: int, author?: ArticleAuthorInput, tags?: ArticleTagsInput, publisher?: ArticlePublisherInput, cover?: ArticleCoverInput, locked?: ArticleLockedInput, attachments?: ArticleAttachmentsInput, editor?: ArticleEditorInput, sponsors?: ArticleSponsorsInput, subject?: ArticleSubjectInput, gallery?: ArticleGalleryInput, reviewer?: ArticleReviewerInput, watchers?: ArticleWatchersInput}
+ * @phpstan-type ArticleUpdateShape array{title?: non-empty-string, slug?: string, status?: ArticleStatusInput, priority?: ArticlePriorityInput, wordCount?: int<0, max>|null, rating?: float, featured?: bool, releasedOn?: ArticleDateInput, publishedAt?: ArticleDateInput|null, syncedAt?: ArticleDateInput, archivedAt?: string, embargoLifts?: string, editorEmail?: string, canonicalUrl?: string, excerpt?: string, reviewNote?: string|null, originIp?: string, keywords?: non-empty-list<string>, analytics?: array<string, mixed>|null, address?: array{street?: non-empty-string, city?: string}, block?: array{text?: non-empty-string, kind?: string}|array{src?: string, kind?: string}, contact?: array{firstName?: string, nickname?: string, pin?: string, phone?: string, geo?: array{lat?: int}}|null, authorName?: string, score?: int, author?: ArticleAuthorInput, tags?: ArticleTagsInput, publisher?: ArticlePublisherInput, cover?: ArticleCoverInput, attachments?: ArticleAttachmentsInput, editor?: ArticleEditorInput, sponsors?: ArticleSponsorsInput, subject?: ArticleSubjectInput, gallery?: ArticleGalleryInput, reviewer?: ArticleReviewerInput, watchers?: ArticleWatchersInput}
  * @phpstan-type ArticleRangeShape array{min?: float, max?: float}
  * @phpstan-type ArticleDateRangeShape array{min?: ArticleDateInput, max?: ArticleDateInput}
  * @phpstan-type ArticleFilterShape array{status?: string, wordCount?: int, archived?: string, rating?: ArticleRangeShape, publishedAt?: ArticleDateRangeShape, labels?: list<string>, search?: string, urgent?: string, featured?: bool, releasedOn?: string, keywords?: list<string>, 'author.name'?: string, unpublished?: string}
  * @phpstan-type ArticleSortToken '-title'|'-wordCount'|'title'|'wordCount'
  * @phpstan-type ArticleIncludePath 'author'|'author.company'|'tags'
- * @phpstan-type ArticleFieldToken 'address'|'analytics'|'archivedAt'|'attachments'|'author'|'authorName'|'block'|'canonicalUrl'|'commentCount'|'contact'|'cover'|'createdAt'|'editor'|'editorEmail'|'embargoLifts'|'excerpt'|'featured'|'gallery'|'keywords'|'legacyRef'|'locked'|'originIp'|'priority'|'publishedAt'|'publisher'|'rating'|'releasedOn'|'reviewNote'|'revision'|'score'|'slug'|'status'|'subject'|'syncedAt'|'tags'|'title'|'wordCount'
- * @phpstan-type ArticleCountToken '_self_'|'tags'
+ * @phpstan-type ArticleFieldToken 'address'|'analytics'|'archivedAt'|'attachments'|'author'|'authorName'|'block'|'canonicalUrl'|'commentCount'|'contact'|'cover'|'createdAt'|'editor'|'editorEmail'|'embargoLifts'|'excerpt'|'featured'|'gallery'|'keywords'|'legacyRef'|'locked'|'originIp'|'priority'|'publishedAt'|'publisher'|'rating'|'releasedOn'|'reviewNote'|'revision'|'score'|'slug'|'sponsors'|'status'|'subject'|'syncedAt'|'tags'|'title'|'wordCount'
+ * @phpstan-type ArticleCountToken '_self_'|'sponsors'|'tags'
  *
  * @generated from `components.schemas.ArticlesResource`
  */
@@ -920,6 +939,7 @@ final class Article extends ArticleBase implements ArticleHasAuthor, ArticleHasT
         'locked',
         'attachments',
         'editor',
+        'sponsors',
         'subject',
         'gallery',
         'reviewer',
@@ -962,6 +982,7 @@ final class Article extends ArticleBase implements ArticleHasAuthor, ArticleHasT
         'cover',
         'attachments',
         'editor',
+        'sponsors',
         'subject',
         'gallery',
         'reviewer',
@@ -1057,6 +1078,7 @@ final class Article extends ArticleBase implements ArticleHasAuthor, ArticleHasT
         'locked',
         'attachments',
         'editor',
+        'sponsors',
         'subject',
         'gallery',
     ];
@@ -1066,7 +1088,7 @@ final class Article extends ArticleBase implements ArticleHasAuthor, ArticleHasT
      *
      * @var list<string>
      */
-    public const array COUNT_TOKENS = ['_self_', 'tags'];
+    public const array COUNT_TOKENS = ['_self_', 'tags', 'sponsors'];
 
     /**
      * The Countable profile, which the client adds to `Accept` only when a request uses
@@ -2168,6 +2190,7 @@ final class ArticleCreate implements CreateInput
      * @param Created<PeopleBase>|Identifier|People|Missing|null $reviewer
      * @param list<Created<PeopleBase>|Identifier|People>|Missing $watchers
      * @param Created<PeopleBase>|Identifier|People|Missing|null $editor
+     * @param list<Created<ImageBase>|Created<PeopleBase>|Identifier|Image|People>|Missing $sponsors
      * @param Created<PeopleBase>|Identifier|People|Missing|null $subject
      * @param list<Created<ImageBase>|Identifier|Image>|Missing $gallery
      */
@@ -2206,6 +2229,7 @@ final class ArticleCreate implements CreateInput
         public readonly Created|Identifier|People|Missing|null $reviewer = Missing::Value,
         public readonly array|Missing $watchers = Missing::Value,
         public readonly Created|Identifier|People|Missing|null $editor = Missing::Value,
+        public readonly array|Missing $sponsors = Missing::Value,
         public readonly Created|Identifier|People|Missing|null $subject = Missing::Value,
         public readonly array|Missing $gallery = Missing::Value,
     ) {}
@@ -2261,6 +2285,7 @@ final class ArticleCreate implements CreateInput
             reviewer: \array_key_exists('reviewer', $input) ? $input['reviewer'] : Missing::Value,
             watchers: \array_key_exists('watchers', $input) ? $input['watchers'] : Missing::Value,
             editor: \array_key_exists('editor', $input) ? $input['editor'] : Missing::Value,
+            sponsors: \array_key_exists('sponsors', $input) ? $input['sponsors'] : Missing::Value,
             subject: \array_key_exists('subject', $input) ? $input['subject'] : Missing::Value,
             gallery: \array_key_exists('gallery', $input) ? $input['gallery'] : Missing::Value,
         );
@@ -2411,6 +2436,10 @@ final class ArticleCreate implements CreateInput
 
         if (!$this->editor instanceof Missing) {
             $relationships['editor'] = ['data' => Coerce::linkage($this->editor)];
+        }
+
+        if (!$this->sponsors instanceof Missing) {
+            $relationships['sponsors'] = ['data' => Coerce::linkageList($this->sponsors)];
         }
 
         if (!$this->subject instanceof Missing) {
@@ -2569,6 +2598,11 @@ final class ArticleCreateBuilder implements CreateInput
      * @var Created<PeopleBase>|Identifier|People|Missing|null
      */
     private Created|Identifier|People|Missing|null $editor = Missing::Value;
+
+    /**
+     * @var list<Created<ImageBase>|Created<PeopleBase>|Identifier|Image|People>|Missing
+     */
+    private array|Missing $sponsors = Missing::Value;
 
     /**
      * @var Created<PeopleBase>|Identifier|People|Missing|null
@@ -2891,6 +2925,16 @@ final class ArticleCreateBuilder implements CreateInput
     }
 
     /**
+     * @param list<Created<ImageBase>|Created<PeopleBase>|Identifier|Image|People> $sponsors
+     */
+    public function sponsors(array $sponsors): self
+    {
+        $this->sponsors = $sponsors;
+
+        return $this;
+    }
+
+    /**
      * @param Created<PeopleBase>|Identifier|People|null $subject
      */
     public function subject(Created|Identifier|People|null $subject): self
@@ -2956,6 +3000,7 @@ final class ArticleCreateBuilder implements CreateInput
             reviewer: $this->reviewer,
             watchers: $this->watchers,
             editor: $this->editor,
+            sponsors: $this->sponsors,
             subject: $this->subject,
             gallery: $this->gallery,
         );
@@ -3530,6 +3575,15 @@ final class ArticleHandle
     public function publisher(): ArticlePublisherRelation
     {
         return new ArticlePublisherRelation($this->fetcher, $this->id);
+    }
+
+    /**
+     * The `sponsors` relationship, a to-many whose endpoint advertises `add()`, `remove()` and
+     * `replace()`.
+     */
+    public function sponsors(): ArticleSponsorsRelation
+    {
+        return new ArticleSponsorsRelation($this->fetcher, $this->id);
     }
 
     /**
@@ -4176,8 +4230,8 @@ final class ArticleQuery extends Query
 
     /**
      * Count related resources without including them, under the Countable profile. `GET /articles`
-     * advertises `_self_`, `tags`. A counted relation is still not an included one: its count is
-     * read through `_rel()`.
+     * advertises `_self_`, `tags`, `sponsors`. A counted relation is still not an included one: its
+     * count is read through `_rel()`.
      *
      * @param list<ArticleCountToken> $tokens
      *
@@ -4401,6 +4455,285 @@ final class ArticleReadProjection extends Projection
         }
 
         return ($projection instanceof Projection ? $projection : $projection(self::make()))->toReadQuery();
+    }
+}
+
+/**
+ * The `sponsors` relationship of one article. `get()` reads the linkage and `related()` reads the
+ * related resources; any read the server switched off is absent. The writes are `add()`, `remove()`
+ * and `replace()`, the methods the relationship endpoint declares, and no others.
+ *
+ * @generated from `/articles/{id}/sponsors` and `/articles/{id}/relationships/sponsors`
+ */
+final class ArticleSponsorsRelation
+{
+    public function __construct(
+        private readonly Fetcher $fetcher,
+        private readonly string $id,
+    ) {}
+
+    /**
+     * The linkage alone, a page at a time, without fetching the related resources.
+     *
+     * Needs an access token granting the `articles:read` scope.
+     *
+     * @return PaginatedCollection<Identifier, PageNumber>
+     *
+     * @throws BadRequest         when a query parameter is rejected
+     * @throws Unauthorized       when credentials are missing or invalid
+     * @throws Forbidden          when the read is not permitted
+     * @throws NotFound           when no article has this id
+     * @throws NotAcceptable      when the negotiated media type cannot be satisfied
+     * @throws ServerError        when the server fails
+     * @throws TransportException when no response is received at all
+     *
+     * @example 200 response:
+     *     {
+     *         "data": [
+     *             {
+     *                 "type": "people",
+     *                 "id": "per-1"
+     *             }
+     *         ],
+     *         "links": {
+     *             "self": {
+     *                 "href": "https://api.example.com/articles/art-1/relationships/sponsors?page%5Bnumber%5D=2&page%5Bsize%5D=15&withCount=_self_",
+     *                 "describedby": "/docs/openapi.json#/paths/~1articles~1%7Bid%7D~1relationships~1sponsors/get"
+     *             },
+     *             "related": {
+     *                 "href": "https://api.example.com/articles/art-1/sponsors",
+     *                 "describedby": "/docs/openapi.json#/paths/~1articles~1%7Bid%7D~1sponsors/get"
+     *             },
+     *             "first": {
+     *                 "href": "https://api.example.com/articles/art-1/relationships/sponsors?page%5Bnumber%5D=1&page%5Bsize%5D=15&withCount=_self_",
+     *                 "describedby": "/docs/openapi.json#/paths/~1articles~1%7Bid%7D~1relationships~1sponsors/get"
+     *             },
+     *             "prev": {
+     *                 "href": "https://api.example.com/articles/art-1/relationships/sponsors?page%5Bnumber%5D=1&page%5Bsize%5D=15&withCount=_self_",
+     *                 "describedby": "/docs/openapi.json#/paths/~1articles~1%7Bid%7D~1relationships~1sponsors/get"
+     *             },
+     *             "next": {
+     *                 "href": "https://api.example.com/articles/art-1/relationships/sponsors?page%5Bnumber%5D=3&page%5Bsize%5D=15&withCount=_self_",
+     *                 "describedby": "/docs/openapi.json#/paths/~1articles~1%7Bid%7D~1relationships~1sponsors/get"
+     *             },
+     *             "last": {
+     *                 "href": "https://api.example.com/articles/art-1/relationships/sponsors?page%5Bnumber%5D=5&page%5Bsize%5D=15&withCount=_self_",
+     *                 "describedby": "/docs/openapi.json#/paths/~1articles~1%7Bid%7D~1relationships~1sponsors/get"
+     *             },
+     *             "describedby": {
+     *                 "href": "/docs/openapi.json#/paths/~1articles~1%7Bid%7D~1relationships~1sponsors/get"
+     *             }
+     *         },
+     *         "meta": {
+     *             "total": 75,
+     *             "page": {
+     *                 "currentPage": 2,
+     *                 "perPage": 15,
+     *                 "from": 16,
+     *                 "to": 30,
+     *                 "total": 75,
+     *                 "lastPage": 5
+     *             }
+     *         },
+     *         "jsonapi": {
+     *             "version": "1.1",
+     *             "profile": [
+     *                 "https://haddowg.github.io/json-api/profiles/countable/"
+     *             ]
+     *         }
+     *     }
+     */
+    public function get(): PaginatedCollection
+    {
+        return $this->linkage(
+            $this->fetcher->read(Request::get('/articles/' . $this->id . '/relationships/sponsors')),
+        );
+    }
+
+    /**
+     * The related resources themselves, a page at a time.
+     *
+     * Needs an access token granting the `articles:read` scope.
+     *
+     * @return PaginatedCollection<Image|People, PageNumber>
+     *
+     * @throws BadRequest         when a query parameter is rejected
+     * @throws Unauthorized       when credentials are missing or invalid
+     * @throws Forbidden          when the read is not permitted
+     * @throws NotFound           when no article has this id
+     * @throws NotAcceptable      when the negotiated media type cannot be satisfied
+     * @throws ServerError        when the server fails
+     * @throws TransportException when no response is received at all
+     */
+    public function related(): PaginatedCollection
+    {
+        return $this->resources($this->fetcher->read(Request::get('/articles/' . $this->id . '/sponsors')));
+    }
+
+    /**
+     * Add members to the relationship, leaving the rest alone.
+     *
+     * Needs an access token granting the `articles:write` scope.
+     *
+     * @param list<Identifier|Image|People> $sponsors
+     *
+     * @throws BadRequest           when the document is malformed
+     * @throws Unauthorized         when credentials are missing or invalid
+     * @throws Forbidden            when the write is not permitted
+     * @throws NotFound             when no article has this id
+     * @throws NotAcceptable        when the negotiated media type cannot be satisfied
+     * @throws Conflict             when the linkage conflicts with the relationship
+     * @throws UnsupportedMediaType when the `Content-Type` is refused
+     * @throws ValidationFailed     when the linkage fails validation
+     * @throws ServerError          when the server fails
+     * @throws TransportException   when no response is received at all
+     *
+     * @example Request body:
+     *     {
+     *         "data": [
+     *             {
+     *                 "type": "people",
+     *                 "id": "per-1"
+     *             }
+     *         ]
+     *     }
+     */
+    public function add(array $sponsors): void
+    {
+        $this->fetcher->send(Request::post(
+            '/articles/' . $this->id . '/relationships/sponsors',
+            \json_encode(['data' => Coerce::linkageList($sponsors)], \JSON_THROW_ON_ERROR),
+        ));
+    }
+
+    /**
+     * Remove members from the relationship, leaving the rest alone.
+     *
+     * Needs an access token granting the `articles:write` scope.
+     *
+     * @param list<Identifier|Image|People> $sponsors
+     *
+     * @throws BadRequest           when the document is malformed
+     * @throws Unauthorized         when credentials are missing or invalid
+     * @throws Forbidden            when the write is not permitted
+     * @throws NotFound             when no article has this id
+     * @throws NotAcceptable        when the negotiated media type cannot be satisfied
+     * @throws Conflict             when the linkage conflicts with the relationship
+     * @throws UnsupportedMediaType when the `Content-Type` is refused
+     * @throws ValidationFailed     when the linkage fails validation
+     * @throws ServerError          when the server fails
+     * @throws TransportException   when no response is received at all
+     *
+     * @example Request body:
+     *     {
+     *         "data": [
+     *             {
+     *                 "type": "people",
+     *                 "id": "per-1"
+     *             }
+     *         ]
+     *     }
+     */
+    public function remove(array $sponsors): void
+    {
+        $this->fetcher->send(Request::delete(
+            '/articles/' . $this->id . '/relationships/sponsors',
+            \json_encode(['data' => Coerce::linkageList($sponsors)], \JSON_THROW_ON_ERROR),
+        ));
+    }
+
+    /**
+     * Replace every member of the relationship.
+     *
+     * Needs an access token granting the `articles:write` scope.
+     *
+     * @param list<Identifier|Image|People> $sponsors
+     *
+     * @throws BadRequest           when the document is malformed
+     * @throws Unauthorized         when credentials are missing or invalid
+     * @throws Forbidden            when the write is not permitted
+     * @throws NotFound             when no article has this id
+     * @throws NotAcceptable        when the negotiated media type cannot be satisfied
+     * @throws Conflict             when the linkage conflicts with the relationship
+     * @throws UnsupportedMediaType when the `Content-Type` is refused
+     * @throws ValidationFailed     when the linkage fails validation
+     * @throws ServerError          when the server fails
+     * @throws TransportException   when no response is received at all
+     *
+     * @example Request body:
+     *     {
+     *         "data": [
+     *             {
+     *                 "type": "people",
+     *                 "id": "per-1"
+     *             }
+     *         ]
+     *     }
+     */
+    public function replace(array $sponsors): void
+    {
+        $this->fetcher->send(Request::patch(
+            '/articles/' . $this->id . '/relationships/sponsors',
+            \json_encode(['data' => Coerce::linkageList($sponsors)], \JSON_THROW_ON_ERROR),
+        ));
+    }
+
+    /**
+     * @return PaginatedCollection<Identifier, PageNumber>
+     */
+    private function linkage(ResourceContext $context): PaginatedCollection
+    {
+        $document = $context->document();
+        $identifiers = [];
+
+        foreach ($context->primaryList() as $raw) {
+            $identifiers[] = Identifier::fromArray($raw, 'the "sponsors" linkage');
+        }
+
+        return new PaginatedCollection(
+            $identifiers,
+            PageNumber::read($document->pageMeta(), PageLinks::fromArray($document->links())),
+            $document->meta(),
+            $document->links(),
+            fn(string $url): PaginatedCollection => $this->linkage($this->fetcher->readUrl($url)),
+        );
+    }
+
+    /**
+     * @return PaginatedCollection<Image|People, PageNumber>
+     */
+    private function resources(ResourceContext $context): PaginatedCollection
+    {
+        $document = $context->document();
+        $sponsors = [];
+
+        foreach ($context->primaryList() as $raw) {
+            $sponsors[] = self::member($raw, $context);
+        }
+
+        return new PaginatedCollection(
+            $sponsors,
+            PageNumber::read($document->pageMeta(), PageLinks::fromArray($document->links())),
+            $document->meta(),
+            $document->links(),
+            fn(string $url): PaginatedCollection => $this->resources($this->fetcher->readUrl($url, new ReadQuery())),
+        );
+    }
+
+    /**
+     * The related resource as the class its own `type` names.
+     *
+     * @param array<string, mixed> $raw
+     *
+     * @throws MalformedDocument when the resource is of a type the relation does not declare
+     */
+    private static function member(array $raw, ResourceContext $context): Image|People
+    {
+        return match ($raw['type'] ?? null) {
+            'people' => People::_hydrate($raw, $context),
+            'images' => Image::_hydrate($raw, $context),
+            default => throw MalformedDocument::unexpectedMember('The related resource', 'type', 'one of "people", "images"'),
+        };
     }
 }
 
@@ -5020,6 +5353,7 @@ final class ArticleUpdate implements UpdateInput
      * @param Created<PeopleBase>|Identifier|People|Missing|null $reviewer
      * @param list<Created<PeopleBase>|Identifier|People>|Missing $watchers
      * @param Created<PeopleBase>|Identifier|People|Missing|null $editor
+     * @param list<Created<ImageBase>|Created<PeopleBase>|Identifier|Image|People>|Missing $sponsors
      * @param Created<PeopleBase>|Identifier|People|Missing|null $subject
      * @param list<Created<ImageBase>|Identifier|Image>|Missing $gallery
      *
@@ -5058,6 +5392,7 @@ final class ArticleUpdate implements UpdateInput
         public readonly Created|Identifier|People|Missing|null $reviewer = Missing::Value,
         public readonly array|Missing $watchers = Missing::Value,
         public readonly Created|Identifier|People|Missing|null $editor = Missing::Value,
+        public readonly array|Missing $sponsors = Missing::Value,
         public readonly Created|Identifier|People|Missing|null $subject = Missing::Value,
         public readonly array|Missing $gallery = Missing::Value,
     ) {}
@@ -5104,6 +5439,7 @@ final class ArticleUpdate implements UpdateInput
             reviewer: $this->reviewer,
             watchers: $this->watchers,
             editor: $this->editor,
+            sponsors: $this->sponsors,
             subject: $this->subject,
             gallery: $this->gallery,
         );
@@ -5149,6 +5485,7 @@ final class ArticleUpdate implements UpdateInput
             reviewer: $this->reviewer,
             watchers: $this->watchers,
             editor: $this->editor,
+            sponsors: $this->sponsors,
             subject: $this->subject,
             gallery: $this->gallery,
         );
@@ -5192,6 +5529,7 @@ final class ArticleUpdate implements UpdateInput
             reviewer: $this->reviewer,
             watchers: $this->watchers,
             editor: $this->editor,
+            sponsors: $this->sponsors,
             subject: $this->subject,
             gallery: $this->gallery,
         );
@@ -5235,6 +5573,7 @@ final class ArticleUpdate implements UpdateInput
             reviewer: $this->reviewer,
             watchers: $this->watchers,
             editor: $this->editor,
+            sponsors: $this->sponsors,
             subject: $this->subject,
             gallery: $this->gallery,
         );
@@ -5282,6 +5621,7 @@ final class ArticleUpdate implements UpdateInput
             reviewer: $this->reviewer,
             watchers: $this->watchers,
             editor: $this->editor,
+            sponsors: $this->sponsors,
             subject: $this->subject,
             gallery: $this->gallery,
         );
@@ -5327,6 +5667,7 @@ final class ArticleUpdate implements UpdateInput
             reviewer: $this->reviewer,
             watchers: $this->watchers,
             editor: $this->editor,
+            sponsors: $this->sponsors,
             subject: $this->subject,
             gallery: $this->gallery,
         );
@@ -5370,6 +5711,7 @@ final class ArticleUpdate implements UpdateInput
             reviewer: $this->reviewer,
             watchers: $this->watchers,
             editor: $this->editor,
+            sponsors: $this->sponsors,
             subject: $this->subject,
             gallery: $this->gallery,
         );
@@ -5413,6 +5755,7 @@ final class ArticleUpdate implements UpdateInput
             reviewer: $this->reviewer,
             watchers: $this->watchers,
             editor: $this->editor,
+            sponsors: $this->sponsors,
             subject: $this->subject,
             gallery: $this->gallery,
         );
@@ -5456,6 +5799,7 @@ final class ArticleUpdate implements UpdateInput
             reviewer: $this->reviewer,
             watchers: $this->watchers,
             editor: $this->editor,
+            sponsors: $this->sponsors,
             subject: $this->subject,
             gallery: $this->gallery,
         );
@@ -5499,6 +5843,7 @@ final class ArticleUpdate implements UpdateInput
             reviewer: $this->reviewer,
             watchers: $this->watchers,
             editor: $this->editor,
+            sponsors: $this->sponsors,
             subject: $this->subject,
             gallery: $this->gallery,
         );
@@ -5542,6 +5887,7 @@ final class ArticleUpdate implements UpdateInput
             reviewer: $this->reviewer,
             watchers: $this->watchers,
             editor: $this->editor,
+            sponsors: $this->sponsors,
             subject: $this->subject,
             gallery: $this->gallery,
         );
@@ -5585,6 +5931,7 @@ final class ArticleUpdate implements UpdateInput
             reviewer: $this->reviewer,
             watchers: $this->watchers,
             editor: $this->editor,
+            sponsors: $this->sponsors,
             subject: $this->subject,
             gallery: $this->gallery,
         );
@@ -5630,6 +5977,7 @@ final class ArticleUpdate implements UpdateInput
             reviewer: $this->reviewer,
             watchers: $this->watchers,
             editor: $this->editor,
+            sponsors: $this->sponsors,
             subject: $this->subject,
             gallery: $this->gallery,
         );
@@ -5675,6 +6023,7 @@ final class ArticleUpdate implements UpdateInput
             reviewer: $this->reviewer,
             watchers: $this->watchers,
             editor: $this->editor,
+            sponsors: $this->sponsors,
             subject: $this->subject,
             gallery: $this->gallery,
         );
@@ -5718,6 +6067,7 @@ final class ArticleUpdate implements UpdateInput
             reviewer: $this->reviewer,
             watchers: $this->watchers,
             editor: $this->editor,
+            sponsors: $this->sponsors,
             subject: $this->subject,
             gallery: $this->gallery,
         );
@@ -5761,6 +6111,7 @@ final class ArticleUpdate implements UpdateInput
             reviewer: $this->reviewer,
             watchers: $this->watchers,
             editor: $this->editor,
+            sponsors: $this->sponsors,
             subject: $this->subject,
             gallery: $this->gallery,
         );
@@ -5804,6 +6155,7 @@ final class ArticleUpdate implements UpdateInput
             reviewer: $this->reviewer,
             watchers: $this->watchers,
             editor: $this->editor,
+            sponsors: $this->sponsors,
             subject: $this->subject,
             gallery: $this->gallery,
         );
@@ -5851,6 +6203,7 @@ final class ArticleUpdate implements UpdateInput
             reviewer: $this->reviewer,
             watchers: $this->watchers,
             editor: $this->editor,
+            sponsors: $this->sponsors,
             subject: $this->subject,
             gallery: $this->gallery,
         );
@@ -5896,6 +6249,7 @@ final class ArticleUpdate implements UpdateInput
             reviewer: $this->reviewer,
             watchers: $this->watchers,
             editor: $this->editor,
+            sponsors: $this->sponsors,
             subject: $this->subject,
             gallery: $this->gallery,
         );
@@ -5941,6 +6295,7 @@ final class ArticleUpdate implements UpdateInput
             reviewer: $this->reviewer,
             watchers: $this->watchers,
             editor: $this->editor,
+            sponsors: $this->sponsors,
             subject: $this->subject,
             gallery: $this->gallery,
         );
@@ -5986,6 +6341,7 @@ final class ArticleUpdate implements UpdateInput
             reviewer: $this->reviewer,
             watchers: $this->watchers,
             editor: $this->editor,
+            sponsors: $this->sponsors,
             subject: $this->subject,
             gallery: $this->gallery,
         );
@@ -6031,6 +6387,7 @@ final class ArticleUpdate implements UpdateInput
             reviewer: $this->reviewer,
             watchers: $this->watchers,
             editor: $this->editor,
+            sponsors: $this->sponsors,
             subject: $this->subject,
             gallery: $this->gallery,
         );
@@ -6074,6 +6431,7 @@ final class ArticleUpdate implements UpdateInput
             reviewer: $this->reviewer,
             watchers: $this->watchers,
             editor: $this->editor,
+            sponsors: $this->sponsors,
             subject: $this->subject,
             gallery: $this->gallery,
         );
@@ -6117,6 +6475,7 @@ final class ArticleUpdate implements UpdateInput
             reviewer: $this->reviewer,
             watchers: $this->watchers,
             editor: $this->editor,
+            sponsors: $this->sponsors,
             subject: $this->subject,
             gallery: $this->gallery,
         );
@@ -6162,6 +6521,7 @@ final class ArticleUpdate implements UpdateInput
             reviewer: $this->reviewer,
             watchers: $this->watchers,
             editor: $this->editor,
+            sponsors: $this->sponsors,
             subject: $this->subject,
             gallery: $this->gallery,
         );
@@ -6207,6 +6567,7 @@ final class ArticleUpdate implements UpdateInput
             reviewer: $this->reviewer,
             watchers: $this->watchers,
             editor: $this->editor,
+            sponsors: $this->sponsors,
             subject: $this->subject,
             gallery: $this->gallery,
         );
@@ -6252,6 +6613,7 @@ final class ArticleUpdate implements UpdateInput
             reviewer: $this->reviewer,
             watchers: $this->watchers,
             editor: $this->editor,
+            sponsors: $this->sponsors,
             subject: $this->subject,
             gallery: $this->gallery,
         );
@@ -6297,6 +6659,7 @@ final class ArticleUpdate implements UpdateInput
             reviewer: $this->reviewer,
             watchers: $this->watchers,
             editor: $this->editor,
+            sponsors: $this->sponsors,
             subject: $this->subject,
             gallery: $this->gallery,
         );
@@ -6342,6 +6705,7 @@ final class ArticleUpdate implements UpdateInput
             reviewer: $this->reviewer,
             watchers: $this->watchers,
             editor: $this->editor,
+            sponsors: $this->sponsors,
             subject: $this->subject,
             gallery: $this->gallery,
         );
@@ -6387,6 +6751,7 @@ final class ArticleUpdate implements UpdateInput
             reviewer: $reviewer,
             watchers: $this->watchers,
             editor: $this->editor,
+            sponsors: $this->sponsors,
             subject: $this->subject,
             gallery: $this->gallery,
         );
@@ -6432,6 +6797,7 @@ final class ArticleUpdate implements UpdateInput
             reviewer: $this->reviewer,
             watchers: $watchers,
             editor: $this->editor,
+            sponsors: $this->sponsors,
             subject: $this->subject,
             gallery: $this->gallery,
         );
@@ -6477,6 +6843,53 @@ final class ArticleUpdate implements UpdateInput
             reviewer: $this->reviewer,
             watchers: $this->watchers,
             editor: $editor,
+            sponsors: $this->sponsors,
+            subject: $this->subject,
+            gallery: $this->gallery,
+        );
+    }
+
+    /**
+     * @param list<Created<ImageBase>|Created<PeopleBase>|Identifier|Image|People> $sponsors
+     *
+     * @phpstan-pure
+     */
+    public function sponsors(array $sponsors): self
+    {
+        return new self(
+            title: $this->title,
+            slug: $this->slug,
+            status: $this->status,
+            priority: $this->priority,
+            wordCount: $this->wordCount,
+            rating: $this->rating,
+            featured: $this->featured,
+            releasedOn: $this->releasedOn,
+            publishedAt: $this->publishedAt,
+            syncedAt: $this->syncedAt,
+            archivedAt: $this->archivedAt,
+            embargoLifts: $this->embargoLifts,
+            editorEmail: $this->editorEmail,
+            canonicalUrl: $this->canonicalUrl,
+            excerpt: $this->excerpt,
+            reviewNote: $this->reviewNote,
+            originIp: $this->originIp,
+            keywords: $this->keywords,
+            analytics: $this->analytics,
+            address: $this->address,
+            block: $this->block,
+            contact: $this->contact,
+            authorName: $this->authorName,
+            score: $this->score,
+            author: $this->author,
+            tags: $this->tags,
+            publisher: $this->publisher,
+            cover: $this->cover,
+            attachments: $this->attachments,
+            reviewer: $this->reviewer,
+            watchers: $this->watchers,
+            editor: $this->editor,
+            sponsors: $sponsors,
             subject: $this->subject,
             gallery: $this->gallery,
         );
@@ -6522,6 +6935,7 @@ final class ArticleUpdate implements UpdateInput
             reviewer: $this->reviewer,
             watchers: $this->watchers,
             editor: $this->editor,
+            sponsors: $this->sponsors,
             subject: $subject,
             gallery: $this->gallery,
         );
@@ -6567,6 +6981,7 @@ final class ArticleUpdate implements UpdateInput
             reviewer: $this->reviewer,
             watchers: $this->watchers,
             editor: $this->editor,
+            sponsors: $this->sponsors,
             subject: $this->subject,
             gallery: $gallery,
         );
@@ -6631,6 +7046,7 @@ final class ArticleUpdate implements UpdateInput
             reviewer: \array_key_exists('reviewer', $input) ? $input['reviewer'] : Missing::Value,
             watchers: \array_key_exists('watchers', $input) ? $input['watchers'] : Missing::Value,
             editor: \array_key_exists('editor', $input) ? $input['editor'] : Missing::Value,
+            sponsors: \array_key_exists('sponsors', $input) ? $input['sponsors'] : Missing::Value,
             subject: \array_key_exists('subject', $input) ? $input['subject'] : Missing::Value,
             gallery: \array_key_exists('gallery', $input) ? $input['gallery'] : Missing::Value,
         );
@@ -6780,6 +7196,10 @@ final class ArticleUpdate implements UpdateInput
 
         if (!$this->editor instanceof Missing) {
             $relationships['editor'] = ['data' => Coerce::linkage($this->editor)];
+        }
+
+        if (!$this->sponsors instanceof Missing) {
+            $relationships['sponsors'] = ['data' => Coerce::linkageList($this->sponsors)];
         }
 
         if (!$this->subject instanceof Missing) {

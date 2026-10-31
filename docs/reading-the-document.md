@@ -68,7 +68,9 @@ An action that answers with a URL returns the runtime's `ActionLocation`, or a u
 ## Relations, pivots and links
 
 A relation whose linkage is a union is polymorphic even with one member type, and rejects a related
-resource of an undeclared type. A pivot relation's response fields are read through
+resource of an undeclared type. The union is a `oneOf` discriminated by `type`, or in an older
+document an `anyOf`; both read the same. Included resources are read through each relation's
+accessor, so a document's typed `included` adds nothing to the generated client. A pivot relation's response fields are read through
 `<rel>Pivots()` (or `<rel>Pivot()`) on the parent; a field the response schema does not require
 reads as nullable.
 

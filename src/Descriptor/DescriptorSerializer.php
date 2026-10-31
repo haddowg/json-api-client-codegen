@@ -261,10 +261,16 @@ final class DescriptorSerializer
     /** @return array<string, mixed>|null */
     private static function projection(?ProjectionDescriptor $projection): ?array
     {
-        return $projection === null ? null : [
+        if ($projection === null) {
+            return null;
+        }
+
+        // A loosely typed `included` leaves the key out, so an older document's descriptor reads as before.
+        return [
             'includable' => $projection->includable,
             'fieldsets' => $projection->fieldsets,
             'relatedQuery' => $projection->relatedQuery,
+            ...($projection->included === null ? [] : ['included' => $projection->included]),
         ];
     }
 

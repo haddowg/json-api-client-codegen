@@ -833,12 +833,14 @@ final class DescriptorBuilder
     /**
      * The related types a linkage names, its pivot shape, and whether it is a union.
      *
-     * Four shapes reach here: a `$ref` to an identifier, an `allOf` pairing one with a
-     * `meta.pivot` block, an `anyOf` (a nullable to-one, or a polymorphic set), and an `anyOf`
-     * nested one level deeper for a polymorphic to-one. Anything else is a linkage grammar this
-     * codegen has not been taught, and errors rather than being dropped.
+     * Five shapes reach here: a `$ref` to an identifier, an `allOf` pairing one with a
+     * `meta.pivot` block, an `anyOf` (a nullable to-one, or a polymorphic set), a `oneOf`
+     * discriminated by `type` (a polymorphic set), and either union nested one level deeper in a
+     * nullable `anyOf` for a polymorphic to-one. Anything else is a linkage grammar this codegen
+     * has not been taught, and errors rather than being dropped.
      *
-     * An `anyOf` with no `null` branch is a polymorphic set, whatever its member count: from
+     * A `oneOf` is always a polymorphic set; a newer document writes every polymorphic linkage
+     * that way. An `anyOf` with no `null` branch is a polymorphic set, whatever its member count: from
      * contract 16 a `MorphTo` or `MorphToMany` over one type is a one-member union (core ADR
      * 0184). The `anyOf` that only makes a to-one nullable is not, so a nullable `BelongsTo` is
      * not mistaken for one.
@@ -897,10 +899,66 @@ final class DescriptorBuilder
             return ['types' => $types, 'pivot' => $pivot, 'pivotFields' => $fields, 'polymorphic' => $polymorphic || !$nullable || \count($types) > 1];
         }
 
+        $oneOf = $node->find('oneOf');
+        if ($oneOf !== null) {
+            return ['types' => $this->discriminatedTypes($node, $oneOf), 'pivot' => false, 'pivotFields' => [], 'polymorphic' => true];
+        }
+
         throw SpecException::malformed(
             $node->pointer(),
-            'to declare linkage as a $ref, an allOf carrying one, or an anyOf of them',
+            'to declare linkage as a $ref, an allOf carrying one, or an anyOf or oneOf of them',
         );
+    }
+
+    /**
+     * The JSON:API types a `oneOf` of resource or identifier `$ref`s names, in document order,
+     * each read from its member's `type` const. A `discriminator` mapping beside it must map each
+     * of those types to the member that declares it; a mapping that disagrees is an error rather
+     * than a second answer to choose between.
+     *
+     * @return list<string>
+     */
+    private function discriminatedTypes(Node $union, Node $branches): array
+    {
+        $types = [];
+        foreach ($branches->items() as $branch) {
+            $ref = $this->document->reference($branch)
+                ?? throw SpecException::malformed($branch->pointer(), 'to reference a resource or resource identifier');
+            $type = $this->identifierType($branch);
+            $types[$type] = $ref->string();
+        }
+        if ($types === []) {
+            throw SpecException::malformed($branches->pointer(), 'to reference at least one resource or resource identifier');
+        }
+
+        $mapping = $union->path('discriminator', 'mapping');
+        if ($mapping !== null) {
+            $mapped = [];
+            foreach ($mapping->members() as $type => $target) {
+                $mapped[(string) $type] = $target->string();
+            }
+            if ($mapped != $types) {
+                throw SpecException::malformed($mapping->pointer(), 'to map each member\'s type to that member');
+            }
+        }
+
+        return \array_map(\strval(...), \array_keys($types));
+    }
+
+    /**
+     * The types an operation's typed `included` names: the members of the `oneOf` its success
+     * document's `included` items are. Null when the document types `included` as a bare
+     * `{type, id}` object, as an older one does, or carries no `included` at all.
+     *
+     * @return list<string>|null
+     */
+    private function includedTypes(Node $operation): ?array
+    {
+        $schema = $this->okResponseSchema($operation);
+        $items = $schema === null ? null : $this->document->dereference($schema)->path('properties', 'included', 'items');
+        $branches = $items?->find('oneOf');
+
+        return $items === null || $branches === null ? null : $this->discriminatedTypes($items, $branches);
     }
 
     /** The JSON:API type a resource identifier `$ref` resolves to. */
@@ -1337,7 +1395,7 @@ final class DescriptorBuilder
         }
         \ksort($fieldsets, \SORT_STRING);
 
-        return new ProjectionDescriptor($includable ?? [], $fieldsets, $relatedQuery);
+        return new ProjectionDescriptor($includable ?? [], $fieldsets, $relatedQuery, $this->includedTypes($operation));
     }
 
     /**

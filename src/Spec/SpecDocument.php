@@ -194,4 +194,21 @@ final class SpecDocument
     {
         return $this->follow($schema) ?? $schema;
     }
+
+    /**
+     * The parameter a node's `#/components/parameters/` reference points at, or the node itself
+     * when it is declared inline.
+     *
+     * @throws SpecException when the reference names a parameter the document does not declare
+     */
+    public function parameter(Node $parameter): Node
+    {
+        $ref = $parameter->find('$ref')?->string();
+        if ($ref === null || !\str_starts_with($ref, '#/components/parameters/')) {
+            return $parameter;
+        }
+
+        return $this->root()->path('components', 'parameters', \substr($ref, \strlen('#/components/parameters/')))
+            ?? throw SpecException::malformed($parameter->get('$ref')->pointer(), 'to name a declared parameter');
+    }
 }

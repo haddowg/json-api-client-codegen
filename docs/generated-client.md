@@ -100,6 +100,16 @@ the related type. Without one there is no `atomic()`, and setters take only reso
 identifiers. Every create and update input implements the runtime's `CreateInput` or `UpdateInput`
 whether or not the server has the extension.
 
+## Relationship Queries
+
+A to-many's filters and sort tokens are read from its related read (`GET /albums/{id}/tracks`),
+and a read operation that declares the `relatedQuery` parameter supplies the profile URI from its
+`x-profile`. A relation that has something to filter or sort by and is a depth-1 include of such a
+read gets a `<Type><Relation>RelatedQuery`, holding that vocabulary as its own constants and
+aliases, and the read's `withX()` takes a closure over it. The collection query carries those
+closures directly; a single read that declares `relatedQuery` gets a `<Type>ReadProjection`,
+because the write projection is shared with writes, which do not.
+
 ## Handles on fetched resources
 
 Every resource base whose type has an id-handle gets `_handle()`, which returns that handle over

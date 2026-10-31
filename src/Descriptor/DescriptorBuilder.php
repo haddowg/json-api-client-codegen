@@ -768,6 +768,8 @@ final class DescriptorBuilder
             $this->relationPaginator($cardinality, $linkage['types'], $polymorphic, $relatedGet, $relationshipGet),
             $linkage['pivot'] ? $this->writePivotFields($relationship, $written, $linkage['pivotFields']) : [],
             $polymorphic,
+            $cardinality === Cardinality::Many ? $this->filterable($relatedGet) : [],
+            $cardinality === Cardinality::Many ? $this->tokenEnum($relatedGet, 'sort') : [],
         );
     }
 
@@ -1316,10 +1318,14 @@ final class DescriptorBuilder
     {
         $includable = null;
         $fieldsets = [];
+        $relatedQuery = null;
 
         foreach ($operation->find('parameters')?->items() ?? [] as $parameter) {
+            $parameter = $this->document->parameter($parameter);
             $name = $parameter->find('name')?->string();
-            if ($name === 'include') {
+            if ($name === 'relatedQuery') {
+                $relatedQuery = $parameter->find('x-profile')?->string();
+            } elseif ($name === 'include') {
                 $includable = $parameter->path('schema', 'items', 'enum')?->strings() ?? [];
             } elseif ($name !== null && \str_starts_with($name, 'fields[') && \str_ends_with($name, ']')) {
                 $fieldsets[\substr($name, \strlen('fields['), -1)] = $parameter->path('schema', 'items', 'enum')?->strings() ?? [];
@@ -1331,7 +1337,7 @@ final class DescriptorBuilder
         }
         \ksort($fieldsets, \SORT_STRING);
 
-        return new ProjectionDescriptor($includable ?? [], $fieldsets);
+        return new ProjectionDescriptor($includable ?? [], $fieldsets, $relatedQuery);
     }
 
     /**

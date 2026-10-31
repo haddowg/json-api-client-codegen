@@ -6,11 +6,13 @@ namespace haddowg\JsonApiCodegen\Emit\Reads;
 
 use haddowg\JsonApiCodegen\Descriptor\ApiDescriptor;
 use haddowg\JsonApiCodegen\Descriptor\CountableDescriptor;
+use haddowg\JsonApiCodegen\Descriptor\FilterDescriptor;
 use haddowg\JsonApiCodegen\Descriptor\OperationDescriptor;
 use haddowg\JsonApiCodegen\Descriptor\OperationKind;
 use haddowg\JsonApiCodegen\Descriptor\PaginatorDescriptor;
 use haddowg\JsonApiCodegen\Descriptor\PaginatorKind;
 use haddowg\JsonApiCodegen\Descriptor\ProjectionDescriptor;
+use haddowg\JsonApiCodegen\Descriptor\RelationDescriptor;
 use haddowg\JsonApiCodegen\Descriptor\ResourceDescriptor;
 use haddowg\JsonApiCodegen\Emit\FileKey;
 use haddowg\JsonApiCodegen\Emit\Naming;
@@ -69,6 +71,15 @@ final class ReadSurface
     /** @var list<string> build-time warnings: filter method and picker collisions */
     public readonly array $warnings;
 
+    /** @var list<RelationDescriptor> relations the query's `withX()` can shape with a Relationship Query */
+    public readonly array $queryRelating;
+
+    /** @var list<RelationDescriptor> relations the single read's `withX()` can shape with a Relationship Query */
+    public readonly array $readRelating;
+
+    /** The Relationship Queries profile URI, when either read can shape a relation. */
+    public readonly ?string $relatedQueryProfile;
+
     public function __construct(ApiDescriptor $api, public readonly ResourceDescriptor $descriptor)
     {
         $type = $descriptor->type;
@@ -117,6 +128,55 @@ final class ReadSurface
             ? [[], [], []]
             : self::filters($descriptor, self::declaresDateInput($descriptor));
         $this->warnings = [...$filterWarnings, ...$pickerWarnings];
+
+        $fetchOne = $descriptor->operation(OperationKind::FetchOne)?->projection;
+        $this->queryRelating = self::relatingIn($descriptor, $queryProjection);
+        $this->readRelating = self::relatingIn($descriptor, $fetchOne);
+        $this->relatedQueryProfile = $this->queryRelating !== [] ? $queryProjection?->relatedQuery : ($this->readRelating !== [] ? $fetchOne?->relatedQuery : null);
+    }
+
+    /**
+     * Every relation that can be shaped with a Relationship Query, the query's and the single
+     * read's together, each once.
+     *
+     * @return list<RelationDescriptor>
+     */
+    public function relating(): array
+    {
+        $out = [];
+        foreach ([...$this->queryRelating, ...$this->readRelating] as $relation) {
+            $out[$relation->name] = $relation;
+        }
+
+        return \array_values($out);
+    }
+
+    /** Whether the single read gets its own projection, carrying the Relationship Query closures. */
+    public function readProjection(): bool
+    {
+        return $this->readRelating !== [];
+    }
+
+    /**
+     * The depth-1 includes of an operation that declares `relatedQuery` whose relation can be shaped.
+     *
+     * @return list<RelationDescriptor>
+     */
+    private static function relatingIn(ResourceDescriptor $descriptor, ?ProjectionDescriptor $projection): array
+    {
+        if ($projection?->relatedQuery === null) {
+            return [];
+        }
+
+        $out = [];
+        foreach ($projection->includable as $path) {
+            $relation = \str_contains($path, '.') ? null : $descriptor->relation($path);
+            if ($relation !== null && RelatedQuerySource::applies($relation)) {
+                $out[] = $relation;
+            }
+        }
+
+        return $out;
     }
 
     /** Whether the collection pages by a menu the caller picks a strategy from. */
@@ -254,18 +314,30 @@ final class ReadSurface
      */
     private static function filters(ResourceDescriptor $descriptor, bool $dateInput): array
     {
-        $type = $descriptor->type;
+        return self::filterSlots($descriptor->type, '', $descriptor->filterable, $dateInput, $descriptor->type);
+    }
+
+    /**
+     * The filter slots for one vocabulary of filters: a collection's own, or a relation's, whose
+     * aliases take the relation's name after the type's (`AlbumTracksRangeShape`).
+     *
+     * @param array<string, FilterDescriptor> $filterable
+     *
+     * @return array{list<FilterSlot>, list<ShapeAlias>, list<string>}
+     */
+    public static function filterSlots(string $type, string $infix, array $filterable, bool $dateInput, string $label): array
+    {
         $dateAlias = Naming::alias($type, 'DateInput');
         $types = new FilterTypes($dateInput ? $dateAlias : '\DateTimeImmutable|string', $dateInput);
 
         $shapes = [];
         $slots = [];
-        foreach ($descriptor->filterable as $filter) {
+        foreach ($filterable as $filter) {
             $schema = $filter->schema;
             $shape = null;
             if ($schema !== null && FilterTypes::structured($schema)) {
                 [$doc, $aliases] = $types->shape($schema);
-                $shape = self::shapeAlias($shapes, $type, $filter->name, $doc, FilterTypes::members($schema), FilterTypes::range($schema), FilterTypes::dateRange($schema), $aliases);
+                $shape = self::shapeAlias($shapes, $type, $infix, $filter->name, $doc, FilterTypes::members($schema), FilterTypes::range($schema), FilterTypes::dateRange($schema), $aliases);
                 $value = new ValueType($shape->name, 'array', [$shape->name]);
             } else {
                 $value = $types->type($schema);
@@ -273,7 +345,7 @@ final class ReadSurface
             $slots[] = ['name' => $filter->name, 'type' => $value, 'shape' => $shape];
         }
 
-        [$methods, $warnings] = self::methods($type, \array_map(static fn(array $slot): string => $slot['name'], $slots));
+        [$methods, $warnings] = self::methods($label, \array_map(static fn(array $slot): string => $slot['name'], $slots));
 
         $out = [];
         foreach ($slots as $slot) {
@@ -291,7 +363,7 @@ final class ReadSurface
      * @param list<string>              $members
      * @param list<string>              $aliases
      */
-    private static function shapeAlias(array &$shapes, string $type, string $filter, string $doc, array $members, bool $range, bool $dateRange, array $aliases): ShapeAlias
+    private static function shapeAlias(array &$shapes, string $type, string $infix, string $filter, string $doc, array $members, bool $range, bool $dateRange, array $aliases): ShapeAlias
     {
         if (isset($shapes[$doc])) {
             return $shapes[$doc];
@@ -299,12 +371,12 @@ final class ReadSurface
 
         $taken = \array_map(static fn(ShapeAlias $alias): string => $alias->name, $shapes);
         $name = match (true) {
-            $dateRange => Naming::alias($type, 'DateRangeShape'),
-            $range => Naming::alias($type, 'RangeShape'),
-            default => Naming::alias($type, Naming::pascal($filter) . 'FilterShape'),
+            $dateRange => Naming::alias($type, $infix . 'DateRangeShape'),
+            $range => Naming::alias($type, $infix . 'RangeShape'),
+            default => Naming::alias($type, $infix . Naming::pascal($filter) . 'FilterShape'),
         };
         if (\in_array($name, $taken, true)) {
-            $name = Naming::alias($type, Naming::pascal($filter) . 'FilterShape');
+            $name = Naming::alias($type, $infix . Naming::pascal($filter) . 'FilterShape');
         }
 
         return $shapes[$doc] = new ShapeAlias($name, $doc, $members, $range, $aliases);

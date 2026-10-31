@@ -129,8 +129,8 @@ final class ContractSixteenTest extends TestCase
         $source = self::generate(self::json())['resource-articles.php'];
 
         self::assertStringContainsString(
-            "     * Fetch the article, shaped by the optional projection: a closure over a fresh projection, or a\n"
-            . "     * prebuilt one.\n"
+            "     * Fetch the article, shaped by the optional projection: a closure over a fresh read projection,\n"
+            . "     * which can also filter and sort an included relation, or a prebuilt read or write projection.\n"
             . "     *\n"
             . "     * Needs an access token granting the `articles:read` scope.\n"
             . "     *\n"

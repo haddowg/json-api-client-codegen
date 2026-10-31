@@ -31,6 +31,7 @@ use haddowg\JsonApiClient\Pagination\PageNumber;
 use haddowg\JsonApiClient\Query\Projection;
 use haddowg\JsonApiClient\Query\Query;
 use haddowg\JsonApiClient\Query\ReadQuery;
+use haddowg\JsonApiClient\Query\RelatedQuery;
 use haddowg\JsonApiClient\Resources\Fetcher;
 use haddowg\JsonApiClient\Resources\Relationship;
 use haddowg\JsonApiClient\Resources\ResourceContext;
@@ -355,6 +356,12 @@ final class Artist extends ArtistBase implements ArtistHasAlbums
         'albums',
     ];
 
+    /**
+     * The Relationship Queries profile, which the client adds to `Accept` only when a read shapes
+     * an included relation.
+     */
+    public const string RELATIONSHIP_QUERIES_PROFILE = 'https://haddowg.github.io/json-api/profiles/relationship-queries/';
+
     /** @var ResourceCollection<Album> */
     public ResourceCollection $albums { get => $this->albums(); }
 
@@ -445,6 +452,214 @@ final class Artist extends ArtistBase implements ArtistHasAlbums
         }
 
         return new ResourceCollection($albums);
+    }
+}
+
+/**
+ * How the `albums` of an `artists` read come back: filtered and sorted by the vocabulary `GET
+ * /artists/{id}/albums` declares, under the Relationship Queries profile. A read's `withAlbums()`
+ * hands one to its closure.
+ *
+ * @phpstan-type ArtistAlbumsRangeShape array{min?: float, max?: float}
+ * @phpstan-type ArtistAlbumsDateRangeShape array{min?: \DateTimeImmutable|string, max?: \DateTimeImmutable|string}
+ * @phpstan-type ArtistAlbumsFilterShape array{tracks?: string, 'artist.name'?: string, title?: string, rating?: ArtistAlbumsRangeShape, releasedAt?: ArtistAlbumsDateRangeShape, q?: string}
+ * @phpstan-type ArtistAlbumsSortToken '-releasedAt'|'-status'|'-title'|'releasedAt'|'status'|'title'
+ *
+ * @generated from the `filter` and `sort` parameters of `GET /artists/{id}/albums`
+ */
+final class ArtistAlbumsRelatedQuery extends RelatedQuery
+{
+    /**
+     * The filters the relation accepts. The runtime guard on both array doors checks names against
+     * this.
+     *
+     * @var list<string>
+     */
+    public const array FILTERS = ['tracks', 'artist.name', 'title', 'rating', 'releasedAt', 'q'];
+
+    /**
+     * The members a structured filter's own value accepts.
+     *
+     * @var array<string, list<string>>
+     */
+    public const array FILTER_MEMBERS = [
+        'rating' => ['min', 'max'],
+        'releasedAt' => ['min', 'max'],
+    ];
+
+    /**
+     * The signed sort tokens the relation accepts.
+     *
+     * @var list<string>
+     */
+    public const array SORT_TOKENS = [
+        'title',
+        '-title',
+        'releasedAt',
+        '-releasedAt',
+        'status',
+        '-status',
+    ];
+
+    /**
+     * Filter by `tracks`.
+     *
+     * @return static
+     */
+    public function whereTracks(string $value): static
+    {
+        return $this->filtering(['tracks' => $value]);
+    }
+
+    /**
+     * Filter by `artist.name`.
+     *
+     * @return static
+     */
+    public function whereArtistName(string $value): static
+    {
+        return $this->filtering(['artist.name' => $value]);
+    }
+
+    /**
+     * Filter by `title`.
+     *
+     * @return static
+     */
+    public function whereTitle(string $value): static
+    {
+        return $this->filtering(['title' => $value]);
+    }
+
+    /**
+     * Filter by `rating`.
+     *
+     * @param ArtistAlbumsRangeShape $range
+     *
+     * @return static
+     */
+    public function whereRating(array $range): static
+    {
+        return $this->filtering(['rating' => $range]);
+    }
+
+    /**
+     * Filter by `releasedAt`.
+     *
+     * @param ArtistAlbumsDateRangeShape $range
+     *
+     * @return static
+     */
+    public function whereReleasedAt(array $range): static
+    {
+        return $this->filtering(['releasedAt' => $range]);
+    }
+
+    /**
+     * Filter by `q`.
+     *
+     * @return static
+     */
+    public function whereQ(string $value): static
+    {
+        return $this->filtering(['q' => $value]);
+    }
+
+    /**
+     * The typed array door: values are checked statically, nested ones included, and names at
+     * runtime.
+     *
+     * @param ArtistAlbumsFilterShape $filter
+     *
+     * @return static
+     *
+     * @throws UnknownFilterException when a name is not one this endpoint filters by
+     */
+    public function filter(array $filter): static
+    {
+        return $this->filtering(self::guardFilters($filter));
+    }
+
+    /**
+     * The loose door, for a filter map assembled at runtime. Nothing is checked statically; the
+     * names are still checked here.
+     *
+     * @param array<string, mixed> $filter
+     *
+     * @return static
+     *
+     * @throws UnknownFilterException when a name is not one this endpoint filters by
+     */
+    public function filterRaw(array $filter): static
+    {
+        return $this->filtering(self::guardFilters($filter));
+    }
+
+    /**
+     * Sort by the endpoint's own tokens, in precedence order. Argument order is precedence, so
+     * nothing is translated between the call and the wire.
+     *
+     * @param ArtistAlbumsSortToken ...$tokens
+     *
+     * @return static
+     */
+    public function sort(string ...$tokens): static
+    {
+        return $this->sorting(\array_values($tokens));
+    }
+
+    /**
+     * The loose sort door, for tokens assembled at runtime, which a literal union can never accept.
+     *
+     * @param list<string> $tokens
+     *
+     * @return static
+     *
+     * @throws UnknownSortException when a token is not one this endpoint sorts by
+     */
+    public function sortRaw(array $tokens): static
+    {
+        foreach ($tokens as $token) {
+            if (!\in_array($token, self::SORT_TOKENS, true)) {
+                throw UnknownSortException::for($token, self::SORT_TOKENS);
+            }
+        }
+
+        return $this->sorting($tokens);
+    }
+
+    /**
+     * @param ArtistAlbumsFilterShape|array<string, mixed> $filter
+     *
+     * @return array<string, mixed>
+     *
+     * @throws UnknownFilterException
+     */
+    private static function guardFilters(array $filter): array
+    {
+        foreach ($filter as $name => $value) {
+            $name = (string) $name;
+
+            if (!\in_array($name, self::FILTERS, true)) {
+                throw UnknownFilterException::for($name, self::FILTERS);
+            }
+
+            $members = self::FILTER_MEMBERS[$name] ?? null;
+
+            if ($members === null || !\is_array($value)) {
+                continue;
+            }
+
+            $qualified = \array_map(static fn(string $member): string => $name . '[' . $member . ']', $members);
+
+            foreach (\array_keys($value) as $member) {
+                if (!\in_array((string) $member, $members, true)) {
+                    throw UnknownFilterException::for($name . '[' . (string) $member . ']', $qualified);
+                }
+            }
+        }
+
+        return $filter;
     }
 }
 
@@ -955,12 +1170,12 @@ final class ArtistHandle
     }
 
     /**
-     * Fetch the artist, shaped by the optional projection: a closure over a fresh projection, or a
-     * prebuilt one.
+     * Fetch the artist, shaped by the optional projection: a closure over a fresh read projection,
+     * which can also filter and sort an included relation, or a prebuilt read or write projection.
      *
      * @template TProj of object
      *
-     * @param (callable(ArtistProjection<ArtistBase>): ArtistProjection<TProj>)|ArtistProjection<TProj>|null $projection
+     * @param (callable(ArtistReadProjection<ArtistBase>): ArtistReadProjection<TProj>)|ArtistProjection<TProj>|ArtistReadProjection<TProj>|null $projection
      *
      * @return ($projection is null ? ArtistBase : ArtistBase&TProj)
      *
@@ -1026,10 +1241,11 @@ final class ArtistHandle
      *         }
      *     }
      */
-    public function get(callable|ArtistProjection|null $projection = null): ArtistBase
+    public function get(callable|ArtistProjection|ArtistReadProjection|null $projection = null): ArtistBase
     {
-        $query = ArtistProjection::resolve($projection);
-        $context = $this->fetcher->read(Request::get($query->appendTo('/artists/' . $this->id)), $query);
+        $query = ArtistReadProjection::resolve($projection);
+        $request = Request::get($query->appendTo('/artists/' . $this->id));
+        $context = $this->fetcher->read($query->relatedQuery === [] ? $request : $request->withProfiles([Artist::RELATIONSHIP_QUERIES_PROFILE]), $query);
         $raw = $context->primary() ?? throw MalformedDocument::missingMember('The artists response', 'data');
 
         /** @var ArtistBase&TProj */
@@ -1210,6 +1426,20 @@ final class ArtistQuery extends Query
     public function __construct(private readonly Fetcher $fetcher) {}
 
     /**
+     * Include the `albums` relation, narrowing the projection so `$artist->albums` type-checks, and
+     * optionally shape how it comes back: the closure filters and sorts it under the Relationship
+     * Queries profile.
+     *
+     * @param (callable(ArtistAlbumsRelatedQuery): ArtistAlbumsRelatedQuery)|null $query
+     *
+     * @return static<TProj&ArtistHasAlbums>
+     */
+    public function withAlbums(?callable $query = null): static
+    {
+        return $this->relating('albums', new ArtistAlbumsRelatedQuery(), $query);
+    }
+
+    /**
      * Filter by `slug`.
      *
      * @return static
@@ -1372,9 +1602,19 @@ final class ArtistQuery extends Query
         return $filter;
     }
 
+    /**
+     * Each profile is negotiated only when a request actually uses a parameter it gates, which is
+     * what `x-profile` on that parameter states.
+     */
     private function request(ReadQuery $query): Request
     {
-        return Request::get($query->appendTo('/artists'));
+        $request = Request::get($query->appendTo('/artists'));
+        $profiles = [];
+        if ($query->relatedQuery !== []) {
+            $profiles[] = Artist::RELATIONSHIP_QUERIES_PROFILE;
+        }
+
+        return $profiles === [] ? $request : $request->withProfiles($profiles);
     }
 
     /**
@@ -1411,6 +1651,67 @@ final class ArtistQuery extends Query
     {
         /** @var TProj */
         return $context->hydrate($raw, Artist::_hydrate(...));
+    }
+}
+
+/**
+ * What a single read of `artists` should bring back: `include` and `fields`, and how an included
+ * relation is filtered and sorted under the Relationship Queries profile.
+ *
+ * Kept apart from the write projection because a write does not accept `relatedQuery`. A write
+ * projection still serves a read, so one built for writes can be reused here.
+ *
+ * @template TProj of object
+ *
+ * @extends Projection<TProj>
+ *
+ * @generated from the `include`, `fields` and `relatedQuery` parameters of `GET /artists/{id}`
+ */
+final class ArtistReadProjection extends Projection
+{
+    /** @use ArtistProjecting<TProj> */
+    use ArtistProjecting;
+
+    /**
+     * Include the `albums` relation, narrowing the projection so `$artist->albums` type-checks, and
+     * optionally shape how it comes back: the closure filters and sorts it under the Relationship
+     * Queries profile.
+     *
+     * @param (callable(ArtistAlbumsRelatedQuery): ArtistAlbumsRelatedQuery)|null $query
+     *
+     * @return static<TProj&ArtistHasAlbums>
+     */
+    public function withAlbums(?callable $query = null): static
+    {
+        return $this->relating('albums', new ArtistAlbumsRelatedQuery(), $query);
+    }
+
+    /**
+     * An empty projection over the unnarrowed resource.
+     *
+     * @return self<ArtistBase>
+     */
+    public static function make(): self
+    {
+        /** @var self<ArtistBase> */
+        return new self();
+    }
+
+    /**
+     * Resolve any projection form, a closure, a prebuilt read projection or a write projection, to
+     * the query parameters the read carries.
+     *
+     * @template T of object
+     *
+     * @param (callable(self<ArtistBase>): self<T>)|self<T>|ArtistProjection<T>|null $projection
+     */
+    public static function resolve(callable|self|ArtistProjection|null $projection): ReadQuery
+    {
+        if ($projection === null) {
+            return new ReadQuery();
+        }
+
+        return ($projection instanceof Projection ? $projection : $projection(self::make()))->toReadQuery();
     }
 }
 

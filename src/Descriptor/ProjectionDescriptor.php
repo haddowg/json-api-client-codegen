@@ -18,9 +18,12 @@ final class ProjectionDescriptor
     /**
      * @param list<string>                $includable include paths, in document order
      * @param array<string, list<string>> $fieldsets  member tokens keyed and sorted by type
+     * @param string|null                 $relatedQuery the Relationship Queries profile, when the
+     *                                                  operation declares `relatedQuery`
      */
     public function __construct(
         public readonly array $includable,
         public readonly array $fieldsets,
+        public readonly ?string $relatedQuery = null,
     ) {}
 }

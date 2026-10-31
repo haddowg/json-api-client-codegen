@@ -128,6 +128,10 @@ final class DescriptorSerializer
             'paginator' => $relation->paginator === null ? null : self::paginator($relation->paginator),
             'countable' => self::countable($relation->countable),
             'pivot' => $relation->pivot,
+            'filterable' => \array_map(static fn(FilterDescriptor $filter): array => [
+                'schema' => self::valueSchema($filter->schema),
+            ], $relation->filterable),
+            'sortable' => $relation->sortable,
             'pivotFields' => \array_map(self::pivotField(...), $relation->pivotFields),
             'writePivotFields' => \array_map(self::pivotField(...), $relation->writePivotFields),
             ...($relation->polymorphic ? ['polymorphic' => true] : []),
@@ -260,6 +264,7 @@ final class DescriptorSerializer
         return $projection === null ? null : [
             'includable' => $projection->includable,
             'fieldsets' => $projection->fieldsets,
+            'relatedQuery' => $projection->relatedQuery,
         ];
     }
 

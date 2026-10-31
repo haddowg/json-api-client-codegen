@@ -90,16 +90,23 @@ final class ReadSources
 
     /**
      * The `withX()`, `with()` and `fields()` methods, for the trait or written inline into a menu
-     * query, whose page template follows the projection through every narrowing.
+     * query, whose page template follows the projection through every narrowing. A relation in
+     * `$relating` gets the `withX()` that takes a Relationship Query closure.
+     *
+     * @param list<string> $relating
      *
      * @return list<string>
      */
-    private function projectingMethods(string $template): array
+    private function projectingMethods(string $template, array $relating = []): array
     {
         $s = $this->surface;
         $value = '$' . $this->variable(false);
         $methods = [];
         foreach ($s->narrowing as $relation) {
+            if (\in_array($relation, $relating, true)) {
+                $methods[] = RelatedQuerySource::withMethod($this->type, $relation, $value, $template);
+                continue;
+            }
             $methods[] = Php::docblock([
                 ...Php::wrap(\sprintf('Include the `%s` relation, narrowing the projection so `%s->%s` type-checks.', $relation, $value, Naming::member($relation)), 4),
                 '',
@@ -198,6 +205,68 @@ final class ReadSources
         );
     }
 
+    /**
+     * The projection a single read takes when it can shape an included relation: the write
+     * projection's `include` and `fields`, plus the Relationship Query closures a write must not
+     * send.
+     */
+    public function readProjection(): ClassUnit
+    {
+        $s = $this->surface;
+        $name = $s->name('ReadProjection');
+        $fetchOne = $s->descriptor->operation(\haddowg\JsonApiCodegen\Descriptor\OperationKind::FetchOne);
+        $source = $fetchOne === null ? $this->type : $fetchOne->method . ' ' . $fetchOne->path;
+
+        $doc = [
+            ...Php::wrap(\sprintf('What a single read of `%s` should bring back: `include` and `fields`, and how an included relation is filtered and sorted under the Relationship Queries profile.', $this->type)),
+            '',
+            ...Php::wrap('Kept apart from the write projection because a write does not accept `relatedQuery`. A write projection still serves a read, so one built for writes can be reused here.'),
+            '',
+            '@template TProj of object',
+            '',
+            '@extends Projection<TProj>',
+            '',
+            '@generated from the `include`, `fields` and `relatedQuery` parameters of `' . $source . '`',
+        ];
+
+        $body = $s->trait() ? '    /** @use ' . $s->name('Projecting') . "<TProj> */\n    use " . $s->name('Projecting') . ";\n\n" : '';
+        foreach ($s->readRelating as $relation) {
+            $body .= RelatedQuerySource::withMethod($this->type, $relation->name, '$' . $this->variable(false), '') . "\n";
+        }
+        $projection = $s->name('Projection');
+        $accepts = $s->projection ? '|' . $projection . '<T>' : '';
+        $body .= Php::docblock(['An empty projection over the unnarrowed resource.', '', '@return self<' . $s->base . '>'], 4)
+            . "    public static function make(): self\n"
+            . "    {\n"
+            . '        /** @var self<' . $s->base . "> */\n"
+            . "        return new self();\n"
+            . "    }\n"
+            . "\n"
+            . Php::docblock([
+                ...Php::wrap('Resolve any projection form, a closure, a prebuilt read projection or a write projection, to the query parameters the read carries.', 4),
+                '',
+                '@template T of object',
+                '',
+                '@param (callable(self<' . $s->base . '>): self<T>)|self<T>' . $accepts . '|null $projection',
+            ], 4)
+            . '    public static function resolve(callable|self' . ($s->projection ? '|' . $projection : '') . "|null \$projection): ReadQuery\n"
+            . "    {\n"
+            . "        if (\$projection === null) {\n"
+            . "            return new ReadQuery();\n"
+            . "        }\n"
+            . "\n"
+            . "        return (\$projection instanceof Projection ? \$projection : \$projection(self::make()))->toReadQuery();\n"
+            . "    }\n";
+
+        return new ClassUnit(
+            $name,
+            UnitKind::FinalClass,
+            $s->file,
+            Php::docblock($doc, 0, false) . 'final class ' . $name . " extends Projection\n{\n" . $body . "}\n",
+            [self::RUNTIME . 'Query\\Projection', self::RUNTIME . 'Query\\ReadQuery'],
+        );
+    }
+
     public function query(): ClassUnit
     {
         $s = $this->surface;
@@ -223,10 +292,16 @@ final class ReadSources
 
         $aliases = [];
         $members = [];
+        $relating = \array_map(static fn($relation): string => $relation->name, $s->queryRelating);
         if ($s->menu() && $s->queryProjects && $s->projects()) {
-            \array_push($members, ...$this->projectingMethods(', TPage'));
+            \array_push($members, ...$this->projectingMethods(', TPage', $relating));
             if ($s->fields !== null) {
                 $imports[] = self::RUNTIME . 'Exceptions\\UnknownFieldException';
+            }
+        }
+        if (!$s->menu()) {
+            foreach ($s->queryRelating as $relation) {
+                $members[] = RelatedQuerySource::withMethod($this->type, $relation->name, '$' . $this->variable(false), '');
             }
         }
         foreach ($s->filters as $filter) {
@@ -234,17 +309,17 @@ final class ReadSources
                 continue;
             }
             \array_push($aliases, ...$filter->type->aliases);
-            $members[] = $this->where($filter);
+            $members[] = self::where($filter);
         }
         if ($s->filters !== []) {
             $imports[] = self::RUNTIME . 'Exceptions\\UnknownFilterException';
             $aliases[] = $s->alias('FilterShape');
-            $members[] = $this->filterDoors();
+            $members[] = self::filterDoors($s->alias('FilterShape'));
         }
         if ($s->sortable !== []) {
             $imports[] = self::RUNTIME . 'Exceptions\\UnknownSortException';
             $aliases[] = $s->alias('SortToken');
-            $members[] = $this->sortDoors();
+            $members[] = self::sortDoors($s->alias('SortToken'), $s->resource);
         }
         if ($s->countable !== null) {
             $aliases[] = $s->alias('CountToken');
@@ -260,7 +335,7 @@ final class ReadSources
         $members[] = $this->terminals($throws, ExampleTag::lines($collection->examples), $collection->scopes);
 
         if ($s->filters !== []) {
-            $members[] = $this->guardFilters();
+            $members[] = self::guardFilters($s->alias('FilterShape'), $s->resource, $s->structuredFilters());
         }
         $members[] = $this->request($collection->path);
         $members[] = $this->collect();
@@ -385,6 +460,15 @@ final class ReadSources
             );
         }
 
+        if ($s->relatedQueryProfile !== null) {
+            $constants[] = self::constant(
+                ['The Relationship Queries profile, which the client adds to `Accept` only when a read shapes an included relation.'],
+                'string',
+                'RELATIONSHIP_QUERIES_PROFILE',
+                Php::string($s->relatedQueryProfile),
+            );
+        }
+
         if ($tags === [] && $constants === []) {
             return null;
         }
@@ -392,7 +476,7 @@ final class ReadSources
         return new Contribution($s->resource, ReadsEmitter::ORDER, $tags, \implode("\n", $constants));
     }
 
-    private function where(FilterSlot $filter): string
+    public static function where(FilterSlot $filter): string
     {
         $param = $filter->shape !== null && $filter->shape->range ? '$range' : '$value';
         $doc = [\sprintf('Filter by `%s`.', $filter->name), ''];
@@ -409,10 +493,8 @@ final class ReadSources
             . "    }\n";
     }
 
-    private function filterDoors(): string
+    public static function filterDoors(string $shape): string
     {
-        $shape = $this->surface->alias('FilterShape');
-
         return Php::docblock([
             ...Php::wrap('The typed array door: values are checked statically, nested ones included, and names at runtime.', 4),
             '',
@@ -442,14 +524,15 @@ final class ReadSources
             . "    }\n";
     }
 
-    private function sortDoors(): string
+    /**
+     * @param string $owner the class whose `SORT_TOKENS` the loose door checks against
+     */
+    public static function sortDoors(string $tokenAlias, string $owner): string
     {
-        $s = $this->surface;
-
         return Php::docblock([
             ...Php::wrap('Sort by the endpoint\'s own tokens, in precedence order. Argument order is precedence, so nothing is translated between the call and the wire.', 4),
             '',
-            '@param ' . $s->alias('SortToken') . ' ...$tokens',
+            '@param ' . $tokenAlias . ' ...$tokens',
             '',
             '@return static',
         ], 4)
@@ -470,8 +553,8 @@ final class ReadSources
             . "    public function sortRaw(array \$tokens): static\n"
             . "    {\n"
             . "        foreach (\$tokens as \$token) {\n"
-            . '            if (!\in_array($token, ' . $s->resource . "::SORT_TOKENS, true)) {\n"
-            . '                throw UnknownSortException::for($token, ' . $s->resource . "::SORT_TOKENS);\n"
+            . '            if (!\in_array($token, ' . $owner . "::SORT_TOKENS, true)) {\n"
+            . '                throw UnknownSortException::for($token, ' . $owner . "::SORT_TOKENS);\n"
             . "            }\n"
             . "        }\n"
             . "\n"
@@ -781,26 +864,28 @@ final class ReadSources
             . "    }\n";
     }
 
-    private function guardFilters(): string
+    /**
+     * @param string $owner the class whose `FILTERS` and `FILTER_MEMBERS` the guard checks against
+     */
+    public static function guardFilters(string $shape, string $owner, bool $structured): string
     {
-        $s = $this->surface;
         $doc = Php::docblock([
-            '@param ' . $s->alias('FilterShape') . '|array<string, mixed> $filter',
+            '@param ' . $shape . '|array<string, mixed> $filter',
             '',
             '@return array<string, mixed>',
             '',
             '@throws UnknownFilterException',
         ], 4);
 
-        if (!$s->structuredFilters()) {
+        if (!$structured) {
             return $doc
                 . "    private static function guardFilters(array \$filter): array\n"
                 . "    {\n"
                 . "        foreach (\\array_keys(\$filter) as \$name) {\n"
                 . "            \$name = (string) \$name;\n"
                 . "\n"
-                . '            if (!\in_array($name, ' . $s->resource . "::FILTERS, true)) {\n"
-                . '                throw UnknownFilterException::for($name, ' . $s->resource . "::FILTERS);\n"
+                . '            if (!\in_array($name, ' . $owner . "::FILTERS, true)) {\n"
+                . '                throw UnknownFilterException::for($name, ' . $owner . "::FILTERS);\n"
                 . "            }\n"
                 . "        }\n"
                 . "\n"
@@ -814,11 +899,11 @@ final class ReadSources
             . "        foreach (\$filter as \$name => \$value) {\n"
             . "            \$name = (string) \$name;\n"
             . "\n"
-            . '            if (!\in_array($name, ' . $s->resource . "::FILTERS, true)) {\n"
-            . '                throw UnknownFilterException::for($name, ' . $s->resource . "::FILTERS);\n"
+            . '            if (!\in_array($name, ' . $owner . "::FILTERS, true)) {\n"
+            . '                throw UnknownFilterException::for($name, ' . $owner . "::FILTERS);\n"
             . "            }\n"
             . "\n"
-            . '            $members = ' . $s->resource . "::FILTER_MEMBERS[\$name] ?? null;\n"
+            . '            $members = ' . $owner . "::FILTER_MEMBERS[\$name] ?? null;\n"
             . "\n"
             . "            if (\$members === null || !\\is_array(\$value)) {\n"
             . "                continue;\n"
@@ -840,20 +925,46 @@ final class ReadSources
     private function request(string $path): string
     {
         $s = $this->surface;
+        $profiles = [];
+        if ($s->countable !== null) {
+            $profiles[] = ['$query->withCount', 'COUNTABLE_PROFILE'];
+        }
+        if ($s->queryRelating !== []) {
+            $profiles[] = ['$query->relatedQuery', 'RELATIONSHIP_QUERIES_PROFILE'];
+        }
 
-        if ($s->countable === null) {
+        if ($profiles === []) {
             return "    private function request(ReadQuery \$query): Request\n"
                 . "    {\n"
                 . '        return Request::get($query->appendTo(' . Php::string($path) . "));\n"
                 . "    }\n";
         }
 
-        return Php::docblock(Php::wrap('The Countable profile is negotiated only when a request actually uses a `withCount` parameter, which is what `x-profile` on that parameter states.', 4), 4)
+        if (\count($profiles) === 1 && $profiles[0][1] === 'COUNTABLE_PROFILE') {
+            return Php::docblock(Php::wrap('The Countable profile is negotiated only when a request actually uses a `withCount` parameter, which is what `x-profile` on that parameter states.', 4), 4)
+                . "    private function request(ReadQuery \$query): Request\n"
+                . "    {\n"
+                . '        $request = Request::get($query->appendTo(' . Php::string($path) . "));\n"
+                . "\n"
+                . '        return $query->withCount === [] ? $request : $request->withProfiles([' . $s->resource . "::COUNTABLE_PROFILE]);\n"
+                . "    }\n";
+        }
+
+        $body = '';
+        foreach ($profiles as [$member, $constant]) {
+            $body .= '        if (' . $member . " !== []) {\n"
+                . '            $profiles[] = ' . $s->resource . '::' . $constant . ";\n"
+                . "        }\n";
+        }
+
+        return Php::docblock(Php::wrap('Each profile is negotiated only when a request actually uses a parameter it gates, which is what `x-profile` on that parameter states.', 4), 4)
             . "    private function request(ReadQuery \$query): Request\n"
             . "    {\n"
             . '        $request = Request::get($query->appendTo(' . Php::string($path) . "));\n"
+            . "        \$profiles = [];\n"
+            . $body
             . "\n"
-            . '        return $query->withCount === [] ? $request : $request->withProfiles([' . $s->resource . "::COUNTABLE_PROFILE]);\n"
+            . "        return \$profiles === [] ? \$request : \$request->withProfiles(\$profiles);\n"
             . "    }\n";
     }
 
@@ -963,7 +1074,7 @@ final class ReadSources
     /**
      * @param list<string> $lines
      */
-    private static function constant(array $lines, string $type, string $name, string $value): string
+    public static function constant(array $lines, string $type, string $name, string $value): string
     {
         $wrapped = [];
         foreach ($lines as $line) {
@@ -979,7 +1090,7 @@ final class ReadSources
      *
      * @param list<string> $values
      */
-    private static function list(array $values, string $name): string
+    public static function list(array $values, string $name): string
     {
         $inline = '[' . \implode(', ', \array_map(Php::string(...), $values)) . ']';
         if (\strlen('    public const array ' . $name . ' = ' . $inline . ';') <= 100) {
@@ -994,7 +1105,7 @@ final class ReadSources
      *
      * @param list<string> $values
      */
-    private static function union(array $values): string
+    public static function union(array $values): string
     {
         $values = \array_values(\array_unique($values));
         \sort($values, \SORT_STRING);

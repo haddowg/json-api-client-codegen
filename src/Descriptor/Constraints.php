@@ -8,7 +8,7 @@ namespace haddowg\JsonApiCodegen\Descriptor;
  * The validation keywords one schema declares, read where they stand.
  *
  * Generator contract 5 projects a constraint only into a schema whose every value satisfies it
- * (core ADR 0155), so the read, create and update schemas of one attribute can carry different
+ *, so the read, create and update schemas of one attribute can carry different
  * keywords, and each is read from its own schema. That guarantee is what lets an emitter narrow
  * a generated type from them: a bound the server enforces on every write is a bound every read
  * returns.

@@ -23,7 +23,7 @@ namespace haddowg\JsonApiCodegen\Descriptor;
  * no single related type's collection speaks for the union.
  *
  * The related and relationship reads carry their own paths, which from contract 8 use the
- * relation's URI field name and so may differ from `$name` (core ADR 0161).
+ * relation's URI field name and so may differ from `$name`.
  *
  * `$polymorphic` says the relation's linkage is a union of identifiers, which is how a `MorphTo`
  * or `MorphToMany` is projected. From contract 16 that holds even with one member, so it is read

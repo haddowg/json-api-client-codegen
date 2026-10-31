@@ -23,7 +23,7 @@ use PHPUnit\Framework\TestCase;
 
 /**
  * Generator contract 14 lists the links a type declares as named properties of its
- * `<Type>ResourceLinks` (core ADR 0178), which from contract 18 holds them in the second entry of
+ * `<Type>ResourceLinks`, which from contract 18 holds them in the second entry of
  * an `allOf`. The witness's `images` declares a link object,
  * `download`, with two static members and three meta members, and a bare link, `thumbnail`.
  */

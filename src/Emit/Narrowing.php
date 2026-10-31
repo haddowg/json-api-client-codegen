@@ -15,7 +15,7 @@ use haddowg\JsonApiCodegen\Descriptor\Constraints;
  * least 1 becomes `non-empty-string`, and a `minItems` of at least 1 becomes `non-empty-list`.
  * Every other keyword is written as a sentence for the reader, because a type that claimed it
  * would be a type the generated code cannot honour. Nothing here is checked at runtime: contract 5
- * projects a constraint only where every value satisfies it (core ADR 0155), so the narrowed type
+ * projects a constraint only where every value satisfies it, so the narrowed type
  * is the server's guarantee rather than the client's check.
  */
 final class Narrowing

@@ -134,7 +134,7 @@ final class SpecDocument
      *
      * That is the node's own `$ref`, or the one inside a single-entry `allOf` that holds nothing
      * else. Contract 9 writes a `$ref` carrying an `example`, `examples` or `default` that way
-     * (core ADR 0165), with those keywords beside the `allOf`, so both forms are one reference.
+     *, with those keywords beside the `allOf`, so both forms are one reference.
      */
     public function reference(Node $schema): ?Node
     {

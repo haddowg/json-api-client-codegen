@@ -9,11 +9,14 @@ inside the runtime. It mirrors the split of `@haddowg/json-api-client` and
 
 ## Where the design lives
 
-`../json-api-client/CONTEXT.md` is the authority on **what** gets generated and why: every
-resolved decision about the emitted surface, the glossary, the server prerequisites, and the
-`json-api-ts` consistency list. Its ADRs carry the rationale for the hard-to-reverse ones.
+The runtime repo is the authority on **what** gets generated:
+`../json-api-client/docs/generated-client.md` describes the emitted surface,
+`docs/server-prerequisites.md` what it needs from the server, `docs/json-api-ts-consistency.md`
+where it deliberately differs from the TypeScript client, and its `docs/adr/` why. This repo's
+`docs/generated-client.md` and `docs/adr/` cover how the codegen reads the document, and
+`CONTEXT.md` its terms (linking core's and the runtime's glossaries).
 
-Read it before changing an emitter. Several of its decisions rule out designs that look
+Read the runtime's docs before changing an emitter. Several of its decisions rule out designs that look
 obviously correct, and each was verified against PHPStan level 9 rather than reasoned about.
 
 ## Gates (all green before anything lands)
@@ -41,7 +44,7 @@ by accident is a broken emitter.
   release-please drives versioning, so a non-conforming title breaks the release. PR
   descriptions read as external-contributor prose. Follow `~/.claude/references/commits.md` and
   `~/.claude/references/pull-requests.md`. Rebase with `--force-with-lease`.
-- Record architecture decisions as ADRs under `docs/adr/`.
+- Record architecture decisions as ADRs under `docs/adr/`, following [`docs/adr/ADR-FORMAT.md`](docs/adr/ADR-FORMAT.md).
 
 ## What this codegen assumes
 
@@ -61,79 +64,12 @@ the projector whenever the emitted structure changes. This codegen declares a su
 this is the only thing that catches it. A feature-token list was rejected: it names what
 changed, at the cost of two hand-maintained lists that must agree.
 
-The supported range is `[1, 18]`. Contract 2 (json-api 1.1.0) added the error catalogue, shared
-error responses and write-side `include`/`fields`; the descriptor reads the first into `errors`,
-and the last into each operation's `projection`. Contract 3 added `x-paginator` on page schemas,
-which the descriptor reads into each `PaginatorDescriptor`: the strategy, its role-to-key map, and
-for a menu its arms and default (ADR 0002). Contract 4 (json-api 1.3.0) gave each error code a
-`description` and sometimes an example `detail`; both are read into its `ErrorCodeDescriptor` and
-written into the docblock of any code class this codegen emits. Contract 5 (json-api 1.5.0)
-projects each constraint only into the schemas it holds for, admits `null` on a read attribute
-unless the server guarantees a value, puts a `default` and a size cap on page members, and drops
-write-only relations from the read schemas. The descriptor reads the constraints of every
-attribute, value schema and page member, and the write-only relations from the write documents;
-the emitters narrow PHPDoc types from them (ADR 0003). Contract 6 (json-api 1.5.1) lists the
-members a nested read object always renders in its `required`, which the nested shapes already
-honoured, so nested read members lose their `?`. Contract 7 (json-api 1.6.0) renders built links as
-link objects described per context; generated code passes `links` to the runtime, which reads
-`href` from either form, so no links component is read, and an action body naming a type the
-document does not describe is an error by pointer (ADR 0004). Contract 8 (json-api 1.7.0) splits a
-pivot's `meta.pivot` into a response and a request schema, keys a relation's paths by its URI
-field name, and marks a write-only relation `writeOnly` in the write bodies. The descriptor reads
-both pivot schemas, generating typed pivot reads from the first and the edge builder from the
-second, finds a relation's endpoints by operationId, and keeps a relation marked `writeOnly` off
-the read model (ADR 0005). Contract 9 writes a `$ref` that carries an `example`, `examples` or
-`default` as a single-entry `allOf` holding only the `$ref`, gives every endpoint document its own
-links component, and answers a to-many related read with a per-relation `<Type><Rel>RelatedCollection`.
-The reader takes the wrapper as the `$ref` wherever it resolves a schema, so an enum attribute keeps
-its enum type; the rest needs no reader change (ADR 0006). Contract 10 (json-api 1.11.0) lets an
-action answer in media types other than JSON:API, listed beside or instead of
-`application/vnd.api+json` under its success `content`, and only a document that declares one
-carries it. The descriptor reads each as binary, text or JSON, and the action's method takes
-`$accept` with a conditional return type: a stream, a string, or a value class generated from an
-object schema (ADR 0008). Contract 11 (json-api 1.12.0) lets an action accept several request bodies under its
-`requestBody.content`, and only a document that declares one carries it. The choice by
-`$contentType` was already read; a `multipart/form-data` or `application/x-www-form-urlencoded`
-body is now a field array that the runtime encodes, boundary included, rather than bytes (ADR 0009),
-narrowed to an array shape when its schema lists `properties` (ADR 0010). Contract 12 (json-api
-1.13.0) puts a worked `example` on each operation's JSON:API request body and success responses,
-and only a document that carries one is stamped with it. The descriptor reads them into each
-operation's and action's `examples`, a raw media type keeps its own `example`, and a generated
-method's docblock quotes the request example, else the first response's, as an `@example` of at
-most 60 lines (ADR 0011). Contract 13 (json-api 1.13.1) gives every core error code an example
-`detail`, read since contract 4, and is on every document because the error components are shared.
-Contract 14 lists the links a type declares as named properties of its `<Type>ResourceLinks`, and
-only a document whose types declare one is stamped with it. The descriptor reads them into each
-type's `links`, and the resource base gets `_declaredLinks()`, which returns a `<Type>Links` with
-one typed accessor per link: a link object's class carries its static members and a typed `meta`,
-and a bare link reads as its URL (ADR 0012). Contract 15 gives each method of a multi-method action
-its own operation id, stamps an action's declared safety as `x-safety`, and lets an action carry its
-own vendor extensions, each only on a document that uses it. Each method becomes its own action.
-The preferred one, POST else the first advertised, keeps the action's name and each other one is
-keyed with the method as a suffix, as the TypeScript codegen does: `export` and `exportGet`, or
-`bulk-import-put` for a dashed name, generated as `bulkImportPut()`. Methods sharing one id, as in
-an older document, still give only the preferred one. The declared `readOnly`, `destructive` and
-`idempotent` flags are read into the action's `safety` and stated in its docblock. Vendor extensions
-are not read (ADR 0013). Contract 16 lists the OAuth scopes an operation needs in its `security`,
-under the document's `oauth2` scheme, and projects a polymorphic relation over one type as a
-one-member `anyOf` rather than a plain `$ref`, each only on a document that uses it. The scopes
-are read into the `scopes` of each operation, action and the atomic endpoint, null when there are
-none, and each generated method's docblock names them (ADR 0015). A relation whose linkage is a
-union is marked `polymorphic` whatever its member count, so a single-type `MorphTo` hydrates its
-related resources by `type` exactly as a multi-type one does (ADR 0014).
-Contract 17 lets an action declaring `SeeOther` with a media type answer a JSON:API request with
-a `200` location document, the URL in its top-level `links.location`, stamped only where an action
-does. The declared media type is read into the action's `locationType`, and the generated method
-returns the runtime's `ActionLocation`, or a union of it with the action's other result when the
-`200` is a `oneOf`, never following the URL. A bare `SeeOther` documents only its `303` and
-generates as before (ADR 0016).
-Contract 18 shares one links component per context and drops the per-type and per-relation ones.
-A type with named links points at a `<Type>ResourceLinks` that is an `allOf` of the shared
-`ResourceLinks` and an object holding them; every other type points at `ResourceLinks` itself.
-The descriptor reads declared links from either that `allOf` or the older flat component, and
-nothing else here read a links component, so the generated output is unchanged (ADR 0017).
-Raise `MAXIMUM` only in the change that
-teaches the descriptor to read whatever the next contract adds.
+The supported range is `ContractCompatibility::MINIMUM` to `MAXIMUM`, currently `[1, 18]`.
+Raise `MAXIMUM` only in the change that teaches the descriptor to read whatever the next contract
+adds, and record a hard-to-reverse reading decision as an ADR. **Don't record contract history**
+here, in the README, in docs or in a docblock ("contract 12 added…", "from contract 14…"):
+describe what the descriptor reads now. The server's changelog says what each release added, and
+the ADRs say why the descriptor reads it the way it does.
 
 **Pagination warns rather than errors.** An unknown strategy, an unstamped member set outside the
 canonical names, or an unstamped menu generates the endpoint unpaginated and reports a warning
@@ -161,12 +97,16 @@ through `Generator::warnings()`. This is the one deliberate exception to "unread
   at build time and route the colliding member through a fallback.
 - Reserved accessors take a **leading underscore**, which JSON:API guarantees can never begin a
   member name. See ADR 0002 in the runtime repo.
+- **A document string reaches generated PHP through one helper per position**: `Php::string()`
+  for a literal, `Php::docblock()`/`Php::comment()` (or `Php::docString()`/`Php::docKey()` for a
+  literal type or shape key) inside a docblock, and `Identifier` before it becomes a name. Never
+  escape at the call site.
 
 ## Working with the siblings
 
 `../json-api-client` is where the generated code's runtime lives, so a change to an emitted
 shape lands in both repos together. `../json-api` and its adapters emit the documents this
 reads; a structure this codegen needs but cannot find is usually a projector gap, and
-`CONTEXT.md` lists the outstanding ones. `../json-api-ts` is the other codegen: its descriptor
+`../json-api-client/docs/server-prerequisites.md` lists the outstanding ones. `../json-api-ts` is the other codegen: its descriptor
 model is worth reading before inventing a new one, and any divergence is either deliberate and
 recorded or an issue to raise there.

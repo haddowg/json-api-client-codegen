@@ -22,8 +22,9 @@ use haddowg\JsonApiCodegen\Emit\UnitKind;
  * to the transport's options, so a response carrying one of those codes is thrown as its class.
  * When it catalogues none, the client does not mention error codes at all.
  *
- * `atomic()` is not generated. CONTEXT.md gates it on the server advertising the atomic `ext`
- * media type, and the runtime has no transaction API for it to return yet; until it does, an
+ * `atomic()` is not generated. The runtime's generated-client docs gate it on the server
+ * advertising the atomic `ext` media type, and the runtime has no transaction API for it to
+ * return yet; until it does, an
  * `atomic()` here would have nothing to call.
  */
 final class ClientEmitter implements Emitter

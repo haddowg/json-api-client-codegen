@@ -9,11 +9,14 @@ inside the runtime. It mirrors the split of `@haddowg/json-api-client` and
 
 ## Where the design lives
 
-`../json-api-client/CONTEXT.md` is the authority on **what** gets generated and why: every
-resolved decision about the emitted surface, the glossary, the server prerequisites, and the
-`json-api-ts` consistency list. Its ADRs carry the rationale for the hard-to-reverse ones.
+The runtime repo is the authority on **what** gets generated:
+`../json-api-client/docs/generated-client.md` describes the emitted surface,
+`docs/server-prerequisites.md` what it needs from the server, `docs/json-api-ts-consistency.md`
+where it deliberately differs from the TypeScript client, and its `docs/adr/` why. This repo's
+`docs/generated-client.md` and `docs/adr/` cover how the codegen reads the document, and
+`CONTEXT.md` its terms (linking core's and the runtime's glossaries).
 
-Read it before changing an emitter. Several of its decisions rule out designs that look
+Read the runtime's docs before changing an emitter. Several of its decisions rule out designs that look
 obviously correct, and each was verified against PHPStan level 9 rather than reasoned about.
 
 ## Gates (all green before anything lands)
@@ -104,6 +107,6 @@ through `Generator::warnings()`. This is the one deliberate exception to "unread
 `../json-api-client` is where the generated code's runtime lives, so a change to an emitted
 shape lands in both repos together. `../json-api` and its adapters emit the documents this
 reads; a structure this codegen needs but cannot find is usually a projector gap, and
-`CONTEXT.md` lists the outstanding ones. `../json-api-ts` is the other codegen: its descriptor
+`../json-api-client/docs/server-prerequisites.md` lists the outstanding ones. `../json-api-ts` is the other codegen: its descriptor
 model is worth reading before inventing a new one, and any divergence is either deliberate and
 recorded or an issue to raise there.

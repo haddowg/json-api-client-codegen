@@ -135,22 +135,6 @@ final class ReadSurface
         $this->relatedQueryProfile = $this->queryRelating !== [] ? $queryProjection?->relatedQuery : ($this->readRelating !== [] ? $fetchOne?->relatedQuery : null);
     }
 
-    /**
-     * Every relation that can be shaped with a Relationship Query, the query's and the single
-     * read's together, each once.
-     *
-     * @return list<RelationDescriptor>
-     */
-    public function relating(): array
-    {
-        $out = [];
-        foreach ([...$this->queryRelating, ...$this->readRelating] as $relation) {
-            $out[$relation->name] = $relation;
-        }
-
-        return \array_values($out);
-    }
-
     /** Whether the single read gets its own projection, carrying the Relationship Query closures. */
     public function readProjection(): bool
     {

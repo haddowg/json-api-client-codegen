@@ -2189,11 +2189,12 @@ final class AlbumTracksRelation
     }
 
     /**
-     * The tracks themselves, a page at a time.
+     * The tracks themselves, a page at a time, optionally filtered and sorted by the relation's own
+     * vocabulary: the closure gets a fresh {@see AlbumTracksRelatedQuery}.
      *
-     * The endpoint also advertises `filter`, `sort`, `include`, `fields` and `withCount`. Those
-     * need a query builder scoped to the relation, which is a generated class this artefact does
-     * not carry — see the README.
+     * The endpoint also advertises `include`, `fields` and `withCount`, which this does not send.
+     *
+     * @param (callable(AlbumTracksRelatedQuery): AlbumTracksRelatedQuery)|null $query
      *
      * @return PaginatedCollection<Track, PageNumber>
      *
@@ -2205,9 +2206,11 @@ final class AlbumTracksRelation
      * @throws ServerError        when the server fails
      * @throws TransportException when no response is received at all
      */
-    public function related(): PaginatedCollection
+    public function related(?callable $query = null): PaginatedCollection
     {
-        return $this->resources($this->fetcher->read(Request::get('/albums/' . $this->id . '/tracks')));
+        $read = $query === null ? new ReadQuery() : $query(new AlbumTracksRelatedQuery())->toReadQuery();
+
+        return $this->resources($this->fetcher->read(Request::get($read->appendTo('/albums/' . $this->id . '/tracks')), $read));
     }
 
     /**

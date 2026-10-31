@@ -12,8 +12,9 @@ use haddowg\JsonApiCodegen\Emit\Php;
 use haddowg\JsonApiCodegen\Emit\UnitKind;
 
 /**
- * A Relationship Query: how an included to-many comes back from a primary read, filtered and
- * sorted by the vocabulary its own related read declares (`AlbumTracksRelatedQuery`).
+ * A Relationship Query: how a to-many comes back, filtered and sorted by the vocabulary its own
+ * related read declares (`AlbumTracksRelatedQuery`). An included relation sends it under the
+ * Relationship Queries profile; the relation's `related()` sends it as plain `filter` and `sort`.
  *
  * The class carries that vocabulary itself, as its constants and class-local aliases, because it is
  * the relation's rather than the parent type's or the related type's: a relation's endpoint may
@@ -75,7 +76,7 @@ final class RelatedQuerySource
         $endpoint = $relation->relatedRead === null ? '' : $relation->relatedRead->method . ' ' . $relation->relatedRead->path;
 
         $doc = [
-            ...Php::wrap(\sprintf('How the `%s` of %s `%s` read come back: filtered and sorted by the vocabulary `%s` declares, under the Relationship Queries profile. A read\'s `%s()` hands one to its closure.', $relation->name, \in_array(\strtolower($type[0]), ['a', 'e', 'i', 'o', 'u'], true) ? 'an' : 'a', $type, $endpoint, Naming::includeMethod($relation->name))),
+            ...Php::wrap(\sprintf('How the `%s` of %s `%s` resource come back: filtered and sorted by the vocabulary `%s` declares. A read\'s `%s()` sends it under the Relationship Queries profile, and the relation\'s `related()` as that endpoint\'s own `filter` and `sort`.', $relation->name, \in_array(\strtolower($type[0]), ['a', 'e', 'i', 'o', 'u'], true) ? 'an' : 'a', $type, $endpoint, Naming::includeMethod($relation->name))),
             '',
         ];
         foreach ($shapes as $shape) {

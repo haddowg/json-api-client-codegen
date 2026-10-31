@@ -3558,6 +3558,86 @@ final class ArticleHandle
 }
 
 /**
+ * How the `locked` of an `articles` resource come back: filtered and sorted by the vocabulary `GET
+ * /articles/{id}/locked` declares. A read's `withLocked()` sends it under the Relationship Queries
+ * profile, and the relation's `related()` as that endpoint's own `filter` and `sort`.
+ *
+ * @phpstan-type ArticleLockedFilterShape array{name?: string}
+ *
+ * @generated from the `filter` and `sort` parameters of `GET /articles/{id}/locked`
+ */
+final class ArticleLockedRelatedQuery extends RelatedQuery
+{
+    /**
+     * The filters the relation accepts. The runtime guard on both array doors checks names against
+     * this.
+     *
+     * @var list<string>
+     */
+    public const array FILTERS = ['name'];
+
+    /**
+     * Filter by `name`.
+     *
+     * @return static
+     */
+    public function whereName(string $value): static
+    {
+        return $this->filtering(['name' => $value]);
+    }
+
+    /**
+     * The typed array door: values are checked statically, nested ones included, and names at
+     * runtime.
+     *
+     * @param ArticleLockedFilterShape $filter
+     *
+     * @return static
+     *
+     * @throws UnknownFilterException when a name is not one this endpoint filters by
+     */
+    public function filter(array $filter): static
+    {
+        return $this->filtering(self::guardFilters($filter));
+    }
+
+    /**
+     * The loose door, for a filter map assembled at runtime. Nothing is checked statically; the
+     * names are still checked here.
+     *
+     * @param array<string, mixed> $filter
+     *
+     * @return static
+     *
+     * @throws UnknownFilterException when a name is not one this endpoint filters by
+     */
+    public function filterRaw(array $filter): static
+    {
+        return $this->filtering(self::guardFilters($filter));
+    }
+
+    /**
+     * @param ArticleLockedFilterShape|array<string, mixed> $filter
+     *
+     * @return array<string, mixed>
+     *
+     * @throws UnknownFilterException
+     */
+    private static function guardFilters(array $filter): array
+    {
+        foreach (\array_keys($filter) as $name) {
+            $name = (string) $name;
+
+            if (!\in_array($name, self::FILTERS, true)) {
+                throw UnknownFilterException::for($name, self::FILTERS);
+            }
+        }
+
+        return $filter;
+    }
+}
+
+/**
  * The `locked` relationship of one article. `get()` reads the linkage and `related()` reads the
  * related resources; any read the server switched off is absent. No write is advertised, so none is
  * generated.
@@ -3620,9 +3700,12 @@ final class ArticleLockedRelation
     }
 
     /**
-     * The related resources themselves, a page at a time.
+     * The related resources themselves, a page at a time, optionally filtered and sorted by the
+     * relation's own vocabulary: the closure gets a fresh {@see ArticleLockedRelatedQuery}.
      *
      * Needs an access token granting the `articles:read` scope.
+     *
+     * @param (callable(ArticleLockedRelatedQuery): ArticleLockedRelatedQuery)|null $query
      *
      * @return PaginatedCollection<People, PageNumber>
      *
@@ -3634,9 +3717,11 @@ final class ArticleLockedRelation
      * @throws ServerError        when the server fails
      * @throws TransportException when no response is received at all
      */
-    public function related(): PaginatedCollection
+    public function related(?callable $query = null): PaginatedCollection
     {
-        return $this->resources($this->fetcher->read(Request::get('/articles/' . $this->id . '/locked')));
+        $read = $query === null ? new ReadQuery() : $query(new ArticleLockedRelatedQuery())->toReadQuery();
+
+        return $this->resources($this->fetcher->read(Request::get($read->appendTo('/articles/' . $this->id . '/locked')), $read));
     }
 
     /**
@@ -4569,9 +4654,9 @@ final class ArticleTagsPivot extends Pivot
 }
 
 /**
- * How the `tags` of an `articles` read come back: filtered and sorted by the vocabulary `GET
- * /articles/{id}/tags` declares, under the Relationship Queries profile. A read's `withTags()`
- * hands one to its closure.
+ * How the `tags` of an `articles` resource come back: filtered and sorted by the vocabulary `GET
+ * /articles/{id}/tags` declares. A read's `withTags()` sends it under the Relationship Queries
+ * profile, and the relation's `related()` as that endpoint's own `filter` and `sort`.
  *
  * @phpstan-type ArticleTagsFilterShape array{color?: string, label?: string, excludeId?: string}
  * @phpstan-type ArticleTagsSortToken '-id'|'-label'|'id'|'label'
@@ -4747,9 +4832,12 @@ final class ArticleTagsRelation
     }
 
     /**
-     * The related resources themselves, a page at a time.
+     * The related resources themselves, a page at a time, optionally filtered and sorted by the
+     * relation's own vocabulary: the closure gets a fresh {@see ArticleTagsRelatedQuery}.
      *
      * Needs an access token granting the `articles:read` scope.
+     *
+     * @param (callable(ArticleTagsRelatedQuery): ArticleTagsRelatedQuery)|null $query
      *
      * @return PaginatedCollection<Tag, PageNumber>
      *
@@ -4761,9 +4849,11 @@ final class ArticleTagsRelation
      * @throws ServerError        when the server fails
      * @throws TransportException when no response is received at all
      */
-    public function related(): PaginatedCollection
+    public function related(?callable $query = null): PaginatedCollection
     {
-        return $this->resources($this->fetcher->read(Request::get('/articles/' . $this->id . '/tags')));
+        $read = $query === null ? new ReadQuery() : $query(new ArticleTagsRelatedQuery())->toReadQuery();
+
+        return $this->resources($this->fetcher->read(Request::get($read->appendTo('/articles/' . $this->id . '/tags')), $read));
     }
 
     /**

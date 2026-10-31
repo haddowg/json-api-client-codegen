@@ -1117,9 +1117,10 @@ final class PlaylistOrderedTracksPivot extends Pivot
 }
 
 /**
- * How the `orderedTracks` of a `playlists` read come back: filtered and sorted by the vocabulary
- * `GET /playlists/{id}/orderedTracks` declares, under the Relationship Queries profile. A read's
- * `withOrderedTracks()` hands one to its closure.
+ * How the `orderedTracks` of a `playlists` resource come back: filtered and sorted by the
+ * vocabulary `GET /playlists/{id}/orderedTracks` declares. A read's `withOrderedTracks()` sends it
+ * under the Relationship Queries profile, and the relation's `related()` as that endpoint's own
+ * `filter` and `sort`.
  *
  * @phpstan-type PlaylistOrderedTracksFilterShape array{title?: string, explicit?: bool, genres?: list<string>, q?: string, position?: int, weight?: int}
  * @phpstan-type PlaylistOrderedTracksSortToken '-addedAt'|'-position'|'-title'|'-trackNumber'|'-weight'|'addedAt'|'position'|'title'|'trackNumber'|'weight'
@@ -1389,7 +1390,10 @@ final class PlaylistOrderedTracksRelation
     }
 
     /**
-     * The related resources themselves, a page at a time.
+     * The related resources themselves, a page at a time, optionally filtered and sorted by the
+     * relation's own vocabulary: the closure gets a fresh {@see PlaylistOrderedTracksRelatedQuery}.
+     *
+     * @param (callable(PlaylistOrderedTracksRelatedQuery): PlaylistOrderedTracksRelatedQuery)|null $query
      *
      * @return PaginatedCollection<Track, PageNumber>
      *
@@ -1401,9 +1405,11 @@ final class PlaylistOrderedTracksRelation
      * @throws ServerError        when the server fails
      * @throws TransportException when no response is received at all
      */
-    public function related(): PaginatedCollection
+    public function related(?callable $query = null): PaginatedCollection
     {
-        return $this->resources($this->fetcher->read(Request::get('/playlists/' . $this->id . '/orderedTracks')));
+        $read = $query === null ? new ReadQuery() : $query(new PlaylistOrderedTracksRelatedQuery())->toReadQuery();
+
+        return $this->resources($this->fetcher->read(Request::get($read->appendTo('/playlists/' . $this->id . '/orderedTracks')), $read));
     }
 
     /**
@@ -2093,9 +2099,9 @@ final class PlaylistReadProjection extends Projection
 }
 
 /**
- * How the `tracks` of a `playlists` read come back: filtered and sorted by the vocabulary `GET
- * /playlists/{id}/tracks` declares, under the Relationship Queries profile. A read's `withTracks()`
- * hands one to its closure.
+ * How the `tracks` of a `playlists` resource come back: filtered and sorted by the vocabulary `GET
+ * /playlists/{id}/tracks` declares. A read's `withTracks()` sends it under the Relationship Queries
+ * profile, and the relation's `related()` as that endpoint's own `filter` and `sort`.
  *
  * @phpstan-type PlaylistTracksFilterShape array{title?: string, explicit?: bool, genres?: list<string>, q?: string}
  * @phpstan-type PlaylistTracksSortToken '-title'|'-trackNumber'|'title'|'trackNumber'
@@ -2336,7 +2342,10 @@ final class PlaylistTracksRelation
     }
 
     /**
-     * The related resources themselves, a page at a time.
+     * The related resources themselves, a page at a time, optionally filtered and sorted by the
+     * relation's own vocabulary: the closure gets a fresh {@see PlaylistTracksRelatedQuery}.
+     *
+     * @param (callable(PlaylistTracksRelatedQuery): PlaylistTracksRelatedQuery)|null $query
      *
      * @return PaginatedCollection<Track, PageNumber>
      *
@@ -2348,9 +2357,11 @@ final class PlaylistTracksRelation
      * @throws ServerError        when the server fails
      * @throws TransportException when no response is received at all
      */
-    public function related(): PaginatedCollection
+    public function related(?callable $query = null): PaginatedCollection
     {
-        return $this->resources($this->fetcher->read(Request::get('/playlists/' . $this->id . '/tracks')));
+        $read = $query === null ? new ReadQuery() : $query(new PlaylistTracksRelatedQuery())->toReadQuery();
+
+        return $this->resources($this->fetcher->read(Request::get($read->appendTo('/playlists/' . $this->id . '/tracks')), $read));
     }
 
     /**

@@ -31,6 +31,7 @@ use haddowg\JsonApiClient\Pagination\PageNumber;
 use haddowg\JsonApiClient\Query\Projection;
 use haddowg\JsonApiClient\Query\Query;
 use haddowg\JsonApiClient\Query\ReadQuery;
+use haddowg\JsonApiClient\Query\RelatedQuery;
 use haddowg\JsonApiClient\Resources\Fetcher;
 use haddowg\JsonApiClient\Resources\Relationship;
 use haddowg\JsonApiClient\Resources\ResourceContext;
@@ -303,6 +304,295 @@ final class Tag extends TagBase
 }
 
 /**
+ * How the `articles` of a `tags` resource come back: filtered and sorted by the vocabulary `GET
+ * /tags/{id}/articles` declares. A read's `withArticles()` sends it under the Relationship Queries
+ * profile, and the relation's `related()` as that endpoint's own `filter` and `sort`.
+ *
+ * @phpstan-type TagArticlesRangeShape array{min?: float, max?: float}
+ * @phpstan-type TagArticlesDateRangeShape array{min?: \DateTimeImmutable|string, max?: \DateTimeImmutable|string}
+ * @phpstan-type TagArticlesFilterShape array{status?: string, wordCount?: int, archived?: string, rating?: TagArticlesRangeShape, publishedAt?: TagArticlesDateRangeShape, labels?: list<string>, search?: string, urgent?: string, featured?: bool, releasedOn?: string, keywords?: list<string>, 'author.name'?: string, unpublished?: string}
+ * @phpstan-type TagArticlesSortToken '-title'|'-wordCount'|'title'|'wordCount'
+ *
+ * @generated from the `filter` and `sort` parameters of `GET /tags/{id}/articles`
+ */
+final class TagArticlesRelatedQuery extends RelatedQuery
+{
+    /**
+     * The filters the relation accepts. The runtime guard on both array doors checks names against
+     * this.
+     *
+     * @var list<string>
+     */
+    public const array FILTERS = [
+        'status',
+        'wordCount',
+        'archived',
+        'rating',
+        'publishedAt',
+        'labels',
+        'search',
+        'urgent',
+        'featured',
+        'releasedOn',
+        'keywords',
+        'author.name',
+        'unpublished',
+    ];
+
+    /**
+     * The members a structured filter's own value accepts.
+     *
+     * @var array<string, list<string>>
+     */
+    public const array FILTER_MEMBERS = [
+        'rating' => ['min', 'max'],
+        'publishedAt' => ['min', 'max'],
+    ];
+
+    /**
+     * The signed sort tokens the relation accepts.
+     *
+     * @var list<string>
+     */
+    public const array SORT_TOKENS = ['title', '-title', 'wordCount', '-wordCount'];
+
+    /**
+     * Filter by `status`.
+     *
+     * @return static
+     */
+    public function whereStatus(string $value): static
+    {
+        return $this->filtering(['status' => $value]);
+    }
+
+    /**
+     * Filter by `wordCount`.
+     *
+     * @return static
+     */
+    public function whereWordCount(int $value): static
+    {
+        return $this->filtering(['wordCount' => $value]);
+    }
+
+    /**
+     * Filter by `archived`.
+     *
+     * @return static
+     */
+    public function whereArchived(string $value): static
+    {
+        return $this->filtering(['archived' => $value]);
+    }
+
+    /**
+     * Filter by `rating`.
+     *
+     * @param TagArticlesRangeShape $range
+     *
+     * @return static
+     */
+    public function whereRating(array $range): static
+    {
+        return $this->filtering(['rating' => $range]);
+    }
+
+    /**
+     * Filter by `publishedAt`.
+     *
+     * @param TagArticlesDateRangeShape $range
+     *
+     * @return static
+     */
+    public function wherePublishedAt(array $range): static
+    {
+        return $this->filtering(['publishedAt' => $range]);
+    }
+
+    /**
+     * Filter by `labels`.
+     *
+     * @param list<string> $value
+     *
+     * @return static
+     */
+    public function whereLabels(array $value): static
+    {
+        return $this->filtering(['labels' => $value]);
+    }
+
+    /**
+     * Filter by `search`.
+     *
+     * @return static
+     */
+    public function whereSearch(string $value): static
+    {
+        return $this->filtering(['search' => $value]);
+    }
+
+    /**
+     * Filter by `urgent`.
+     *
+     * @return static
+     */
+    public function whereUrgent(string $value): static
+    {
+        return $this->filtering(['urgent' => $value]);
+    }
+
+    /**
+     * Filter by `featured`.
+     *
+     * @return static
+     */
+    public function whereFeatured(bool $value): static
+    {
+        return $this->filtering(['featured' => $value]);
+    }
+
+    /**
+     * Filter by `releasedOn`.
+     *
+     * @return static
+     */
+    public function whereReleasedOn(string $value): static
+    {
+        return $this->filtering(['releasedOn' => $value]);
+    }
+
+    /**
+     * Filter by `keywords`.
+     *
+     * @param list<string> $value
+     *
+     * @return static
+     */
+    public function whereKeywords(array $value): static
+    {
+        return $this->filtering(['keywords' => $value]);
+    }
+
+    /**
+     * Filter by `author.name`.
+     *
+     * @return static
+     */
+    public function whereAuthorName(string $value): static
+    {
+        return $this->filtering(['author.name' => $value]);
+    }
+
+    /**
+     * Filter by `unpublished`.
+     *
+     * @return static
+     */
+    public function whereUnpublished(string $value): static
+    {
+        return $this->filtering(['unpublished' => $value]);
+    }
+
+    /**
+     * The typed array door: values are checked statically, nested ones included, and names at
+     * runtime.
+     *
+     * @param TagArticlesFilterShape $filter
+     *
+     * @return static
+     *
+     * @throws UnknownFilterException when a name is not one this endpoint filters by
+     */
+    public function filter(array $filter): static
+    {
+        return $this->filtering(self::guardFilters($filter));
+    }
+
+    /**
+     * The loose door, for a filter map assembled at runtime. Nothing is checked statically; the
+     * names are still checked here.
+     *
+     * @param array<string, mixed> $filter
+     *
+     * @return static
+     *
+     * @throws UnknownFilterException when a name is not one this endpoint filters by
+     */
+    public function filterRaw(array $filter): static
+    {
+        return $this->filtering(self::guardFilters($filter));
+    }
+
+    /**
+     * Sort by the endpoint's own tokens, in precedence order. Argument order is precedence, so
+     * nothing is translated between the call and the wire.
+     *
+     * @param TagArticlesSortToken ...$tokens
+     *
+     * @return static
+     */
+    public function sort(string ...$tokens): static
+    {
+        return $this->sorting(\array_values($tokens));
+    }
+
+    /**
+     * The loose sort door, for tokens assembled at runtime, which a literal union can never accept.
+     *
+     * @param list<string> $tokens
+     *
+     * @return static
+     *
+     * @throws UnknownSortException when a token is not one this endpoint sorts by
+     */
+    public function sortRaw(array $tokens): static
+    {
+        foreach ($tokens as $token) {
+            if (!\in_array($token, self::SORT_TOKENS, true)) {
+                throw UnknownSortException::for($token, self::SORT_TOKENS);
+            }
+        }
+
+        return $this->sorting($tokens);
+    }
+
+    /**
+     * @param TagArticlesFilterShape|array<string, mixed> $filter
+     *
+     * @return array<string, mixed>
+     *
+     * @throws UnknownFilterException
+     */
+    private static function guardFilters(array $filter): array
+    {
+        foreach ($filter as $name => $value) {
+            $name = (string) $name;
+
+            if (!\in_array($name, self::FILTERS, true)) {
+                throw UnknownFilterException::for($name, self::FILTERS);
+            }
+
+            $members = self::FILTER_MEMBERS[$name] ?? null;
+
+            if ($members === null || !\is_array($value)) {
+                continue;
+            }
+
+            $qualified = \array_map(static fn(string $member): string => $name . '[' . $member . ']', $members);
+
+            foreach (\array_keys($value) as $member) {
+                if (!\in_array((string) $member, $members, true)) {
+                    throw UnknownFilterException::for($name . '[' . (string) $member . ']', $qualified);
+                }
+            }
+        }
+
+        return $filter;
+    }
+}
+
+/**
  * The `articles` relationship of one tag. `get()` reads the linkage and `related()` reads the
  * related resources; any read the server switched off is absent. The writes are `add()`, `remove()`
  * and `replace()`, the methods the relationship endpoint declares, and no others.
@@ -365,9 +655,12 @@ final class TagArticlesRelation
     }
 
     /**
-     * The related resources themselves, a page at a time.
+     * The related resources themselves, a page at a time, optionally filtered and sorted by the
+     * relation's own vocabulary: the closure gets a fresh {@see TagArticlesRelatedQuery}.
      *
      * Needs an access token granting the `articles:read` scope.
+     *
+     * @param (callable(TagArticlesRelatedQuery): TagArticlesRelatedQuery)|null $query
      *
      * @return PaginatedCollection<Article, PageNumber>
      *
@@ -379,9 +672,11 @@ final class TagArticlesRelation
      * @throws ServerError        when the server fails
      * @throws TransportException when no response is received at all
      */
-    public function related(): PaginatedCollection
+    public function related(?callable $query = null): PaginatedCollection
     {
-        return $this->resources($this->fetcher->read(Request::get('/tags/' . $this->id . '/articles')));
+        $read = $query === null ? new ReadQuery() : $query(new TagArticlesRelatedQuery())->toReadQuery();
+
+        return $this->resources($this->fetcher->read(Request::get($read->appendTo('/tags/' . $this->id . '/articles')), $read));
     }
 
     /**

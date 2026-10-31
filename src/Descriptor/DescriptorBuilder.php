@@ -212,7 +212,7 @@ final class DescriptorBuilder
     }
 
     /**
-     * The links a type declares, read from its `<Type>ResourceLinks` (core ADR 0178). Contract 14
+     * The links a type declares, read from its `<Type>ResourceLinks`. Contract 14
      * lists each as a named property beside `self`: a link object as an inline object schema with
      * an `href`, a bare link as a `$ref` to `LinkObject`. `self` is never declared, an action's
      * link is the action's, and a `RenderedLink` is a link the server builds, so none of those is
@@ -281,7 +281,7 @@ final class DescriptorBuilder
     /**
      * The named members of a resource's `links` schema. From contract 18 a type without named
      * links points at the shared `ResourceLinks`, and one with them at a `<Type>ResourceLinks`
-     * that is an `allOf` of `ResourceLinks` and an object holding them (core ADR 0188). Before
+     * that is an `allOf` of `ResourceLinks` and an object holding them. Before
      * that, the type's own component listed them beside `self`.
      *
      * @return array<string|int, Node>
@@ -348,7 +348,7 @@ final class DescriptorBuilder
 
     /**
      * The relations a write body marks `writeOnly`. Contract 8 puts the keyword beside the `$ref`
-     * of a write-only relation's `relationships` member (core ADR 0152), so such a relation is
+     * of a write-only relation's `relationships` member, so such a relation is
      * kept off the read model even if a read schema were to show it.
      *
      * @return list<string>
@@ -380,7 +380,7 @@ final class DescriptorBuilder
     /**
      * The relations a write accepts that the resource schema does not show: the ones a contract-8
      * write body marks `writeOnly`, and on an older document, any the read schema leaves out.
-     * Contract 5 drops a write-only relation from every read schema (core ADR 0150), so its
+     * Contract 5 drops a write-only relation from every read schema, so its
      * cardinality and types are read from the write document's own relationship schema.
      *
      * @param array<string, RelationDescriptor> $readable
@@ -1565,7 +1565,7 @@ final class DescriptorBuilder
 
     /**
      * The OAuth scopes an operation needs: what its `security` lists under an `oauth2` scheme,
-     * from contract 16 (core ADR 0181). An operation without its own `security` inherits the
+     * from contract 16. An operation without its own `security` inherits the
      * document's. Null when nothing names a scope, so an older document reads as it did.
      *
      * Core fills the same scopes into every requirement that names the scheme, so taking them

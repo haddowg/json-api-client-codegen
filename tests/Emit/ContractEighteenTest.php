@@ -18,7 +18,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Generator contract 18 shares one links component per context (core ADR 0188). A type with
+ * Generator contract 18 shares one links component per context. A type with
  * named links points at a `<Type>ResourceLinks` that is an `allOf` of the shared `ResourceLinks`
  * and an object holding them, and every other type points at `ResourceLinks` itself. The
  * witness's `images` declares links and `articles` has action links, so both keep a component of

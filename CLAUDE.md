@@ -44,7 +44,7 @@ by accident is a broken emitter.
   release-please drives versioning, so a non-conforming title breaks the release. PR
   descriptions read as external-contributor prose. Follow `~/.claude/references/commits.md` and
   `~/.claude/references/pull-requests.md`. Rebase with `--force-with-lease`.
-- Record architecture decisions as ADRs under `docs/adr/`.
+- Record architecture decisions as ADRs under `docs/adr/`, following [`docs/adr/ADR-FORMAT.md`](docs/adr/ADR-FORMAT.md).
 
 ## What this codegen assumes
 

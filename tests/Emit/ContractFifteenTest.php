@@ -22,7 +22,7 @@ use PHPUnit\Framework\TestCase;
 
 /**
  * Generator contract 15 gives each method of a multi-method action its own operation id and puts
- * an action's declared safety on its operation as `x-safety` (core ADR 0179). The witness's
+ * an action's declared safety on its operation as `x-safety`. The witness's
  * collection-scoped `export` answers to GET and POST, `preview` declares all three flags and
  * `purge` declares only `destructive`, beside an `x-workflows` extension of its own.
  */

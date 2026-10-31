@@ -24,7 +24,7 @@ use PHPUnit\Framework\TestCase;
 
 /**
  * Generator contract 12 puts a worked example on each operation's JSON:API request body and
- * success responses (core ADR 0176). The witness carries them on most of its operations, a delete
+ * success responses. The witness carries them on most of its operations, a delete
  * whose `200` answers with meta among them, and a raw result keeps its own example on its media
  * type.
  */

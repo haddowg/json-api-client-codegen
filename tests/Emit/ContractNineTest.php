@@ -16,7 +16,7 @@ use PHPUnit\Framework\TestCase;
 
 /**
  * Generator contract 9 writes a `$ref` that carries an `example`, `examples` or `default` as a
- * single-entry `allOf` holding only the `$ref`, with those keywords beside it (core ADR 0165).
+ * single-entry `allOf` holding only the `$ref`, with those keywords beside it.
  *
  * The music-catalog document already wraps every link member that way. These tests also wrap the
  * `albums` status attribute, an enum, on every schema that carries it, and the related tracks

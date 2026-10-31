@@ -23,7 +23,7 @@ use PHPUnit\Framework\TestCase;
 
 /**
  * Generator contract 17 lets an action that declares `SeeOther` with a media type answer a
- * JSON:API request with a `200` location document beside its `303` (core ADR 0185). The witness's
+ * JSON:API request with a `200` location document beside its `303`. The witness's
  * `download` answers only with a `text/csv` URL, `revision` with either its article or an
  * `application/octet-stream` URL, and `archive` declares a bare `SeeOther`, which documents only
  * the `303`.

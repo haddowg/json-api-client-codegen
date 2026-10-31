@@ -42,8 +42,16 @@ final class ReadsEmitter implements Emitter, Warns
             if ($surface->projection) {
                 yield $sources->projection();
             }
+            if ($surface->readProjection()) {
+                yield $sources->readProjection();
+            }
             if ($surface->collection !== null) {
                 yield $sources->query();
+            }
+            foreach ($surface->relating() as $relation) {
+                [$unit, $warnings] = RelatedQuerySource::unit($resource->type, $relation, $surface->file);
+                \array_push($this->warnings, ...$warnings);
+                yield $unit;
             }
 
             $contribution = $sources->contribution();

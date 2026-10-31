@@ -16,6 +16,7 @@ use haddowg\JsonApiCodegen\Emit\ExampleTag;
 use haddowg\JsonApiCodegen\Emit\GeneratorConfig;
 use haddowg\JsonApiCodegen\Emit\Naming;
 use haddowg\JsonApiCodegen\Emit\Php;
+use haddowg\JsonApiCodegen\Emit\Reads\ReadSurface;
 use haddowg\JsonApiCodegen\Emit\ScopeNote;
 use haddowg\JsonApiCodegen\Emit\UnitKind;
 
@@ -360,6 +361,30 @@ final class SurfaceEmitter implements Emitter
                 . '    public function get(): ' . $base . "\n    {\n"
                 . '        $context = $this->fetcher->read(' . $request . '::get(' . $path . "));\n"
                 . TypeSurface::hydratePrimary($type->concrete(), $base, $type->type(), false)
+                . "    }\n";
+        }
+
+        $read = new ReadSurface($type->api, $type->resource);
+        if ($read->readProjection()) {
+            $readProjection = $type->named('ReadProjection');
+            $accepts = $read->projection ? $projection . '<TProj>|' : '';
+
+            return Php::docblock(ScopeNote::insert([
+                ...Php::wrap('Fetch the ' . $type->label() . ', shaped by the optional projection: a closure over a fresh read projection, which can also filter and sort an included relation, or a prebuilt read or write projection.', 4),
+                '',
+                '@template TProj of object',
+                '',
+                ...TypeSurface::params([['(callable(' . $readProjection . '<' . $base . '>): ' . $readProjection . '<TProj>)|' . $accepts . $readProjection . '<TProj>|null', '$projection']]),
+                '',
+                '@return ($projection is null ? ' . $base . ' : ' . $base . '&TProj)',
+                '',
+                ...$throws,
+            ], $fetchOne->scopes), 4, false)
+                . '    public function get(callable|' . ($read->projection ? $projection . '|' : '') . $readProjection . '|null $projection = null): ' . $base . "\n    {\n"
+                . '        $query = ' . $readProjection . "::resolve(\$projection);\n"
+                . '        $request = ' . $request . '::get($query->appendTo(' . $path . "));\n"
+                . '        $context = $this->fetcher->read($query->relatedQuery === [] ? $request : $request->withProfiles([' . $type->concrete() . "::RELATIONSHIP_QUERIES_PROFILE]), \$query);\n"
+                . TypeSurface::hydratePrimary($type->concrete(), $base, $type->type(), true)
                 . "    }\n";
         }
 

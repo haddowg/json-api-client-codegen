@@ -10,6 +10,7 @@ use haddowg\JsonApiCodegen\Descriptor\OperationDescriptor;
 use haddowg\JsonApiCodegen\Descriptor\OperationKind;
 use haddowg\JsonApiCodegen\Descriptor\PaginatorDescriptor;
 use haddowg\JsonApiCodegen\Descriptor\PaginatorKind;
+use haddowg\JsonApiCodegen\Descriptor\RelationDescriptor;
 use haddowg\JsonApiCodegen\Descriptor\ResourceDescriptor;
 use haddowg\JsonApiCodegen\Descriptor\ValueSchema;
 use haddowg\JsonApiCodegen\Emit\ClassUnit;
@@ -67,7 +68,7 @@ final class ReadsEmitterTest extends TestCase
         ], $contribution->tags);
 
         \preg_match_all('/public const \w+ (\w+) =/', $contribution->members, $constants);
-        self::assertSame(['FILTERS', 'FILTER_MEMBERS', 'SORT_TOKENS', 'FIELDS', 'COUNT_TOKENS', 'COUNTABLE_PROFILE'], $constants[1]);
+        self::assertSame(['FILTERS', 'FILTER_MEMBERS', 'SORT_TOKENS', 'FIELDS', 'COUNT_TOKENS', 'COUNTABLE_PROFILE', 'RELATIONSHIP_QUERIES_PROFILE'], $constants[1]);
         self::assertStringContainsString("public const array FILTERS = ['tracks', 'artist.name', 'title', 'rating', 'releasedAt', 'q'];", $contribution->members);
         self::assertStringContainsString("'rating' => ['min', 'max'],", $contribution->members);
     }
@@ -199,7 +200,43 @@ final class ReadsEmitterTest extends TestCase
 
         self::assertStringNotContainsString('withCount', self::unit($api, 'AlbumQuery')->source);
         self::assertStringNotContainsString('COUNT', self::contribution($api, 'Album')->members);
-        self::assertStringContainsString("return Request::get(\$query->appendTo('/albums'));", self::unit($api, 'AlbumQuery')->source);
+        self::assertStringNotContainsString('$query->withCount', self::unit($api, 'AlbumQuery')->source);
+    }
+
+    public function testAQueryNegotiatesTheRelationshipQueriesProfileOnlyWhenItShapesARelation(): void
+    {
+        $source = self::unit(Fixtures::musicCatalogDescriptor(), 'AlbumQuery')->source;
+
+        self::assertStringContainsString("if (\$query->relatedQuery !== []) {\n            \$profiles[] = Album::RELATIONSHIP_QUERIES_PROFILE;", $source);
+        self::assertStringContainsString("if (\$query->withCount !== []) {\n            \$profiles[] = Album::COUNTABLE_PROFILE;", $source);
+        self::assertStringContainsString('public function withTracks(?callable $query = null): static', $source);
+        self::assertStringNotContainsString('public function withArtist(?callable', $source);
+    }
+
+    public function testAWriteProjectionNeverTakesARelationshipQuery(): void
+    {
+        $api = Fixtures::musicCatalogDescriptor();
+
+        self::assertStringNotContainsString('?callable $query', self::unit($api, 'AlbumProjection')->source);
+        self::assertStringNotContainsString('?callable $query', self::unit($api, 'AlbumProjecting')->source);
+        self::assertStringContainsString('public function withTracks(?callable $query = null): static', self::unit($api, 'AlbumReadProjection')->source);
+    }
+
+    public function testARelationWithNothingToFilterOrSortGetsNoRelationshipQuery(): void
+    {
+        $api = self::with(null, static function (ResourceDescriptor $albums): array {
+            $relations = $albums->relations;
+            $tracks = $relations['tracks'];
+            /** @phpstan-ignore argument.type (the named arguments are the constructor's own, rebuilt from an instance) */
+            $relations['tracks'] = new RelationDescriptor(...[...\get_object_vars($tracks), 'filterable' => [], 'sortable' => []]);
+
+            return ['relations' => $relations];
+        });
+
+        self::assertNull(self::unitOrNull($api, 'AlbumTracksRelatedQuery'));
+        self::assertNull(self::unitOrNull($api, 'AlbumReadProjection'));
+        self::assertStringNotContainsString('?callable $query', self::unit($api, 'AlbumQuery')->source);
+        self::assertStringNotContainsString('RELATIONSHIP_QUERIES_PROFILE', self::contribution($api, 'Album')->members);
     }
 
     public function testATypeWithNoCollectionReadHasNoQueryBuilder(): void

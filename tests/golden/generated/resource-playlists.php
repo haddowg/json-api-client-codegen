@@ -21,6 +21,8 @@ use haddowg\JsonApiClient\Exceptions\TransportException;
 use haddowg\JsonApiClient\Exceptions\Unauthorized;
 use haddowg\JsonApiClient\Exceptions\UnknownAttributeException;
 use haddowg\JsonApiClient\Exceptions\UnknownFieldException;
+use haddowg\JsonApiClient\Exceptions\UnknownFilterException;
+use haddowg\JsonApiClient\Exceptions\UnknownSortException;
 use haddowg\JsonApiClient\Exceptions\UnsupportedMediaType;
 use haddowg\JsonApiClient\Exceptions\ValidationFailed;
 use haddowg\JsonApiClient\Http\Request;
@@ -29,6 +31,7 @@ use haddowg\JsonApiClient\Pagination\PageNumber;
 use haddowg\JsonApiClient\Query\Projection;
 use haddowg\JsonApiClient\Query\Query;
 use haddowg\JsonApiClient\Query\ReadQuery;
+use haddowg\JsonApiClient\Query\RelatedQuery;
 use haddowg\JsonApiClient\Resources\Fetcher;
 use haddowg\JsonApiClient\Resources\Pivot;
 use haddowg\JsonApiClient\Resources\Relationship;
@@ -450,6 +453,12 @@ final class Playlist extends PlaylistBase implements PlaylistHasPublicOwner, Pla
      */
     public const string COUNTABLE_PROFILE = 'https://haddowg.github.io/json-api/profiles/countable/';
 
+    /**
+     * The Relationship Queries profile, which the client adds to `Accept` only when a read shapes
+     * an included relation.
+     */
+    public const string RELATIONSHIP_QUERIES_PROFILE = 'https://haddowg.github.io/json-api/profiles/relationship-queries/';
+
     public ?PublicProfile $publicOwner { get => $this->publicOwner(); }
 
     /** @var ResourceCollection<Track> */
@@ -860,12 +869,13 @@ final class PlaylistHandle
     }
 
     /**
-     * Fetch the playlist, shaped by the optional projection: a closure over a fresh projection, or
-     * a prebuilt one.
+     * Fetch the playlist, shaped by the optional projection: a closure over a fresh read
+     * projection, which can also filter and sort an included relation, or a prebuilt read or write
+     * projection.
      *
      * @template TProj of object
      *
-     * @param (callable(PlaylistProjection<PlaylistBase>): PlaylistProjection<TProj>)|PlaylistProjection<TProj>|null $projection
+     * @param (callable(PlaylistReadProjection<PlaylistBase>): PlaylistReadProjection<TProj>)|PlaylistProjection<TProj>|PlaylistReadProjection<TProj>|null $projection
      *
      * @return ($projection is null ? PlaylistBase : PlaylistBase&TProj)
      *
@@ -878,10 +888,11 @@ final class PlaylistHandle
      * @throws TransportException when no response is received at all
      * @throws MalformedDocument  when the response carries no primary resource
      */
-    public function get(callable|PlaylistProjection|null $projection = null): PlaylistBase
+    public function get(callable|PlaylistProjection|PlaylistReadProjection|null $projection = null): PlaylistBase
     {
-        $query = PlaylistProjection::resolve($projection);
-        $context = $this->fetcher->read(Request::get($query->appendTo('/playlists/' . $this->id)), $query);
+        $query = PlaylistReadProjection::resolve($projection);
+        $request = Request::get($query->appendTo('/playlists/' . $this->id));
+        $context = $this->fetcher->read($query->relatedQuery === [] ? $request : $request->withProfiles([Playlist::RELATIONSHIP_QUERIES_PROFILE]), $query);
         $raw = $context->primary() ?? throw MalformedDocument::missingMember('The playlists response', 'data');
 
         /** @var PlaylistBase&TProj */
@@ -1102,6 +1113,190 @@ final class PlaylistOrderedTracksPivot extends Pivot
     public function weight(): ?int
     {
         return $this->_nullableInt('weight');
+    }
+}
+
+/**
+ * How the `orderedTracks` of a `playlists` read come back: filtered and sorted by the vocabulary
+ * `GET /playlists/{id}/orderedTracks` declares, under the Relationship Queries profile. A read's
+ * `withOrderedTracks()` hands one to its closure.
+ *
+ * @phpstan-type PlaylistOrderedTracksFilterShape array{title?: string, explicit?: bool, genres?: list<string>, q?: string, position?: int, weight?: int}
+ * @phpstan-type PlaylistOrderedTracksSortToken '-addedAt'|'-position'|'-title'|'-trackNumber'|'-weight'|'addedAt'|'position'|'title'|'trackNumber'|'weight'
+ *
+ * @generated from the `filter` and `sort` parameters of `GET /playlists/{id}/orderedTracks`
+ */
+final class PlaylistOrderedTracksRelatedQuery extends RelatedQuery
+{
+    /**
+     * The filters the relation accepts. The runtime guard on both array doors checks names against
+     * this.
+     *
+     * @var list<string>
+     */
+    public const array FILTERS = ['title', 'explicit', 'genres', 'q', 'position', 'weight'];
+
+    /**
+     * The signed sort tokens the relation accepts.
+     *
+     * @var list<string>
+     */
+    public const array SORT_TOKENS = [
+        'title',
+        '-title',
+        'trackNumber',
+        '-trackNumber',
+        'position',
+        '-position',
+        'weight',
+        '-weight',
+        'addedAt',
+        '-addedAt',
+    ];
+
+    /**
+     * Filter by `title`.
+     *
+     * @return static
+     */
+    public function whereTitle(string $value): static
+    {
+        return $this->filtering(['title' => $value]);
+    }
+
+    /**
+     * Filter by `explicit`.
+     *
+     * @return static
+     */
+    public function whereExplicit(bool $value): static
+    {
+        return $this->filtering(['explicit' => $value]);
+    }
+
+    /**
+     * Filter by `genres`.
+     *
+     * @param list<string> $value
+     *
+     * @return static
+     */
+    public function whereGenres(array $value): static
+    {
+        return $this->filtering(['genres' => $value]);
+    }
+
+    /**
+     * Filter by `q`.
+     *
+     * @return static
+     */
+    public function whereQ(string $value): static
+    {
+        return $this->filtering(['q' => $value]);
+    }
+
+    /**
+     * Filter by `position`.
+     *
+     * @return static
+     */
+    public function wherePosition(int $value): static
+    {
+        return $this->filtering(['position' => $value]);
+    }
+
+    /**
+     * Filter by `weight`.
+     *
+     * @return static
+     */
+    public function whereWeight(int $value): static
+    {
+        return $this->filtering(['weight' => $value]);
+    }
+
+    /**
+     * The typed array door: values are checked statically, nested ones included, and names at
+     * runtime.
+     *
+     * @param PlaylistOrderedTracksFilterShape $filter
+     *
+     * @return static
+     *
+     * @throws UnknownFilterException when a name is not one this endpoint filters by
+     */
+    public function filter(array $filter): static
+    {
+        return $this->filtering(self::guardFilters($filter));
+    }
+
+    /**
+     * The loose door, for a filter map assembled at runtime. Nothing is checked statically; the
+     * names are still checked here.
+     *
+     * @param array<string, mixed> $filter
+     *
+     * @return static
+     *
+     * @throws UnknownFilterException when a name is not one this endpoint filters by
+     */
+    public function filterRaw(array $filter): static
+    {
+        return $this->filtering(self::guardFilters($filter));
+    }
+
+    /**
+     * Sort by the endpoint's own tokens, in precedence order. Argument order is precedence, so
+     * nothing is translated between the call and the wire.
+     *
+     * @param PlaylistOrderedTracksSortToken ...$tokens
+     *
+     * @return static
+     */
+    public function sort(string ...$tokens): static
+    {
+        return $this->sorting(\array_values($tokens));
+    }
+
+    /**
+     * The loose sort door, for tokens assembled at runtime, which a literal union can never accept.
+     *
+     * @param list<string> $tokens
+     *
+     * @return static
+     *
+     * @throws UnknownSortException when a token is not one this endpoint sorts by
+     */
+    public function sortRaw(array $tokens): static
+    {
+        foreach ($tokens as $token) {
+            if (!\in_array($token, self::SORT_TOKENS, true)) {
+                throw UnknownSortException::for($token, self::SORT_TOKENS);
+            }
+        }
+
+        return $this->sorting($tokens);
+    }
+
+    /**
+     * @param PlaylistOrderedTracksFilterShape|array<string, mixed> $filter
+     *
+     * @return array<string, mixed>
+     *
+     * @throws UnknownFilterException
+     */
+    private static function guardFilters(array $filter): array
+    {
+        foreach (\array_keys($filter) as $name) {
+            $name = (string) $name;
+
+            if (!\in_array($name, self::FILTERS, true)) {
+                throw UnknownFilterException::for($name, self::FILTERS);
+            }
+        }
+
+        return $filter;
     }
 }
 
@@ -1664,6 +1859,34 @@ final class PlaylistQuery extends Query
     public function __construct(private readonly Fetcher $fetcher) {}
 
     /**
+     * Include the `tracks` relation, narrowing the projection so `$playlist->tracks` type-checks,
+     * and optionally shape how it comes back: the closure filters and sorts it under the
+     * Relationship Queries profile.
+     *
+     * @param (callable(PlaylistTracksRelatedQuery): PlaylistTracksRelatedQuery)|null $query
+     *
+     * @return static<TProj&PlaylistHasTracks>
+     */
+    public function withTracks(?callable $query = null): static
+    {
+        return $this->relating('tracks', new PlaylistTracksRelatedQuery(), $query);
+    }
+
+    /**
+     * Include the `orderedTracks` relation, narrowing the projection so `$playlist->orderedTracks`
+     * type-checks, and optionally shape how it comes back: the closure filters and sorts it under
+     * the Relationship Queries profile.
+     *
+     * @param (callable(PlaylistOrderedTracksRelatedQuery): PlaylistOrderedTracksRelatedQuery)|null $query
+     *
+     * @return static<TProj&PlaylistHasOrderedTracks>
+     */
+    public function withOrderedTracks(?callable $query = null): static
+    {
+        return $this->relating('orderedTracks', new PlaylistOrderedTracksRelatedQuery(), $query);
+    }
+
+    /**
      * Count related resources without including them, under the Countable profile. `GET /playlists`
      * advertises `tracks`. A counted relation is still not an included one: its count is read
      * through `_rel()`.
@@ -1740,14 +1963,21 @@ final class PlaylistQuery extends Query
     }
 
     /**
-     * The Countable profile is negotiated only when a request actually uses a `withCount`
-     * parameter, which is what `x-profile` on that parameter states.
+     * Each profile is negotiated only when a request actually uses a parameter it gates, which is
+     * what `x-profile` on that parameter states.
      */
     private function request(ReadQuery $query): Request
     {
         $request = Request::get($query->appendTo('/playlists'));
+        $profiles = [];
+        if ($query->withCount !== []) {
+            $profiles[] = Playlist::COUNTABLE_PROFILE;
+        }
+        if ($query->relatedQuery !== []) {
+            $profiles[] = Playlist::RELATIONSHIP_QUERIES_PROFILE;
+        }
 
-        return $query->withCount === [] ? $request : $request->withProfiles([Playlist::COUNTABLE_PROFILE]);
+        return $profiles === [] ? $request : $request->withProfiles($profiles);
     }
 
     /**
@@ -1784,6 +2014,234 @@ final class PlaylistQuery extends Query
     {
         /** @var TProj */
         return $context->hydrate($raw, Playlist::_hydrate(...));
+    }
+}
+
+/**
+ * What a single read of `playlists` should bring back: `include` and `fields`, and how an included
+ * relation is filtered and sorted under the Relationship Queries profile.
+ *
+ * Kept apart from the write projection because a write does not accept `relatedQuery`. A write
+ * projection still serves a read, so one built for writes can be reused here.
+ *
+ * @template TProj of object
+ *
+ * @extends Projection<TProj>
+ *
+ * @generated from the `include`, `fields` and `relatedQuery` parameters of `GET /playlists/{id}`
+ */
+final class PlaylistReadProjection extends Projection
+{
+    /** @use PlaylistProjecting<TProj> */
+    use PlaylistProjecting;
+
+    /**
+     * Include the `tracks` relation, narrowing the projection so `$playlist->tracks` type-checks,
+     * and optionally shape how it comes back: the closure filters and sorts it under the
+     * Relationship Queries profile.
+     *
+     * @param (callable(PlaylistTracksRelatedQuery): PlaylistTracksRelatedQuery)|null $query
+     *
+     * @return static<TProj&PlaylistHasTracks>
+     */
+    public function withTracks(?callable $query = null): static
+    {
+        return $this->relating('tracks', new PlaylistTracksRelatedQuery(), $query);
+    }
+
+    /**
+     * Include the `orderedTracks` relation, narrowing the projection so `$playlist->orderedTracks`
+     * type-checks, and optionally shape how it comes back: the closure filters and sorts it under
+     * the Relationship Queries profile.
+     *
+     * @param (callable(PlaylistOrderedTracksRelatedQuery): PlaylistOrderedTracksRelatedQuery)|null $query
+     *
+     * @return static<TProj&PlaylistHasOrderedTracks>
+     */
+    public function withOrderedTracks(?callable $query = null): static
+    {
+        return $this->relating('orderedTracks', new PlaylistOrderedTracksRelatedQuery(), $query);
+    }
+
+    /**
+     * An empty projection over the unnarrowed resource.
+     *
+     * @return self<PlaylistBase>
+     */
+    public static function make(): self
+    {
+        /** @var self<PlaylistBase> */
+        return new self();
+    }
+
+    /**
+     * Resolve any projection form, a closure, a prebuilt read projection or a write projection, to
+     * the query parameters the read carries.
+     *
+     * @template T of object
+     *
+     * @param (callable(self<PlaylistBase>): self<T>)|self<T>|PlaylistProjection<T>|null $projection
+     */
+    public static function resolve(callable|self|PlaylistProjection|null $projection): ReadQuery
+    {
+        if ($projection === null) {
+            return new ReadQuery();
+        }
+
+        return ($projection instanceof Projection ? $projection : $projection(self::make()))->toReadQuery();
+    }
+}
+
+/**
+ * How the `tracks` of a `playlists` read come back: filtered and sorted by the vocabulary `GET
+ * /playlists/{id}/tracks` declares, under the Relationship Queries profile. A read's `withTracks()`
+ * hands one to its closure.
+ *
+ * @phpstan-type PlaylistTracksFilterShape array{title?: string, explicit?: bool, genres?: list<string>, q?: string}
+ * @phpstan-type PlaylistTracksSortToken '-title'|'-trackNumber'|'title'|'trackNumber'
+ *
+ * @generated from the `filter` and `sort` parameters of `GET /playlists/{id}/tracks`
+ */
+final class PlaylistTracksRelatedQuery extends RelatedQuery
+{
+    /**
+     * The filters the relation accepts. The runtime guard on both array doors checks names against
+     * this.
+     *
+     * @var list<string>
+     */
+    public const array FILTERS = ['title', 'explicit', 'genres', 'q'];
+
+    /**
+     * The signed sort tokens the relation accepts.
+     *
+     * @var list<string>
+     */
+    public const array SORT_TOKENS = ['title', '-title', 'trackNumber', '-trackNumber'];
+
+    /**
+     * Filter by `title`.
+     *
+     * @return static
+     */
+    public function whereTitle(string $value): static
+    {
+        return $this->filtering(['title' => $value]);
+    }
+
+    /**
+     * Filter by `explicit`.
+     *
+     * @return static
+     */
+    public function whereExplicit(bool $value): static
+    {
+        return $this->filtering(['explicit' => $value]);
+    }
+
+    /**
+     * Filter by `genres`.
+     *
+     * @param list<string> $value
+     *
+     * @return static
+     */
+    public function whereGenres(array $value): static
+    {
+        return $this->filtering(['genres' => $value]);
+    }
+
+    /**
+     * Filter by `q`.
+     *
+     * @return static
+     */
+    public function whereQ(string $value): static
+    {
+        return $this->filtering(['q' => $value]);
+    }
+
+    /**
+     * The typed array door: values are checked statically, nested ones included, and names at
+     * runtime.
+     *
+     * @param PlaylistTracksFilterShape $filter
+     *
+     * @return static
+     *
+     * @throws UnknownFilterException when a name is not one this endpoint filters by
+     */
+    public function filter(array $filter): static
+    {
+        return $this->filtering(self::guardFilters($filter));
+    }
+
+    /**
+     * The loose door, for a filter map assembled at runtime. Nothing is checked statically; the
+     * names are still checked here.
+     *
+     * @param array<string, mixed> $filter
+     *
+     * @return static
+     *
+     * @throws UnknownFilterException when a name is not one this endpoint filters by
+     */
+    public function filterRaw(array $filter): static
+    {
+        return $this->filtering(self::guardFilters($filter));
+    }
+
+    /**
+     * Sort by the endpoint's own tokens, in precedence order. Argument order is precedence, so
+     * nothing is translated between the call and the wire.
+     *
+     * @param PlaylistTracksSortToken ...$tokens
+     *
+     * @return static
+     */
+    public function sort(string ...$tokens): static
+    {
+        return $this->sorting(\array_values($tokens));
+    }
+
+    /**
+     * The loose sort door, for tokens assembled at runtime, which a literal union can never accept.
+     *
+     * @param list<string> $tokens
+     *
+     * @return static
+     *
+     * @throws UnknownSortException when a token is not one this endpoint sorts by
+     */
+    public function sortRaw(array $tokens): static
+    {
+        foreach ($tokens as $token) {
+            if (!\in_array($token, self::SORT_TOKENS, true)) {
+                throw UnknownSortException::for($token, self::SORT_TOKENS);
+            }
+        }
+
+        return $this->sorting($tokens);
+    }
+
+    /**
+     * @param PlaylistTracksFilterShape|array<string, mixed> $filter
+     *
+     * @return array<string, mixed>
+     *
+     * @throws UnknownFilterException
+     */
+    private static function guardFilters(array $filter): array
+    {
+        foreach (\array_keys($filter) as $name) {
+            $name = (string) $name;
+
+            if (!\in_array($name, self::FILTERS, true)) {
+                throw UnknownFilterException::for($name, self::FILTERS);
+            }
+        }
+
+        return $filter;
     }
 }
 

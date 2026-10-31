@@ -893,7 +893,8 @@
                                     "album",
                                     "playlists"
                                 ]
-                            }
+                            },
+                            "relatedQuery": null
                         },
                         "examples": {
                             "request": null,
@@ -1046,6 +1047,8 @@
                     "paginator": null,
                     "countable": null,
                     "pivot": false,
+                    "filterable": [],
+                    "sortable": [],
                     "pivotFields": [],
                     "writePivotFields": []
                 },
@@ -1122,7 +1125,8 @@
                                     "album",
                                     "playlists"
                                 ]
-                            }
+                            },
+                            "relatedQuery": null
                         },
                         "examples": {
                             "request": null,
@@ -1489,6 +1493,121 @@
                         "profile": "https://haddowg.github.io/json-api/profiles/countable/"
                     },
                     "pivot": false,
+                    "filterable": {
+                        "title": {
+                            "schema": {
+                                "types": [
+                                    "string"
+                                ],
+                                "format": null,
+                                "enum": [],
+                                "required": [],
+                                "properties": [],
+                                "items": null,
+                                "discriminator": null,
+                                "const": null,
+                                "oneOf": [],
+                                "anyOf": [],
+                                "allOf": [],
+                                "constraints": {}
+                            }
+                        },
+                        "explicit": {
+                            "schema": {
+                                "types": [
+                                    "boolean"
+                                ],
+                                "format": null,
+                                "enum": [],
+                                "required": [],
+                                "properties": [],
+                                "items": null,
+                                "discriminator": null,
+                                "const": null,
+                                "oneOf": [],
+                                "anyOf": [],
+                                "allOf": [],
+                                "constraints": {}
+                            }
+                        },
+                        "genres": {
+                            "schema": {
+                                "types": [
+                                    "array"
+                                ],
+                                "format": null,
+                                "enum": [],
+                                "required": [],
+                                "properties": [],
+                                "items": {
+                                    "types": [
+                                        "string"
+                                    ],
+                                    "format": null,
+                                    "enum": [],
+                                    "required": [],
+                                    "properties": [],
+                                    "items": null,
+                                    "discriminator": null,
+                                    "const": null,
+                                    "oneOf": [],
+                                    "anyOf": [],
+                                    "allOf": [],
+                                    "constraints": {}
+                                },
+                                "discriminator": null,
+                                "const": null,
+                                "oneOf": [],
+                                "anyOf": [],
+                                "allOf": [],
+                                "constraints": {}
+                            }
+                        },
+                        "q": {
+                            "schema": {
+                                "types": [
+                                    "string"
+                                ],
+                                "format": null,
+                                "enum": [],
+                                "required": [],
+                                "properties": [],
+                                "items": null,
+                                "discriminator": null,
+                                "const": null,
+                                "oneOf": [],
+                                "anyOf": [],
+                                "allOf": [],
+                                "constraints": {}
+                            }
+                        },
+                        "longerThan": {
+                            "schema": {
+                                "types": [
+                                    "integer"
+                                ],
+                                "format": null,
+                                "enum": [],
+                                "required": [],
+                                "properties": [],
+                                "items": null,
+                                "discriminator": null,
+                                "const": null,
+                                "oneOf": [],
+                                "anyOf": [],
+                                "allOf": [],
+                                "constraints": {}
+                            }
+                        }
+                    },
+                    "sortable": [
+                        "title",
+                        "-title",
+                        "trackNumber",
+                        "-trackNumber",
+                        "duration",
+                        "-duration"
+                    ],
                     "pivotFields": [],
                     "writePivotFields": []
                 }
@@ -1560,7 +1679,8 @@
                                 "album",
                                 "playlists"
                             ]
-                        }
+                        },
+                        "relatedQuery": null
                     },
                     "examples": {
                         "request": {
@@ -1753,7 +1873,8 @@
                                 "album",
                                 "playlists"
                             ]
-                        }
+                        },
+                        "relatedQuery": "https://haddowg.github.io/json-api/profiles/relationship-queries/"
                     },
                     "examples": {
                         "request": null,
@@ -1924,7 +2045,8 @@
                                 "album",
                                 "playlists"
                             ]
-                        }
+                        },
+                        "relatedQuery": "https://haddowg.github.io/json-api/profiles/relationship-queries/"
                     },
                     "examples": {
                         "request": null,
@@ -2102,7 +2224,8 @@
                                 "album",
                                 "playlists"
                             ]
-                        }
+                        },
+                        "relatedQuery": null
                     },
                     "examples": {
                         "request": {
@@ -2741,7 +2864,8 @@
                                 "album",
                                 "playlists"
                             ]
-                        }
+                        },
+                        "relatedQuery": null
                     },
                     "examples": {
                         "request": {
@@ -3151,7 +3275,8 @@
                                     "album",
                                     "playlists"
                                 ]
-                            }
+                            },
+                            "relatedQuery": null
                         },
                         "examples": {
                             "request": null,
@@ -3486,6 +3611,190 @@
                         "profile": "https://haddowg.github.io/json-api/profiles/countable/"
                     },
                     "pivot": false,
+                    "filterable": {
+                        "tracks": {
+                            "schema": {
+                                "types": [
+                                    "string"
+                                ],
+                                "format": null,
+                                "enum": [],
+                                "required": [],
+                                "properties": [],
+                                "items": null,
+                                "discriminator": null,
+                                "const": null,
+                                "oneOf": [],
+                                "anyOf": [],
+                                "allOf": [],
+                                "constraints": {}
+                            }
+                        },
+                        "artist.name": {
+                            "schema": {
+                                "types": [
+                                    "string"
+                                ],
+                                "format": null,
+                                "enum": [],
+                                "required": [],
+                                "properties": [],
+                                "items": null,
+                                "discriminator": null,
+                                "const": null,
+                                "oneOf": [],
+                                "anyOf": [],
+                                "allOf": [],
+                                "constraints": {}
+                            }
+                        },
+                        "title": {
+                            "schema": {
+                                "types": [
+                                    "string"
+                                ],
+                                "format": null,
+                                "enum": [],
+                                "required": [],
+                                "properties": [],
+                                "items": null,
+                                "discriminator": null,
+                                "const": null,
+                                "oneOf": [],
+                                "anyOf": [],
+                                "allOf": [],
+                                "constraints": {}
+                            }
+                        },
+                        "rating": {
+                            "schema": {
+                                "types": [
+                                    "object"
+                                ],
+                                "format": null,
+                                "enum": [],
+                                "required": [],
+                                "properties": {
+                                    "min": {
+                                        "types": [
+                                            "number"
+                                        ],
+                                        "format": null,
+                                        "enum": [],
+                                        "required": [],
+                                        "properties": [],
+                                        "items": null,
+                                        "discriminator": null,
+                                        "const": null,
+                                        "oneOf": [],
+                                        "anyOf": [],
+                                        "allOf": [],
+                                        "constraints": {}
+                                    },
+                                    "max": {
+                                        "types": [
+                                            "number"
+                                        ],
+                                        "format": null,
+                                        "enum": [],
+                                        "required": [],
+                                        "properties": [],
+                                        "items": null,
+                                        "discriminator": null,
+                                        "const": null,
+                                        "oneOf": [],
+                                        "anyOf": [],
+                                        "allOf": [],
+                                        "constraints": {}
+                                    }
+                                },
+                                "items": null,
+                                "discriminator": null,
+                                "const": null,
+                                "oneOf": [],
+                                "anyOf": [],
+                                "allOf": [],
+                                "constraints": {}
+                            }
+                        },
+                        "releasedAt": {
+                            "schema": {
+                                "types": [
+                                    "object"
+                                ],
+                                "format": null,
+                                "enum": [],
+                                "required": [],
+                                "properties": {
+                                    "min": {
+                                        "types": [
+                                            "string"
+                                        ],
+                                        "format": "date-time",
+                                        "enum": [],
+                                        "required": [],
+                                        "properties": [],
+                                        "items": null,
+                                        "discriminator": null,
+                                        "const": null,
+                                        "oneOf": [],
+                                        "anyOf": [],
+                                        "allOf": [],
+                                        "constraints": {}
+                                    },
+                                    "max": {
+                                        "types": [
+                                            "string"
+                                        ],
+                                        "format": "date-time",
+                                        "enum": [],
+                                        "required": [],
+                                        "properties": [],
+                                        "items": null,
+                                        "discriminator": null,
+                                        "const": null,
+                                        "oneOf": [],
+                                        "anyOf": [],
+                                        "allOf": [],
+                                        "constraints": {}
+                                    }
+                                },
+                                "items": null,
+                                "discriminator": null,
+                                "const": null,
+                                "oneOf": [],
+                                "anyOf": [],
+                                "allOf": [],
+                                "constraints": {}
+                            }
+                        },
+                        "q": {
+                            "schema": {
+                                "types": [
+                                    "string"
+                                ],
+                                "format": null,
+                                "enum": [],
+                                "required": [],
+                                "properties": [],
+                                "items": null,
+                                "discriminator": null,
+                                "const": null,
+                                "oneOf": [],
+                                "anyOf": [],
+                                "allOf": [],
+                                "constraints": {}
+                            }
+                        }
+                    },
+                    "sortable": [
+                        "title",
+                        "-title",
+                        "releasedAt",
+                        "-releasedAt",
+                        "status",
+                        "-status"
+                    ],
                     "pivotFields": [],
                     "writePivotFields": []
                 }
@@ -3545,7 +3854,8 @@
                                 "album",
                                 "playlists"
                             ]
-                        }
+                        },
+                        "relatedQuery": null
                     },
                     "examples": {
                         "request": {
@@ -3688,7 +3998,8 @@
                                 "album",
                                 "playlists"
                             ]
-                        }
+                        },
+                        "relatedQuery": "https://haddowg.github.io/json-api/profiles/relationship-queries/"
                     },
                     "examples": {
                         "request": null,
@@ -3820,7 +4131,8 @@
                                 "album",
                                 "playlists"
                             ]
-                        }
+                        },
+                        "relatedQuery": "https://haddowg.github.io/json-api/profiles/relationship-queries/"
                     },
                     "examples": {
                         "request": null,
@@ -3958,7 +4270,8 @@
                                 "album",
                                 "playlists"
                             ]
-                        }
+                        },
+                        "relatedQuery": null
                     },
                     "examples": {
                         "request": {
@@ -4242,7 +4555,8 @@
                                 "format",
                                 "status"
                             ]
-                        }
+                        },
+                        "relatedQuery": null
                     },
                     "examples": {
                         "request": null,
@@ -4318,7 +4632,8 @@
                                 "format",
                                 "status"
                             ]
-                        }
+                        },
+                        "relatedQuery": null
                     },
                     "examples": {
                         "request": null,
@@ -4544,7 +4859,8 @@
                             "devices": [
                                 "label"
                             ]
-                        }
+                        },
+                        "relatedQuery": null
                     },
                     "examples": {
                         "request": {
@@ -4615,7 +4931,8 @@
                             "devices": [
                                 "label"
                             ]
-                        }
+                        },
+                        "relatedQuery": null
                     },
                     "examples": {
                         "request": null,
@@ -4689,7 +5006,8 @@
                             "devices": [
                                 "label"
                             ]
-                        }
+                        },
+                        "relatedQuery": null
                     },
                     "examples": {
                         "request": null,
@@ -4744,7 +5062,8 @@
                             "devices": [
                                 "label"
                             ]
-                        }
+                        },
+                        "relatedQuery": null
                     },
                     "examples": {
                         "request": {
@@ -4850,7 +5169,8 @@
                             "export-jobs": [
                                 "state"
                             ]
-                        }
+                        },
+                        "relatedQuery": null
                     },
                     "examples": {
                         "request": null,
@@ -4924,7 +5244,8 @@
                             "export-jobs": [
                                 "state"
                             ]
-                        }
+                        },
+                        "relatedQuery": null
                     },
                     "examples": {
                         "request": null,
@@ -5068,7 +5389,8 @@
                                     "album",
                                     "playlists"
                                 ]
-                            }
+                            },
+                            "relatedQuery": null
                         },
                         "examples": {
                             "request": null,
@@ -5240,6 +5562,8 @@
                     "paginator": null,
                     "countable": null,
                     "pivot": false,
+                    "filterable": [],
+                    "sortable": [],
                     "pivotFields": [],
                     "writePivotFields": [],
                     "polymorphic": true
@@ -5266,7 +5590,8 @@
                                 "public-profiles": [
                                     "displayName"
                                 ]
-                            }
+                            },
+                            "relatedQuery": null
                         },
                         "examples": {
                             "request": null,
@@ -5394,6 +5719,8 @@
                     "paginator": null,
                     "countable": null,
                     "pivot": false,
+                    "filterable": [],
+                    "sortable": [],
                     "pivotFields": [],
                     "writePivotFields": []
                 }
@@ -5426,7 +5753,8 @@
                             "public-profiles": [
                                 "displayName"
                             ]
-                        }
+                        },
+                        "relatedQuery": null
                     },
                     "examples": {
                         "request": {
@@ -5552,7 +5880,8 @@
                             "public-profiles": [
                                 "displayName"
                             ]
-                        }
+                        },
+                        "relatedQuery": "https://haddowg.github.io/json-api/profiles/relationship-queries/"
                     },
                     "examples": {
                         "request": null,
@@ -5667,7 +5996,8 @@
                             "public-profiles": [
                                 "displayName"
                             ]
-                        }
+                        },
+                        "relatedQuery": "https://haddowg.github.io/json-api/profiles/relationship-queries/"
                     },
                     "examples": {
                         "request": null,
@@ -5789,7 +6119,8 @@
                             "public-profiles": [
                                 "displayName"
                             ]
-                        }
+                        },
+                        "relatedQuery": null
                     },
                     "examples": {
                         "request": {
@@ -5978,7 +6309,8 @@
                             "genres": [
                                 "name"
                             ]
-                        }
+                        },
+                        "relatedQuery": null
                     },
                     "examples": {
                         "request": {
@@ -6050,7 +6382,8 @@
                             "genres": [
                                 "name"
                             ]
-                        }
+                        },
+                        "relatedQuery": null
                     },
                     "examples": {
                         "request": null,
@@ -6124,7 +6457,8 @@
                             "genres": [
                                 "name"
                             ]
-                        }
+                        },
+                        "relatedQuery": null
                     },
                     "examples": {
                         "request": null,
@@ -6179,7 +6513,8 @@
                             "genres": [
                                 "name"
                             ]
-                        }
+                        },
+                        "relatedQuery": null
                     },
                     "examples": {
                         "request": {
@@ -6314,7 +6649,8 @@
                                     "album",
                                     "playlists"
                                 ]
-                            }
+                            },
+                            "relatedQuery": null
                         },
                         "examples": {
                             "request": null,
@@ -6655,6 +6991,8 @@
                     },
                     "countable": null,
                     "pivot": false,
+                    "filterable": [],
+                    "sortable": [],
                     "pivotFields": [],
                     "writePivotFields": [],
                     "polymorphic": true
@@ -6681,7 +7019,8 @@
                                 "public-profiles": [
                                     "displayName"
                                 ]
-                            }
+                            },
+                            "relatedQuery": null
                         },
                         "examples": {
                             "request": null,
@@ -6809,6 +7148,8 @@
                     "paginator": null,
                     "countable": null,
                     "pivot": false,
+                    "filterable": [],
+                    "sortable": [],
                     "pivotFields": [],
                     "writePivotFields": []
                 }
@@ -6874,7 +7215,8 @@
                                 "album",
                                 "playlists"
                             ]
-                        }
+                        },
+                        "relatedQuery": null
                     },
                     "examples": {
                         "request": {
@@ -7031,7 +7373,8 @@
                                 "album",
                                 "playlists"
                             ]
-                        }
+                        },
+                        "relatedQuery": "https://haddowg.github.io/json-api/profiles/relationship-queries/"
                     },
                     "examples": {
                         "request": null,
@@ -7178,7 +7521,8 @@
                                 "album",
                                 "playlists"
                             ]
-                        }
+                        },
+                        "relatedQuery": "https://haddowg.github.io/json-api/profiles/relationship-queries/"
                     },
                     "examples": {
                         "request": null,
@@ -7332,7 +7676,8 @@
                                 "album",
                                 "playlists"
                             ]
-                        }
+                        },
+                        "relatedQuery": null
                     },
                     "examples": {
                         "request": {
@@ -7634,7 +7979,8 @@
                                     "album",
                                     "playlists"
                                 ]
-                            }
+                            },
+                            "relatedQuery": null
                         },
                         "examples": {
                             "request": null,
@@ -8026,6 +8372,143 @@
                         "profile": "https://haddowg.github.io/json-api/profiles/countable/"
                     },
                     "pivot": true,
+                    "filterable": {
+                        "title": {
+                            "schema": {
+                                "types": [
+                                    "string"
+                                ],
+                                "format": null,
+                                "enum": [],
+                                "required": [],
+                                "properties": [],
+                                "items": null,
+                                "discriminator": null,
+                                "const": null,
+                                "oneOf": [],
+                                "anyOf": [],
+                                "allOf": [],
+                                "constraints": {}
+                            }
+                        },
+                        "explicit": {
+                            "schema": {
+                                "types": [
+                                    "boolean"
+                                ],
+                                "format": null,
+                                "enum": [],
+                                "required": [],
+                                "properties": [],
+                                "items": null,
+                                "discriminator": null,
+                                "const": null,
+                                "oneOf": [],
+                                "anyOf": [],
+                                "allOf": [],
+                                "constraints": {}
+                            }
+                        },
+                        "genres": {
+                            "schema": {
+                                "types": [
+                                    "array"
+                                ],
+                                "format": null,
+                                "enum": [],
+                                "required": [],
+                                "properties": [],
+                                "items": {
+                                    "types": [
+                                        "string"
+                                    ],
+                                    "format": null,
+                                    "enum": [],
+                                    "required": [],
+                                    "properties": [],
+                                    "items": null,
+                                    "discriminator": null,
+                                    "const": null,
+                                    "oneOf": [],
+                                    "anyOf": [],
+                                    "allOf": [],
+                                    "constraints": {}
+                                },
+                                "discriminator": null,
+                                "const": null,
+                                "oneOf": [],
+                                "anyOf": [],
+                                "allOf": [],
+                                "constraints": {}
+                            }
+                        },
+                        "q": {
+                            "schema": {
+                                "types": [
+                                    "string"
+                                ],
+                                "format": null,
+                                "enum": [],
+                                "required": [],
+                                "properties": [],
+                                "items": null,
+                                "discriminator": null,
+                                "const": null,
+                                "oneOf": [],
+                                "anyOf": [],
+                                "allOf": [],
+                                "constraints": {}
+                            }
+                        },
+                        "position": {
+                            "schema": {
+                                "types": [
+                                    "integer"
+                                ],
+                                "format": null,
+                                "enum": [],
+                                "required": [],
+                                "properties": [],
+                                "items": null,
+                                "discriminator": null,
+                                "const": null,
+                                "oneOf": [],
+                                "anyOf": [],
+                                "allOf": [],
+                                "constraints": {}
+                            }
+                        },
+                        "weight": {
+                            "schema": {
+                                "types": [
+                                    "integer"
+                                ],
+                                "format": null,
+                                "enum": [],
+                                "required": [],
+                                "properties": [],
+                                "items": null,
+                                "discriminator": null,
+                                "const": null,
+                                "oneOf": [],
+                                "anyOf": [],
+                                "allOf": [],
+                                "constraints": {}
+                            }
+                        }
+                    },
+                    "sortable": [
+                        "title",
+                        "-title",
+                        "trackNumber",
+                        "-trackNumber",
+                        "position",
+                        "-position",
+                        "weight",
+                        "-weight",
+                        "addedAt",
+                        "-addedAt"
+                    ],
                     "pivotFields": {
                         "addedAt": {
                             "format": "date-time",
@@ -8147,6 +8630,8 @@
                     "paginator": null,
                     "countable": null,
                     "pivot": false,
+                    "filterable": [],
+                    "sortable": [],
                     "pivotFields": [],
                     "writePivotFields": []
                 },
@@ -8172,7 +8657,8 @@
                                 "public-profiles": [
                                     "displayName"
                                 ]
-                            }
+                            },
+                            "relatedQuery": null
                         },
                         "examples": {
                             "request": null,
@@ -8300,6 +8786,8 @@
                     "paginator": null,
                     "countable": null,
                     "pivot": false,
+                    "filterable": [],
+                    "sortable": [],
                     "pivotFields": [],
                     "writePivotFields": []
                 },
@@ -8376,7 +8864,8 @@
                                     "album",
                                     "playlists"
                                 ]
-                            }
+                            },
+                            "relatedQuery": null
                         },
                         "examples": {
                             "request": null,
@@ -8743,6 +9232,101 @@
                         "profile": "https://haddowg.github.io/json-api/profiles/countable/"
                     },
                     "pivot": false,
+                    "filterable": {
+                        "title": {
+                            "schema": {
+                                "types": [
+                                    "string"
+                                ],
+                                "format": null,
+                                "enum": [],
+                                "required": [],
+                                "properties": [],
+                                "items": null,
+                                "discriminator": null,
+                                "const": null,
+                                "oneOf": [],
+                                "anyOf": [],
+                                "allOf": [],
+                                "constraints": {}
+                            }
+                        },
+                        "explicit": {
+                            "schema": {
+                                "types": [
+                                    "boolean"
+                                ],
+                                "format": null,
+                                "enum": [],
+                                "required": [],
+                                "properties": [],
+                                "items": null,
+                                "discriminator": null,
+                                "const": null,
+                                "oneOf": [],
+                                "anyOf": [],
+                                "allOf": [],
+                                "constraints": {}
+                            }
+                        },
+                        "genres": {
+                            "schema": {
+                                "types": [
+                                    "array"
+                                ],
+                                "format": null,
+                                "enum": [],
+                                "required": [],
+                                "properties": [],
+                                "items": {
+                                    "types": [
+                                        "string"
+                                    ],
+                                    "format": null,
+                                    "enum": [],
+                                    "required": [],
+                                    "properties": [],
+                                    "items": null,
+                                    "discriminator": null,
+                                    "const": null,
+                                    "oneOf": [],
+                                    "anyOf": [],
+                                    "allOf": [],
+                                    "constraints": {}
+                                },
+                                "discriminator": null,
+                                "const": null,
+                                "oneOf": [],
+                                "anyOf": [],
+                                "allOf": [],
+                                "constraints": {}
+                            }
+                        },
+                        "q": {
+                            "schema": {
+                                "types": [
+                                    "string"
+                                ],
+                                "format": null,
+                                "enum": [],
+                                "required": [],
+                                "properties": [],
+                                "items": null,
+                                "discriminator": null,
+                                "const": null,
+                                "oneOf": [],
+                                "anyOf": [],
+                                "allOf": [],
+                                "constraints": {}
+                            }
+                        }
+                    },
+                    "sortable": [
+                        "title",
+                        "-title",
+                        "trackNumber",
+                        "-trackNumber"
+                    ],
                     "pivotFields": [],
                     "writePivotFields": []
                 }
@@ -8810,7 +9394,8 @@
                                 "album",
                                 "playlists"
                             ]
-                        }
+                        },
+                        "relatedQuery": null
                     },
                     "examples": {
                         "request": {
@@ -9027,7 +9612,8 @@
                                 "album",
                                 "playlists"
                             ]
-                        }
+                        },
+                        "relatedQuery": "https://haddowg.github.io/json-api/profiles/relationship-queries/"
                     },
                     "examples": {
                         "request": null,
@@ -9215,7 +9801,8 @@
                                 "album",
                                 "playlists"
                             ]
-                        }
+                        },
+                        "relatedQuery": "https://haddowg.github.io/json-api/profiles/relationship-queries/"
                     },
                     "examples": {
                         "request": null,
@@ -9410,7 +9997,8 @@
                                 "album",
                                 "playlists"
                             ]
-                        }
+                        },
+                        "relatedQuery": null
                     },
                     "examples": {
                         "request": {
@@ -9677,7 +10265,8 @@
                                     "name",
                                     "parent"
                                 ]
-                            }
+                            },
+                            "relatedQuery": null
                         },
                         "examples": {
                             "request": null,
@@ -9823,6 +10412,8 @@
                     "paginator": null,
                     "countable": null,
                     "pivot": false,
+                    "filterable": [],
+                    "sortable": [],
                     "pivotFields": [],
                     "writePivotFields": []
                 }
@@ -9851,7 +10442,8 @@
                                 "name",
                                 "parent"
                             ]
-                        }
+                        },
+                        "relatedQuery": null
                     },
                     "examples": {
                         "request": {
@@ -9951,7 +10543,8 @@
                                 "name",
                                 "parent"
                             ]
-                        }
+                        },
+                        "relatedQuery": "https://haddowg.github.io/json-api/profiles/relationship-queries/"
                     },
                     "examples": {
                         "request": null,
@@ -10046,7 +10639,8 @@
                                 "name",
                                 "parent"
                             ]
-                        }
+                        },
+                        "relatedQuery": "https://haddowg.github.io/json-api/profiles/relationship-queries/"
                     },
                     "examples": {
                         "request": null,
@@ -10148,7 +10742,8 @@
                                 "name",
                                 "parent"
                             ]
-                        }
+                        },
+                        "relatedQuery": null
                     },
                     "examples": {
                         "request": {
@@ -10287,7 +10882,8 @@
                             "public-profiles": [
                                 "displayName"
                             ]
-                        }
+                        },
+                        "relatedQuery": null
                     },
                     "examples": {
                         "request": null,
@@ -10361,7 +10957,8 @@
                             "public-profiles": [
                                 "displayName"
                             ]
-                        }
+                        },
+                        "relatedQuery": null
                     },
                     "examples": {
                         "request": null,
@@ -12232,7 +12829,8 @@
                                     "album",
                                     "playlists"
                                 ]
-                            }
+                            },
+                            "relatedQuery": null
                         },
                         "examples": {
                             "request": null,
@@ -12411,6 +13009,8 @@
                     "paginator": null,
                     "countable": null,
                     "pivot": false,
+                    "filterable": [],
+                    "sortable": [],
                     "pivotFields": [],
                     "writePivotFields": []
                 }
@@ -12478,7 +13078,8 @@
                                 "album",
                                 "playlists"
                             ]
-                        }
+                        },
+                        "relatedQuery": null
                     },
                     "examples": {
                         "request": {
@@ -12651,7 +13252,8 @@
                                 "album",
                                 "playlists"
                             ]
-                        }
+                        },
+                        "relatedQuery": "https://haddowg.github.io/json-api/profiles/relationship-queries/"
                     },
                     "examples": {
                         "request": null,
@@ -12802,7 +13404,8 @@
                                 "album",
                                 "playlists"
                             ]
-                        }
+                        },
+                        "relatedQuery": "https://haddowg.github.io/json-api/profiles/relationship-queries/"
                     },
                     "examples": {
                         "request": null,
@@ -12960,7 +13563,8 @@
                                 "album",
                                 "playlists"
                             ]
-                        }
+                        },
+                        "relatedQuery": null
                     },
                     "examples": {
                         "request": {
@@ -13504,7 +14108,8 @@
                                     "album",
                                     "playlists"
                                 ]
-                            }
+                            },
+                            "relatedQuery": null
                         },
                         "examples": {
                             "request": null,
@@ -13683,6 +14288,8 @@
                     "paginator": null,
                     "countable": null,
                     "pivot": false,
+                    "filterable": [],
+                    "sortable": [],
                     "pivotFields": [],
                     "writePivotFields": []
                 },
@@ -13750,7 +14357,8 @@
                                     "album",
                                     "playlists"
                                 ]
-                            }
+                            },
+                            "relatedQuery": null
                         },
                         "examples": {
                             "request": null,
@@ -14076,6 +14684,8 @@
                         "profile": "https://haddowg.github.io/json-api/profiles/countable/"
                     },
                     "pivot": false,
+                    "filterable": [],
+                    "sortable": [],
                     "pivotFields": [],
                     "writePivotFields": []
                 }
@@ -14152,7 +14762,8 @@
                                 "album",
                                 "playlists"
                             ]
-                        }
+                        },
+                        "relatedQuery": null
                     },
                     "examples": {
                         "request": {
@@ -14341,7 +14952,8 @@
                                 "album",
                                 "playlists"
                             ]
-                        }
+                        },
+                        "relatedQuery": "https://haddowg.github.io/json-api/profiles/relationship-queries/"
                     },
                     "examples": {
                         "request": null,
@@ -14510,7 +15122,8 @@
                                 "album",
                                 "playlists"
                             ]
-                        }
+                        },
+                        "relatedQuery": "https://haddowg.github.io/json-api/profiles/relationship-queries/"
                     },
                     "examples": {
                         "request": null,
@@ -14686,7 +15299,8 @@
                                 "album",
                                 "playlists"
                             ]
-                        }
+                        },
+                        "relatedQuery": null
                     },
                     "examples": {
                         "request": {

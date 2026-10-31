@@ -7,7 +7,7 @@ declare(strict_types=1);
  * so this map is how each one is found. Register it once through composer.json's
  * `autoload.files`; regenerating rewrites it, so a new type never needs a `dump-autoload`.
  *
- * @generated from an OpenAPI document with sha256 b3c77dd3ee52d8d49849d0d563403c584243c47263693acb9ea3b72885accae6
+ * @generated from an OpenAPI document with sha256 ecffb4e8aa07379f3be4f2161ef177f29c2fd4c467f6dd0732517a6aa6227e31
  */
 
 \spl_autoload_register(static function (string $class): void {
@@ -35,6 +35,7 @@ declare(strict_types=1);
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\Witness\\ArticlePublisherRelation' => 'resource-articles.php',
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\Witness\\ArticleQuery' => 'resource-articles.php',
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\Witness\\ArticleReadProjection' => 'resource-articles.php',
+        'haddowg\\JsonApiCodegen\\Tests\\Golden\\Witness\\ArticleSponsorsRelation' => 'resource-articles.php',
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\Witness\\ArticleSubjectRelation' => 'resource-articles.php',
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\Witness\\ArticleSummary' => 'resource-articles.php',
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\Witness\\ArticleTagsEdge' => 'resource-articles.php',

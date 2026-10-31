@@ -46,7 +46,7 @@ final class ContractNineteenTest extends TestCase
         $articles = self::witness()->resource('articles');
         self::assertNotNull($articles);
 
-        foreach (['subject' => ['people'], 'gallery' => ['images'], 'attachments' => ['images', 'videos']] as $name => $types) {
+        foreach (['subject' => ['people'], 'gallery' => ['images'], 'attachments' => ['images', 'videos'], 'sponsors' => ['people', 'images']] as $name => $types) {
             $relation = $articles->relation($name);
             self::assertNotNull($relation, $name);
             self::assertTrue($relation->polymorphic, $name);
@@ -63,6 +63,13 @@ final class ContractNineteenTest extends TestCase
 
         self::assertSame(['people', 'tags'], $articles->operation(OperationKind::FetchMany)?->projection?->included);
         self::assertSame(['people', 'tags'], $articles->operation(OperationKind::FetchOne)?->projection?->included);
+    }
+
+    public function testTheAtomicEndpointIsFoundWhateverShapeItsOperationsTake(): void
+    {
+        // The operation and result unions are split by kind and discriminated by type, which
+        // nothing here reads: a batch is built from each type's write inputs.
+        self::assertSame('/operations', self::witness()->atomic?->path);
     }
 
     public function testAnOlderDocumentRecordsNoIncludedTypes(): void

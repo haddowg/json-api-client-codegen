@@ -72,6 +72,16 @@ final class SurfaceEmitterTest extends TestCase
         self::assertStringNotContainsString('function add(', $source);
     }
 
+    public function testAToManysRelatedReadTakesItsRelationshipQuery(): void
+    {
+        $tracks = self::unit('AlbumTracksRelation')->source;
+
+        self::assertStringContainsString('public function related(?callable $query = null): PaginatedCollection', $tracks);
+        self::assertStringContainsString('$read = $query === null ? new ReadQuery() : $query(new AlbumTracksRelatedQuery())->toReadQuery();', $tracks);
+        self::assertStringContainsString("Request::get(\$read->appendTo('/albums/' . \$this->id . '/tracks')), \$read)", $tracks);
+        self::assertStringContainsString('public function related(): ?Artist', self::unit('AlbumArtistRelation')->source);
+    }
+
     public function testAToManyGetsOnlyTheVerbsItsEndpointDeclares(): void
     {
         $source = self::unit('TrackPlaylistsRelation')->source;

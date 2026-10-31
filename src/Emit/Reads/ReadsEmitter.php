@@ -48,7 +48,10 @@ final class ReadsEmitter implements Emitter, Warns
             if ($surface->collection !== null) {
                 yield $sources->query();
             }
-            foreach ($surface->relating() as $relation) {
+            foreach ($resource->relations as $relation) {
+                if (!RelatedQuerySource::applies($relation)) {
+                    continue;
+                }
                 [$unit, $warnings] = RelatedQuerySource::unit($resource->type, $relation, $surface->file);
                 \array_push($this->warnings, ...$warnings);
                 yield $unit;

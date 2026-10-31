@@ -456,9 +456,9 @@ final class Artist extends ArtistBase implements ArtistHasAlbums
 }
 
 /**
- * How the `albums` of an `artists` read come back: filtered and sorted by the vocabulary `GET
- * /artists/{id}/albums` declares, under the Relationship Queries profile. A read's `withAlbums()`
- * hands one to its closure.
+ * How the `albums` of an `artists` resource come back: filtered and sorted by the vocabulary `GET
+ * /artists/{id}/albums` declares. A read's `withAlbums()` sends it under the Relationship Queries
+ * profile, and the relation's `related()` as that endpoint's own `filter` and `sort`.
  *
  * @phpstan-type ArtistAlbumsRangeShape array{min?: float, max?: float}
  * @phpstan-type ArtistAlbumsDateRangeShape array{min?: \DateTimeImmutable|string, max?: \DateTimeImmutable|string}
@@ -743,7 +743,10 @@ final class ArtistAlbumsRelation
     }
 
     /**
-     * The related resources themselves, a page at a time.
+     * The related resources themselves, a page at a time, optionally filtered and sorted by the
+     * relation's own vocabulary: the closure gets a fresh {@see ArtistAlbumsRelatedQuery}.
+     *
+     * @param (callable(ArtistAlbumsRelatedQuery): ArtistAlbumsRelatedQuery)|null $query
      *
      * @return PaginatedCollection<Album, PageNumber>
      *
@@ -754,9 +757,11 @@ final class ArtistAlbumsRelation
      * @throws ServerError        when the server fails
      * @throws TransportException when no response is received at all
      */
-    public function related(): PaginatedCollection
+    public function related(?callable $query = null): PaginatedCollection
     {
-        return $this->resources($this->fetcher->read(Request::get('/artists/' . $this->id . '/albums')));
+        $read = $query === null ? new ReadQuery() : $query(new ArtistAlbumsRelatedQuery())->toReadQuery();
+
+        return $this->resources($this->fetcher->read(Request::get($read->appendTo('/artists/' . $this->id . '/albums')), $read));
     }
 
     /**

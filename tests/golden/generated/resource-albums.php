@@ -2012,9 +2012,9 @@ final class AlbumReadProjection extends Projection
 }
 
 /**
- * How the `tracks` of an `albums` read come back: filtered and sorted by the vocabulary `GET
- * /albums/{id}/tracks` declares, under the Relationship Queries profile. A read's `withTracks()`
- * hands one to its closure.
+ * How the `tracks` of an `albums` resource come back: filtered and sorted by the vocabulary `GET
+ * /albums/{id}/tracks` declares. A read's `withTracks()` sends it under the Relationship Queries
+ * profile, and the relation's `related()` as that endpoint's own `filter` and `sort`.
  *
  * @phpstan-type AlbumTracksFilterShape array{title?: string, explicit?: bool, genres?: list<string>, q?: string, longerThan?: int}
  * @phpstan-type AlbumTracksSortToken '-duration'|'-title'|'-trackNumber'|'duration'|'title'|'trackNumber'
@@ -2272,7 +2272,10 @@ final class AlbumTracksRelation
     }
 
     /**
-     * The related resources themselves, a page at a time.
+     * The related resources themselves, a page at a time, optionally filtered and sorted by the
+     * relation's own vocabulary: the closure gets a fresh {@see AlbumTracksRelatedQuery}.
+     *
+     * @param (callable(AlbumTracksRelatedQuery): AlbumTracksRelatedQuery)|null $query
      *
      * @return PaginatedCollection<Track, PageNumber>
      *
@@ -2284,9 +2287,11 @@ final class AlbumTracksRelation
      * @throws ServerError        when the server fails
      * @throws TransportException when no response is received at all
      */
-    public function related(): PaginatedCollection
+    public function related(?callable $query = null): PaginatedCollection
     {
-        return $this->resources($this->fetcher->read(Request::get('/albums/' . $this->id . '/tracks')));
+        $read = $query === null ? new ReadQuery() : $query(new AlbumTracksRelatedQuery())->toReadQuery();
+
+        return $this->resources($this->fetcher->read(Request::get($read->appendTo('/albums/' . $this->id . '/tracks')), $read));
     }
 
     /**

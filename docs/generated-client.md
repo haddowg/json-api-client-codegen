@@ -110,6 +110,10 @@ aliases, and the read's `withX()` takes a closure over it. The collection query 
 closures directly; a single read that declares `relatedQuery` gets a `<Type>ReadProjection`,
 because the write projection is shared with writes, which do not.
 
+The same class is generated for every to-many whose related read declares a filter or sort, and
+that relation's `related()` takes the same closure, sent as the endpoint's own `filter[…]` and
+`sort` without the profile.
+
 ## Handles on fetched resources
 
 Every resource base whose type has an id-handle gets `_handle()`, which returns that handle over

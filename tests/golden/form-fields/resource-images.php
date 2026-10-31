@@ -16,12 +16,14 @@ use haddowg\JsonApiClient\Exceptions\ServerError;
 use haddowg\JsonApiClient\Exceptions\TransportException;
 use haddowg\JsonApiClient\Exceptions\Unauthorized;
 use haddowg\JsonApiClient\Exceptions\UnknownFieldException;
+use haddowg\JsonApiClient\Exceptions\UnknownFilterException;
 use haddowg\JsonApiClient\Http\Request;
 use haddowg\JsonApiClient\Pagination\PageLinks;
 use haddowg\JsonApiClient\Pagination\PageNumber;
 use haddowg\JsonApiClient\Query\Projection;
 use haddowg\JsonApiClient\Query\Query;
 use haddowg\JsonApiClient\Query\ReadQuery;
+use haddowg\JsonApiClient\Query\RelatedQuery;
 use haddowg\JsonApiClient\Resources\DeclaredLink;
 use haddowg\JsonApiClient\Resources\DeclaredLinks;
 use haddowg\JsonApiClient\Resources\Fetcher;
@@ -238,6 +240,100 @@ final class Image extends ImageBase
 }
 
 /**
+ * How the `clips` of an `images` resource come back: filtered and sorted by the vocabulary `GET
+ * /images/{id}/clips` declares. A read's `withClips()` sends it under the Relationship Queries
+ * profile, and the relation's `related()` as that endpoint's own `filter` and `sort`.
+ *
+ * @phpstan-type ImageClipsFilterShape array{seconds?: list<int>, id?: list<string>}
+ *
+ * @generated from the `filter` and `sort` parameters of `GET /images/{id}/clips`
+ */
+final class ImageClipsRelatedQuery extends RelatedQuery
+{
+    /**
+     * The filters the relation accepts. The runtime guard on both array doors checks names against
+     * this.
+     *
+     * @var list<string>
+     */
+    public const array FILTERS = ['seconds', 'id'];
+
+    /**
+     * Filter by `seconds`.
+     *
+     * @param list<int> $value
+     *
+     * @return static
+     */
+    public function whereSeconds(array $value): static
+    {
+        return $this->filtering(['seconds' => $value]);
+    }
+
+    /**
+     * Filter by `id`.
+     *
+     * @param list<string> $value
+     *
+     * @return static
+     */
+    public function whereId(array $value): static
+    {
+        return $this->filtering(['id' => $value]);
+    }
+
+    /**
+     * The typed array door: values are checked statically, nested ones included, and names at
+     * runtime.
+     *
+     * @param ImageClipsFilterShape $filter
+     *
+     * @return static
+     *
+     * @throws UnknownFilterException when a name is not one this endpoint filters by
+     */
+    public function filter(array $filter): static
+    {
+        return $this->filtering(self::guardFilters($filter));
+    }
+
+    /**
+     * The loose door, for a filter map assembled at runtime. Nothing is checked statically; the
+     * names are still checked here.
+     *
+     * @param array<string, mixed> $filter
+     *
+     * @return static
+     *
+     * @throws UnknownFilterException when a name is not one this endpoint filters by
+     */
+    public function filterRaw(array $filter): static
+    {
+        return $this->filtering(self::guardFilters($filter));
+    }
+
+    /**
+     * @param ImageClipsFilterShape|array<string, mixed> $filter
+     *
+     * @return array<string, mixed>
+     *
+     * @throws UnknownFilterException
+     */
+    private static function guardFilters(array $filter): array
+    {
+        foreach (\array_keys($filter) as $name) {
+            $name = (string) $name;
+
+            if (!\in_array($name, self::FILTERS, true)) {
+                throw UnknownFilterException::for($name, self::FILTERS);
+            }
+        }
+
+        return $filter;
+    }
+}
+
+/**
  * The `clips` relationship of one image. `get()` reads the linkage and `related()` reads the
  * related resources; any read the server switched off is absent. No write is advertised, so none is
  * generated.
@@ -298,7 +394,10 @@ final class ImageClipsRelation
     }
 
     /**
-     * The related resources themselves.
+     * The related resources themselves, optionally filtered and sorted by the relation's own
+     * vocabulary: the closure gets a fresh {@see ImageClipsRelatedQuery}.
+     *
+     * @param (callable(ImageClipsRelatedQuery): ImageClipsRelatedQuery)|null $query
      *
      * @return ResourceCollection<Video>
      *
@@ -345,9 +444,11 @@ final class ImageClipsRelation
      *         }
      *     }
      */
-    public function related(): ResourceCollection
+    public function related(?callable $query = null): ResourceCollection
     {
-        return $this->resources($this->fetcher->read(Request::get('/images/' . $this->id . '/clips')));
+        $read = $query === null ? new ReadQuery() : $query(new ImageClipsRelatedQuery())->toReadQuery();
+
+        return $this->resources($this->fetcher->read(Request::get($read->appendTo('/images/' . $this->id . '/clips')), $read));
     }
 
     /**

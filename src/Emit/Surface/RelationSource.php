@@ -13,6 +13,7 @@ use haddowg\JsonApiCodegen\Emit\ClassUnit;
 use haddowg\JsonApiCodegen\Emit\ExampleTag;
 use haddowg\JsonApiCodegen\Emit\Naming;
 use haddowg\JsonApiCodegen\Emit\Php;
+use haddowg\JsonApiCodegen\Emit\Reads\RelatedQuerySource;
 use haddowg\JsonApiCodegen\Emit\ScopeNote;
 use haddowg\JsonApiCodegen\Emit\UnitKind;
 
@@ -107,7 +108,7 @@ final class RelationSource
             }
             $members[] = $toOne
                 ? self::relatedOne($relation, $relation->relatedRead, $imports, $notFound, $classes)
-                : self::relatedMany($relation, $relation->relatedRead, $imports, $notFound, $classes, $page);
+                : self::relatedMany($type, $relation, $relation->relatedRead, $imports, $notFound, $classes, $page);
         }
 
         $verbs = $toOne ? [RelationVerb::Set] : [RelationVerb::Add, RelationVerb::Remove, RelationVerb::Replace];
@@ -236,20 +237,38 @@ final class RelationSource
      * @param array<string, string> $notFound
      * @param list<string>          $classes
      */
-    private static function relatedMany(RelationDescriptor $relation, OperationDescriptor $read, Imports $imports, array $notFound, array $classes, ?string $page): string
+    private static function relatedMany(TypeSurface $type, RelationDescriptor $relation, OperationDescriptor $read, Imports $imports, array $notFound, array $classes, ?string $page): string
     {
-        $imports->runtime('Http\\Request');
-
-        return Php::docblock(ScopeNote::insert([
-            ...Php::wrap($page === null ? 'The related resources themselves.' : 'The related resources themselves, a page at a time.', 4),
-            '',
+        $request = $imports->runtime('Http\\Request');
+        $summary = $page === null ? 'The related resources themselves.' : 'The related resources themselves, a page at a time.';
+        $tags = [
             '@return ' . self::collectionType($imports, self::union($classes), $page),
             '',
             ...Throws::tags($read->errorStatuses, $imports, [...self::READ_REASONS, ...$notFound]),
             ...ExampleTag::lines($read->examples),
+        ];
+
+        if (!RelatedQuerySource::applies($relation)) {
+            return Php::docblock(ScopeNote::insert([...Php::wrap($summary, 4), '', ...$tags], $read->scopes), 4, false)
+                . '    public function related(): ' . self::collectionClass($imports, $page) . "\n    {\n"
+                . '        return $this->resources($this->fetcher->read(' . TypeSurface::request('GET', TypeSurface::path($read->path)) . "));\n"
+                . "    }\n";
+        }
+
+        $query = RelatedQuerySource::name($type->type(), $relation->name);
+        $readQuery = $imports->runtime('Query\\ReadQuery');
+
+        return Php::docblock(ScopeNote::insert([
+            ...Php::wrap(\rtrim($summary, '.') . ', optionally filtered and sorted by the relation\'s own vocabulary: the closure gets a fresh {@see ' . $query . '}.', 4),
+            '',
+            '@param (callable(' . $query . '): ' . $query . ')|null $query',
+            '',
+            ...$tags,
         ], $read->scopes), 4, false)
-            . '    public function related(): ' . self::collectionClass($imports, $page) . "\n    {\n"
-            . '        return $this->resources($this->fetcher->read(' . TypeSurface::request('GET', TypeSurface::path($read->path)) . "));\n"
+            . '    public function related(?callable $query = null): ' . self::collectionClass($imports, $page) . "\n    {\n"
+            . '        $read = $query === null ? new ' . $readQuery . '() : $query(new ' . $query . "())->toReadQuery();\n"
+            . "\n"
+            . '        return $this->resources($this->fetcher->read(' . $request . '::get($read->appendTo(' . TypeSurface::path($read->path) . ")), \$read));\n"
             . "    }\n";
     }
 

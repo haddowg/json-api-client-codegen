@@ -25,7 +25,7 @@ use PHPUnit\Framework\TestCase;
 
 /**
  * Generator contract 16 lists the OAuth scopes an operation needs in its `security` under the
- * `oauth2` scheme (core ADR 0182), and projects a polymorphic relation over one type as a
+ * `oauth2` scheme (core ADR 0181), and projects a polymorphic relation over one type as a
  * one-member union (core ADR 0184). The witness's articles need `articles:read` and
  * `articles:write`, its related reads add the related type's read scope, `publish` needs
  * `articles:publish` and the Atomic Operations endpoint `batch`. Its `subject` is a `MorphTo`

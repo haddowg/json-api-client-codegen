@@ -19,3 +19,5 @@
 /CONTRIBUTING.md               export-ignore
 /CLAUDE.md                     export-ignore
 /CONTEXT.md                    export-ignore
+/mkdocs.yml              export-ignore
+/mkdocs_hooks.py         export-ignore

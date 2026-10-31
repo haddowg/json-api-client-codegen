@@ -34,3 +34,6 @@ phpunit.xml
 phpstan.neon
 .php-cs-fixer.php
 /.php-cs-fixer.generated.cache
+
+# MkDocs build output
+/site/

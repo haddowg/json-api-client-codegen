@@ -108,6 +108,17 @@ abstract class ExportJobBase extends ResourceObject
     {
         return $this->_string('state');
     }
+
+    /**
+     * This export job's id-handle, to write through: its update, delete, relationship writes and
+     * actions, exactly as `$client->exportJobs->id(…)` offers them.
+     *
+     * @throws \LogicException when the export job was not read through a client
+     */
+    public function _handle(): ExportJobHandle
+    {
+        return new ExportJobHandle($this->_fetcher(), $this->id());
+    }
 }
 
 /**

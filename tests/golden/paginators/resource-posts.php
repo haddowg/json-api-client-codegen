@@ -226,6 +226,17 @@ abstract class PostBase extends ResourceObject
     {
         return $this->_relationship($name, $name === 'author');
     }
+
+    /**
+     * This post's id-handle, to write through: its update, delete, relationship writes and actions,
+     * exactly as `$client->posts->id(…)` offers them.
+     *
+     * @throws \LogicException when the post was not read through a client
+     */
+    public function _handle(): PostHandle
+    {
+        return new PostHandle($this->_fetcher(), $this->id());
+    }
 }
 
 /**

@@ -327,6 +327,17 @@ abstract class TrackBase extends ResourceObject
     {
         return $this->_relationship($name, $name === 'album');
     }
+
+    /**
+     * This track's id-handle, to write through: its update, delete, relationship writes and
+     * actions, exactly as `$client->tracks->id(…)` offers them.
+     *
+     * @throws \LogicException when the track was not read through a client
+     */
+    public function _handle(): TrackHandle
+    {
+        return new TrackHandle($this->_fetcher(), $this->id());
+    }
 }
 
 /**

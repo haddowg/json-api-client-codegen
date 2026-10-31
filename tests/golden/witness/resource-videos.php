@@ -127,6 +127,17 @@ abstract class VideoBase extends ResourceObject
     {
         return $this->_nullableInt('seconds');
     }
+
+    /**
+     * This video's id-handle, to write through: its update, delete, relationship writes and
+     * actions, exactly as `$client->videos->id(…)` offers them.
+     *
+     * @throws \LogicException when the video was not read through a client
+     */
+    public function _handle(): VideoHandle
+    {
+        return new VideoHandle($this->_fetcher(), $this->id());
+    }
 }
 
 /**

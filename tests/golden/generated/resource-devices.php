@@ -122,6 +122,17 @@ abstract class DeviceBase extends ResourceObject
 
         return $value;
     }
+
+    /**
+     * This device's id-handle, to write through: its update, delete, relationship writes and
+     * actions, exactly as `$client->devices->id(…)` offers them.
+     *
+     * @throws \LogicException when the device was not read through a client
+     */
+    public function _handle(): DeviceHandle
+    {
+        return new DeviceHandle($this->_fetcher(), $this->id());
+    }
 }
 
 /**

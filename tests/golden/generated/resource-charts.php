@@ -50,6 +50,17 @@ abstract class ChartBase extends ResourceObject
     {
         return self::TYPE;
     }
+
+    /**
+     * This chart's id-handle, to write through: its update, delete, relationship writes and
+     * actions, exactly as `$client->charts->id(…)` offers them.
+     *
+     * @throws \LogicException when the chart was not read through a client
+     */
+    public function _handle(): ChartHandle
+    {
+        return new ChartHandle($this->_fetcher(), $this->id());
+    }
 }
 
 /**

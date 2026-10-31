@@ -158,6 +158,17 @@ abstract class TagBase extends ResourceObject
     {
         return $this->_relationship($name, false);
     }
+
+    /**
+     * This tag's id-handle, to write through: its update, delete, relationship writes and actions,
+     * exactly as `$client->tags->id(…)` offers them.
+     *
+     * @throws \LogicException when the tag was not read through a client
+     */
+    public function _handle(): TagHandle
+    {
+        return new TagHandle($this->_fetcher(), $this->id());
+    }
 }
 
 /**

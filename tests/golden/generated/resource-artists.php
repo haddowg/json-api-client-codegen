@@ -265,6 +265,17 @@ abstract class ArtistBase extends ResourceObject
     {
         return $this->_relationship($name, false);
     }
+
+    /**
+     * This artist's id-handle, to write through: its update, delete, relationship writes and
+     * actions, exactly as `$client->artists->id(…)` offers them.
+     *
+     * @throws \LogicException when the artist was not read through a client
+     */
+    public function _handle(): ArtistHandle
+    {
+        return new ArtistHandle($this->_fetcher(), $this->id());
+    }
 }
 
 /**

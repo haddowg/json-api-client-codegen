@@ -223,6 +223,17 @@ abstract class LibraryBase extends ResourceObject
     {
         return $this->_relationship($name, $name === 'owner');
     }
+
+    /**
+     * This library's id-handle, to write through: its update, delete, relationship writes and
+     * actions, exactly as `$client->libraries->id(…)` offers them.
+     *
+     * @throws \LogicException when the library was not read through a client
+     */
+    public function _handle(): LibraryHandle
+    {
+        return new LibraryHandle($this->_fetcher(), $this->id());
+    }
 }
 
 /**

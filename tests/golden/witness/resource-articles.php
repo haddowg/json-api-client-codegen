@@ -825,6 +825,17 @@ abstract class ArticleBase extends ResourceObject
     {
         return $this->_relationship($name, \in_array($name, ['author', 'publisher', 'cover', 'editor', 'subject'], true));
     }
+
+    /**
+     * This article's id-handle, to write through: its update, delete, relationship writes and
+     * actions, exactly as `$client->articles->id(…)` offers them.
+     *
+     * @throws \LogicException when the article was not read through a client
+     */
+    public function _handle(): ArticleHandle
+    {
+        return new ArticleHandle($this->_fetcher(), $this->id());
+    }
 }
 
 /**

@@ -368,6 +368,17 @@ abstract class PlaylistBase extends ResourceObject
     {
         return $this->_relationship($name, \in_array($name, ['owner', 'publicOwner'], true));
     }
+
+    /**
+     * This playlist's id-handle, to write through: its update, delete, relationship writes and
+     * actions, exactly as `$client->playlists->id(…)` offers them.
+     *
+     * @throws \LogicException when the playlist was not read through a client
+     */
+    public function _handle(): PlaylistHandle
+    {
+        return new PlaylistHandle($this->_fetcher(), $this->id());
+    }
 }
 
 /**

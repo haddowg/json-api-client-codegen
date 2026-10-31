@@ -153,6 +153,17 @@ abstract class ImageBase extends ResourceObject
     {
         return new ImageLinks($this->_links(), $this->_subject());
     }
+
+    /**
+     * This image's id-handle, to write through: its update, delete, relationship writes and
+     * actions, exactly as `$client->images->id(…)` offers them.
+     *
+     * @throws \LogicException when the image was not read through a client
+     */
+    public function _handle(): ImageHandle
+    {
+        return new ImageHandle($this->_fetcher(), $this->id());
+    }
 }
 
 /**

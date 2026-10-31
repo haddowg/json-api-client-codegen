@@ -204,6 +204,17 @@ abstract class FavoriteBase extends ResourceObject
     {
         return $this->_relationship($name, true);
     }
+
+    /**
+     * This favorite's id-handle, to write through: its update, delete, relationship writes and
+     * actions, exactly as `$client->favorites->id(…)` offers them.
+     *
+     * @throws \LogicException when the favorite was not read through a client
+     */
+    public function _handle(): FavoriteHandle
+    {
+        return new FavoriteHandle($this->_fetcher(), $this->id());
+    }
 }
 
 /**

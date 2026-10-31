@@ -136,6 +136,17 @@ abstract class CatalogExportBase extends ResourceObject
     {
         return $this->_string('status');
     }
+
+    /**
+     * This catalog export's id-handle, to write through: its update, delete, relationship writes
+     * and actions, exactly as `$client->catalogExports->id(…)` offers them.
+     *
+     * @throws \LogicException when the catalog export was not read through a client
+     */
+    public function _handle(): CatalogExportHandle
+    {
+        return new CatalogExportHandle($this->_fetcher(), $this->id());
+    }
 }
 
 /**

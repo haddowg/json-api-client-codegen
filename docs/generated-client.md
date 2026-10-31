@@ -99,3 +99,9 @@ that endpoint's path, and every relation setter on a write input also accepts a 
 the related type. Without one there is no `atomic()`, and setters take only resources and
 identifiers. Every create and update input implements the runtime's `CreateInput` or `UpdateInput`
 whether or not the server has the extension.
+
+## Handles on fetched resources
+
+Every resource base whose type has an id-handle gets `_handle()`, which returns that handle over
+the fetcher that read the resource. A type has an id-handle when it has a single-resource read,
+update or delete, a relation with a relationship handle, or a resource-scoped action.

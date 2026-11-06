@@ -13,7 +13,9 @@ use haddowg\JsonApiCodegen\Emit\Php;
  * A value schema reduced to the shape generated code reads it as.
  *
  * Composition follows each keyword's own semantics: a `oneOf` whose object branches each name
- * their `discriminator` value with a `const` is a tagged union; an `anyOf` is one merged object
+ * their `discriminator` value with a `const` is a tagged union, and so is a `oneOf` with no
+ * discriminator whose object branches each require a member no other branch declares (its
+ * signature, which selects it); an `anyOf` is one merged object
  * with every branch member optional, because the branches are not exclusive; an `allOf` is
  * flattened and keeps its branches' required members; and a `{"type": "null"}` branch makes the
  * value nullable rather than becoming a branch of its own. Anything else with no declared type
@@ -26,7 +28,11 @@ final class Shape
 {
     /**
      * @param array<string, array{shape: Shape, required: bool}> $members  an object's members, in document order
-     * @param list<array{value: string, shape: Shape}>           $branches a tagged union's object branches
+     * @param list<array{value: string, shape: Shape, signature: list<string>}> $branches a tagged union's
+     *                                                                                   object branches; the
+     *                                                                                   signature selects one
+     *                                                                                   when there is no
+     *                                                                                   discriminator
      */
     private function __construct(
         public readonly ShapeKind $kind,
@@ -118,7 +124,7 @@ final class Shape
             ShapeKind::List => Narrowing::list(($this->items ?? self::unknown())->merged()->wireType(), $this->constraints),
             ShapeKind::Object => $this->members === [] ? 'array<string, mixed>' : self::objectType($this->members, []),
             ShapeKind::Tagged => \implode('|', \array_map(
-                fn(array $branch): string => self::objectType($branch['shape']->members, [(string) $this->discriminator => Php::docString($branch['value'])]),
+                fn(array $branch): string => self::objectType($branch['shape']->members, $this->discriminator === null ? [] : [$this->discriminator => Php::docString($branch['value'])]),
                 $this->branches,
             )),
         };
@@ -233,14 +239,18 @@ final class Shape
 
     /**
      * A tagged union, when every branch is an object naming its discriminator value with a
-     * `const`. Null when the union is not discriminated that way.
+     * `const`, or, with no discriminator, when every branch is an object requiring a member no
+     * other branch declares. Null when the union is tagged neither way.
      *
      * @param list<ValueSchema> $branches
      */
     private static function tagged(?string $discriminator, array $branches): ?self
     {
-        if ($discriminator === null || $branches === []) {
+        if ($branches === []) {
             return null;
+        }
+        if ($discriminator === null) {
+            return self::signed($branches);
         }
 
         $out = [];
@@ -250,10 +260,57 @@ final class Shape
             if ($value === null || $shape->kind !== ShapeKind::Object) {
                 return null;
             }
-            $out[] = ['value' => $value, 'shape' => $shape];
+            $out[] = ['value' => $value, 'shape' => $shape, 'signature' => []];
         }
 
         return new self(ShapeKind::Tagged, false, discriminator: $discriminator, branches: $out);
+    }
+
+    /**
+     * An undiscriminated union whose branches a value tells apart: each branch is an object that
+     * requires at least one member no other branch declares, and that signature selects it. A
+     * branch is named by its `title`, or by its position when it has none. Null when a branch is
+     * not an object or has no signature, since nothing could then say which branch a value is.
+     *
+     * @param list<ValueSchema> $branches
+     */
+    private static function signed(array $branches): ?self
+    {
+        if (\count($branches) < 2) {
+            return null;
+        }
+
+        $shapes = [];
+        $declaredBy = [];
+        foreach ($branches as $index => $branch) {
+            $shape = self::of($branch);
+            if ($shape->kind !== ShapeKind::Object || $shape->nullable) {
+                return null;
+            }
+            $shapes[$index] = $shape;
+            foreach (\array_keys($shape->members) as $name) {
+                $declaredBy[$name][] = $index;
+            }
+        }
+
+        $out = [];
+        $names = [];
+        foreach ($shapes as $index => $shape) {
+            $signature = [];
+            foreach ($shape->members as $name => $member) {
+                if ($member['required'] && \count($declaredBy[$name]) === 1) {
+                    $signature[] = (string) $name;
+                }
+            }
+            $value = $branches[$index]->title ?? 'variant' . ($index + 1);
+            if ($signature === [] || isset($names[\strtolower($value)])) {
+                return null;
+            }
+            $names[\strtolower($value)] = true;
+            $out[] = ['value' => $value, 'shape' => $shape, 'signature' => $signature];
+        }
+
+        return new self(ShapeKind::Tagged, false, branches: $out);
     }
 
     /**

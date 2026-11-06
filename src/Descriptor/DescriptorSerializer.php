@@ -309,6 +309,7 @@ final class DescriptorSerializer
             'anyOf' => \array_map(self::valueSchema(...), $schema->anyOf),
             'allOf' => \array_map(self::valueSchema(...), $schema->allOf),
             'constraints' => (object) $schema->constraints->toArray(),
+            ...($schema->title === null ? [] : ['title' => $schema->title]),
         ];
     }
 }

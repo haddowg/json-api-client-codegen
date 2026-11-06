@@ -721,8 +721,12 @@ final class ReadModelEmitter implements Emitter, Warns
 
     private function tagged(ResourceDescriptor $resource, AttributeDescriptor $attribute, Shape $shape, string $method): AttributeRead
     {
+        if ($shape->discriminator === null) {
+            return $this->signed($resource, $attribute, $shape, $method);
+        }
+
         $nullable = $shape->nullable;
-        $discriminator = (string) $shape->discriminator;
+        $discriminator = $shape->discriminator;
         $constant = \strtoupper((string) \preg_replace('/(?<=[a-z0-9])(?=[A-Z])/', '_', Naming::pascal($discriminator)));
         if (!Identifier::isConstantName($constant)) {
             $this->warnings[] = \sprintf('The discriminator %s of %s.%s cannot name a PHP constant; each branch class carries its value as DISCRIMINATOR instead.', \json_encode($discriminator, \JSON_UNESCAPED_SLASHES | \JSON_UNESCAPED_UNICODE | \JSON_INVALID_UTF8_SUBSTITUTE), $resource->type, $attribute->name);
@@ -763,6 +767,74 @@ final class ReadModelEmitter implements Emitter, Warns
             [self::MALFORMED],
             $classes,
         );
+    }
+
+    /**
+     * An undiscriminated union: one class per branch, chosen by the signature member only that
+     * branch declares. A value carrying no branch's signature, or more than one, matches no branch.
+     */
+    private function signed(ResourceDescriptor $resource, AttributeDescriptor $attribute, Shape $shape, string $method): AttributeRead
+    {
+        $nullable = $shape->nullable;
+        $file = FileKey::resource($resource->type);
+        $subject = 'The "' . $attribute->name . '" attribute of ' . self::article($resource->type) . ' "' . $resource->type . '" resource';
+
+        $markers = \array_map(static fn(array $branch): string => $branch['signature'][0], $shape->branches);
+        $classes = [];
+        $arms = [];
+        foreach ($shape->branches as $index => $branch) {
+            $class = Naming::resource($resource->type) . Naming::pascal($method) . Naming::pascal($branch['value']);
+            $classes[] = $this->signedBranch($resource, $attribute, $class, $branch['value'], $branch['signature'], $branch['shape'], $file);
+            $conditions = [];
+            foreach ($markers as $other => $marker) {
+                $conditions[] = ($other === $index ? '' : '!') . '\\array_key_exists(' . Php::string($marker) . ', $raw)';
+            }
+            $arms[] = '    ' . \implode(' && ', $conditions) . ' => ' . $class . '::_from($raw),';
+        }
+        $names = \array_map(static fn(ClassUnit $unit): string => $unit->name, $classes);
+        $expected = \implode(', ', \array_map(static fn(string $marker): string => '"' . $marker . '"', $markers));
+
+        $body = [
+            '$raw = $this->' . ($nullable ? '_nullableMap' : '_map') . '(' . Php::string($attribute->name) . ');',
+            '',
+            ...($nullable ? ['if ($raw === null) {', '    return null;', '}', ''] : []),
+            'return match (true) {',
+            ...$arms,
+            '    default => throw new MalformedDocument(' . Php::string($subject . ' matches none of its branches: expected exactly one of the members ' . $expected . '.') . '),',
+            '};',
+        ];
+
+        return new AttributeRead(
+            $attribute->name,
+            $method,
+            \implode('|', $names) . ($nullable ? '|null' : ''),
+            null,
+            $body,
+            Php::wrap('A union, one class per branch, selected by the member only that branch carries. Narrow it with `instanceof` or `match`.', 4),
+            self::alias($resource, $method),
+            $shape->nullable(false)->wireType(),
+            [self::MALFORMED],
+            $classes,
+        );
+    }
+
+    /**
+     * One branch of an undiscriminated union: a value class with a property per member.
+     *
+     * @param list<string> $signature
+     */
+    private function signedBranch(ResourceDescriptor $resource, AttributeDescriptor $attribute, string $class, string $value, array $signature, Shape $shape, string $file): ClassUnit
+    {
+        $quoted = \array_map(static fn(string $member): string => '`' . $member . '`', $signature);
+        $last = \array_pop($quoted);
+        $carries = $quoted === [] ? $last : \implode(', ', $quoted) . ' and ' . $last;
+        $doc = [
+            ...Php::wrap('The `' . $value . '` branch of the `' . $attribute->name . '` attribute of ' . self::article($resource->type) . ' `' . $resource->type . '` resource, selected by the ' . $carries . ' ' . (\count($signature) === 1 ? 'member' : 'members') . ' only it declares.'),
+            '',
+            '@generated from `components.schemas.' . self::schema($resource->type) . '`, the `' . $value . '` branch of `' . $attribute->name . '`',
+        ];
+
+        return self::valueClass($class, 'The "' . $attribute->name . '" attribute of ' . self::article($resource->type) . ' "' . $resource->type . '" resource', $shape->members, $doc, $file);
     }
 
     /**

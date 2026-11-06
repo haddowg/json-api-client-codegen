@@ -1494,6 +1494,7 @@ final class DescriptorBuilder
 
         $items = $schema->find('items');
         $const = $schema->find('const');
+        $title = $schema->find('title');
 
         return new ValueSchema(
             $this->declaredTypes($schema),
@@ -1512,6 +1513,7 @@ final class DescriptorBuilder
                 $reference === $schema => $this->constraints($schema),
                 default => $this->constraints($reference)->orElse($this->constraints($schema)),
             },
+            $title !== null && $title->isString() ? $title->string() : null,
         );
     }
 

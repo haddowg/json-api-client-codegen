@@ -29,6 +29,8 @@ final class ValueSchema
      * @param string|null                $const      a string `const`, which is how a discriminated
      *                                               branch names the value that selects it
      * @param Constraints                $constraints the validation keywords this fragment declares
+     * @param string|null                $title      a string `title`, which is how an undiscriminated
+     *                                               branch names its variant
      */
     public function __construct(
         public readonly array $types,
@@ -43,6 +45,7 @@ final class ValueSchema
         public readonly ?string $discriminator,
         public readonly ?string $const = null,
         public readonly Constraints $constraints = new Constraints(),
+        public readonly ?string $title = null,
     ) {}
 
     /** True when this schema's real shape is in its branches rather than its own members. */

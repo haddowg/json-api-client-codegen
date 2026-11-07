@@ -18,8 +18,10 @@ vendor/bin/json-api-client-codegen https://music.example/docs.json generated/mus
     --namespace='App\Api\MusicCatalog'
 ```
 
-The input can be a URL or a file. No API yet? Generate from the music catalog's
-[document](../tests/fixtures/music-catalog.openapi.json), saved locally.
+The input can be a URL or a file. No API yet? Generate from the music catalog's document,
+`music-catalog.openapi.json` in the
+[`@haddowg/json-api-symfony-specs`](https://github.com/haddowg/json-api-symfony/pkgs/npm/json-api-symfony-specs)
+package on GitHub Packages, which the Symfony bundle publishes with each release.
 
 ## 3. Register and commit
 

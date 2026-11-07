@@ -1,22 +1,23 @@
 # Analyses the generated output at level 9, which is the claim every emitter has to meet. It runs
 # separately from the main analysis because the output targets PHP 8.4 (property hooks), while
-# the codegen itself still supports 8.3.
+# the codegen itself still supports 8.3. Nothing commits the output: `composer phpstan-generated`
+# writes it to build/generated-output first.
 parameters:
     level: 9
     phpVersion: 80400
     paths:
-        - tests/golden/generated
-        - tests/golden/paginators
-        - tests/golden/witness
-        - tests/golden/form-fields
-        - tests/golden/unions
+        - build/generated-output/generated
+        - build/generated-output/paginators
+        - build/generated-output/witness
+        - build/generated-output/form-fields
+        - build/generated-output/unions
         # Asserts the page type a menu query's pickers leave it reading.
         - tests/GeneratedTypes
     bootstrapFiles:
-        - tests/golden/generated/autoload.php
-        - tests/golden/paginators/autoload.php
-        - tests/golden/witness/autoload.php
-        - tests/golden/form-fields/autoload.php
-        - tests/golden/unions/autoload.php
+        - build/generated-output/generated/autoload.php
+        - build/generated-output/paginators/autoload.php
+        - build/generated-output/witness/autoload.php
+        - build/generated-output/form-fields/autoload.php
+        - build/generated-output/unions/autoload.php
     tmpDir: .phpstan.cache/generated
     treatPhpDocTypesAsCertain: false

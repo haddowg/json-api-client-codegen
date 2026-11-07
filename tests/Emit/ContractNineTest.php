@@ -86,7 +86,7 @@ final class ContractNineTest extends TestCase
      */
     private static function wrapped(): array
     {
-        $json = \file_get_contents(Fixtures::path('music-catalog.openapi.json'));
+        $json = \file_get_contents(Fixtures::musicCatalogPath());
         self::assertIsString($json);
         $document = \json_decode($json, true, flags: \JSON_THROW_ON_ERROR);
         self::assertIsArray($document);

@@ -19,7 +19,7 @@ use PHPUnit\Framework\TestCase;
  * are separate, a relation's paths use its URI field name, and a write-only relation is marked
  * `writeOnly` in the write bodies.
  *
- * The unmodified document's output is pinned by the golden files; the cases that change the
+ * The unmodified document's output is reviewed as the generated-output diff; the cases that change the
  * document change one thing in it.
  */
 #[CoversClass(DescriptorBuilder::class)]
@@ -199,7 +199,7 @@ final class ContractEightTest extends TestCase
      */
     private static function descriptor(\Closure $change): ApiDescriptor
     {
-        $json = \file_get_contents(Fixtures::path('music-catalog.openapi.json'));
+        $json = \file_get_contents(Fixtures::musicCatalogPath());
         self::assertIsString($json);
         $document = \json_decode($json, true, flags: \JSON_THROW_ON_ERROR);
         self::assertIsArray($document);

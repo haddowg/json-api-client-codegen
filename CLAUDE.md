@@ -24,17 +24,27 @@ obviously correct, and each was verified against PHPStan level 9 rather than rea
 ## Gates (all green before anything lands)
 
 ```bash
-composer test                            # PHPUnit, including golden-file emitter tests
+npm install                              # the pinned server documents (needs a GitHub Packages token)
+composer test                            # PHPUnit
 vendor/bin/phpstan --memory-limit=1G     # PHPStan level 9
 composer cs-check                        # PHP-CS-Fixer, PER-CS 2.0
+composer phpstan-generated               # the generated output at level 9 (CI runs it on 8.4)
 ```
 
-CI enforces all three across PHP 8.3 / 8.4 / 8.5 x lowest/highest.
+CI enforces all of them across PHP 8.3 / 8.4 / 8.5 x lowest/highest.
 
-**Emitter changes are proven by golden files, not by unit assertions on strings.** The
-music-catalog fixture is the reference input; its expected output is committed and diffed. A
-golden file that changes is a reviewable diff, which is the whole point. Regenerate
-deliberately, never to make a test pass.
+**The server documents are pinned, not committed.** The music catalog and core's contract
+witness come from `@haddowg/json-api-symfony-specs` and `@haddowg/json-api-witness`, pinned to
+exact versions in `package.json`. A server pull request's `0.0.0-pr.<n>.<sha>` may be pinned to
+test against it, but `.github/scripts/check-pins` fails it on `main` and on a release pull
+request. Hand-built documents stay in `tests/fixtures`.
+
+**Emitter changes are proven by the generated-output diff, not by unit assertions on strings.**
+Nothing commits the generated output (`build/generated-output`, written by `composer
+generate-output`). CI generates it on a pull request's base and head and posts the diff, failing
+until the `generated-output` label acknowledges it. **Read that diff**: it is the change in what
+the codegen understood, and the label is the review (ADR 0015). The suite still proves that
+generation is byte-for-byte deterministic, and the behaviour tests run the freshly generated code.
 
 The generated output must itself pass PHPStan level 9. An emitter whose output only type-checks
 by accident is a broken emitter.

@@ -84,13 +84,23 @@ A code only some operations raise, offered through an error document narrowed to
 
 ### Testing
 
-**Golden file**:
-Committed expected output that an emitter test diffs against on every run.
-_Avoid_: snapshot
+**Generated output**:
+The client the test suite generates from its documents, never committed: analysed at level 9,
+run by the behaviour tests, and diffed between a pull request's base and head for review.
+_Avoid_: golden file, snapshot
+
+**Generated-output report**:
+The pull request comment showing how a change moves the generated output, which fails CI until
+the `generated-output` label acknowledges it.
+
+**Pinned document**:
+A server document the tests read from an exact published package version in `package.json`,
+rather than from a committed copy.
 
 **Music-catalog fixture**:
-The reference spec document, exported from the bundle's music-catalog example.
+The reference spec document, the bundle's music-catalog example as `@haddowg/json-api-symfony-specs`
+publishes it.
 
 **Contract witness**:
-Core's one-server document projecting every branch the projector can reach, copied here as a
-fixture.
+Core's one-server document projecting every branch the projector can reach, as
+`@haddowg/json-api-witness` publishes it.

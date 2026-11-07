@@ -25,6 +25,7 @@ use haddowg\JsonApiCodegen\Emit\Reads\Throws;
 use haddowg\JsonApiCodegen\Tests\Support\ArtefactParity;
 use haddowg\JsonApiCodegen\Tests\Support\Fixtures;
 use haddowg\JsonApiCodegen\Tests\Support\Generated;
+use haddowg\JsonApiCodegen\Tests\Support\GeneratedOutput;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\RequiresPhp;
@@ -279,12 +280,12 @@ final class ReadsEmitterTest extends TestCase
 
     /**
      * The generated query builder, run: the loose doors still check names at runtime, nested
-     * members included, and the typed doors reach the wire. The golden output targets 8.4.
+     * members included, and the typed doors reach the wire. The generated output targets 8.4.
      */
     #[RequiresPhp('>= 8.4.0')]
     public function testTheGeneratedGuardsRejectUnknownTokensWithASuggestion(): void
     {
-        require_once \dirname(__DIR__, 2) . '/golden/generated/autoload.php';
+        GeneratedOutput::load('generated');
         $fetcher = (new \ReflectionClass(\haddowg\JsonApiClient\Resources\Fetcher::class))->newInstanceWithoutConstructor();
         $class = self::generatedClass('AlbumQuery');
         $query = new $class($fetcher);
@@ -373,7 +374,7 @@ final class ReadsEmitterTest extends TestCase
     private static function generatedClass(string $name): string
     {
         $class = Generated::NAMESPACE . '\\' . $name;
-        self::assertTrue(\class_exists($class), $name . ' is not in the golden output');
+        self::assertTrue(\class_exists($class), $name . ' is not in the generated output');
 
         return $class;
     }

@@ -1,0 +1,10 @@
+{
+  "name": "json-api-client-codegen-test-documents",
+  "private": true,
+  "description": "The server documents the codegen's tests generate from, pinned to exact published versions. Development only: nothing here ships.",
+  "license": "MIT",
+  "devDependencies": {
+    "@haddowg/json-api-symfony-specs": "2.1.1",
+    "@haddowg/json-api-witness": "2.1.0"
+  }
+}

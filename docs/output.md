@@ -32,7 +32,8 @@ code's class and falls back to the status class for any other.
 
 ## One type's classes
 
-For `albums` in the music catalog ([the whole file](../tests/golden/generated/resource-albums.php)):
+For `albums` in the music catalog (`composer generate-output` writes the whole file to
+`build/generated-output/generated/resource-albums.php`):
 
 | Class | What it is | Generated when |
 |---|---|---|
@@ -62,6 +63,6 @@ picks one; the default is the running PHP. The runtime itself needs PHP 8.3.
 
 ## Guarantees
 
-The generated code passes PHPStan at level 9 and PHP-CS-Fixer's PER-CS 2.0, and both are enforced
-on the committed golden output. A string from the document reaches generated PHP only through an
+The generated code passes PHPStan at level 9 and PHP-CS-Fixer's PER-CS 2.0, and CI enforces both
+on the output it generates from the published server documents. A string from the document reaches generated PHP only through an
 escaping helper for its position, so a description or example can never become code.

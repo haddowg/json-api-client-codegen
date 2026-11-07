@@ -6,15 +6,12 @@ namespace haddowg\JsonApiCodegen\Tests\Emit;
 
 use haddowg\JsonApiCodegen\Descriptor\DescriptorBuilder;
 use haddowg\JsonApiCodegen\Emit\Enums\EnumEmitter;
-use haddowg\JsonApiCodegen\Emit\Generator;
-use haddowg\JsonApiCodegen\Emit\GeneratorConfig;
-use haddowg\JsonApiCodegen\Emit\PhpTarget;
 use haddowg\JsonApiCodegen\Emit\Root\ClientEmitter;
 use haddowg\JsonApiCodegen\Emit\Surface\SurfaceEmitter;
 use haddowg\JsonApiCodegen\Spec\SpecDocument;
 use haddowg\JsonApiCodegen\Spec\SpecException;
 use haddowg\JsonApiCodegen\Tests\Support\Fixtures;
-use haddowg\JsonApiCodegen\Tests\Support\GoldenFile;
+use haddowg\JsonApiCodegen\Tests\Support\GeneratedOutput;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
@@ -25,7 +22,7 @@ use PHPUnit\Framework\TestCase;
  * actions answering in raw media types, from contract 11 an action accepting several bodies, and
  * from contract 12 worked examples on most operations.
  *
- * `tests/golden/witness` is its whole generated output, analysed at level 9 by
+ * Its whole generated output is the `witness` suite of `GeneratedOutput`, analysed at level 9 by
  * `composer phpstan-generated` beside `tests/GeneratedTypes/RawActionTypes.php`.
  */
 #[CoversClass(DescriptorBuilder::class)]
@@ -34,26 +31,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(ClientEmitter::class)]
 final class ContractWitnessTest extends TestCase
 {
-    use GoldenFile;
-
     public const string NAMESPACE = 'haddowg\\JsonApiCodegen\\Tests\\Golden\\Witness';
-
-    public function testEveryGeneratedFileMatchesItsGoldenFile(): void
-    {
-        foreach (self::generate() as $path => $contents) {
-            $this->assertMatchesGolden('witness/' . $path, $contents);
-        }
-    }
-
-    public function testTheGoldenDirectoryHoldsNothingTheCodegenNoLongerGenerates(): void
-    {
-        $golden = \array_map('basename', \glob(self::goldenPath('witness') . '/*.php') ?: []);
-        \sort($golden, \SORT_STRING);
-        $generated = \array_keys(self::generate());
-        \sort($generated, \SORT_STRING);
-
-        self::assertSame($generated, $golden, 'Delete golden files for output the codegen no longer generates.');
-    }
 
     public function testAnIntegerEnumIsAnIntBackedEnum(): void
     {
@@ -103,18 +81,11 @@ final class ContractWitnessTest extends TestCase
      */
     private static function generate(): array
     {
-        return Generator::default()->generate(
-            DescriptorBuilder::build(SpecDocument::fromJson(self::json(), 'the witness')),
-            new GeneratorConfig(self::NAMESPACE, 'Witness', PhpTarget::Php84),
-            \hash_file('sha256', Fixtures::path('contract-witness.openapi.json')) ?: '',
-        );
+        return GeneratedOutput::files('witness');
     }
 
     private static function json(): string
     {
-        $json = \file_get_contents(Fixtures::path('contract-witness.openapi.json'));
-        self::assertIsString($json);
-
-        return $json;
+        return Fixtures::witnessJson();
     }
 }

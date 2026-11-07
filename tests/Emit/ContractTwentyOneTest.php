@@ -10,6 +10,7 @@ use haddowg\JsonApiCodegen\Emit\ReadModel\ReadModelEmitter;
 use haddowg\JsonApiCodegen\Tests\Golden\Unions\Article;
 use haddowg\JsonApiCodegen\Tests\Golden\Unions\ArticleStepsFindReplace;
 use haddowg\JsonApiCodegen\Tests\Golden\Unions\ArticleStepsTrim;
+use haddowg\JsonApiCodegen\Tests\Support\GeneratedOutput;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
@@ -17,7 +18,7 @@ use PHPUnit\Framework\TestCase;
  * A list attribute whose items are objects reads as a list of array shapes narrowed member by
  * member, and one whose items are a union as a list of the union's branch classes. The
  * witness's `articles` has both, `sources` and `steps`; the reads run from
- * `tests/golden/unions`, the witness generated for PHP 8.3.
+ * the `unions` output, the witness generated for PHP 8.3.
  */
 #[CoversClass(ReadModelEmitter::class)]
 final class ContractTwentyOneTest extends TestCase
@@ -76,7 +77,7 @@ final class ContractTwentyOneTest extends TestCase
      */
     private static function article(array $attributes): Article
     {
-        require_once \dirname(__DIR__) . '/golden/unions/autoload.php';
+        GeneratedOutput::load('unions');
         $raw = ['type' => 'articles', 'id' => '1', 'attributes' => $attributes];
 
         return Article::_hydrate($raw, ResourceContext::of(['data' => $raw]));

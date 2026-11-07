@@ -19,7 +19,6 @@ use haddowg\JsonApiCodegen\Descriptor\RelationVerb;
 use haddowg\JsonApiCodegen\Descriptor\ResourceDescriptor;
 use haddowg\JsonApiCodegen\Spec\SpecDocument;
 use haddowg\JsonApiCodegen\Tests\Support\Fixtures;
-use haddowg\JsonApiCodegen\Tests\Support\GoldenFile;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
@@ -29,16 +28,6 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(ResourceDescriptor::class)]
 final class MusicCatalogDescriptorTest extends TestCase
 {
-    use GoldenFile;
-
-    public function testTheWholeDescriptorMatchesTheGoldenFile(): void
-    {
-        $this->assertMatchesGolden(
-            'music-catalog.descriptor.json',
-            DescriptorSerializer::toJson(Fixtures::musicCatalogDescriptor()),
-        );
-    }
-
     public function testSerialisationIsStableAcrossBuilds(): void
     {
         $document = Fixtures::musicCatalog();
@@ -84,7 +73,7 @@ final class MusicCatalogDescriptorTest extends TestCase
 
     public function testANullableEnumKeepsItsComponent(): void
     {
-        $json = \file_get_contents(Fixtures::path('music-catalog.openapi.json'));
+        $json = \file_get_contents(Fixtures::musicCatalogPath());
         self::assertIsString($json);
         /** @var array{components: array{schemas: array<string, array{properties: array<string, mixed>}>}} $document */
         $document = \json_decode($json, true, flags: \JSON_THROW_ON_ERROR);

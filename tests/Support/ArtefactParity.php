@@ -14,8 +14,8 @@ use PHPUnit\Framework\Assert;
  * reader and is not derivable from the document. So parity is checked on what can be derived:
  * every code token, plus the type-bearing PHPDoc tags (`@param`, `@return`, `@var`, `@throws`,
  * `@template`, `@phpstan-*`, `@use`, `@extends`, `@implements`). Free-text prose, plain comments
- * and whitespace are ignored. An emitter's full output, prose included, is pinned separately by
- * its golden files.
+ * and whitespace are ignored. An emitter's full output, prose included, is reviewed separately as
+ * the generated-output diff CI reports on each pull request.
  */
 final class ArtefactParity
 {

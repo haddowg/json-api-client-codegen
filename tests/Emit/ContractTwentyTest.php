@@ -14,6 +14,7 @@ use haddowg\JsonApiCodegen\Tests\Golden\Unions\ArticleBase;
 use haddowg\JsonApiCodegen\Tests\Golden\Unions\ArticleQuery;
 use haddowg\JsonApiCodegen\Tests\Golden\Unions\Articles;
 use haddowg\JsonApiCodegen\Tests\Support\Fixtures;
+use haddowg\JsonApiCodegen\Tests\Support\GeneratedOutput;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
@@ -22,7 +23,7 @@ use PHPUnit\Framework\TestCase;
  * `anyOf`, beside one `pattern` branch per family, and names the families under
  * `x-sort-families`. Each family becomes a `sortBy<Prefix>()` taking the key's suffix, and the
  * loose door accepts a key of any family. The witness's `articles` has three families beside
- * its fixed keys; its reads run from `tests/golden/unions`, the witness generated for PHP 8.3.
+ * its fixed keys; its reads run from the `unions` output, the witness generated for PHP 8.3.
  */
 #[CoversClass(DescriptorBuilder::class)]
 #[CoversClass(SortFamilyDescriptor::class)]
@@ -31,7 +32,7 @@ final class ContractTwentyTest extends TestCase
 {
     public function testTheFixedKeysAreReadBesideTheFamilies(): void
     {
-        $articles = DescriptorBuilder::build(SpecDocument::fromJson((string) \file_get_contents(Fixtures::path('contract-witness.openapi.json')), 'the witness'))->resource('articles');
+        $articles = DescriptorBuilder::build(SpecDocument::fromJson((string) \file_get_contents(Fixtures::witnessPath()), 'the witness'))->resource('articles');
         self::assertNotNull($articles);
 
         self::assertContains('-wordCount', $articles->sortable);
@@ -76,7 +77,7 @@ final class ContractTwentyTest extends TestCase
      */
     private static function query(): ArticleQuery
     {
-        require_once \dirname(__DIR__) . '/golden/unions/autoload.php';
+        GeneratedOutput::load('unions');
         $fetcher = (new \ReflectionClass(Fetcher::class))->newInstanceWithoutConstructor();
 
         return (new Articles($fetcher))->query();

@@ -37,3 +37,10 @@ phpstan.neon
 
 # MkDocs build output
 /site/
+
+# The documents package.json pins, installed by npm
+/node_modules/
+package-lock.json
+
+# Generated output (composer generate-output) and other build products
+/build/

@@ -13,12 +13,34 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  pins:
+    name: Document pins
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      # Exact, published versions; a server pull request's prerelease only on a pull request.
+      - name: Check the pinned documents
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          export NPM_CONFIG_USERCONFIG="$(.github/scripts/npm-auth)"
+          .github/scripts/check-pins
+
   tests:
     name: "Tests (PHP ${{ matrix.php }}, ${{ matrix.dependencies }})"
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
       contents: read
+      packages: read
     strategy:
       fail-fast: false
       matrix:
@@ -42,6 +64,13 @@ jobs:
         with:
           dependency-versions: ${{ matrix.dependencies }}
 
+      - name: Install the pinned documents
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          export NPM_CONFIG_USERCONFIG="$(.github/scripts/npm-auth)"
+          npm install --no-audit --no-fund
+
       - name: Run tests
         run: composer test
 
@@ -51,6 +80,7 @@ jobs:
     timeout-minutes: 10
     permissions:
       contents: read
+      packages: read
     steps:
       - name: Checkout
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
@@ -66,6 +96,13 @@ jobs:
 
       - name: Install dependencies
         uses: ramsey/composer-install@65e4f84970763564f46a70b8a54b90d033b3bdda # 4.0.0
+
+      - name: Install the pinned documents
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          export NPM_CONFIG_USERCONFIG="$(.github/scripts/npm-auth)"
+          npm install --no-audit --no-fund
 
       - name: Run PHPStan
         run: composer phpstan
@@ -79,6 +116,7 @@ jobs:
     timeout-minutes: 10
     permissions:
       contents: read
+      packages: read
     steps:
       - name: Checkout
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
@@ -94,6 +132,13 @@ jobs:
 
       - name: Install dependencies
         uses: ramsey/composer-install@65e4f84970763564f46a70b8a54b90d033b3bdda # 4.0.0
+
+      - name: Install the pinned documents
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          export NPM_CONFIG_USERCONFIG="$(.github/scripts/npm-auth)"
+          npm install --no-audit --no-fund
 
       - name: Check coding standards
         run: composer cs-check

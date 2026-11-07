@@ -19,7 +19,7 @@ use PHPUnit\Framework\TestCase;
  * server always renders are required, and an action body for a type the document doesn't
  * describe is an inline schema rather than a dangling `$ref`.
  *
- * The unmodified document's output is pinned by the golden files; the cases that change the
+ * The unmodified document's output is reviewed as the generated-output diff; the cases that change the
  * document change one thing in it.
  */
 #[CoversClass(DescriptorBuilder::class)]
@@ -98,7 +98,7 @@ final class ContractSevenTest extends TestCase
      */
     private static function descriptor(\Closure $change): ApiDescriptor
     {
-        $json = \file_get_contents(Fixtures::path('music-catalog.openapi.json'));
+        $json = \file_get_contents(Fixtures::musicCatalogPath());
         self::assertIsString($json);
         $document = \json_decode($json, true, flags: \JSON_THROW_ON_ERROR);
         self::assertIsArray($document);

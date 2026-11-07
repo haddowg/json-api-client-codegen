@@ -1,17 +1,18 @@
+# tests/phpstan-unions.php writes the generated output and adds its 8.3-target suite here.
+includes:
+    - tests/phpstan-unions.php
+
 parameters:
     level: 9
     paths:
         - src
         - tests
         - bin/json-api-client-codegen
+        - bin/export-generated-output.php
     excludePaths:
         - tests/fixtures
-        # Generated output targets PHP 8.4 and has its own analysis, phpstan.generated.neon, as
-        # do the type assertions made against it.
-        - tests/golden/generated
-        - tests/golden/paginators
-        - tests/golden/witness
-        - tests/golden/form-fields
+        # The type assertions made against the generated output are analysed with it, by
+        # phpstan.generated.neon, since the output targets PHP 8.4.
         - tests/GeneratedTypes
     tmpDir: .phpstan.cache
     treatPhpDocTypesAsCertain: false

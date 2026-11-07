@@ -19,5 +19,8 @@
 /CONTRIBUTING.md               export-ignore
 /CLAUDE.md                     export-ignore
 /CONTEXT.md                    export-ignore
-/mkdocs.yml              export-ignore
-/mkdocs_hooks.py         export-ignore
+/mkdocs.yml                   export-ignore
+/mkdocs_hooks.py              export-ignore
+/bin/export-generated-output.php export-ignore
+/package.json                 export-ignore
+/.npmrc                       export-ignore

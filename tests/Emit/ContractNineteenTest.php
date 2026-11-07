@@ -113,7 +113,7 @@ final class ContractNineteenTest extends TestCase
 
     private static function witness(): ApiDescriptor
     {
-        $json = \file_get_contents(Fixtures::path('contract-witness.openapi.json'));
+        $json = \file_get_contents(Fixtures::witnessPath());
         self::assertIsString($json);
 
         return DescriptorBuilder::build(SpecDocument::fromJson($json, 'the witness'));
@@ -122,7 +122,7 @@ final class ContractNineteenTest extends TestCase
     /** @return array<array-key, mixed> */
     private static function musicCatalog(): array
     {
-        $json = \file_get_contents(Fixtures::path('music-catalog.openapi.json'));
+        $json = \file_get_contents(Fixtures::musicCatalogPath());
         self::assertIsString($json);
         $document = \json_decode($json, true, flags: \JSON_THROW_ON_ERROR);
         self::assertIsArray($document);

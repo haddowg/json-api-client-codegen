@@ -11,7 +11,7 @@ use haddowg\JsonApiCodegen\Tests\Golden\Unions\ArticleShapeRectangle;
 use function PHPStan\Testing\assertType;
 
 /**
- * An undiscriminated union of the `unions` golden output, checked at level 9: its read narrows
+ * An undiscriminated union of the `unions` generated output, checked at level 9: its read narrows
  * to a branch class, and its write takes a plain union of the branches' array shapes.
  *
  * Analysed by `composer phpstan-generated` and never executed. Each ignored line is an input

@@ -11,6 +11,6 @@ repos:
         name: php-cs-fixer (dry run)
         entry: vendor/bin/php-cs-fixer fix --dry-run --diff --config=.php-cs-fixer.dist.php
         language: system
-        files: ^(src/.*\.php|tests/.*\.php|bin/json-api-client-codegen)$
-        exclude: ^tests/(fixtures/artefact|golden/generated|golden/paginators|golden/witness|golden/form-fields)/
+        files: ^(src/.*\.php|tests/.*\.php|bin/json-api-client-codegen|bin/export-generated-output\.php)$
+        exclude: ^tests/fixtures/artefact/
         pass_filenames: true

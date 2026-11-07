@@ -9,19 +9,20 @@ use haddowg\JsonApiClient\Exceptions\UnknownAttributeException;
 use haddowg\JsonApiClient\Support\Identifier;
 use haddowg\JsonApiCodegen\Emit\Writes\WritesEmitter;
 use haddowg\JsonApiCodegen\Tests\Support\Generated;
+use haddowg\JsonApiCodegen\Tests\Support\GeneratedOutput;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\RequiresPhp;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Runs the generated write inputs, from the committed golden output.
+ * Runs the generated write inputs, from the generated output.
  *
  * These are the behaviours PHPStan cannot see. The first is the reason the test exists: a write
  * input read with `??` instead of `array_key_exists` type-checks and turns an explicit `null`
  * into "absent", so a `PATCH` meant to clear a member sends nothing.
  *
  * The classes are reached by name because the generated namespace is not on this package's
- * autoloader. The golden output targets PHP 8.4, hence the requirement.
+ * autoloader. The generated output targets PHP 8.4, hence the requirement.
  */
 #[CoversClass(WritesEmitter::class)]
 #[RequiresPhp('>= 8.4.0')]
@@ -29,7 +30,7 @@ final class WritesBehaviourTest extends TestCase
 {
     public static function setUpBeforeClass(): void
     {
-        require_once \dirname(__DIR__) . '/golden/generated/autoload.php';
+        GeneratedOutput::load('generated');
     }
 
     public function testAnExplicitNullInTheCreateArrayIsSentAsNull(): void
@@ -143,7 +144,7 @@ final class WritesBehaviourTest extends TestCase
         return self::instance('AlbumCreateBuilder');
     }
 
-    /** A generated class by short name; analysis cannot see the golden output, so it stays dynamic. */
+    /** A generated class by short name; analysis cannot see the generated output, so it stays dynamic. */
     private static function instance(string $class): object
     {
         $class = Generated::NAMESPACE . '\\' . $class;

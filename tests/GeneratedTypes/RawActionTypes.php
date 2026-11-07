@@ -10,7 +10,7 @@ use haddowg\JsonApiCodegen\Tests\Golden\Witness\WitnessClient;
 use function PHPStan\Testing\assertType;
 
 /**
- * The type each raw action of the `witness` golden output returns for the media type it asks
+ * The type each raw action of the `witness` generated output returns for the media type it asks
  * for, asserted at level 9.
  *
  * Analysed by `composer phpstan-generated` and never executed: `assertType()` does not exist at

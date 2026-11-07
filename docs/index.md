@@ -40,9 +40,9 @@ $albums[0]->artist()?->name(); // typed: artist() exists because of withArtist()
 ```
 
 !!! tip "See what it writes"
-    The music catalog's [document](../tests/fixtures/music-catalog.openapi.json) and the
-    [output it generates](../tests/golden/generated/resource-albums.php) are committed here as
-    golden files, diffed on every build and analysed by PHPStan at level 9. The client's
+    This repository's tests generate the music catalog's client from the document the Symfony
+    bundle publishes, analyse it with PHPStan at level 9, and report what each pull request
+    changes in it. `composer generate-output` writes it to `build/generated-output`. The client's
     [example app](https://haddowg.github.io/json-api-client/example-app/) runs that same output
     end to end.
 

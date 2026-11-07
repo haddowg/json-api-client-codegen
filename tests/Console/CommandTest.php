@@ -90,7 +90,7 @@ final class CommandTest extends TestCase
 
     public function testAMissingNamespaceIsAUsageError(): void
     {
-        self::assertSame(Command::USAGE, $this->invoke(Fixtures::path('music-catalog.openapi.json'), $this->output));
+        self::assertSame(Command::USAGE, $this->invoke(Fixtures::musicCatalogPath(), $this->output));
         self::assertStringContainsString('--namespace', $this->read($this->stderr));
     }
 
@@ -131,7 +131,7 @@ final class CommandTest extends TestCase
      */
     private function arguments(): array
     {
-        return [Fixtures::path('music-catalog.openapi.json'), $this->output, '--namespace=App\\Api\\MusicCatalog', '--target=8.4'];
+        return [Fixtures::musicCatalogPath(), $this->output, '--namespace=App\\Api\\MusicCatalog', '--target=8.4'];
     }
 
     private function invoke(string ...$arguments): int

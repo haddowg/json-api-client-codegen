@@ -269,7 +269,7 @@ final class ContractFifteenTest extends TestCase
 
     private static function json(): string
     {
-        $json = \file_get_contents(Fixtures::path('contract-witness.openapi.json'));
+        $json = \file_get_contents(Fixtures::witnessPath());
         self::assertIsString($json);
 
         return $json;

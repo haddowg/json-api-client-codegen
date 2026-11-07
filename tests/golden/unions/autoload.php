@@ -49,7 +49,6 @@ declare(strict_types=1);
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\Unions\\ArticleTagsRelation' => 'resource-articles.php',
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\Unions\\ArticleUpdate' => 'resource-articles.php',
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\Unions\\Articles' => 'resource-articles.php',
-        'haddowg\\JsonApiCodegen\\Tests\\Golden\\Unions\\AttributeMemberUnrecognizedError' => 'errors.php',
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\Unions\\Healthcheck' => 'resource-healthcheck.php',
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\Unions\\HealthcheckBase' => 'resource-healthcheck.php',
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\Unions\\Image' => 'resource-images.php',

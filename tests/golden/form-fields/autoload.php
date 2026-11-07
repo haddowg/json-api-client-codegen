@@ -49,7 +49,6 @@ declare(strict_types=1);
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\FormFields\\ArticleTagsRelation' => 'resource-articles.php',
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\FormFields\\ArticleUpdate' => 'resource-articles.php',
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\FormFields\\Articles' => 'resource-articles.php',
-        'haddowg\\JsonApiCodegen\\Tests\\Golden\\FormFields\\AttributeMemberUnrecognizedError' => 'errors.php',
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\FormFields\\FormFieldsClient' => 'client.php',
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\FormFields\\FormFieldsErrorCodes' => 'errors.php',
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\FormFields\\Healthcheck' => 'resource-healthcheck.php',

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace haddowg\JsonApiCodegen\Tests\Emit;
 
+use haddowg\JsonApiClient\Exceptions\Codes\ErrorCodes;
 use haddowg\JsonApiCodegen\Descriptor\DescriptorBuilder;
 use haddowg\JsonApiCodegen\Emit\Generator;
 use haddowg\JsonApiCodegen\Emit\GeneratorConfig;
@@ -18,7 +19,7 @@ use PHPUnit\Framework\TestCase;
  * The attributes object and every object a field declares are closed, which the generated
  * client already assumes: a write shape lists only declared members and a read narrows only
  * them, so closing them changes nothing it emits. The server's refusal of an undeclared member
- * is the `ATTRIBUTE_MEMBER_UNRECOGNIZED` code, generated here until the runtime ships it.
+ * is the `ATTRIBUTE_MEMBER_UNRECOGNIZED` code, which the runtime ships, so nothing is generated for it.
  * Undiscriminated unions are covered by {@see UndiscriminatedUnionTest}.
  */
 #[CoversClass(ContractCompatibility::class)]
@@ -50,11 +51,10 @@ final class ContractTwentyThreeTest extends TestCase
         self::assertSame(self::generate(self::json()), self::generate(\json_encode($open($document), \JSON_THROW_ON_ERROR)));
     }
 
-    public function testTheUndeclaredMemberCodeIsGeneratedUntilTheRuntimeShipsIt(): void
+    public function testTheUndeclaredMemberCodeComesFromTheRuntime(): void
     {
-        $errors = self::generate(self::json())['errors.php'];
-
-        self::assertStringContainsString("public const string CODE = 'ATTRIBUTE_MEMBER_UNRECOGNIZED';", $errors);
+        self::assertArrayHasKey('ATTRIBUTE_MEMBER_UNRECOGNIZED', ErrorCodes::MAP);
+        self::assertStringNotContainsString("'ATTRIBUTE_MEMBER_UNRECOGNIZED'", self::generate(self::json())['errors.php']);
     }
 
     /**

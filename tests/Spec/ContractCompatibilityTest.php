@@ -21,7 +21,7 @@ final class ContractCompatibilityTest extends TestCase
 
     public function testTheMusicCatalogContractIsOneThisCodegenReads(): void
     {
-        self::assertSame(13, Fixtures::musicCatalog()->contract());
+        self::assertSame(24, Fixtures::musicCatalog()->contract());
         self::assertNull(ContractCompatibility::check(Fixtures::musicCatalog()->contract()));
     }
 
@@ -31,22 +31,18 @@ final class ContractCompatibilityTest extends TestCase
         self::assertNull(ContractCompatibility::check(ContractCompatibility::MAXIMUM));
     }
 
-    public function testContractTwentyThreeIsReadAndTwentyFourIsNot(): void
+    public function testOnlyTheShapedErrorCatalogueIsRead(): void
     {
-        // Contract 10 lets an action answer in raw media types, 11 lets it accept several request
-        // bodies, 12 adds operation examples, 13 an example detail on every error code, 14 the
-        // links a type declares, 15 per-method action ids and declared action safety, and 16
-        // operation scopes and one-member polymorphic unions, 17 an action's location document,
-        // 18 shared links components, 19 discriminated unions and a typed included, 20 sort
-        // families, 21 structured list elements, 22 deprecation markers, and 23 closed objects
-        // and undiscriminated unions, all of which this codegen reads; whatever 24 adds, it does
-        // not.
-        foreach (\range(9, 23) as $contract) {
-            self::assertNull(ContractCompatibility::check($contract));
-        }
+        // An older document catalogues one component per error code, which the descriptor no
+        // longer reads; a newer one carries structures this codegen does not.
+        $this->expectException(UnsupportedContractException::class);
 
-        $warning = ContractCompatibility::check(24);
-        self::assertSame('the document declares contract 24 and this codegen reads up to 23. It describes capabilities that were not generated; upgrade the codegen to pick them up.', $warning);
+        try {
+            ContractCompatibility::check(23);
+        } finally {
+            self::assertNull(ContractCompatibility::check(24));
+            self::assertSame('the document declares contract 25 and this codegen reads up to 24. It describes capabilities that were not generated; upgrade the codegen to pick them up.', ContractCompatibility::check(25));
+        }
     }
 
     public function testANewerContractWarnsThatCapabilitiesWereNotGenerated(): void

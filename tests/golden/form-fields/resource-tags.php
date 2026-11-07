@@ -17,6 +17,7 @@ use haddowg\JsonApiClient\Exceptions\NotFound;
 use haddowg\JsonApiClient\Exceptions\ServerError;
 use haddowg\JsonApiClient\Exceptions\TransportException;
 use haddowg\JsonApiClient\Exceptions\Unauthorized;
+use haddowg\JsonApiClient\Exceptions\UnexpectedResponse;
 use haddowg\JsonApiClient\Exceptions\UnknownAttributeException;
 use haddowg\JsonApiClient\Exceptions\UnknownFieldException;
 use haddowg\JsonApiClient\Exceptions\UnknownFilterException;
@@ -1793,16 +1794,19 @@ final class Tags
      *
      * @param TagCreate|TagCreateBuilder|TagCreateShape $input
      *
-     * @throws BadRequest           when the request is malformed
-     * @throws Unauthorized         when credentials are missing or invalid
-     * @throws Forbidden            when the create is not permitted
-     * @throws NotFound             when the endpoint does not exist
-     * @throws NotAcceptable        when the negotiated media type cannot be satisfied
-     * @throws Conflict             when the document conflicts with the endpoint
-     * @throws UnsupportedMediaType when the `Content-Type` is refused
-     * @throws ValidationFailed     when the document fails validation
-     * @throws ServerError          when the server fails
-     * @throws TransportException   when no response is received at all
+     * @throws BadRequest               when the request is malformed
+     * @throws Unauthorized             when credentials are missing or invalid
+     * @throws UnexpectedResponse       when the server answers with a status no other class covers
+     * @throws Forbidden                when the create is not permitted
+     * @throws NotFound                 when the endpoint does not exist
+     * @throws NotAcceptable            when the negotiated media type cannot be satisfied
+     * @throws Conflict                 when the document conflicts with the endpoint
+     * @throws UnsupportedMediaType     when the `Content-Type` is refused
+     * @throws ValidationFailed         when the document fails validation
+     * @throws ServerError              when the server fails
+     * @throws PaymentRequiredError     when the server answers `PAYMENT_REQUIRED`
+     * @throws SubscriptionExpiredError when the server answers `SUBSCRIPTION_EXPIRED`
+     * @throws TransportException       when no response is received at all
      *
      * @example Request body:
      *     {

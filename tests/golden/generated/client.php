@@ -33,6 +33,7 @@ final class MusicCatalogClient
     public readonly CatalogExports $catalogExports;
     public readonly Charts $charts;
     public readonly Countries $countries;
+    /** @deprecated The server marks every `devices` endpoint deprecated. */
     public readonly Devices $devices;
     public readonly ExportJobs $exportJobs;
     public readonly Favorites $favorites;
@@ -48,7 +49,7 @@ final class MusicCatalogClient
 
     public function __construct(ClientOptions $options)
     {
-        $this->fetcher = new Fetcher(new Transport($options));
+        $this->fetcher = new Fetcher(new Transport($options->withErrorCodes(MusicCatalogErrorCodes::MAP)));
 
         $this->albums = new Albums($this->fetcher);
         $this->artists = new Artists($this->fetcher);
@@ -73,6 +74,8 @@ final class MusicCatalogClient
      * Record each write on the `Tx` the callback receives; nothing is sent until it returns, and
      * then everything is sent as one request. What the callback returns is returned here, so return
      * the handles whose results you want to read.
+     *
+     * Needs an access token granting the `batch` scope.
      *
      * @template R
      *

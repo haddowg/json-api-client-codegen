@@ -1,8 +1,11 @@
 {
-    "contract": 13,
+    "contract": 24,
     "atomic": {
         "path": "/operations",
-        "mediaType": "application/vnd.api+json; ext=\"https://jsonapi.org/ext/atomic\""
+        "mediaType": "application/vnd.api+json; ext=\"https://jsonapi.org/ext/atomic\"",
+        "scopes": [
+            "batch"
+        ]
     },
     "enums": {
         "AlbumStatus": {
@@ -30,443 +33,864 @@
     "errors": {
         "ACCESS_DENIED": {
             "status": 403,
-            "schema": "AccessDeniedError",
+            "schema": "Error403",
+            "class": "AccessDeniedError",
             "title": "Forbidden",
             "source": null,
             "description": "The caller is authenticated but not permitted to do what the request asks. Retrying with the same credentials will fail the same way; act as a user who holds the permission, or don't make the request.",
-            "exampleDetail": "Access is denied!"
+            "exampleDetail": "Access is denied!",
+            "meta": null,
+            "metaRequired": false,
+            "operations": []
         },
         "ADDITION_PROHIBITED": {
             "status": 403,
-            "schema": "AdditionProhibitedError",
+            "schema": "Error403Pointer",
+            "class": "AdditionProhibitedError",
             "title": "Addition is prohibited",
             "source": "pointer",
             "description": "This relationship does not let a client add members to it. Don't retry the request; the relationship changes only in the ways the API documents for it.",
-            "exampleDetail": "Addition to relationship 'tags' is prohibited!"
+            "exampleDetail": "Addition to relationship 'tags' is prohibited!",
+            "meta": null,
+            "metaRequired": false,
+            "operations": []
         },
         "APPLICATION_ERROR": {
             "status": 500,
-            "schema": "ApplicationError",
+            "schema": "Error500",
+            "class": "ApplicationError",
             "title": "Application error",
             "source": null,
             "description": "The server failed to handle the request because of a fault on its side, not because of anything in the request. Retrying won't help; report it to the API's maintainers.",
-            "exampleDetail": "An application error has occurred!"
+            "exampleDetail": "An application error has occurred!",
+            "meta": null,
+            "metaRequired": false,
+            "operations": []
         },
         "ATOMIC_OPERATIONS_INVALID": {
             "status": 400,
-            "schema": "AtomicOperationsInvalidError",
+            "schema": "Error400Pointer",
+            "class": "AtomicOperationsInvalidError",
             "title": "Atomic operations request is invalid",
             "source": "pointer",
             "description": "An operation in the Atomic Operations request is malformed: a missing or unknown `op`, or a broken `ref`, `href` or `data`. The server applied none of the batch; fix the operation at `source.pointer` and send the whole batch again.",
-            "exampleDetail": "Unknown atomic operation code 'upsert'."
+            "exampleDetail": "Unknown atomic operation code 'upsert'.",
+            "meta": null,
+            "metaRequired": false,
+            "operations": []
+        },
+        "ATTRIBUTE_MEMBER_UNRECOGNIZED": {
+            "status": 400,
+            "schema": "Error400Pointer",
+            "class": "AttributeMemberUnrecognizedError",
+            "title": "Attribute member is not recognized",
+            "source": "pointer",
+            "description": "The request body sent an attribute, or a key inside an object attribute, that the resource type does not declare. Remove it, or correct its name, and send the request again.",
+            "exampleDetail": "The resource does not declare the member 'colour'!",
+            "meta": null,
+            "metaRequired": false,
+            "operations": []
         },
         "ATTRIBUTE_VALUE_INVALID": {
             "status": 422,
-            "schema": "AttributeValueInvalidError",
+            "schema": "Error422Pointer",
+            "class": "AttributeValueInvalidError",
             "title": "Attribute value is invalid",
             "source": "pointer",
             "description": "The server could not accept the value of the attribute at `source.pointer`, for example a date-time it cannot parse. Correct the value and send the request again.",
-            "exampleDetail": "The value for attribute \"publishedAt\" is invalid: Failed to parse time string (next blursday) at position 0 (n): The timezone could not be found in the database"
+            "exampleDetail": "The value for attribute \"publishedAt\" is invalid: Failed to parse time string (next blursday) at position 0 (n): The timezone could not be found in the database",
+            "meta": null,
+            "metaRequired": false,
+            "operations": []
         },
         "AUTHENTICATION_REQUIRED": {
             "status": 401,
-            "schema": "AuthenticationRequiredError",
+            "schema": "Error401",
+            "class": "AuthenticationRequiredError",
             "title": "Unauthorized",
             "source": null,
             "description": "The request carried no credentials, or credentials the server rejected, such as an expired token. Authenticate, then send the request again with valid credentials.",
-            "exampleDetail": "Authentication is required!"
+            "exampleDetail": "Authentication is required!",
+            "meta": null,
+            "metaRequired": false,
+            "operations": []
         },
         "CLIENT_GENERATED_ID_ALREADY_EXISTS": {
             "status": 409,
-            "schema": "ClientGeneratedIdAlreadyExistsError",
+            "schema": "Error409Pointer",
+            "class": "ClientGeneratedIdAlreadyExistsError",
             "title": "Client generated ID already exists",
             "source": "pointer",
             "description": "A resource of this type already has the `id` the create request supplied. Generate a new id and send the request again, or update the existing resource instead.",
-            "exampleDetail": "Client generated ID '1' already exists!"
+            "exampleDetail": "Client generated ID '1' already exists!",
+            "meta": null,
+            "metaRequired": false,
+            "operations": []
         },
         "CLIENT_GENERATED_ID_NOT_SUPPORTED": {
             "status": 403,
-            "schema": "ClientGeneratedIdNotSupportedError",
+            "schema": "Error403Pointer",
+            "class": "ClientGeneratedIdNotSupportedError",
             "title": "Client generated ID is not supported",
             "source": "pointer",
             "description": "The create request supplied an `id`, but this resource type assigns its own ids. Leave `data.id` out and the server generates one.",
-            "exampleDetail": "Client generated ID '1' is not supported!"
+            "exampleDetail": "Client generated ID '1' is not supported!",
+            "meta": null,
+            "metaRequired": false,
+            "operations": []
         },
         "CLIENT_GENERATED_ID_REQUIRED": {
             "status": 403,
-            "schema": "ClientGeneratedIdRequiredError",
+            "schema": "Error403Pointer",
+            "class": "ClientGeneratedIdRequiredError",
             "title": "Required client generated ID",
             "source": "pointer",
             "description": "This resource type expects the client to choose the id, and the create request supplied none. Add `data.id` in the format the API documents and send the request again.",
-            "exampleDetail": "A client generated ID must be used!"
+            "exampleDetail": "A client generated ID must be used!",
+            "meta": null,
+            "metaRequired": false,
+            "operations": []
         },
         "CURSOR_MALFORMED": {
             "status": 400,
-            "schema": "CursorMalformedError",
+            "schema": "Error400Parameter",
+            "class": "CursorMalformedError",
             "title": "Cursor is malformed",
             "source": "parameter",
             "description": "The cursor in the named `page` parameter could not be decoded. Use cursors exactly as the server returned them in a previous page's `links`; never build or edit one.",
-            "exampleDetail": "The cursor supplied in 'page[after]' could not be decoded."
+            "exampleDetail": "The cursor supplied in 'page[after]' could not be decoded.",
+            "meta": null,
+            "metaRequired": false,
+            "operations": []
         },
         "CURSOR_STALE": {
             "status": 400,
-            "schema": "CursorStaleError",
+            "schema": "Error400Parameter",
+            "class": "CursorStaleError",
             "title": "Cursor is stale",
             "source": "parameter",
             "description": "The cursor was issued for a different sort order than this request asks for, so it no longer marks a position in these results. Keep `sort` unchanged while paging, or start again from the first page.",
-            "exampleDetail": "The cursor supplied in 'page[after]' was built for a different sort order and can no longer be used."
+            "exampleDetail": "The cursor supplied in 'page[after]' was built for a different sort order and can no longer be used.",
+            "meta": null,
+            "metaRequired": false,
+            "operations": []
         },
         "DATA_MEMBER_MISSING": {
             "status": 400,
-            "schema": "DataMemberMissingError",
+            "schema": "Error400",
+            "class": "DataMemberMissingError",
             "title": "Missing `data` member at the document's top level",
             "source": null,
             "description": "The request document has no top-level `data` member, which this request needs. Send the resource object or relationship linkage under `data`.",
-            "exampleDetail": "Missing `data` member at the document's top level!"
+            "exampleDetail": "Missing `data` member at the document's top level!",
+            "meta": null,
+            "metaRequired": false,
+            "operations": []
         },
         "FIELDSET_MEMBER_UNRECOGNIZED": {
             "status": 400,
-            "schema": "FieldsetMemberUnrecognizedError",
+            "schema": "Error400Parameter",
+            "class": "FieldsetMemberUnrecognizedError",
             "title": "Fieldset member is unrecognized",
             "source": "parameter",
             "description": "A `fields[TYPE]` parameter names a member that type does not have. Request only the attributes and relationships the type declares.",
-            "exampleDetail": "Fields 'colour' requested for type 'articles' can't be recognized by the endpoint!"
+            "exampleDetail": "Fields 'colour' requested for type 'articles' can't be recognized by the endpoint!",
+            "meta": null,
+            "metaRequired": false,
+            "operations": []
         },
         "FILTERING_UNRECOGNIZED": {
             "status": 400,
-            "schema": "FilteringUnrecognizedError",
+            "schema": "Error400Parameter",
+            "class": "FilteringUnrecognizedError",
             "title": "Filtering parameter is unrecognized",
             "source": "parameter",
             "description": "The request filtered on a key this endpoint does not declare. Filter only on the keys the API documents for this resource type.",
-            "exampleDetail": "Filtering parameter 'colour' can't be recognized by the endpoint!"
+            "exampleDetail": "Filtering parameter 'colour' can't be recognized by the endpoint!",
+            "meta": null,
+            "metaRequired": false,
+            "operations": []
         },
         "FILTER_VALUE_INVALID": {
             "status": 400,
-            "schema": "FilterValueInvalidError",
+            "schema": "Error400Parameter",
+            "class": "FilterValueInvalidError",
             "title": "Filter value is invalid",
             "source": "parameter",
             "description": "A `filter[...]` value fails the constraints that filter declares, for example text where a number is expected. Correct the value of the parameter named in `source.parameter`; each failed constraint is its own error.",
-            "exampleDetail": "The value supplied for 'filter[rating]' is invalid."
+            "exampleDetail": "The value supplied for 'filter[rating]' is invalid.",
+            "meta": null,
+            "metaRequired": false,
+            "operations": []
         },
         "FULL_REPLACEMENT_PROHIBITED": {
             "status": 403,
-            "schema": "FullReplacementProhibitedError",
+            "schema": "Error403Pointer",
+            "class": "FullReplacementProhibitedError",
             "title": "Full replacement is prohibited",
             "source": "pointer",
             "description": "This relationship cannot be replaced as a whole, for example by a `PATCH` to its relationship endpoint. Add or remove individual members instead, if the relationship allows that.",
-            "exampleDetail": "Full replacement of relationship 'tags' is prohibited!"
+            "exampleDetail": "Full replacement of relationship 'tags' is prohibited!",
+            "meta": null,
+            "metaRequired": false,
+            "operations": []
         },
         "INCLUSION_DEPTH_EXCEEDED": {
             "status": 400,
-            "schema": "InclusionDepthExceededError",
+            "schema": "Error400Parameter",
+            "class": "InclusionDepthExceededError",
             "title": "Inclusion depth exceeded",
             "source": "parameter",
             "description": "An `include` path nests more relationships than the server allows. Shorten the path and fetch the deeper resources with a separate request.",
-            "exampleDetail": "Included paths 'author.publisher.country' exceed the maximum include depth of 2 permitted by the endpoint!"
+            "exampleDetail": "Included paths 'author.publisher.country' exceed the maximum include depth of 2 permitted by the endpoint!",
+            "meta": null,
+            "metaRequired": false,
+            "operations": []
         },
         "INCLUSION_NOT_ALLOWED": {
             "status": 400,
-            "schema": "InclusionNotAllowedError",
+            "schema": "Error400Parameter",
+            "class": "InclusionNotAllowedError",
             "title": "Inclusion is not allowed",
             "source": "parameter",
             "description": "An `include` path names a relationship that exists but may not be included from this request. Remove the path and fetch the related resources with a separate request.",
-            "exampleDetail": "Included paths 'author.company' are not allowed by the endpoint!"
+            "exampleDetail": "Included paths 'author.company' are not allowed by the endpoint!",
+            "meta": null,
+            "metaRequired": false,
+            "operations": []
         },
         "INCLUSION_UNRECOGNIZED": {
             "status": 400,
-            "schema": "InclusionUnrecognizedError",
+            "schema": "Error400Parameter",
+            "class": "InclusionUnrecognizedError",
             "title": "Inclusion is unrecognized",
             "source": "parameter",
             "description": "An `include` path names a relationship the resource type does not have. Check each path against the relationships the type documents.",
-            "exampleDetail": "Included paths 'auther' can't be recognized by the endpoint!"
+            "exampleDetail": "Included paths 'auther' can't be recognized by the endpoint!",
+            "meta": null,
+            "metaRequired": false,
+            "operations": []
         },
         "INCLUSION_UNSUPPORTED": {
             "status": 400,
-            "schema": "InclusionUnsupportedError",
+            "schema": "Error400Parameter",
+            "class": "InclusionUnsupportedError",
             "title": "Inclusion is unsupported",
             "source": "parameter",
             "description": "This endpoint does not support the `include` parameter. Remove it and fetch related resources with separate requests.",
-            "exampleDetail": "Inclusion is not supported by the endpoint!"
+            "exampleDetail": "Inclusion is not supported by the endpoint!",
+            "meta": null,
+            "metaRequired": false,
+            "operations": []
+        },
+        "INSUFFICIENT_SCOPE": {
+            "status": 403,
+            "schema": "Error403InsufficientScope",
+            "class": "InsufficientScopeError",
+            "title": "Insufficient scope",
+            "source": null,
+            "description": "The access token is valid but does not grant every scope the request needs. `meta.missingScopes` names the ones it lacks; request a token that grants them, or drop the `include` path named in `meta.include`.",
+            "exampleDetail": "The access token does not grant every scope this request needs.",
+            "meta": {
+                "types": [
+                    "object"
+                ],
+                "format": null,
+                "enum": [],
+                "required": [
+                    "missingScopes",
+                    "requiredScopes"
+                ],
+                "properties": {
+                    "requiredScopes": {
+                        "types": [
+                            "array"
+                        ],
+                        "format": null,
+                        "enum": [],
+                        "required": [],
+                        "properties": [],
+                        "items": {
+                            "types": [
+                                "string"
+                            ],
+                            "format": null,
+                            "enum": [],
+                            "required": [],
+                            "properties": [],
+                            "items": null,
+                            "discriminator": null,
+                            "const": null,
+                            "oneOf": [],
+                            "anyOf": [],
+                            "allOf": [],
+                            "constraints": {}
+                        },
+                        "discriminator": null,
+                        "const": null,
+                        "oneOf": [],
+                        "anyOf": [],
+                        "allOf": [],
+                        "constraints": {
+                            "minItems": 1
+                        }
+                    },
+                    "missingScopes": {
+                        "types": [
+                            "array"
+                        ],
+                        "format": null,
+                        "enum": [],
+                        "required": [],
+                        "properties": [],
+                        "items": {
+                            "types": [
+                                "string"
+                            ],
+                            "format": null,
+                            "enum": [],
+                            "required": [],
+                            "properties": [],
+                            "items": null,
+                            "discriminator": null,
+                            "const": null,
+                            "oneOf": [],
+                            "anyOf": [],
+                            "allOf": [],
+                            "constraints": {}
+                        },
+                        "discriminator": null,
+                        "const": null,
+                        "oneOf": [],
+                        "anyOf": [],
+                        "allOf": [],
+                        "constraints": {
+                            "minItems": 1
+                        }
+                    },
+                    "include": {
+                        "types": [
+                            "string"
+                        ],
+                        "format": null,
+                        "enum": [],
+                        "required": [],
+                        "properties": [],
+                        "items": null,
+                        "discriminator": null,
+                        "const": null,
+                        "oneOf": [],
+                        "anyOf": [],
+                        "allOf": [],
+                        "constraints": {}
+                    }
+                },
+                "items": null,
+                "discriminator": null,
+                "const": null,
+                "oneOf": [],
+                "anyOf": [],
+                "allOf": [],
+                "constraints": {}
+            },
+            "metaRequired": true,
+            "operations": []
         },
         "LOCAL_ID_CONFLICT": {
             "status": 400,
-            "schema": "LocalIdConflictError",
+            "schema": "Error400",
+            "class": "LocalIdConflictError",
             "title": "Local id conflict",
             "source": null,
             "description": "Two operations in the Atomic Operations request create resources of the same type under the same `lid`. Give each resource a batch creates its own `lid`.",
-            "exampleDetail": "Local id 'new-article' is already registered for type 'articles'!"
+            "exampleDetail": "Local id 'new-article' is already registered for type 'articles'!",
+            "meta": null,
+            "metaRequired": false,
+            "operations": []
         },
         "LOCAL_ID_NOT_FOUND": {
             "status": 400,
-            "schema": "LocalIdNotFoundError",
+            "schema": "Error400",
+            "class": "LocalIdNotFoundError",
             "title": "Local id not found",
             "source": null,
             "description": "An operation refers to a `lid` that no earlier operation in the batch created. Create the resource under that `lid` in an earlier operation, or refer to an existing resource by `id`.",
-            "exampleDetail": "No resource is registered for local id 'new-article' of type 'articles'!"
+            "exampleDetail": "No resource is registered for local id 'new-article' of type 'articles'!",
+            "meta": null,
+            "metaRequired": false,
+            "operations": []
         },
         "LOCAL_ID_NOT_SUPPORTED": {
             "status": 400,
-            "schema": "LocalIdNotSupportedError",
+            "schema": "Error400Pointer",
+            "class": "LocalIdNotSupportedError",
             "title": "Local id is not supported",
             "source": "pointer",
             "description": "The request used a `lid`, which only means something inside an Atomic Operations request. Identify the resource by `id`, or send the dependent writes together as one atomic batch if the API offers the extension.",
-            "exampleDetail": "A local id (lid) is only supported within an Atomic Operations request; a standalone request must identify a resource by id."
+            "exampleDetail": "A local id (lid) is only supported within an Atomic Operations request; a standalone request must identify a resource by id.",
+            "meta": null,
+            "metaRequired": false,
+            "operations": []
         },
         "MEDIA_TYPE_UNACCEPTABLE": {
             "status": 406,
-            "schema": "MediaTypeUnacceptableError",
+            "schema": "Error406Header",
+            "class": "MediaTypeUnacceptableError",
             "title": "The provided media type is unacceptable",
-            "source": "parameter",
+            "source": "header",
             "description": "Every `application/vnd.api+json` entry in the `Accept` header carries a parameter other than `ext` or `profile`, or asks for an `ext` the server does not support. Accept `application/vnd.api+json` with no other parameters.",
-            "exampleDetail": "The media type 'application/vnd.api+json; version=2' is unacceptable in the 'Accept' header!"
+            "exampleDetail": "The media type 'application/vnd.api+json; version=2' is unacceptable in the 'Accept' header!",
+            "meta": null,
+            "metaRequired": false,
+            "operations": []
         },
         "MEDIA_TYPE_UNSUPPORTED": {
             "status": 415,
-            "schema": "MediaTypeUnsupportedError",
+            "schema": "Error415Header",
+            "class": "MediaTypeUnsupportedError",
             "title": "The provided media type is unsupported",
-            "source": "parameter",
+            "source": "header",
             "description": "The `Content-Type` is missing or names a media type the endpoint does not accept, or is `application/vnd.api+json` with a media type parameter other than `ext` or `profile`, or with an `ext` the server does not support. Send a JSON:API document as `Content-Type: application/vnd.api+json` with only the parameters the server supports.",
-            "exampleDetail": "The media type 'application/vnd.api+json; charset=utf-8' is unsupported in the 'Content-Type' header!"
+            "exampleDetail": "The media type 'application/vnd.api+json; charset=utf-8' is unsupported in the 'Content-Type' header!",
+            "meta": null,
+            "metaRequired": false,
+            "operations": []
+        },
+        "METHOD_NOT_ALLOWED": {
+            "status": 405,
+            "schema": "Error405",
+            "class": "MethodNotAllowedError",
+            "title": "Method Not Allowed",
+            "source": null,
+            "description": "The path exists, but not for the method the request used: the type or relationship may be read-only, or the endpoint may take no such operation. The `Allow` response header lists the methods the path accepts.",
+            "exampleDetail": null,
+            "meta": null,
+            "metaRequired": false,
+            "operations": []
         },
         "NO_RESOURCE_REGISTERED": {
             "status": 500,
-            "schema": "NoResourceRegisteredError",
+            "schema": "Error500",
+            "class": "NoResourceRegisteredError",
             "title": "No resource registered",
             "source": null,
             "description": "The server tried to use a resource type it has nothing registered for, which is a configuration fault on its side. Retrying won't help; report it to the API's maintainers.",
-            "exampleDetail": "No resource is registered for type \"articles\"."
+            "exampleDetail": "No resource is registered for type \"articles\".",
+            "meta": null,
+            "metaRequired": false,
+            "operations": []
         },
         "PAGINATION_KIND_UNKNOWN": {
             "status": 400,
-            "schema": "PaginationKindUnknownError",
+            "schema": "Error400Parameter",
+            "class": "PaginationKindUnknownError",
             "title": "Pagination kind is not supported",
             "source": "parameter",
             "description": "`page[kind]` names a pagination strategy this collection does not offer. Use one of the strategies the `detail` lists, or leave `page[kind]` out.",
-            "exampleDetail": "The pagination strategy 'page[kind]=offset' is not supported; use one of: page, cursor."
+            "exampleDetail": "The pagination strategy 'page[kind]=offset' is not supported; use one of: page, cursor.",
+            "meta": null,
+            "metaRequired": false,
+            "operations": []
         },
         "QUERY_PARAM_MALFORMED": {
             "status": 400,
-            "schema": "QueryParamMalformedError",
+            "schema": "Error400Parameter",
+            "class": "QueryParamMalformedError",
             "title": "Query parameter is malformed",
             "source": "parameter",
             "description": "A query parameter has the wrong shape, such as `fields` sent without a type key or `include` sent as a list instead of a comma-separated string. Fix the parameter named in `source.parameter`.",
-            "exampleDetail": "Query parameter 'include' is malformed!"
+            "exampleDetail": "Query parameter 'include' is malformed!",
+            "meta": null,
+            "metaRequired": false,
+            "operations": []
         },
         "QUERY_PARAM_UNRECOGNIZED": {
             "status": 400,
-            "schema": "QueryParamUnrecognizedError",
+            "schema": "Error400Parameter",
+            "class": "QueryParamUnrecognizedError",
             "title": "Query parameter is unrecognized",
             "source": "parameter",
             "description": "The request used a query parameter this endpoint does not recognize. Remove it, or check its spelling against the parameters the API documents.",
-            "exampleDetail": "Query parameter 'colour' can't be recognized by the endpoint!"
+            "exampleDetail": "Query parameter 'colour' can't be recognized by the endpoint!",
+            "meta": null,
+            "metaRequired": false,
+            "operations": []
         },
         "RELATED_ATTRIBUTE_OWNER_MISSING": {
             "status": 422,
-            "schema": "RelatedAttributeOwnerMissingError",
+            "schema": "Error422Pointer",
+            "class": "RelatedAttributeOwnerMissingError",
             "title": "Related attribute owner missing",
             "source": "pointer",
             "description": "The request wrote an attribute the server stores on a related resource, and that related resource does not exist. Set the relationship first, or leave the attribute out.",
-            "exampleDetail": "Cannot write attribute \"city\": its related \"address\" is not present."
+            "exampleDetail": "Cannot write attribute \"city\": its related \"address\" is not present.",
+            "meta": null,
+            "metaRequired": false,
+            "operations": []
         },
         "RELATIONSHIP_COUNT_NOT_ALLOWED": {
             "status": 400,
-            "schema": "RelationshipCountNotAllowedError",
+            "schema": "Error400Parameter",
+            "class": "RelationshipCountNotAllowedError",
             "title": "Relationship count is not allowed",
             "source": "parameter",
             "description": "`withCount` names a relationship that is not a countable to-many relationship of this resource. Ask for counts only on the relationships the API marks as countable.",
-            "exampleDetail": "Counted relationships 'author' are not countable to-many relationships of this resource!"
+            "exampleDetail": "Counted relationships 'author' are not countable to-many relationships of this resource!",
+            "meta": null,
+            "metaRequired": false,
+            "operations": []
         },
         "RELATIONSHIP_NOT_EXISTS": {
             "status": 404,
-            "schema": "RelationshipNotExistsError",
+            "schema": "Error404",
+            "class": "RelationshipNotExistsError",
             "title": "The requested relationship does not exist!",
             "source": null,
             "description": "The request names a relationship this resource type does not have, or one whose endpoint the API does not expose. Check the relationship name against the ones the type documents.",
-            "exampleDetail": "The requested relationship 'reviewers' does not exist!"
+            "exampleDetail": "The requested relationship 'reviewers' does not exist!",
+            "meta": null,
+            "metaRequired": false,
+            "operations": []
         },
         "RELATIONSHIP_TYPE_INAPPROPRIATE": {
             "status": 400,
-            "schema": "RelationshipTypeInappropriateError",
+            "schema": "Error400Pointer",
+            "class": "RelationshipTypeInappropriateError",
             "title": "Relationship type is inappropriate",
             "source": "pointer",
             "description": "The relationship data has the wrong cardinality: a list for a to-one relationship, a single identifier for a to-many one, or a `POST` or `DELETE` to a to-one relationship endpoint. Send linkage that matches the relationship.",
-            "exampleDetail": "The provided relationship 'author' is of type of to-many, but to-one is expected!"
+            "exampleDetail": "The provided relationship 'author' is of type of to-many, but to-one is expected!",
+            "meta": null,
+            "metaRequired": false,
+            "operations": []
         },
         "REMOVAL_PROHIBITED": {
             "status": 403,
-            "schema": "RemovalProhibitedError",
+            "schema": "Error403Pointer",
+            "class": "RemovalProhibitedError",
             "title": "Removal is prohibited",
             "source": "pointer",
             "description": "This relationship does not let a client remove members from it or clear it. Don't retry the request; the relationship changes only in the ways the API documents for it.",
-            "exampleDetail": "Removal of relationship 'tags' is prohibited!"
+            "exampleDetail": "Removal of relationship 'tags' is prohibited!",
+            "meta": null,
+            "metaRequired": false,
+            "operations": []
         },
         "REQUEST_BODY_INVALID_JSON": {
             "status": 400,
-            "schema": "RequestBodyInvalidJsonError",
+            "schema": "Error400RequestBodyInvalidJson",
+            "class": "RequestBodyInvalidJsonError",
             "title": "Request body is an invalid JSON document",
             "source": null,
             "description": "The request body is not well-formed JSON. Fix the syntax the `detail` reports and send the request again.",
-            "exampleDetail": "Request body is an invalid JSON document: 'Syntax error'!"
+            "exampleDetail": "Request body is an invalid JSON document: 'Syntax error'!",
+            "meta": {
+                "types": [
+                    "object"
+                ],
+                "format": null,
+                "enum": [],
+                "required": [],
+                "properties": {
+                    "original": {
+                        "types": [
+                            "string"
+                        ],
+                        "format": null,
+                        "enum": [],
+                        "required": [],
+                        "properties": [],
+                        "items": null,
+                        "discriminator": null,
+                        "const": null,
+                        "oneOf": [],
+                        "anyOf": [],
+                        "allOf": [],
+                        "constraints": {}
+                    }
+                },
+                "items": null,
+                "discriminator": null,
+                "const": null,
+                "oneOf": [],
+                "anyOf": [],
+                "allOf": [],
+                "constraints": {}
+            },
+            "metaRequired": false,
+            "operations": []
         },
         "REQUEST_BODY_INVALID_JSON_API": {
             "status": 400,
-            "schema": "RequestBodyInvalidJsonApiError",
+            "schema": "Error400",
+            "class": "RequestBodyInvalidJsonApiError",
             "title": "Request body is an invalid JSON:API document",
             "source": null,
             "description": "The request body is JSON but breaks the JSON:API document structure or the schema the server validates this resource against. Each violation is its own error, with `source.pointer` set where the server could locate it.",
-            "exampleDetail": "The data must match the type: object"
+            "exampleDetail": "The data must match the type: object",
+            "meta": null,
+            "metaRequired": false,
+            "operations": []
         },
         "REQUIRED_TOP_LEVEL_MEMBERS_MISSING": {
             "status": 400,
-            "schema": "RequiredTopLevelMembersMissingError",
+            "schema": "Error400",
+            "class": "RequiredTopLevelMembersMissingError",
             "title": "Required top-level members are missing",
             "source": null,
             "description": "The request body is not a JSON object, or has none of the top-level members `data`, `errors` and `meta`. Send a JSON object with the resource under `data`.",
-            "exampleDetail": "A document must contain at least one of the following top-level members: \"data\", \"errors\", \"meta\""
+            "exampleDetail": "A document must contain at least one of the following top-level members: \"data\", \"errors\", \"meta\"",
+            "meta": null,
+            "metaRequired": false,
+            "operations": []
         },
         "RESOURCE_IDENTIFIER_ID_INVALID": {
             "status": 400,
-            "schema": "ResourceIdentifierIdInvalidError",
+            "schema": "Error400",
+            "class": "ResourceIdentifierIdInvalidError",
             "title": "Resource identifier ID is invalid",
             "source": null,
             "description": "A resource identifier in the request carries an `id` that is not a string, such as a number. Send every `id` as a JSON string.",
-            "exampleDetail": "The resource ID must be a string instead of integer!"
+            "exampleDetail": "The resource ID must be a string instead of integer!",
+            "meta": null,
+            "metaRequired": false,
+            "operations": []
         },
         "RESOURCE_IDENTIFIER_ID_MISSING": {
             "status": 400,
-            "schema": "ResourceIdentifierIdMissingError",
+            "schema": "Error400",
+            "class": "ResourceIdentifierIdMissingError",
             "title": "An ID for the resource identifier is missing",
             "source": null,
             "description": "A resource identifier in the request has neither an `id` nor a `lid`. Identify each related resource by its `id`, or by a `lid` inside an Atomic Operations request.",
-            "exampleDetail": "An ID or local ID (lid) for the resource identifier must be included!"
+            "exampleDetail": "An ID or local ID (lid) for the resource identifier must be included!",
+            "meta": null,
+            "metaRequired": false,
+            "operations": []
         },
         "RESOURCE_IDENTIFIER_LID_INVALID": {
             "status": 400,
-            "schema": "ResourceIdentifierLidInvalidError",
+            "schema": "Error400",
+            "class": "ResourceIdentifierLidInvalidError",
             "title": "Resource identifier local ID is invalid",
             "source": null,
             "description": "A resource identifier in the request carries a `lid` that is not a string. Send every `lid` as a JSON string.",
-            "exampleDetail": "The resource local ID (lid) must be a string instead of integer!"
+            "exampleDetail": "The resource local ID (lid) must be a string instead of integer!",
+            "meta": null,
+            "metaRequired": false,
+            "operations": []
         },
         "RESOURCE_IDENTIFIER_TYPE_INVALID": {
             "status": 400,
-            "schema": "ResourceIdentifierTypeInvalidError",
+            "schema": "Error400",
+            "class": "ResourceIdentifierTypeInvalidError",
             "title": "Resource identifier type is invalid",
             "source": null,
             "description": "A resource identifier in the request carries a `type` that is not a string. Send every `type` as a JSON string.",
-            "exampleDetail": "The resource type must be a string instead of integer!"
+            "exampleDetail": "The resource type must be a string instead of integer!",
+            "meta": null,
+            "metaRequired": false,
+            "operations": []
         },
         "RESOURCE_IDENTIFIER_TYPE_MISSING": {
             "status": 400,
-            "schema": "ResourceIdentifierTypeMissingError",
+            "schema": "Error400",
+            "class": "ResourceIdentifierTypeMissingError",
             "title": "A type for the resource identifier is missing",
             "source": null,
             "description": "A resource identifier in the request has no `type`. Add the related resource's `type` to every identifier.",
-            "exampleDetail": "A type for the resource identifier must be included!"
+            "exampleDetail": "A type for the resource identifier must be included!",
+            "meta": null,
+            "metaRequired": false,
+            "operations": []
         },
         "RESOURCE_ID_CONFLICT": {
             "status": 409,
-            "schema": "ResourceIdConflictError",
+            "schema": "Error409Pointer",
+            "class": "ResourceIdConflictError",
             "title": "Resource id conflict",
             "source": "pointer",
             "description": "The `id` in the update body is not the `id` in the URL. Send the id of the resource the URL addresses as `data.id`.",
-            "exampleDetail": "Resource id '12' does not match the endpoint id '7'!"
+            "exampleDetail": "Resource id '12' does not match the endpoint id '7'!",
+            "meta": null,
+            "metaRequired": false,
+            "operations": []
         },
         "RESOURCE_ID_INVALID": {
             "status": 400,
-            "schema": "ResourceIdInvalidError",
+            "schema": "Error400Pointer",
+            "class": "ResourceIdInvalidError",
             "title": "Resource ID is invalid",
             "source": "pointer",
             "description": "The resource object's `id` is not a string, such as a number. Send `data.id` as a JSON string.",
-            "exampleDetail": "The resource ID must be a string instead of integer!"
+            "exampleDetail": "The resource ID must be a string instead of integer!",
+            "meta": null,
+            "metaRequired": false,
+            "operations": []
         },
         "RESOURCE_ID_MISSING": {
             "status": 400,
-            "schema": "ResourceIdMissingError",
+            "schema": "Error400Pointer",
+            "class": "ResourceIdMissingError",
             "title": "Resource ID is missing",
             "source": "pointer",
             "description": "The update request's resource object has no `id`. Include the id of the resource being updated as `data.id`.",
-            "exampleDetail": "A resource ID must be included in the document!"
+            "exampleDetail": "A resource ID must be included in the document!",
+            "meta": null,
+            "metaRequired": false,
+            "operations": []
         },
         "RESOURCE_ID_UNDECODABLE": {
             "status": 422,
-            "schema": "ResourceIdUndecodableError",
+            "schema": "Error422Pointer",
+            "class": "ResourceIdUndecodableError",
             "title": "Resource ID is undecodable",
             "source": "pointer",
             "description": "The client-generated `id` is not in a format the server can decode into one of its own ids. Send an `id` in the format the API documents for this resource type.",
-            "exampleDetail": "The resource ID 'not-an-id' could not be decoded!"
+            "exampleDetail": "The resource ID 'not-an-id' could not be decoded!",
+            "meta": null,
+            "metaRequired": false,
+            "operations": []
         },
         "RESOURCE_NOT_FOUND": {
             "status": 404,
-            "schema": "ResourceNotFoundError",
+            "schema": "Error404",
+            "class": "ResourceNotFoundError",
             "title": "Resource not found",
             "source": null,
             "description": "The resource the request addresses does not exist. Check the type and id in the URL; a deleted resource stays not found.",
-            "exampleDetail": "The requested resource is not found!"
+            "exampleDetail": "The requested resource is not found!",
+            "meta": null,
+            "metaRequired": false,
+            "operations": []
         },
         "RESOURCE_TYPE_MISSING": {
             "status": 400,
-            "schema": "ResourceTypeMissingError",
+            "schema": "Error400Pointer",
+            "class": "ResourceTypeMissingError",
             "title": "Resource type is missing",
             "source": "pointer",
             "description": "The resource object in `data` has no `type`. Add the type of the resource the endpoint serves.",
-            "exampleDetail": "A resource type must be included in the document!"
+            "exampleDetail": "A resource type must be included in the document!",
+            "meta": null,
+            "metaRequired": false,
+            "operations": []
         },
         "RESOURCE_TYPE_UNACCEPTABLE": {
             "status": 409,
-            "schema": "ResourceTypeUnacceptableError",
+            "schema": "Error409Pointer",
+            "class": "ResourceTypeUnacceptableError",
             "title": "Resource type is unacceptable",
             "source": "pointer",
             "description": "The `type` in the request is not one this endpoint or relationship accepts. Send the type the endpoint serves, or one the relationship documents for its related resources.",
-            "exampleDetail": "Resource type 'people' is unacceptable!"
+            "exampleDetail": "Resource type 'people' is unacceptable!",
+            "meta": null,
+            "metaRequired": false,
+            "operations": []
         },
         "RESPONSE_BODY_INVALID_JSON": {
             "status": 500,
-            "schema": "ResponseBodyInvalidJsonError",
+            "schema": "Error500ResponseBodyInvalidJson",
+            "class": "ResponseBodyInvalidJsonError",
             "title": "Response body is an invalid JSON document",
             "source": null,
             "description": "The server produced a response body that is not valid JSON, which is a fault on its side. Retrying won't help; report it to the API's maintainers.",
-            "exampleDetail": "Response body is an invalid JSON document: 'Syntax error'!"
+            "exampleDetail": "Response body is an invalid JSON document: 'Syntax error'!",
+            "meta": {
+                "types": [
+                    "object"
+                ],
+                "format": null,
+                "enum": [],
+                "required": [],
+                "properties": {
+                    "original": {
+                        "types": [
+                            "string"
+                        ],
+                        "format": null,
+                        "enum": [],
+                        "required": [],
+                        "properties": [],
+                        "items": null,
+                        "discriminator": null,
+                        "const": null,
+                        "oneOf": [],
+                        "anyOf": [],
+                        "allOf": [],
+                        "constraints": {}
+                    }
+                },
+                "items": null,
+                "discriminator": null,
+                "const": null,
+                "oneOf": [],
+                "anyOf": [],
+                "allOf": [],
+                "constraints": {}
+            },
+            "metaRequired": false,
+            "operations": []
         },
         "RESPONSE_BODY_INVALID_JSON_API": {
             "status": 500,
-            "schema": "ResponseBodyInvalidJsonApiError",
+            "schema": "Error500",
+            "class": "ResponseBodyInvalidJsonApiError",
             "title": "Response body is an invalid JSON:API document",
             "source": null,
             "description": "The server produced a response that breaks the JSON:API document structure, which is a fault on its side. Retrying won't help; report it to the API's maintainers.",
-            "exampleDetail": "The data must match the type: object"
+            "exampleDetail": "The data must match the type: object",
+            "meta": null,
+            "metaRequired": false,
+            "operations": []
         },
         "SORTING_UNRECOGNIZED": {
             "status": 400,
-            "schema": "SortingUnrecognizedError",
+            "schema": "Error400Parameter",
+            "class": "SortingUnrecognizedError",
             "title": "Sorting parameter is unrecognized",
             "source": "parameter",
             "description": "The `sort` parameter names a field this endpoint cannot sort by. Sort only on the fields the API documents for this resource type.",
-            "exampleDetail": "Sorting parameter 'popularity' can't be recognized by the endpoint!"
+            "exampleDetail": "Sorting parameter 'popularity' can't be recognized by the endpoint!",
+            "meta": null,
+            "metaRequired": false,
+            "operations": []
         },
         "SORTING_UNSUPPORTED": {
             "status": 400,
-            "schema": "SortingUnsupportedError",
+            "schema": "Error400Parameter",
+            "class": "SortingUnsupportedError",
             "title": "Sorting is unsupported",
             "source": "parameter",
             "description": "This endpoint does not support sorting. Remove the `sort` parameter.",
-            "exampleDetail": "Sorting is not supported by the endpoint!"
+            "exampleDetail": "Sorting is not supported by the endpoint!",
+            "meta": null,
+            "metaRequired": false,
+            "operations": []
         },
         "TOP_LEVEL_MEMBERS_INCOMPATIBLE": {
             "status": 400,
-            "schema": "TopLevelMembersIncompatibleError",
+            "schema": "Error400",
+            "class": "TopLevelMembersIncompatibleError",
             "title": "Top-level members are incompatible",
             "source": null,
             "description": "The request body has both `data` and `errors` at the top level, which JSON:API forbids. Send the resource under `data` alone.",
-            "exampleDetail": "The members \"data\" and \"errors\" cannot coexist in the same document"
+            "exampleDetail": "The members \"data\" and \"errors\" cannot coexist in the same document",
+            "meta": null,
+            "metaRequired": false,
+            "operations": []
         },
         "TOP_LEVEL_MEMBER_NOT_ALLOWED": {
             "status": 400,
-            "schema": "TopLevelMemberNotAllowedError",
+            "schema": "Error400",
+            "class": "TopLevelMemberNotAllowedError",
             "title": "Top-level member is not allowed",
             "source": null,
             "description": "The request body has a top-level `included` member but no `data`. Remove `included`, or send it alongside `data`.",
-            "exampleDetail": "If a document does not contain a top-level \"data\" key, the \"included\" member must not be present either."
+            "exampleDetail": "If a document does not contain a top-level \"data\" key, the \"included\" member must not be present either.",
+            "meta": null,
+            "metaRequired": false,
+            "operations": []
         }
     },
     "resources": {
@@ -894,7 +1318,12 @@
                                     "playlists"
                                 ]
                             },
-                            "relatedQuery": null
+                            "relatedQuery": null,
+                            "included": [
+                                "albums",
+                                "artists",
+                                "tracks"
+                            ]
                         },
                         "examples": {
                             "request": null,
@@ -1041,7 +1470,10 @@
                                         }
                                     }
                                 }
-                            }
+                            },
+                            "scopes": [
+                                "catalog:write"
+                            ]
                         }
                     },
                     "paginator": null,
@@ -1126,7 +1558,14 @@
                                     "playlists"
                                 ]
                             },
-                            "relatedQuery": null
+                            "relatedQuery": null,
+                            "included": [
+                                "albums",
+                                "artists",
+                                "tracks",
+                                "playlists",
+                                "public-profiles"
+                            ]
                         },
                         "examples": {
                             "request": null,
@@ -1140,6 +1579,14 @@
                                                 "self": {
                                                     "href": "https://music.example/tracks/1",
                                                     "describedby": "/docs.json#/paths/~1tracks~1%7Bid%7D/get"
+                                                },
+                                                "preview": {
+                                                    "href": "https://cdn.example.com/previews/1.mp3",
+                                                    "type": "audio/mpeg",
+                                                    "meta": {
+                                                        "format": "mp3",
+                                                        "expiresAt": "2026-01-01T12:00:00+00:00"
+                                                    }
                                                 }
                                             },
                                             "attributes": {
@@ -1360,7 +1807,10 @@
                                         }
                                     }
                                 }
-                            }
+                            },
+                            "scopes": [
+                                "catalog:write"
+                            ]
                         },
                         "remove": {
                             "path": "/albums/{id}/relationships/tracks",
@@ -1412,7 +1862,10 @@
                                         }
                                     }
                                 }
-                            }
+                            },
+                            "scopes": [
+                                "catalog:write"
+                            ]
                         },
                         "replace": {
                             "path": "/albums/{id}/relationships/tracks",
@@ -1464,7 +1917,10 @@
                                         }
                                     }
                                 }
-                            }
+                            },
+                            "scopes": [
+                                "catalog:write"
+                            ]
                         }
                     },
                     "paginator": {
@@ -1680,7 +2136,13 @@
                                 "playlists"
                             ]
                         },
-                        "relatedQuery": null
+                        "relatedQuery": null,
+                        "included": [
+                            "artists",
+                            "albums",
+                            "tracks",
+                            "playlists"
+                        ]
                     },
                     "examples": {
                         "request": {
@@ -1725,6 +2187,11 @@
                                         "self": {
                                             "href": "https://music.example/albums/1",
                                             "describedby": "/docs.json#/paths/~1albums~1%7Bid%7D/get"
+                                        },
+                                        "store": "https://store.example.com/albums/1",
+                                        "download": {
+                                            "href": "https://music.example/albums/1/-actions/download",
+                                            "describedby": "/docs.json#/paths/~1albums~1%7Bid%7D~1-actions~1download/get"
                                         },
                                         "reissue": {
                                             "href": "https://music.example/albums/1/-actions/reissue",
@@ -1796,7 +2263,10 @@
                                 }
                             }
                         }
-                    }
+                    },
+                    "scopes": [
+                        "catalog:write"
+                    ]
                 },
                 "delete": {
                     "path": "/albums/{id}",
@@ -1809,7 +2279,10 @@
                         406,
                         500
                     ],
-                    "projection": null
+                    "projection": null,
+                    "scopes": [
+                        "catalog:write"
+                    ]
                 },
                 "fetchMany": {
                     "path": "/albums",
@@ -1874,7 +2347,13 @@
                                 "playlists"
                             ]
                         },
-                        "relatedQuery": "https://haddowg.github.io/json-api/profiles/relationship-queries/"
+                        "relatedQuery": "https://haddowg.github.io/json-api/profiles/relationship-queries/",
+                        "included": [
+                            "artists",
+                            "albums",
+                            "tracks",
+                            "playlists"
+                        ]
                     },
                     "examples": {
                         "request": null,
@@ -1888,6 +2367,11 @@
                                             "self": {
                                                 "href": "https://music.example/albums/1",
                                                 "describedby": "/docs.json#/paths/~1albums~1%7Bid%7D/get"
+                                            },
+                                            "store": "https://store.example.com/albums/1",
+                                            "download": {
+                                                "href": "https://music.example/albums/1/-actions/download",
+                                                "describedby": "/docs.json#/paths/~1albums~1%7Bid%7D~1-actions~1download/get"
                                             },
                                             "reissue": {
                                                 "href": "https://music.example/albums/1/-actions/reissue",
@@ -2046,7 +2530,13 @@
                                 "playlists"
                             ]
                         },
-                        "relatedQuery": "https://haddowg.github.io/json-api/profiles/relationship-queries/"
+                        "relatedQuery": "https://haddowg.github.io/json-api/profiles/relationship-queries/",
+                        "included": [
+                            "artists",
+                            "albums",
+                            "tracks",
+                            "playlists"
+                        ]
                     },
                     "examples": {
                         "request": null,
@@ -2059,6 +2549,11 @@
                                         "self": {
                                             "href": "https://music.example/albums/1",
                                             "describedby": "/docs.json#/paths/~1albums~1%7Bid%7D/get"
+                                        },
+                                        "store": "https://store.example.com/albums/1",
+                                        "download": {
+                                            "href": "https://music.example/albums/1/-actions/download",
+                                            "describedby": "/docs.json#/paths/~1albums~1%7Bid%7D~1-actions~1download/get"
                                         },
                                         "reissue": {
                                             "href": "https://music.example/albums/1/-actions/reissue",
@@ -2225,7 +2720,13 @@
                                 "playlists"
                             ]
                         },
-                        "relatedQuery": null
+                        "relatedQuery": null,
+                        "included": [
+                            "artists",
+                            "albums",
+                            "tracks",
+                            "playlists"
+                        ]
                     },
                     "examples": {
                         "request": {
@@ -2271,6 +2772,11 @@
                                         "self": {
                                             "href": "https://music.example/albums/1",
                                             "describedby": "/docs.json#/paths/~1albums~1%7Bid%7D/get"
+                                        },
+                                        "store": "https://store.example.com/albums/1",
+                                        "download": {
+                                            "href": "https://music.example/albums/1/-actions/download",
+                                            "describedby": "/docs.json#/paths/~1albums~1%7Bid%7D~1-actions~1download/get"
                                         },
                                         "reissue": {
                                             "href": "https://music.example/albums/1/-actions/reissue",
@@ -2342,7 +2848,10 @@
                                 }
                             }
                         }
-                    }
+                    },
+                    "scopes": [
+                        "catalog:write"
+                    ]
                 }
             },
             "includable": [
@@ -2572,7 +3081,70 @@
                             "component": null,
                             "schema": null
                         }
+                    ],
+                    "safety": {
+                        "idempotent": true
+                    },
+                    "scopes": [
+                        "catalog:write",
+                        "catalog:media"
                     ]
+                },
+                "download": {
+                    "scope": "resource",
+                    "path": "/albums/{id}/-actions/download",
+                    "method": "GET",
+                    "input": "none",
+                    "inputType": null,
+                    "contentType": null,
+                    "bodyRequired": true,
+                    "output": "none",
+                    "outputType": null,
+                    "outputCardinality": null,
+                    "errorStatuses": [
+                        400,
+                        401,
+                        403,
+                        404,
+                        406,
+                        415,
+                        422,
+                        500
+                    ],
+                    "projection": null,
+                    "examples": {
+                        "request": null,
+                        "responses": {
+                            "200": {
+                                "links": {
+                                    "self": {
+                                        "href": "https://music.example/albums/1/-actions/download",
+                                        "describedby": "/docs.json#/paths/~1albums~1%7Bid%7D~1-actions~1download/get"
+                                    },
+                                    "location": {
+                                        "href": "https://storage.example.com/downloads/example?signature=example",
+                                        "type": "text/csv",
+                                        "meta": {
+                                            "expiresAt": "2030-01-01T00:00:00+00:00"
+                                        }
+                                    },
+                                    "describedby": {
+                                        "href": "/docs.json#/paths/~1albums~1%7Bid%7D~1-actions~1download/get"
+                                    }
+                                },
+                                "meta": {
+                                    "expiresAt": "2030-01-01T00:00:00+00:00"
+                                },
+                                "jsonapi": {
+                                    "version": "1.1"
+                                }
+                            }
+                        }
+                    },
+                    "safety": {
+                        "readOnly": true
+                    },
+                    "locationType": "text/csv"
                 },
                 "export": {
                     "scope": "collection",
@@ -2673,7 +3245,10 @@
                                 "constraints": {}
                             }
                         }
-                    ]
+                    ],
+                    "safety": {
+                        "readOnly": true
+                    }
                 },
                 "import": {
                     "scope": "collection",
@@ -2789,6 +3364,9 @@
                                 "constraints": {}
                             }
                         }
+                    ],
+                    "scopes": [
+                        "catalog:write"
                     ]
                 },
                 "reissue": {
@@ -2865,7 +3443,13 @@
                                 "playlists"
                             ]
                         },
-                        "relatedQuery": null
+                        "relatedQuery": null,
+                        "included": [
+                            "artists",
+                            "albums",
+                            "tracks",
+                            "playlists"
+                        ]
                     },
                     "examples": {
                         "request": {
@@ -2910,6 +3494,11 @@
                                         "self": {
                                             "href": "https://music.example/albums/1",
                                             "describedby": "/docs.json#/paths/~1albums~1%7Bid%7D/get"
+                                        },
+                                        "store": "https://store.example.com/albums/1",
+                                        "download": {
+                                            "href": "https://music.example/albums/1/-actions/download",
+                                            "describedby": "/docs.json#/paths/~1albums~1%7Bid%7D~1-actions~1download/get"
                                         },
                                         "reissue": {
                                             "href": "https://music.example/albums/1/-actions/reissue",
@@ -2981,7 +3570,10 @@
                                 }
                             }
                         }
-                    }
+                    },
+                    "scopes": [
+                        "catalog:write"
+                    ]
                 },
                 "summary": {
                     "scope": "collection",
@@ -3018,6 +3610,9 @@
                                 }
                             }
                         }
+                    },
+                    "safety": {
+                        "readOnly": true
                     }
                 }
             },
@@ -3042,7 +3637,15 @@
                 "artist",
                 "tracks"
             ],
-            "writeOnlyRelations": []
+            "writeOnlyRelations": [],
+            "links": {
+                "store": {
+                    "object": false,
+                    "description": "The album's page in the store.",
+                    "members": [],
+                    "meta": []
+                }
+            }
         },
         "artists": {
             "type": "artists",
@@ -3276,7 +3879,13 @@
                                     "playlists"
                                 ]
                             },
-                            "relatedQuery": null
+                            "relatedQuery": null,
+                            "included": [
+                                "artists",
+                                "albums",
+                                "tracks",
+                                "playlists"
+                            ]
                         },
                         "examples": {
                             "request": null,
@@ -3290,6 +3899,11 @@
                                                 "self": {
                                                     "href": "https://music.example/albums/1",
                                                     "describedby": "/docs.json#/paths/~1albums~1%7Bid%7D/get"
+                                                },
+                                                "store": "https://store.example.com/albums/1",
+                                                "download": {
+                                                    "href": "https://music.example/albums/1/-actions/download",
+                                                    "describedby": "/docs.json#/paths/~1albums~1%7Bid%7D~1-actions~1download/get"
                                                 },
                                                 "reissue": {
                                                     "href": "https://music.example/albums/1/-actions/reissue",
@@ -3855,7 +4469,12 @@
                                 "playlists"
                             ]
                         },
-                        "relatedQuery": null
+                        "relatedQuery": null,
+                        "included": [
+                            "albums",
+                            "artists",
+                            "tracks"
+                        ]
                     },
                     "examples": {
                         "request": {
@@ -3999,7 +4618,12 @@
                                 "playlists"
                             ]
                         },
-                        "relatedQuery": "https://haddowg.github.io/json-api/profiles/relationship-queries/"
+                        "relatedQuery": "https://haddowg.github.io/json-api/profiles/relationship-queries/",
+                        "included": [
+                            "albums",
+                            "artists",
+                            "tracks"
+                        ]
                     },
                     "examples": {
                         "request": null,
@@ -4132,7 +4756,12 @@
                                 "playlists"
                             ]
                         },
-                        "relatedQuery": "https://haddowg.github.io/json-api/profiles/relationship-queries/"
+                        "relatedQuery": "https://haddowg.github.io/json-api/profiles/relationship-queries/",
+                        "included": [
+                            "albums",
+                            "artists",
+                            "tracks"
+                        ]
                     },
                     "examples": {
                         "request": null,
@@ -4271,7 +4900,12 @@
                                 "playlists"
                             ]
                         },
-                        "relatedQuery": null
+                        "relatedQuery": null,
+                        "included": [
+                            "albums",
+                            "artists",
+                            "tracks"
+                        ]
                     },
                     "examples": {
                         "request": {
@@ -5403,6 +6037,14 @@
                                             "self": {
                                                 "href": "https://music.example/tracks/1",
                                                 "describedby": "/docs.json#/paths/~1tracks~1%7Bid%7D/get"
+                                            },
+                                            "preview": {
+                                                "href": "https://cdn.example.com/previews/1.mp3",
+                                                "type": "audio/mpeg",
+                                                "meta": {
+                                                    "format": "mp3",
+                                                    "expiresAt": "2026-01-01T12:00:00+00:00"
+                                                }
                                             }
                                         },
                                         "attributes": {
@@ -5754,7 +6396,10 @@
                                 "displayName"
                             ]
                         },
-                        "relatedQuery": null
+                        "relatedQuery": null,
+                        "included": [
+                            "public-profiles"
+                        ]
                     },
                     "examples": {
                         "request": {
@@ -5881,7 +6526,10 @@
                                 "displayName"
                             ]
                         },
-                        "relatedQuery": "https://haddowg.github.io/json-api/profiles/relationship-queries/"
+                        "relatedQuery": "https://haddowg.github.io/json-api/profiles/relationship-queries/",
+                        "included": [
+                            "public-profiles"
+                        ]
                     },
                     "examples": {
                         "request": null,
@@ -5997,7 +6645,10 @@
                                 "displayName"
                             ]
                         },
-                        "relatedQuery": "https://haddowg.github.io/json-api/profiles/relationship-queries/"
+                        "relatedQuery": "https://haddowg.github.io/json-api/profiles/relationship-queries/",
+                        "included": [
+                            "public-profiles"
+                        ]
                     },
                     "examples": {
                         "request": null,
@@ -6120,7 +6771,10 @@
                                 "displayName"
                             ]
                         },
-                        "relatedQuery": null
+                        "relatedQuery": null,
+                        "included": [
+                            "public-profiles"
+                        ]
                     },
                     "examples": {
                         "request": {
@@ -6664,6 +7318,14 @@
                                                 "self": {
                                                     "href": "https://music.example/tracks/1",
                                                     "describedby": "/docs.json#/paths/~1tracks~1%7Bid%7D/get"
+                                                },
+                                                "preview": {
+                                                    "href": "https://cdn.example.com/previews/1.mp3",
+                                                    "type": "audio/mpeg",
+                                                    "meta": {
+                                                        "format": "mp3",
+                                                        "expiresAt": "2026-01-01T12:00:00+00:00"
+                                                    }
                                                 }
                                             },
                                             "attributes": {
@@ -7216,7 +7878,13 @@
                                 "playlists"
                             ]
                         },
-                        "relatedQuery": null
+                        "relatedQuery": null,
+                        "included": [
+                            "public-profiles",
+                            "tracks",
+                            "albums",
+                            "artists"
+                        ]
                     },
                     "examples": {
                         "request": {
@@ -7374,7 +8042,13 @@
                                 "playlists"
                             ]
                         },
-                        "relatedQuery": "https://haddowg.github.io/json-api/profiles/relationship-queries/"
+                        "relatedQuery": "https://haddowg.github.io/json-api/profiles/relationship-queries/",
+                        "included": [
+                            "public-profiles",
+                            "tracks",
+                            "albums",
+                            "artists"
+                        ]
                     },
                     "examples": {
                         "request": null,
@@ -7522,7 +8196,13 @@
                                 "playlists"
                             ]
                         },
-                        "relatedQuery": "https://haddowg.github.io/json-api/profiles/relationship-queries/"
+                        "relatedQuery": "https://haddowg.github.io/json-api/profiles/relationship-queries/",
+                        "included": [
+                            "public-profiles",
+                            "tracks",
+                            "albums",
+                            "artists"
+                        ]
                     },
                     "examples": {
                         "request": null,
@@ -7677,7 +8357,13 @@
                                 "playlists"
                             ]
                         },
-                        "relatedQuery": null
+                        "relatedQuery": null,
+                        "included": [
+                            "public-profiles",
+                            "tracks",
+                            "albums",
+                            "artists"
+                        ]
                     },
                     "examples": {
                         "request": {
@@ -7980,7 +8666,14 @@
                                     "playlists"
                                 ]
                             },
-                            "relatedQuery": null
+                            "relatedQuery": null,
+                            "included": [
+                                "albums",
+                                "artists",
+                                "tracks",
+                                "playlists",
+                                "public-profiles"
+                            ]
                         },
                         "examples": {
                             "request": null,
@@ -7994,6 +8687,14 @@
                                                 "self": {
                                                     "href": "https://music.example/tracks/1",
                                                     "describedby": "/docs.json#/paths/~1tracks~1%7Bid%7D/get"
+                                                },
+                                                "preview": {
+                                                    "href": "https://cdn.example.com/previews/1.mp3",
+                                                    "type": "audio/mpeg",
+                                                    "meta": {
+                                                        "format": "mp3",
+                                                        "expiresAt": "2026-01-01T12:00:00+00:00"
+                                                    }
                                                 }
                                             },
                                             "attributes": {
@@ -8214,7 +8915,10 @@
                                         }
                                     }
                                 }
-                            }
+                            },
+                            "scopes": [
+                                "library:write"
+                            ]
                         },
                         "remove": {
                             "path": "/playlists/{id}/relationships/orderedTracks",
@@ -8279,7 +8983,10 @@
                                         }
                                     }
                                 }
-                            }
+                            },
+                            "scopes": [
+                                "library:write"
+                            ]
                         },
                         "replace": {
                             "path": "/playlists/{id}/relationships/orderedTracks",
@@ -8344,7 +9051,10 @@
                                         }
                                     }
                                 }
-                            }
+                            },
+                            "scopes": [
+                                "library:write"
+                            ]
                         }
                     },
                     "paginator": {
@@ -8588,6 +9298,18 @@
                                     "data": {
                                         "type": "users",
                                         "id": "1"
+                                    },
+                                    "links": {
+                                        "self": {
+                                            "href": "https://music.example/playlists/0b9e3c34-2f4e-4c1a-9a57-6d3b2a1f8c10/relationships/owner",
+                                            "describedby": "/docs.json#/paths/~1playlists~1%7Bid%7D~1relationships~1owner/get"
+                                        },
+                                        "describedby": {
+                                            "href": "/docs.json#/paths/~1playlists~1%7Bid%7D~1relationships~1owner/get"
+                                        }
+                                    },
+                                    "jsonapi": {
+                                        "version": "1.1"
                                     }
                                 }
                             }
@@ -8621,10 +9343,25 @@
                                         "data": {
                                             "type": "users",
                                             "id": "1"
+                                        },
+                                        "links": {
+                                            "self": {
+                                                "href": "https://music.example/playlists/0b9e3c34-2f4e-4c1a-9a57-6d3b2a1f8c10/relationships/owner",
+                                                "describedby": "/docs.json#/paths/~1playlists~1%7Bid%7D~1relationships~1owner/get"
+                                            },
+                                            "describedby": {
+                                                "href": "/docs.json#/paths/~1playlists~1%7Bid%7D~1relationships~1owner/get"
+                                            }
+                                        },
+                                        "jsonapi": {
+                                            "version": "1.1"
                                         }
                                     }
                                 }
-                            }
+                            },
+                            "scopes": [
+                                "library:write"
+                            ]
                         }
                     },
                     "paginator": null,
@@ -8780,7 +9517,10 @@
                                         }
                                     }
                                 }
-                            }
+                            },
+                            "scopes": [
+                                "library:write"
+                            ]
                         }
                     },
                     "paginator": null,
@@ -8865,7 +9605,14 @@
                                     "playlists"
                                 ]
                             },
-                            "relatedQuery": null
+                            "relatedQuery": null,
+                            "included": [
+                                "albums",
+                                "artists",
+                                "tracks",
+                                "playlists",
+                                "public-profiles"
+                            ]
                         },
                         "examples": {
                             "request": null,
@@ -8879,6 +9626,14 @@
                                                 "self": {
                                                     "href": "https://music.example/tracks/1",
                                                     "describedby": "/docs.json#/paths/~1tracks~1%7Bid%7D/get"
+                                                },
+                                                "preview": {
+                                                    "href": "https://cdn.example.com/previews/1.mp3",
+                                                    "type": "audio/mpeg",
+                                                    "meta": {
+                                                        "format": "mp3",
+                                                        "expiresAt": "2026-01-01T12:00:00+00:00"
+                                                    }
                                                 }
                                             },
                                             "attributes": {
@@ -9099,7 +9854,10 @@
                                         }
                                     }
                                 }
-                            }
+                            },
+                            "scopes": [
+                                "library:write"
+                            ]
                         },
                         "remove": {
                             "path": "/playlists/{id}/relationships/tracks",
@@ -9151,7 +9909,10 @@
                                         }
                                     }
                                 }
-                            }
+                            },
+                            "scopes": [
+                                "library:write"
+                            ]
                         },
                         "replace": {
                             "path": "/playlists/{id}/relationships/tracks",
@@ -9203,7 +9964,10 @@
                                         }
                                     }
                                 }
-                            }
+                            },
+                            "scopes": [
+                                "library:write"
+                            ]
                         }
                     },
                     "paginator": {
@@ -9395,7 +10159,13 @@
                                 "playlists"
                             ]
                         },
-                        "relatedQuery": null
+                        "relatedQuery": null,
+                        "included": [
+                            "public-profiles",
+                            "tracks",
+                            "albums",
+                            "playlists"
+                        ]
                     },
                     "examples": {
                         "request": {
@@ -9407,6 +10177,12 @@
                                     "externalId": "5f1d7c2e-8a4b-4e6f-9c3d-2b1a0e9f8d7c"
                                 },
                                 "relationships": {
+                                    "owner": {
+                                        "data": {
+                                            "type": "users",
+                                            "id": "1"
+                                        }
+                                    },
                                     "publicOwner": {
                                         "data": {
                                             "type": "public-profiles",
@@ -9462,6 +10238,10 @@
                                                     "href": "https://music.example/playlists/0b9e3c34-2f4e-4c1a-9a57-6d3b2a1f8c10/relationships/owner",
                                                     "describedby": "/docs.json#/paths/~1playlists~1%7Bid%7D~1relationships~1owner/get"
                                                 }
+                                            },
+                                            "data": {
+                                                "type": "users",
+                                                "id": "1"
                                             }
                                         },
                                         "publicOwner": {
@@ -9539,7 +10319,10 @@
                                 }
                             }
                         }
-                    }
+                    },
+                    "scopes": [
+                        "library:write"
+                    ]
                 },
                 "delete": {
                     "path": "/playlists/{id}",
@@ -9552,7 +10335,11 @@
                         406,
                         500
                     ],
-                    "projection": null
+                    "projection": null,
+                    "scopes": [
+                        "library:write",
+                        "library:admin"
+                    ]
                 },
                 "fetchMany": {
                     "path": "/playlists",
@@ -9613,7 +10400,13 @@
                                 "playlists"
                             ]
                         },
-                        "relatedQuery": "https://haddowg.github.io/json-api/profiles/relationship-queries/"
+                        "relatedQuery": "https://haddowg.github.io/json-api/profiles/relationship-queries/",
+                        "included": [
+                            "public-profiles",
+                            "tracks",
+                            "albums",
+                            "playlists"
+                        ]
                     },
                     "examples": {
                         "request": null,
@@ -9642,6 +10435,10 @@
                                                         "href": "https://music.example/playlists/0b9e3c34-2f4e-4c1a-9a57-6d3b2a1f8c10/relationships/owner",
                                                         "describedby": "/docs.json#/paths/~1playlists~1%7Bid%7D~1relationships~1owner/get"
                                                     }
+                                                },
+                                                "data": {
+                                                    "type": "users",
+                                                    "id": "1"
                                                 }
                                             },
                                             "publicOwner": {
@@ -9802,7 +10599,13 @@
                                 "playlists"
                             ]
                         },
-                        "relatedQuery": "https://haddowg.github.io/json-api/profiles/relationship-queries/"
+                        "relatedQuery": "https://haddowg.github.io/json-api/profiles/relationship-queries/",
+                        "included": [
+                            "public-profiles",
+                            "tracks",
+                            "albums",
+                            "playlists"
+                        ]
                     },
                     "examples": {
                         "request": null,
@@ -9830,6 +10633,10 @@
                                                     "href": "https://music.example/playlists/0b9e3c34-2f4e-4c1a-9a57-6d3b2a1f8c10/relationships/owner",
                                                     "describedby": "/docs.json#/paths/~1playlists~1%7Bid%7D~1relationships~1owner/get"
                                                 }
+                                            },
+                                            "data": {
+                                                "type": "users",
+                                                "id": "1"
                                             }
                                         },
                                         "publicOwner": {
@@ -9998,7 +10805,13 @@
                                 "playlists"
                             ]
                         },
-                        "relatedQuery": null
+                        "relatedQuery": null,
+                        "included": [
+                            "public-profiles",
+                            "tracks",
+                            "albums",
+                            "playlists"
+                        ]
                     },
                     "examples": {
                         "request": {
@@ -10011,6 +10824,12 @@
                                     "externalId": "5f1d7c2e-8a4b-4e6f-9c3d-2b1a0e9f8d7c"
                                 },
                                 "relationships": {
+                                    "owner": {
+                                        "data": {
+                                            "type": "users",
+                                            "id": "1"
+                                        }
+                                    },
                                     "publicOwner": {
                                         "data": {
                                             "type": "public-profiles",
@@ -10066,6 +10885,10 @@
                                                     "href": "https://music.example/playlists/0b9e3c34-2f4e-4c1a-9a57-6d3b2a1f8c10/relationships/owner",
                                                     "describedby": "/docs.json#/paths/~1playlists~1%7Bid%7D~1relationships~1owner/get"
                                                 }
+                                            },
+                                            "data": {
+                                                "type": "users",
+                                                "id": "1"
                                             }
                                         },
                                         "publicOwner": {
@@ -10143,7 +10966,10 @@
                                 }
                             }
                         }
-                    }
+                    },
+                    "scopes": [
+                        "library:write"
+                    ]
                 }
             },
             "includable": [
@@ -10266,7 +11092,10 @@
                                     "parent"
                                 ]
                             },
-                            "relatedQuery": null
+                            "relatedQuery": null,
+                            "included": [
+                                "products"
+                            ]
                         },
                         "examples": {
                             "request": null,
@@ -10443,7 +11272,10 @@
                                 "parent"
                             ]
                         },
-                        "relatedQuery": null
+                        "relatedQuery": null,
+                        "included": [
+                            "products"
+                        ]
                     },
                     "examples": {
                         "request": {
@@ -10544,7 +11376,10 @@
                                 "parent"
                             ]
                         },
-                        "relatedQuery": "https://haddowg.github.io/json-api/profiles/relationship-queries/"
+                        "relatedQuery": "https://haddowg.github.io/json-api/profiles/relationship-queries/",
+                        "included": [
+                            "products"
+                        ]
                     },
                     "examples": {
                         "request": null,
@@ -10640,7 +11475,10 @@
                                 "parent"
                             ]
                         },
-                        "relatedQuery": "https://haddowg.github.io/json-api/profiles/relationship-queries/"
+                        "relatedQuery": "https://haddowg.github.io/json-api/profiles/relationship-queries/",
+                        "included": [
+                            "products"
+                        ]
                     },
                     "examples": {
                         "request": null,
@@ -10743,7 +11581,10 @@
                                 "parent"
                             ]
                         },
-                        "relatedQuery": null
+                        "relatedQuery": null,
+                        "included": [
+                            "products"
+                        ]
                     },
                     "examples": {
                         "request": {
@@ -12830,7 +13671,13 @@
                                     "playlists"
                                 ]
                             },
-                            "relatedQuery": null
+                            "relatedQuery": null,
+                            "included": [
+                                "artists",
+                                "albums",
+                                "tracks",
+                                "playlists"
+                            ]
                         },
                         "examples": {
                             "request": null,
@@ -12843,6 +13690,11 @@
                                             "self": {
                                                 "href": "https://music.example/albums/1",
                                                 "describedby": "/docs.json#/paths/~1albums~1%7Bid%7D/get"
+                                            },
+                                            "store": "https://store.example.com/albums/1",
+                                            "download": {
+                                                "href": "https://music.example/albums/1/-actions/download",
+                                                "describedby": "/docs.json#/paths/~1albums~1%7Bid%7D~1-actions~1download/get"
                                             },
                                             "reissue": {
                                                 "href": "https://music.example/albums/1/-actions/reissue",
@@ -13079,7 +13931,12 @@
                                 "playlists"
                             ]
                         },
-                        "relatedQuery": null
+                        "relatedQuery": null,
+                        "included": [
+                            "albums",
+                            "artists",
+                            "tracks"
+                        ]
                     },
                     "examples": {
                         "request": {
@@ -13253,7 +14110,12 @@
                                 "playlists"
                             ]
                         },
-                        "relatedQuery": "https://haddowg.github.io/json-api/profiles/relationship-queries/"
+                        "relatedQuery": "https://haddowg.github.io/json-api/profiles/relationship-queries/",
+                        "included": [
+                            "albums",
+                            "artists",
+                            "tracks"
+                        ]
                     },
                     "examples": {
                         "request": null,
@@ -13405,7 +14267,12 @@
                                 "playlists"
                             ]
                         },
-                        "relatedQuery": "https://haddowg.github.io/json-api/profiles/relationship-queries/"
+                        "relatedQuery": "https://haddowg.github.io/json-api/profiles/relationship-queries/",
+                        "included": [
+                            "albums",
+                            "artists",
+                            "tracks"
+                        ]
                     },
                     "examples": {
                         "request": null,
@@ -13564,7 +14431,12 @@
                                 "playlists"
                             ]
                         },
-                        "relatedQuery": null
+                        "relatedQuery": null,
+                        "included": [
+                            "albums",
+                            "artists",
+                            "tracks"
+                        ]
                     },
                     "examples": {
                         "request": {
@@ -14109,7 +14981,13 @@
                                     "playlists"
                                 ]
                             },
-                            "relatedQuery": null
+                            "relatedQuery": null,
+                            "included": [
+                                "artists",
+                                "albums",
+                                "tracks",
+                                "playlists"
+                            ]
                         },
                         "examples": {
                             "request": null,
@@ -14122,6 +15000,11 @@
                                             "self": {
                                                 "href": "https://music.example/albums/1",
                                                 "describedby": "/docs.json#/paths/~1albums~1%7Bid%7D/get"
+                                            },
+                                            "store": "https://store.example.com/albums/1",
+                                            "download": {
+                                                "href": "https://music.example/albums/1/-actions/download",
+                                                "describedby": "/docs.json#/paths/~1albums~1%7Bid%7D~1-actions~1download/get"
                                             },
                                             "reissue": {
                                                 "href": "https://music.example/albums/1/-actions/reissue",
@@ -14358,7 +15241,13 @@
                                     "playlists"
                                 ]
                             },
-                            "relatedQuery": null
+                            "relatedQuery": null,
+                            "included": [
+                                "public-profiles",
+                                "tracks",
+                                "albums",
+                                "playlists"
+                            ]
                         },
                         "examples": {
                             "request": null,
@@ -14387,6 +15276,10 @@
                                                             "href": "https://music.example/playlists/0b9e3c34-2f4e-4c1a-9a57-6d3b2a1f8c10/relationships/owner",
                                                             "describedby": "/docs.json#/paths/~1playlists~1%7Bid%7D~1relationships~1owner/get"
                                                         }
+                                                    },
+                                                    "data": {
+                                                        "type": "users",
+                                                        "id": "1"
                                                     }
                                                 },
                                                 "publicOwner": {
@@ -14763,7 +15656,14 @@
                                 "playlists"
                             ]
                         },
-                        "relatedQuery": null
+                        "relatedQuery": null,
+                        "included": [
+                            "albums",
+                            "artists",
+                            "tracks",
+                            "playlists",
+                            "public-profiles"
+                        ]
                     },
                     "examples": {
                         "request": {
@@ -14806,6 +15706,14 @@
                                         "self": {
                                             "href": "https://music.example/tracks/1",
                                             "describedby": "/docs.json#/paths/~1tracks~1%7Bid%7D/get"
+                                        },
+                                        "preview": {
+                                            "href": "https://cdn.example.com/previews/1.mp3",
+                                            "type": "audio/mpeg",
+                                            "meta": {
+                                                "format": "mp3",
+                                                "expiresAt": "2026-01-01T12:00:00+00:00"
+                                            }
                                         }
                                     },
                                     "attributes": {
@@ -14953,7 +15861,14 @@
                                 "playlists"
                             ]
                         },
-                        "relatedQuery": "https://haddowg.github.io/json-api/profiles/relationship-queries/"
+                        "relatedQuery": "https://haddowg.github.io/json-api/profiles/relationship-queries/",
+                        "included": [
+                            "albums",
+                            "artists",
+                            "tracks",
+                            "playlists",
+                            "public-profiles"
+                        ]
                     },
                     "examples": {
                         "request": null,
@@ -14967,6 +15882,14 @@
                                             "self": {
                                                 "href": "https://music.example/tracks/1",
                                                 "describedby": "/docs.json#/paths/~1tracks~1%7Bid%7D/get"
+                                            },
+                                            "preview": {
+                                                "href": "https://cdn.example.com/previews/1.mp3",
+                                                "type": "audio/mpeg",
+                                                "meta": {
+                                                    "format": "mp3",
+                                                    "expiresAt": "2026-01-01T12:00:00+00:00"
+                                                }
                                             }
                                         },
                                         "attributes": {
@@ -15123,7 +16046,14 @@
                                 "playlists"
                             ]
                         },
-                        "relatedQuery": "https://haddowg.github.io/json-api/profiles/relationship-queries/"
+                        "relatedQuery": "https://haddowg.github.io/json-api/profiles/relationship-queries/",
+                        "included": [
+                            "albums",
+                            "artists",
+                            "tracks",
+                            "playlists",
+                            "public-profiles"
+                        ]
                     },
                     "examples": {
                         "request": null,
@@ -15136,6 +16066,14 @@
                                         "self": {
                                             "href": "https://music.example/tracks/1",
                                             "describedby": "/docs.json#/paths/~1tracks~1%7Bid%7D/get"
+                                        },
+                                        "preview": {
+                                            "href": "https://cdn.example.com/previews/1.mp3",
+                                            "type": "audio/mpeg",
+                                            "meta": {
+                                                "format": "mp3",
+                                                "expiresAt": "2026-01-01T12:00:00+00:00"
+                                            }
                                         }
                                     },
                                     "attributes": {
@@ -15300,7 +16238,14 @@
                                 "playlists"
                             ]
                         },
-                        "relatedQuery": null
+                        "relatedQuery": null,
+                        "included": [
+                            "albums",
+                            "artists",
+                            "tracks",
+                            "playlists",
+                            "public-profiles"
+                        ]
                     },
                     "examples": {
                         "request": {
@@ -15336,6 +16281,14 @@
                                         "self": {
                                             "href": "https://music.example/tracks/1",
                                             "describedby": "/docs.json#/paths/~1tracks~1%7Bid%7D/get"
+                                        },
+                                        "preview": {
+                                            "href": "https://cdn.example.com/previews/1.mp3",
+                                            "type": "audio/mpeg",
+                                            "meta": {
+                                                "format": "mp3",
+                                                "expiresAt": "2026-01-01T12:00:00+00:00"
+                                            }
                                         }
                                     },
                                     "attributes": {
@@ -15526,7 +16479,41 @@
                 "album",
                 "playlists"
             ],
-            "writeOnlyRelations": []
+            "writeOnlyRelations": [],
+            "links": {
+                "preview": {
+                    "object": true,
+                    "description": "A short audio preview of the track, valid until expiresAt.",
+                    "members": {
+                        "type": {
+                            "const": "audio/mpeg",
+                            "required": true
+                        }
+                    },
+                    "meta": {
+                        "format": {
+                            "format": "string",
+                            "nullable": true,
+                            "enum": null,
+                            "schema": null,
+                            "required": true,
+                            "constraints": {},
+                            "description": "Audio encoding of the preview.",
+                            "example": "mp3"
+                        },
+                        "expiresAt": {
+                            "format": "date-time",
+                            "nullable": true,
+                            "enum": null,
+                            "schema": null,
+                            "required": true,
+                            "constraints": {},
+                            "description": "When the preview URL stops working.",
+                            "example": "2026-01-01T12:00:00+00:00"
+                        }
+                    }
+                }
+            }
         }
     }
 }

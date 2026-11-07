@@ -41,6 +41,7 @@ final class ActionDescriptor
      * @param list<RawMediaDescriptor> $responses     in document order
      * @param list<RawMediaDescriptor> $requests      in document order
      * @param list<string>|null        $scopes
+     * @param list<string>             $scopedErrorCodes the error codes scoped to this action, which it raises beside the ones every operation does, sorted
      */
     public function __construct(
         public readonly string $name,
@@ -66,6 +67,7 @@ final class ActionDescriptor
         public readonly ?array $scopes = null,
         public readonly ?string $locationType = null,
         public readonly bool $deprecated = false,
+        public readonly array $scopedErrorCodes = [],
     ) {}
 
     /** The name the action is keyed and generated under: its alias when it has one, else its own. */

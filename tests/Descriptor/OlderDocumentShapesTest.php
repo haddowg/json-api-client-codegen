@@ -9,7 +9,6 @@ use haddowg\JsonApiCodegen\Descriptor\OperationKind;
 use haddowg\JsonApiCodegen\Descriptor\PaginatorKind;
 use haddowg\JsonApiCodegen\Descriptor\ResourceDescriptor;
 use haddowg\JsonApiCodegen\Spec\SpecDocument;
-use haddowg\JsonApiCodegen\Spec\SpecException;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
@@ -75,20 +74,6 @@ final class OlderDocumentShapesTest extends TestCase
         ]);
 
         self::assertSame([], DescriptorBuilder::build($document)->errors);
-    }
-
-    public function testACatalogueVariantThatNarrowsNoCodeNamesItsPointer(): void
-    {
-        $document = SpecDocument::fromDecoded([
-            'openapi' => '3.1.0',
-            'components' => ['schemas' => ['BrokenError' => ['allOf' => [['$ref' => '#/components/schemas/Error'], ['properties' => ['status' => ['const' => '400']]]]]]],
-            'paths' => [],
-        ]);
-
-        $this->expectException(SpecException::class);
-        $this->expectExceptionMessage('components.schemas.BrokenError.allOf.1.properties');
-
-        DescriptorBuilder::build($document);
     }
 
     /**

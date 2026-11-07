@@ -559,7 +559,7 @@ final class MusicCatalogDescriptorTest extends TestCase
     {
         $errors = Fixtures::musicCatalogDescriptor()->errors;
 
-        self::assertCount(55, $errors);
+        self::assertCount(58, $errors);
         self::assertSame(\array_keys($errors), (static function (array $codes): array {
             \sort($codes, \SORT_STRING);
 
@@ -569,18 +569,43 @@ final class MusicCatalogDescriptorTest extends TestCase
         $filterValue = Fixtures::musicCatalogDescriptor()->error('FILTER_VALUE_INVALID');
         self::assertNotNull($filterValue);
         self::assertSame(400, $filterValue->status);
-        self::assertSame('FilterValueInvalidError', $filterValue->schema);
+        self::assertSame('Error400Parameter', $filterValue->schema);
+        self::assertSame('FilterValueInvalidError', $filterValue->class);
+        self::assertSame('Filter value is invalid', $filterValue->title);
         self::assertSame(ErrorSourceKind::Parameter, $filterValue->source);
+        self::assertSame("The value supplied for 'filter[rating]' is invalid.", $filterValue->exampleDetail);
+        self::assertNull($filterValue->meta);
+        self::assertSame([], $filterValue->operations);
 
         self::assertSame(ErrorSourceKind::Pointer, Fixtures::musicCatalogDescriptor()->error('ATTRIBUTE_VALUE_INVALID')?->source);
+        self::assertSame(ErrorSourceKind::Header, Fixtures::musicCatalogDescriptor()->error('MEDIA_TYPE_UNSUPPORTED')?->source);
         self::assertNull(Fixtures::musicCatalogDescriptor()->error('RESOURCE_NOT_FOUND')?->source);
-        self::assertSame(500, Fixtures::musicCatalogDescriptor()->error('APPLICATION_ERROR')?->status);
+        $application = Fixtures::musicCatalogDescriptor()->error('APPLICATION_ERROR');
+        self::assertNotNull($application);
+        self::assertSame(500, $application->status);
+        self::assertSame('ApplicationError', $application->class);
+        self::assertSame('Error405', Fixtures::musicCatalogDescriptor()->error('METHOD_NOT_ALLOWED')?->schema, 'a shape only the generic error document offers is still catalogued');
+    }
+
+    public function testACodeWhoseShapeDeclaresMetaCarriesItsSchema(): void
+    {
+        $scope = Fixtures::musicCatalogDescriptor()->error('INSUFFICIENT_SCOPE');
+        self::assertNotNull($scope);
+        self::assertSame('Error403InsufficientScope', $scope->schema);
+        self::assertTrue($scope->metaRequired);
+        self::assertSame(['requiredScopes', 'missingScopes', 'include'], \array_keys($scope->meta->properties ?? []));
+        self::assertSame(['missingScopes', 'requiredScopes'], $scope->meta?->required);
+
+        $json = Fixtures::musicCatalogDescriptor()->error('REQUEST_BODY_INVALID_JSON');
+        self::assertNotNull($json);
+        self::assertFalse($json->metaRequired);
+        self::assertSame(['original'], \array_keys($json->meta->properties ?? []));
     }
 
     public function testActionsCarryTheirInputAndOutputShapes(): void
     {
         $actions = $this->resource('albums')->actions;
-        self::assertSame(['artwork', 'export', 'import', 'reissue', 'summary'], \array_keys($actions));
+        self::assertSame(['artwork', 'download', 'export', 'import', 'reissue', 'summary'], \array_keys($actions));
 
         self::assertSame(ActionScope::Collection, $actions['summary']->scope);
         self::assertSame(ActionInput::None, $actions['summary']->input);

@@ -45,6 +45,24 @@ final class DescriptorBuilder
     /** The methods an action may be advertised under, in the order one is picked. */
     private const array ACTION_METHODS = ['post', 'get', 'put', 'patch', 'delete'];
 
+    /** Every method a path item can carry an operation under. */
+    private const array HTTP_METHODS = ['get', 'put', 'post', 'delete', 'options', 'head', 'patch', 'trace'];
+
+    /** An error document: the generic one, one per status, or one narrowed to scoped codes. */
+    private const string ERROR_DOCUMENT = '/^ErrorDocument(\\d{3})?(With[A-Za-z0-9]+)?$/';
+
+    private const string RESPONSE_REF_PREFIX = '#/components/responses/';
+
+    /**
+     * Every catalogued code with its shape, and the codes each error document offers.
+     *
+     * @var array{array<string, array{string, Node, Node, ?ValueSchema, bool}>, array<string, list<string>>}|null
+     */
+    private ?array $offeredErrorCodes = null;
+
+    /** @var array<string, list<string>>|null `METHOD /path` => the codes scoped to it */
+    private ?array $scopedByOperation = null;
+
     /** @var array<string, Node> resource schema name => schema */
     private array $resourceSchemas = [];
 
@@ -1466,51 +1484,206 @@ final class DescriptorBuilder
     }
 
     /**
-     * The error catalogue: every `<Name>Error` schema, each narrowing `code` and `status` to a
-     * constant over the open `Error`. A variant that narrows neither is a malformed catalogue and
-     * fails on its own pointer rather than being skipped.
+     * Every catalogued code with its shape, and the codes each error document offers, read
+     * once.
+     *
+     * @return array{array<string, array{string, Node, Node, ?ValueSchema, bool}>, array<string, list<string>>}
+     */
+    private function offeredErrorCodes(): array
+    {
+        if ($this->offeredErrorCodes !== null) {
+            return $this->offeredErrorCodes;
+        }
+
+        /** @var array<string, array{string, Node, Node, ?ValueSchema, bool}> $found code => shape name, narrowing, branch, meta, meta required */
+        $found = [];
+        /** @var array<string, list<string>> $offered document name => codes */
+        $offered = [];
+        $shapes = [];
+
+        foreach ($this->document->schemas() as $key => $schema) {
+            $name = (string) $key;
+            if (\preg_match(self::ERROR_DOCUMENT, $name) !== 1) {
+                continue;
+            }
+
+            $codes = [];
+            foreach ($schema->get('properties')->get('errors')->get('items')->get('anyOf')->items() as $branch) {
+                $shapeName = $this->document->refName($branch)
+                    ?? throw SpecException::malformed($branch->pointer(), 'to reference an error shape');
+                if ($shapeName === 'Error') {
+                    continue;
+                }
+                $shapes[$shapeName] ??= $this->errorShape($shapeName);
+                foreach ($shapes[$shapeName] as $code => $entry) {
+                    $found[$code] ??= $entry;
+                    $codes[] = $code;
+                }
+            }
+            $offered[$name] = $codes;
+        }
+
+        return $this->offeredErrorCodes = [$found, $offered];
+    }
+
+    /**
+     * The error codes scoped to the operation at `$method` `$path`, which it raises beside
+     * the ones every operation does, sorted.
+     *
+     * @return list<string>
+     */
+    private function scopedErrorCodes(string $method, string $path): array
+    {
+        if ($this->scopedByOperation === null) {
+            $this->scopedByOperation = [];
+            foreach ($this->scopedErrorOperations($this->offeredErrorCodes()[1]) as $code => $labels) {
+                foreach ($labels as $label) {
+                    $this->scopedByOperation[$label][] = (string) $code;
+                }
+            }
+        }
+        $codes = $this->scopedByOperation[\strtoupper($method) . ' ' . $path] ?? [];
+        \sort($codes, \SORT_STRING);
+
+        return $codes;
+    }
+
+    /**
+     * The error catalogue, read off the error documents: `ErrorDocument`, each
+     * `ErrorDocument<NNN>` and each `ErrorDocument<NNN>With<Suffix>` offer shapes as
+     * `errors.items.anyOf` references after the generic `Error`. A shape narrows `Error` in an
+     * `allOf`, pinning `status` and offering each code as a `const` branch of an `anyOf` `code`;
+     * a shape that does not is a malformed catalogue and fails on its own pointer rather than
+     * being skipped.
+     *
+     * A narrowed document's codes that its status's shared document does not offer are scoped,
+     * and each operation whose response carries it is recorded on them.
      *
      * @return array<string, ErrorCodeDescriptor> keyed and sorted by code
      */
     private function errorCodes(): array
     {
+        [$found, $offered] = $this->offeredErrorCodes();
+
+        $operations = $this->scopedErrorOperations($offered);
+
         $out = [];
-
-        foreach ($this->document->schemas() as $name => $schema) {
-            $name = (string) $name;
-            if ($name === 'Error' || !\str_ends_with($name, 'Error')) {
-                continue;
+        $classes = [];
+        foreach ($found as $code => [$shapeName, $narrowing, $branch, $meta, $metaRequired]) {
+            $code = (string) $code;
+            $class = ErrorCodeDescriptor::className($code);
+            if (!Identifier::isClassName($class)) {
+                throw SpecException::unusableName($branch->get('const')->pointer(), $code, 'class name');
             }
-
-            $narrowing = null;
-            foreach ($schema->find('allOf')?->items() ?? [] as $part) {
-                if ($part->find('properties') !== null) {
-                    $narrowing = $part->get('properties');
-                }
+            if (isset($classes[\strtolower($class)])) {
+                throw SpecException::malformed($branch->get('const')->pointer(), \sprintf('to name a code whose class %s no other code takes, but %s does', $class, $classes[\strtolower($class)]));
             }
-            $narrowing ??= $schema->get('properties');
+            $classes[\strtolower($class)] = $code;
 
-            self::assertClassName($name);
-            $code = $narrowing->get('code')->get('const')->string();
-            $required = $narrowing->path('source', 'required')?->strings() ?? [];
-            $description = $schema->find('description')?->string();
-            $example = $narrowing->path('detail', 'example')?->string();
+            $properties = $narrowing->get('properties');
+            $required = $properties->path('source', 'required')?->strings() ?? [];
+            $title = $branch->find('title')?->string();
+            $description = $branch->find('description')?->string();
+            $example = $this->document->root()->path('components', 'examples', $code, 'value', 'errors')?->items()[0] ?? null;
+            $detail = $example?->find('detail')?->string();
 
             $out[$code] = new ErrorCodeDescriptor(
                 $code,
-                (int) $narrowing->get('status')->get('const')->string(),
-                $name,
-                $schema->find('title')?->string() ?? $code,
+                (int) $properties->get('status')->get('const')->string(),
+                $shapeName,
+                $class,
+                $title === null || $title === '' ? $code : $title,
                 match (true) {
                     \in_array('pointer', $required, true) => ErrorSourceKind::Pointer,
                     \in_array('parameter', $required, true) => ErrorSourceKind::Parameter,
+                    \in_array('header', $required, true) => ErrorSourceKind::Header,
                     default => null,
                 },
                 $description === '' ? null : $description,
-                $example === '' ? null : $example,
+                $detail === '' ? null : $detail,
+                $meta,
+                $metaRequired,
+                $operations[$code] ?? [],
             );
         }
         \ksort($out, \SORT_STRING);
+
+        return $out;
+    }
+
+    /**
+     * Every code one shape component offers, with what it says about them.
+     *
+     * @return array<string, array{string, Node, Node, ?ValueSchema, bool}> code => shape name, narrowing, branch, meta, meta required
+     */
+    private function errorShape(string $name): array
+    {
+        $shape = $this->document->schema($name);
+        $narrowing = null;
+        foreach ($shape->get('allOf')->items() as $part) {
+            if ($part->find('properties') !== null) {
+                $narrowing = $part;
+            }
+        }
+        if ($narrowing === null) {
+            throw SpecException::malformed($shape->get('allOf')->pointer(), 'to hold an object narrowing the error\'s code and status');
+        }
+
+        $properties = $narrowing->get('properties');
+        $meta = $properties->find('meta');
+        $metaSchema = $meta === null ? null : $this->valueSchema($meta);
+        $metaRequired = $meta !== null && \in_array('meta', $narrowing->find('required')?->strings() ?? [], true);
+
+        $out = [];
+        foreach ($properties->get('code')->get('anyOf')->items() as $branch) {
+            $out[$branch->get('const')->string()] = [$name, $narrowing, $branch, $metaSchema, $metaRequired];
+        }
+
+        return $out;
+    }
+
+    /**
+     * The operations each scoped code is raised by: a response pointing at an
+     * `ErrorDocument<NNN>With<Suffix>` offers its operation's scoped codes beside the ones
+     * `ErrorDocument<NNN>` offers every operation.
+     *
+     * @param array<string, list<string>> $offered document name => codes
+     *
+     * @return array<string, list<string>> code => `METHOD /path`, sorted
+     */
+    private function scopedErrorOperations(array $offered): array
+    {
+        $out = [];
+        foreach ($this->document->paths() as $path => $item) {
+            foreach (self::HTTP_METHODS as $method) {
+                $operation = $item->find($method);
+                foreach ($operation?->find('responses')?->members() ?? [] as $status => $response) {
+                    $ref = $response->find('$ref')?->string();
+                    if ($ref === null || !\str_starts_with($ref, self::RESPONSE_REF_PREFIX)) {
+                        continue;
+                    }
+                    $component = $this->document->root()->path('components', 'responses', \substr($ref, \strlen(self::RESPONSE_REF_PREFIX)))
+                        ?? throw SpecException::malformed($response->get('$ref')->pointer(), 'to name a declared response');
+                    $schema = $component->path('content', self::JSON_API_MEDIA_TYPE, 'schema');
+                    $name = $schema === null ? null : $this->document->refName($schema);
+                    if ($name === null || \preg_match('/^ErrorDocument\d{3}With[A-Za-z0-9]+$/', $name) !== 1) {
+                        continue;
+                    }
+                    $shared = \array_flip($offered['ErrorDocument' . $status] ?? []);
+                    foreach ($offered[$name] ?? [] as $code) {
+                        if (!isset($shared[$code])) {
+                            $out[$code][] = \strtoupper($method) . ' ' . $path;
+                        }
+                    }
+                }
+            }
+        }
+
+        foreach ($out as $code => $labels) {
+            $labels = \array_values(\array_unique($labels));
+            \sort($labels, \SORT_STRING);
+            $out[$code] = $labels;
+        }
 
         return $out;
     }
@@ -1677,7 +1850,7 @@ final class DescriptorBuilder
 
         return $operation === null
             ? null
-            : new OperationDescriptor($path, \strtoupper($method), $this->errorStatuses($operation), $this->projection($operation), $this->examples($operation), $this->scopes($operation), self::deprecated($operation));
+            : new OperationDescriptor($path, \strtoupper($method), $this->errorStatuses($operation), $this->projection($operation), $this->examples($operation), $this->scopes($operation), self::deprecated($operation), $this->scopedErrorCodes($method, $path));
     }
 
     /**
@@ -2006,6 +2179,7 @@ final class DescriptorBuilder
             $this->scopes($operation),
             $locationType,
             self::deprecated($operation),
+            $this->scopedErrorCodes($method, $path),
         );
     }
 

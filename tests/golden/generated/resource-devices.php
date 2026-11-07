@@ -452,6 +452,8 @@ final class DeviceHandle
      *             "version": "1.1"
      *         }
      *     }
+     *
+     * @deprecated
      */
     public function get(callable|DeviceProjection|null $projection = null): DeviceBase
     {
@@ -498,6 +500,8 @@ final class DeviceHandle
      *             }
      *         }
      *     }
+     *
+     * @deprecated
      */
     public function update(
         DeviceUpdate|array $input,
@@ -534,6 +538,8 @@ final class DeviceHandle
      * @throws NotAcceptable      when the negotiated media type cannot be satisfied
      * @throws ServerError        when the server fails
      * @throws TransportException when no response is received at all
+     *
+     * @deprecated
      */
     public function delete(): void
     {
@@ -695,6 +701,8 @@ final class DeviceQuery extends Query
      *             "version": "1.1"
      *         }
      *     }
+     *
+     * @deprecated
      */
     public function get(): PaginatedCollection
     {
@@ -714,6 +722,8 @@ final class DeviceQuery extends Query
      * @throws NotAcceptable      when the negotiated media type cannot be satisfied
      * @throws ServerError        when the server fails
      * @throws TransportException when no response is received at all
+     *
+     * @deprecated
      */
     public function first(): ?object
     {
@@ -926,6 +936,8 @@ final class Devices
      *             }
      *         }
      *     }
+     *
+     * @deprecated
      */
     public function create(
         DeviceCreate|DeviceCreateBuilder|array $input,

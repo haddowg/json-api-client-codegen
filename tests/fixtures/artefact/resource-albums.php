@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace haddowg\JsonApiClient\Tests\Generated\MusicCatalog;
 
+use haddowg\JsonApiClient\ActionLocation;
 use haddowg\JsonApiClient\Atomic\Created;
 use haddowg\JsonApiClient\Collections\PaginatedCollection;
 use haddowg\JsonApiClient\Collections\ResourceCollection;
@@ -34,6 +35,7 @@ use haddowg\JsonApiClient\Query\Projection;
 use haddowg\JsonApiClient\Query\Query;
 use haddowg\JsonApiClient\Query\ReadQuery;
 use haddowg\JsonApiClient\Query\RelatedQuery;
+use haddowg\JsonApiClient\Resources\DeclaredLinks;
 use haddowg\JsonApiClient\Resources\Fetcher;
 use haddowg\JsonApiClient\Resources\Relationship;
 use haddowg\JsonApiClient\Resources\ResourceContext;
@@ -414,6 +416,15 @@ abstract class AlbumBase extends ResourceObject
     }
 
     /**
+     * The links an `albums` resource declares, each typed. A link the response left out reads as
+     * null. Every link, declared or not, is in `_links()`.
+     */
+    public function _declaredLinks(): AlbumLinks
+    {
+        return new AlbumLinks($this->_links(), $this->_subject());
+    }
+
+    /**
      * This album's id-handle, to write through: its update, delete, relationship writes and actions,
      * exactly as `$client->albums->id(…)` offers them.
      *
@@ -678,7 +689,7 @@ final class Album extends AlbumBase implements AlbumHasArtist, AlbumHasTracks
  *
  * @phpstan-import-type AlbumCreateShape from Album
  *
- * @generated from `POST /albums/{id}/-actions/reissue` and `POST /albums/{id}/-actions/artwork`
+ * @generated from `POST /albums/{id}/-actions/reissue`, `GET /albums/{id}/-actions/download` and `POST /albums/{id}/-actions/artwork`
  */
 final class AlbumActions
 {
@@ -726,6 +737,53 @@ final class AlbumActions
         };
 
         $this->fetcher->send($request);
+    }
+
+    /**
+     * Download: `GET /albums/{id}/-actions/download`. It declares no request body, so it takes no
+     * input. The server declares it read-only. It answers with the URL it produced, which serves
+     * `text/csv`, as an `ActionLocation`. The URL is not followed.
+     *
+     * @throws BadRequest           when the request is malformed
+     * @throws Unauthorized         when credentials are missing or invalid
+     * @throws Forbidden            when the action is not permitted
+     * @throws NotFound             when no album has this id
+     * @throws NotAcceptable        when the negotiated media type cannot be satisfied
+     * @throws UnsupportedMediaType when the `Content-Type` is refused
+     * @throws ValidationFailed     when the payload fails validation
+     * @throws ServerError          when the server fails
+     * @throws TransportException   when no response is received at all
+     * @throws MalformedDocument    when the response is not a location document
+     *
+     * @example 200 response:
+     *     {
+     *         "links": {
+     *             "self": {
+     *                 "href": "https://music.example/albums/1/-actions/download",
+     *                 "describedby": "/docs.json#/paths/~1albums~1%7Bid%7D~1-actions~1download/get"
+     *             },
+     *             "location": {
+     *                 "href": "https://storage.example.com/downloads/example?signature=example",
+     *                 "type": "text/csv",
+     *                 "meta": {
+     *                     "expiresAt": "2030-01-01T00:00:00+00:00"
+     *                 }
+     *             },
+     *             "describedby": {
+     *                 "href": "/docs.json#/paths/~1albums~1%7Bid%7D~1-actions~1download/get"
+     *             }
+     *         },
+     *         "meta": {
+     *             "expiresAt": "2030-01-01T00:00:00+00:00"
+     *         },
+     *         "jsonapi": {
+     *             "version": "1.1"
+     *         }
+     *     }
+     */
+    public function download(): ActionLocation
+    {
+        return $this->fetcher->location(Request::get('/albums/' . $this->id . '/-actions/download'));
     }
 
     /**
@@ -1505,6 +1563,30 @@ final class AlbumHandle
     public function actions(): AlbumActions
     {
         return new AlbumActions($this->fetcher, $this->id);
+    }
+}
+
+/**
+ * The links an `albums` resource declares, one typed accessor each.
+ *
+ * Every declared link is optional, because the server leaves one out when it does not apply, so
+ * each accessor returns null for a link the response left out. A link the type does not declare is
+ * in the resource's `_links()`.
+ *
+ * @generated from `components.schemas.AlbumsResourceLinks`
+ */
+final class AlbumLinks extends DeclaredLinks
+{
+    public ?string $store { get => $this->store(); }
+
+    /**
+     * The album's page in the store.
+     *
+     * A bare link, read as its URL from either a string or a link object.
+     */
+    public function store(): ?string
+    {
+        return $this->_href('store');
     }
 }
 

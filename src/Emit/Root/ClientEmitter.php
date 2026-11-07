@@ -53,8 +53,6 @@ final class ClientEmitter implements Emitter
         'MalformedDocument' => 'when the response does not carry one result per operation',
     ];
 
-    public function __construct(private readonly ErrorCodeEmitter $errorCodes = new ErrorCodeEmitter()) {}
-
     public function emit(ApiDescriptor $api, GeneratorConfig $config): iterable
     {
         $properties = [];
@@ -77,7 +75,7 @@ final class ClientEmitter implements Emitter
             $assignments[] = '        $this->' . $property . ' = new ' . $accessor . "(\$fetcher);\n";
         }
 
-        $options = $this->errorCodes->uncatalogued($api) === []
+        $options = $api->errors === []
             ? '$options'
             : '$options->withErrorCodes(' . ErrorCodeEmitter::mapClass($config) . '::MAP)';
 

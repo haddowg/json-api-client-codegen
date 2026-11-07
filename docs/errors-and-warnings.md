@@ -11,8 +11,8 @@ takes it and reports a warning through `Generator::warnings()` instead:
   out;
 - a JSON:API request body offered beside raw ones generates the document input alone.
 
-An enum or error component whose name is not a usable PHP class name, and a type or member whose
-PHP name is not usable, are refused.
+An enum component whose name is not a usable PHP class name, an error code whose class name is not
+usable or is taken by another code, and a type or member whose PHP name is not usable, are refused.
 
 ## Where warnings appear
 

@@ -34,7 +34,10 @@ use haddowg\JsonApiClient\Pagination\PageNumber;
 use haddowg\JsonApiClient\Query\Projection;
 use haddowg\JsonApiClient\Query\Query;
 use haddowg\JsonApiClient\Query\ReadQuery;
+use haddowg\JsonApiClient\Resources\DeclaredLink;
+use haddowg\JsonApiClient\Resources\DeclaredLinks;
 use haddowg\JsonApiClient\Resources\Fetcher;
+use haddowg\JsonApiClient\Resources\LinkMeta;
 use haddowg\JsonApiClient\Resources\Relationship;
 use haddowg\JsonApiClient\Resources\ResourceContext;
 use haddowg\JsonApiClient\Resources\ResourceObject;
@@ -326,6 +329,15 @@ abstract class TrackBase extends ResourceObject
     public function _rel(string $name): Relationship
     {
         return $this->_relationship($name, $name === 'album');
+    }
+
+    /**
+     * The links a `tracks` resource declares, each typed. A link the response left out reads as
+     * null. Every link, declared or not, is in `_links()`.
+     */
+    public function _declaredLinks(): TrackLinks
+    {
+        return new TrackLinks($this->_links(), $this->_subject());
     }
 
     /**
@@ -1106,6 +1118,28 @@ final class TrackHandle
 }
 
 /**
+ * The links a `tracks` resource declares, one typed accessor each.
+ *
+ * Every declared link is optional, because the server leaves one out when it does not apply, so
+ * each accessor returns null for a link the response left out. A link the type does not declare is
+ * in the resource's `_links()`.
+ *
+ * @generated from `components.schemas.TracksResourceLinks`
+ */
+final class TrackLinks extends DeclaredLinks
+{
+    public ?TrackPreviewLink $preview { get => $this->preview(); }
+
+    /**
+     * A short audio preview of the track, valid until expiresAt.
+     */
+    public function preview(): ?TrackPreviewLink
+    {
+        return $this->_object('preview', TrackPreviewLink::class);
+    }
+}
+
+/**
  * The `playlists` relationship of one track. `get()` reads the linkage and `related()` reads the
  * related resources; any read the server switched off is absent. The writes are `add()` and
  * `remove()`, the methods the relationship endpoint declares, and no others.
@@ -1321,6 +1355,69 @@ final class TrackPlaylistsRelation
             $document->links(),
             fn(string $url): PaginatedCollection => $this->resources($this->fetcher->readUrl($url, new ReadQuery())),
         );
+    }
+}
+
+/**
+ * The `preview` link of a `tracks` resource. A short audio preview of the track, valid until
+ * expiresAt.
+ *
+ * @generated from `components.schemas.TracksResourceLinks.properties.preview`
+ */
+final class TrackPreviewLink extends DeclaredLink
+{
+    public string $href { get => $this->href(); }
+    public string $type { get => $this->type(); }
+    public TrackPreviewLinkMeta $meta { get => $this->meta(); }
+
+    /**
+     * Always `audio/mpeg`.
+     */
+    public function type(): string
+    {
+        return $this->_string('type');
+    }
+
+    /**
+     * The link's `meta`, each member typed.
+     */
+    public function meta(): TrackPreviewLinkMeta
+    {
+        return $this->_metaAs(TrackPreviewLinkMeta::class);
+    }
+}
+
+/**
+ * The `meta` of the `preview` link of a `tracks` resource.
+ *
+ * A member the server always renders reads as its type. Any other reads as nullable, because a
+ * request can hide it and the response then leaves it out.
+ *
+ * @generated from `components.schemas.TracksResourceLinks.properties.preview.properties.meta`
+ */
+final class TrackPreviewLinkMeta extends LinkMeta
+{
+    public ?string $format { get => $this->format(); }
+    public ?\DateTimeImmutable $expiresAt { get => $this->expiresAt(); }
+
+    /**
+     * Audio encoding of the preview.
+     *
+     * Example: `"mp3"`
+     */
+    public function format(): ?string
+    {
+        return $this->_nullableString('format');
+    }
+
+    /**
+     * When the preview URL stops working.
+     *
+     * Example: `"2026-01-01T12:00:00+00:00"`
+     */
+    public function expiresAt(): ?\DateTimeImmutable
+    {
+        return $this->_nullableDateTime('expiresAt');
     }
 }
 

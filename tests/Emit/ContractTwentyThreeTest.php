@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace haddowg\JsonApiCodegen\Tests\Emit;
 
-use haddowg\JsonApiClient\Exceptions\Codes\ErrorCodes;
 use haddowg\JsonApiCodegen\Descriptor\DescriptorBuilder;
 use haddowg\JsonApiCodegen\Emit\Generator;
 use haddowg\JsonApiCodegen\Emit\GeneratorConfig;
@@ -30,7 +29,7 @@ final class ContractTwentyThreeTest extends TestCase
     {
         $document = SpecDocument::fromJson(self::json(), 'the witness');
 
-        self::assertSame(23, $document->contract());
+        self::assertSame(24, $document->contract());
         self::assertNull(ContractCompatibility::check($document->contract()));
     }
 
@@ -51,10 +50,9 @@ final class ContractTwentyThreeTest extends TestCase
         self::assertSame(self::generate(self::json()), self::generate(\json_encode($open($document), \JSON_THROW_ON_ERROR)));
     }
 
-    public function testTheUndeclaredMemberCodeComesFromTheRuntime(): void
+    public function testTheUndeclaredMemberCodeIsGenerated(): void
     {
-        self::assertArrayHasKey('ATTRIBUTE_MEMBER_UNRECOGNIZED', ErrorCodes::MAP);
-        self::assertStringNotContainsString("'ATTRIBUTE_MEMBER_UNRECOGNIZED'", self::generate(self::json())['errors.php']);
+        self::assertStringContainsString("'ATTRIBUTE_MEMBER_UNRECOGNIZED' => AttributeMemberUnrecognizedError::class,", self::generate(self::json())['errors.php']);
     }
 
     /**

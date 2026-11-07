@@ -45,7 +45,7 @@ final class ContractSeventeenTest extends TestCase
     {
         $document = SpecDocument::fromJson(self::json(), 'the witness');
 
-        self::assertSame(23, $document->contract());
+        self::assertSame(24, $document->contract());
         self::assertNull(ContractCompatibility::check($document->contract()));
     }
 
@@ -90,13 +90,6 @@ final class ContractSeventeenTest extends TestCase
         self::assertSame('text/csv', $actions['download']['locationType']);
         self::assertIsArray($actions['archive']);
         self::assertArrayNotHasKey('locationType', $actions['archive']);
-    }
-
-    public function testAnOlderDocumentCarriesNoLocationType(): void
-    {
-        $json = \json_encode(DescriptorSerializer::toArray(Fixtures::musicCatalogDescriptor()), \JSON_THROW_ON_ERROR);
-
-        self::assertStringNotContainsString('"locationType"', $json);
     }
 
     public function testALocationDocumentWithoutItsTypeConstIsMalformed(): void

@@ -7,13 +7,28 @@ One file per resource type, plus three shared files:
 | `resource-<type>.php` | everything the type generates (below) |
 | `enums.php` | every enum the document declares |
 | `client.php` | the root client: one property per type, and `atomic()` when the server offers it |
+| `errors.php` | a class per catalogued error code, a value class per declared error `meta`, and the code map |
 | `autoload.php` | the class map, and the sha256 of the document it was generated from |
 
 File names carry a hyphen, which no class name can, so a file never shadows a class on a
 case-insensitive filesystem. Within a file, declarations are ordered interfaces, traits, enums,
 abstract bases, then final classes, and the output is sorted so a regeneration diff holds only what
-changed. When the API adds error codes beyond the runtime's own, a generated error-code map and one
-class per code are added too.
+changed. A document that catalogues no error code gets no `errors.php`.
+
+## Error codes
+
+Every code in the document's error catalogue, core's included, becomes a class in `errors.php`
+named for the code (`INSUFFICIENT_SCOPE` → `InsufficientScopeError`). It extends the runtime
+class for its status, so catching `Forbidden` still catches it, and uses `PointsAtDocumentMembers`
+or `PointsAtQueryParameters` when its shape requires `source.pointer` or `source.parameter`. Its
+docblock carries the code's title, description and example `detail`, and, for a code scoped to
+some operations, those operations.
+
+A code whose shape declares `meta` gets `meta()`, returning a value class
+(`InsufficientScopeMeta`) narrowed member by member like a structured attribute; it is nullable when
+the shape's `meta` is optional. `<Client>ErrorCodes::MAP` maps every code to its class, and the
+client hands it to the runtime, which builds an error response whose errors share one code as that
+code's class and falls back to the status class for any other.
 
 ## One type's classes
 

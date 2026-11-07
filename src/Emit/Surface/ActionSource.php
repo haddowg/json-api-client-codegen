@@ -291,7 +291,7 @@ final class ActionSource
             if ($jsonDoc !== null) {
                 $doc = [...$doc, '@return ' . $jsonDoc, ''];
             }
-            $doc = [...$doc, ...Throws::tags($action->errorStatuses, $imports, $reasons, $malformed), ...ExampleTag::lines($action->examples)];
+            $doc = [...$doc, ...Throws::forOperation($action, $imports, $reasons, $malformed), ...ExampleTag::lines($action->examples)];
 
             return Php::docblock(ScopeNote::insert($doc, $action->scopes, deprecated: $action->deprecated), 4, false)
                 . SurfaceEmitter::signature($method, $signature, $return)
@@ -362,7 +362,7 @@ final class ActionSource
         if ($chain !== $return) {
             $doc = [...$doc, '@return ' . $chain, ''];
         }
-        $doc = [...$doc, ...Throws::tags($action->errorStatuses, $imports, $reasons, $malformed), ...ExampleTag::lines($action->examples)];
+        $doc = [...$doc, ...Throws::forOperation($action, $imports, $reasons, $malformed), ...ExampleTag::lines($action->examples)];
 
         return Php::docblock(ScopeNote::insert($doc, $action->scopes, deprecated: $action->deprecated), 4, false)
             . SurfaceEmitter::signature($method, $signature, $return)

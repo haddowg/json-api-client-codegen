@@ -127,22 +127,23 @@ final class DocumentStringsTest extends TestCase
         DescriptorBuilder::build($document);
     }
 
-    public function testAnErrorComponentNameThatIsNotAClassNameIsRefused(): void
+    public function testAnErrorCodeThatCannotNameAClassIsRefused(): void
     {
         $document = self::fixture(static function (array $document): array {
-            $document['components']['schemas']['X {} define("MARKER", 1); class YError'] = [
+            $document['components']['schemas']['Error418'] = [
                 'title' => 'Teapot',
                 'allOf' => [
                     ['$ref' => '#/components/schemas/Error'],
-                    ['type' => 'object', 'properties' => ['code' => ['type' => 'string', 'const' => 'TEAPOT'], 'status' => ['type' => 'string', 'const' => '418']]],
+                    ['type' => 'object', 'properties' => ['code' => ['anyOf' => [['type' => 'string', 'const' => '418 {} define("MARKER", 1); class Y']]], 'status' => ['type' => 'string', 'const' => '418']]],
                 ],
             ];
+            $document['components']['schemas']['ErrorDocument']['properties']['errors']['items']['anyOf'][] = ['$ref' => '#/components/schemas/Error418'];
 
             return $document;
         });
 
         $this->expectException(SpecException::class);
-        $this->expectExceptionMessage('class YError');
+        $this->expectExceptionMessage('components.schemas.Error418.allOf.1.properties.code.anyOf.0.const to give a usable PHP class name');
 
         DescriptorBuilder::build($document);
     }

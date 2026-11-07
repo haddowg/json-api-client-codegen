@@ -15,13 +15,18 @@ final class ScopeNote
      * `$doc` with the sentence and a blank line inserted before its first tag, or appended after a
      * blank line when it has none. Unchanged when the operation needs no scope.
      *
+     * An operation the server marks deprecated gets `@deprecated` as its last tag.
+     *
      * @param list<string>      $doc
      * @param list<string>|null $scopes
      *
      * @return list<string>
      */
-    public static function insert(array $doc, ?array $scopes, int $indent = 4): array
+    public static function insert(array $doc, ?array $scopes, int $indent = 4, bool $deprecated = false): array
     {
+        if ($deprecated) {
+            $doc = [...$doc, '', '@deprecated'];
+        }
         if ($scopes === null || $scopes === []) {
             return $doc;
         }

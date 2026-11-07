@@ -7,7 +7,7 @@ declare(strict_types=1);
  * so this map is how each one is found. Register it once through composer.json's
  * `autoload.files`; regenerating rewrites it, so a new type never needs a `dump-autoload`.
  *
- * @generated from an OpenAPI document with sha256 281e251989d75b0fdc15bc04707881ba037e74dff81f642e27806fb76fcd11cc
+ * @generated from an OpenAPI document with sha256 546bd36039aa258ddb41da0e2e68b30931e9c5bf1717a6422229d70157558e46
  */
 
 \spl_autoload_register(static function (string $class): void {
@@ -24,6 +24,7 @@ declare(strict_types=1);
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\Witness\\ArticleCreate' => 'resource-articles.php',
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\Witness\\ArticleCreateBuilder' => 'resource-articles.php',
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\Witness\\ArticleEditorRelation' => 'resource-articles.php',
+        'haddowg\\JsonApiCodegen\\Tests\\Golden\\Witness\\ArticleFormerAuthorRelation' => 'resource-articles.php',
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\Witness\\ArticleGalleryRelation' => 'resource-articles.php',
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\Witness\\ArticleHandle' => 'resource-articles.php',
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\Witness\\ArticleHasAuthor' => 'resource-articles.php',
@@ -35,7 +36,11 @@ declare(strict_types=1);
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\Witness\\ArticlePublisherRelation' => 'resource-articles.php',
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\Witness\\ArticleQuery' => 'resource-articles.php',
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\Witness\\ArticleReadProjection' => 'resource-articles.php',
+        'haddowg\\JsonApiCodegen\\Tests\\Golden\\Witness\\ArticleShapeCircle' => 'resource-articles.php',
+        'haddowg\\JsonApiCodegen\\Tests\\Golden\\Witness\\ArticleShapeRectangle' => 'resource-articles.php',
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\Witness\\ArticleSponsorsRelation' => 'resource-articles.php',
+        'haddowg\\JsonApiCodegen\\Tests\\Golden\\Witness\\ArticleStepsFindReplace' => 'resource-articles.php',
+        'haddowg\\JsonApiCodegen\\Tests\\Golden\\Witness\\ArticleStepsTrim' => 'resource-articles.php',
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\Witness\\ArticleSubjectRelation' => 'resource-articles.php',
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\Witness\\ArticleSummary' => 'resource-articles.php',
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\Witness\\ArticleTagsEdge' => 'resource-articles.php',

@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace haddowg\JsonApiCodegen\Emit\Root;
 
+use haddowg\JsonApiCodegen\Descriptor\ActionDescriptor;
 use haddowg\JsonApiCodegen\Descriptor\ApiDescriptor;
 use haddowg\JsonApiCodegen\Descriptor\AtomicDescriptor;
+use haddowg\JsonApiCodegen\Descriptor\OperationDescriptor;
+use haddowg\JsonApiCodegen\Descriptor\ResourceDescriptor;
 use haddowg\JsonApiCodegen\Emit\ClassUnit;
 use haddowg\JsonApiCodegen\Emit\Emitter;
 use haddowg\JsonApiCodegen\Emit\FileKey;
@@ -69,7 +72,8 @@ final class ClientEmitter implements Emitter
             $seen[$property] = $type;
 
             $accessor = Naming::accessor($type);
-            $properties[] = '    public readonly ' . $accessor . ' $' . $property . ";\n";
+            $properties[] = (self::retired($resource) ? '    ' . Php::comment('@deprecated The server marks every `' . $type . '` endpoint deprecated.') . "\n" : '')
+                . '    public readonly ' . $accessor . ' $' . $property . ";\n";
             $assignments[] = '        $this->' . $property . ' = new ' . $accessor . "(\$fetcher);\n";
         }
 
@@ -148,5 +152,16 @@ final class ClientEmitter implements Emitter
             . "    {\n"
             . '        return $this->fetcher->atomic(' . Php::string($atomic->path) . ", \$batch);\n"
             . "    }\n";
+    }
+
+    /** Whether the server marks every endpoint of a type deprecated, its actions included. */
+    private static function retired(ResourceDescriptor $resource): bool
+    {
+        $deprecated = [
+            ...\array_map(static fn(OperationDescriptor $operation): bool => $operation->deprecated, \array_values($resource->operations)),
+            ...\array_map(static fn(ActionDescriptor $action): bool => $action->deprecated, \array_values($resource->actions)),
+        ];
+
+        return $deprecated !== [] && !\in_array(false, $deprecated, true);
     }
 }

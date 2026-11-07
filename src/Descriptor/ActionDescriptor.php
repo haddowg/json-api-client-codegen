@@ -65,6 +65,7 @@ final class ActionDescriptor
         public readonly ?ActionSafety $safety = null,
         public readonly ?array $scopes = null,
         public readonly ?string $locationType = null,
+        public readonly bool $deprecated = false,
     ) {}
 
     /** The name the action is keyed and generated under: its alias when it has one, else its own. */

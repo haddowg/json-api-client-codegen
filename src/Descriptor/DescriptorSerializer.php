@@ -82,6 +82,7 @@ final class DescriptorSerializer
             'operations' => \array_map(self::operation(...), $resource->operations),
             'includable' => $resource->includable,
             'sortable' => $resource->sortable,
+            ...($resource->sortFamilies === [] ? [] : ['sortFamilies' => self::sortFamilies($resource->sortFamilies)]),
             'filterable' => \array_map(static fn(FilterDescriptor $filter): array => [
                 'schema' => self::valueSchema($filter->schema),
             ], $resource->filterable),
@@ -132,6 +133,7 @@ final class DescriptorSerializer
                 'schema' => self::valueSchema($filter->schema),
             ], $relation->filterable),
             'sortable' => $relation->sortable,
+            ...($relation->sortFamilies === [] ? [] : ['sortFamilies' => self::sortFamilies($relation->sortFamilies)]),
             'pivotFields' => \array_map(self::pivotField(...), $relation->pivotFields),
             'writePivotFields' => \array_map(self::pivotField(...), $relation->writePivotFields),
             ...($relation->polymorphic ? ['polymorphic' => true] : []),
@@ -293,6 +295,16 @@ final class DescriptorSerializer
         return $countable === null ? null : ['tokens' => $countable->tokens, 'profile' => $countable->profile];
     }
 
+    /**
+     * @param list<SortFamilyDescriptor> $families
+     *
+     * @return list<array<string, mixed>>
+     */
+    private static function sortFamilies(array $families): array
+    {
+        return \array_map(static fn(SortFamilyDescriptor $family): array => ['prefix' => $family->prefix, 'suffixPattern' => $family->suffixPattern, 'deprecated' => $family->deprecated], $families);
+    }
+
     /** @return array<string, mixed>|null */
     private static function valueSchema(?ValueSchema $schema): ?array
     {
@@ -309,6 +321,7 @@ final class DescriptorSerializer
             'anyOf' => \array_map(self::valueSchema(...), $schema->anyOf),
             'allOf' => \array_map(self::valueSchema(...), $schema->allOf),
             'constraints' => (object) $schema->constraints->toArray(),
+            ...($schema->title === null ? [] : ['title' => $schema->title]),
         ];
     }
 }

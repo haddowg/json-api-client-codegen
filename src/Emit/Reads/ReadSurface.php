@@ -14,6 +14,7 @@ use haddowg\JsonApiCodegen\Descriptor\PaginatorKind;
 use haddowg\JsonApiCodegen\Descriptor\ProjectionDescriptor;
 use haddowg\JsonApiCodegen\Descriptor\RelationDescriptor;
 use haddowg\JsonApiCodegen\Descriptor\ResourceDescriptor;
+use haddowg\JsonApiCodegen\Descriptor\SortFamilyDescriptor;
 use haddowg\JsonApiCodegen\Emit\FileKey;
 use haddowg\JsonApiCodegen\Emit\Naming;
 
@@ -60,6 +61,12 @@ final class ReadSurface
 
     /** @var list<string> */
     public readonly array $sortable;
+
+    /** @var list<SortFamilyDescriptor> */
+    public readonly array $sortFamilies;
+
+    /** @var list<string> */
+    public readonly array $deprecatedSorts;
 
     public readonly ?CountableDescriptor $countable;
 
@@ -120,6 +127,8 @@ final class ReadSurface
         $this->fields = self::fieldset($all, $type);
 
         $this->sortable = $this->collection === null ? [] : $descriptor->sortable;
+        $this->sortFamilies = $this->collection === null ? [] : $descriptor->sortFamilies;
+        $this->deprecatedSorts = $this->collection === null ? [] : $descriptor->deprecatedSorts;
         $this->countable = $this->collection === null || $descriptor->countable?->tokens === [] ? null : $descriptor->countable;
         $this->paginator = $this->collection === null ? PaginatorDescriptor::none() : $descriptor->paginator;
         [$this->pickers, $pickerWarnings] = self::pickers($this->paginator, $this->collection === null ? $type : $this->collection->method . ' ' . $this->collection->path);
@@ -326,14 +335,14 @@ final class ReadSurface
             } else {
                 $value = $types->type($schema);
             }
-            $slots[] = ['name' => $filter->name, 'type' => $value, 'shape' => $shape];
+            $slots[] = ['name' => $filter->name, 'type' => $value, 'shape' => $shape, 'deprecated' => $filter->deprecated];
         }
 
         [$methods, $warnings] = self::methods($label, \array_map(static fn(array $slot): string => $slot['name'], $slots));
 
         $out = [];
         foreach ($slots as $slot) {
-            $out[] = new FilterSlot($slot['name'], $methods[$slot['name']], $slot['type'], $slot['shape']);
+            $out[] = new FilterSlot($slot['name'], $methods[$slot['name']], $slot['type'], $slot['shape'], $slot['deprecated']);
         }
 
         return [$out, \array_values($shapes), $warnings];

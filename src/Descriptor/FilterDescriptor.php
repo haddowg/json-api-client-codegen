@@ -16,5 +16,6 @@ final class FilterDescriptor
     public function __construct(
         public readonly string $name,
         public readonly ?ValueSchema $schema,
+        public readonly bool $deprecated = false,
     ) {}
 }

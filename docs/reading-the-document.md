@@ -13,6 +13,43 @@ any other unstamped member set, or an unstamped menu generates that endpoint unp
 warning. In a menu, an unreadable default arm unpaginates the collection; any other unreadable arm
 is just not offered. A malformed stamp, such as a `strategy` that is not a string, is an error.
 
+## Sort families and structured lists
+
+A `sort` parameter's fixed keys come from its `enum`, or from the `enum` branch of an `anyOf` when
+it also accepts families of keys by prefix. Each family in `x-sort-families` becomes a
+`sortBy<Prefix>(string $suffix, bool $descending = false)` that checks the key against the family's
+pattern, and `sortRaw()` accepts a key of any family.
+
+A list attribute whose `items` is an object reads as a list of array shapes, each element narrowed
+member by member, and one whose `items` is a `oneOf` as a list of the union's branch classes (see
+below). An element of the wrong shape throws `MalformedDocument`.
+
+## Deprecation
+
+Anything the document marks `deprecated` gets `@deprecated` on every generated member that reads,
+writes or calls it: an attribute's accessor and setters, a relation's accessors and setters, an
+operation's or action's method, a filter's `where…()` and a sort family's `sortBy…()`. Sort keys
+in `x-deprecated-sorts` are named in a sentence on `sort()`, since a literal token carries no tag.
+A type whose every endpoint is deprecated gets the tag on its client property.
+
+## Attribute unions
+
+A `oneOf` attribute whose branches are objects reads as one generated class per branch, and its
+accessor returns their union, so a caller narrows it with `instanceof` or `match`. The branch a
+value belongs to is found one of two ways:
+
+- **By a discriminator.** A `oneOf` with a `discriminator` picks the branch whose `const` the
+  discriminator member holds, and each branch class carries that value as a constant.
+- **By a signature.** A `oneOf` without one picks the branch whose signature the value carries:
+  a member that branch requires and no other branch declares. Each branch class is named by the
+  branch's `title`. A value carrying no branch's signature, or two, is a `MalformedDocument`.
+
+A `oneOf` whose branches can't be told apart either way, because a branch is not an object or has
+no signature, reads as `mixed`. On writes each union is a plain union of its branches' array
+shapes, such as `array{radius: int}|array{width: int, height: int}`. The shapes are not sealed,
+because a union of sealed shapes collapses into one all-optional shape in PHPStan, so a value
+mixing two branches passes static analysis and is rejected by the server.
+
 ## Constraints, scopes and safety
 
 Constraints narrow PHPDoc types where PHPStan can state them exactly, and the native type never

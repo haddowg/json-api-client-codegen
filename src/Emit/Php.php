@@ -39,6 +39,30 @@ final class Php
         return $out . $pad . " */\n";
     }
 
+    /**
+     * A generated member with `@deprecated` added to the docblock it opens with, when the server
+     * marks what it reads or calls deprecated. A member with no docblock gets one.
+     */
+    public static function deprecate(string $member, bool $deprecated): string
+    {
+        if (!$deprecated) {
+            return $member;
+        }
+
+        if (\preg_match('/^( *)\/\*\*\n/', $member, $open) !== 1) {
+            $pad = \preg_match('/^( *)/', $member, $indent) === 1 ? $indent[1] : '';
+
+            return $pad . "/**\n" . $pad . " * @deprecated\n" . $pad . " */\n" . $member;
+        }
+        $pad = $open[1];
+        $close = \strpos($member, "\n" . $pad . " */\n");
+        if ($close === false) {
+            return $member;
+        }
+
+        return \substr($member, 0, $close) . "\n" . $pad . " *\n" . $pad . ' * @deprecated' . \substr($member, $close);
+    }
+
     /** A one-line docblock, such as `/** @var T *\/` ahead of a statement. */
     public static function comment(string $text): string
     {

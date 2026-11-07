@@ -37,7 +37,7 @@ final class ContractFifteenTest extends TestCase
     {
         $document = SpecDocument::fromJson(self::json(), 'the witness');
 
-        self::assertSame(19, $document->contract());
+        self::assertSame(23, $document->contract());
         self::assertNull(ContractCompatibility::check($document->contract()));
     }
 

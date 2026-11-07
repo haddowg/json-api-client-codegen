@@ -31,20 +31,22 @@ final class ContractCompatibilityTest extends TestCase
         self::assertNull(ContractCompatibility::check(ContractCompatibility::MAXIMUM));
     }
 
-    public function testContractNineteenIsReadAndTwentyIsNot(): void
+    public function testContractTwentyThreeIsReadAndTwentyFourIsNot(): void
     {
         // Contract 10 lets an action answer in raw media types, 11 lets it accept several request
         // bodies, 12 adds operation examples, 13 an example detail on every error code, 14 the
         // links a type declares, 15 per-method action ids and declared action safety, and 16
         // operation scopes and one-member polymorphic unions, 17 an action's location document,
-        // 18 shared links components, and 19 discriminated unions and a typed included, all of
-        // which this codegen reads; whatever 20 adds, it does not.
-        foreach (\range(9, 19) as $contract) {
+        // 18 shared links components, 19 discriminated unions and a typed included, 20 sort
+        // families, 21 structured list elements, 22 deprecation markers, and 23 closed objects
+        // and undiscriminated unions, all of which this codegen reads; whatever 24 adds, it does
+        // not.
+        foreach (\range(9, 23) as $contract) {
             self::assertNull(ContractCompatibility::check($contract));
         }
 
-        $warning = ContractCompatibility::check(20);
-        self::assertSame('the document declares contract 20 and this codegen reads up to 19. It describes capabilities that were not generated; upgrade the codegen to pick them up.', $warning);
+        $warning = ContractCompatibility::check(24);
+        self::assertSame('the document declares contract 24 and this codegen reads up to 23. It describes capabilities that were not generated; upgrade the codegen to pick them up.', $warning);
     }
 
     public function testANewerContractWarnsThatCapabilitiesWereNotGenerated(): void

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace haddowg\JsonApiCodegen\Tests\Console;
 
 use haddowg\JsonApiCodegen\Console\Usage;
+use haddowg\JsonApiCodegen\Tests\Support\Fixtures;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
@@ -29,7 +30,7 @@ final class UsageTest extends TestCase
 
     public function testMusicCatalogFixtureIsAReadableOpenApi31Document(): void
     {
-        $path = \dirname(__DIR__) . '/fixtures/music-catalog.openapi.json';
+        $path = Fixtures::musicCatalogPath();
 
         $raw = \file_get_contents($path);
         self::assertIsString($raw);

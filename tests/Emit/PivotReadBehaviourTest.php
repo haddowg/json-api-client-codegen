@@ -9,15 +9,16 @@ use haddowg\JsonApiClient\Resources\Pivot;
 use haddowg\JsonApiClient\Resources\ResourceContext;
 use haddowg\JsonApiCodegen\Emit\ReadModel\ReadModelEmitter;
 use haddowg\JsonApiCodegen\Tests\Support\Generated;
+use haddowg\JsonApiCodegen\Tests\Support\GeneratedOutput;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\RequiresPhp;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Runs the generated pivot reads, from the committed golden output, against a playlist response.
+ * Runs the generated pivot reads, from the generated output, against a playlist response.
  *
  * The classes are reached by name because the generated namespace is not on this package's
- * autoloader. The golden output targets PHP 8.4, hence the requirement.
+ * autoloader. The generated output targets PHP 8.4, hence the requirement.
  */
 #[CoversClass(ReadModelEmitter::class)]
 #[RequiresPhp('>= 8.4.0')]
@@ -25,7 +26,7 @@ final class PivotReadBehaviourTest extends TestCase
 {
     public static function setUpBeforeClass(): void
     {
-        require_once \dirname(__DIR__) . '/golden/generated/autoload.php';
+        GeneratedOutput::load('generated');
     }
 
     public function testEachLinkageMembersPivotIsReadInLinkageOrder(): void
@@ -88,7 +89,7 @@ final class PivotReadBehaviourTest extends TestCase
         return $pivots;
     }
 
-    /** A generated pivot accessor, called by name since analysis cannot see the golden output. */
+    /** A generated pivot accessor, called by name since analysis cannot see the generated output. */
     private static function read(Pivot $pivot, string $field): mixed
     {
         $read = [$pivot, $field];

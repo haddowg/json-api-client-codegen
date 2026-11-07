@@ -1,49 +1,53 @@
 # Fixtures
 
-The music-catalog pair started as copies of `json-api-ts/packages/codegen/test/fixtures/`, the
-TypeScript codegen's reference input, so a PHP and a TypeScript client generated from one
-document could be diffed against each other. They have since been re-exported from the
-bundle's example, most recently from the bundle's `main` against core's `main`, which groups the
-error catalogue into shapes with a typed `meta`.
+The documents the suite generates from. Two kinds:
 
-| File | What it is |
-| --- | --- |
-| `music-catalog.openapi.json` | The OpenAPI 3.1 document for the music-catalog API. 66 paths, 250 component schemas, 15 resource types, with a worked example on 106 of its 124 operations and the error catalogue grouped into shapes, each code's example in `components.examples`. |
-| `music-catalog.schemas.json` | The sidecar JSON Schema map, one draft-2020-12 schema per resource type, keyed by type. |
-| `contract-witness.openapi.json` | Core's contract witness, exported verbatim by `bin/export-contract-witness.php` on `haddowg/json-api`. One server projecting every branch the projector can reach: raw and multi-body actions, operation examples and scopes, declared links, discriminated resource unions and a typed `included`, a `sort` with three families of keys beside its fixed ones, lists of objects and of a discriminated union, deprecation markers on an attribute, a relation, a filter, sort keys, a family, an action and every `tags` endpoint, closed objects, an undiscriminated `shape` union, and error codes scoped to some operations (`ARTICLE_LOCKED`, `PAYMENT_REQUIRED`). Refresh it by exporting it from a newer core. |
-| `paginators.openapi.json` | Hand-built, generator contract 3, with an offset floor of 0 as core projects it. One collection per pagination strategy, each with renamed keys under `x-paginator`, a `MultiPaginator` menu on `posts` (and on its related `comments` read), an unstamped canonical `tags`, and a strategy no codegen knows on `logs`. Shaped after core's projection; not exported from a server. |
+- **Server documents** are pinned, not committed. `package.json` pins the packages the servers
+  publish, at exact versions, and `npm install` puts them in `node_modules`, where
+  `Tests\Support\Fixtures` reads them:
 
-`music-catalog.openapi.json` is the canonical codegen input. Golden-file tests generate from it and diff the committed
-expected output, so treat both files as frozen: regenerating them changes every golden file at
-once and makes the diff unreadable. Replace them only when the emitted document structure
-itself changes, and say so in the commit.
+  | Package | File read | What it is |
+  | --- | --- | --- |
+  | `@haddowg/json-api-symfony-specs` | `music-catalog.openapi.json` | The bundle's music-catalog example, its `default` server: the canonical codegen input. 15 resource types, worked examples on most operations, the error catalogue grouped into shapes. |
+  | `@haddowg/json-api-witness` | `contract-witness.json` | Core's contract witness: one server projecting every branch the projector can reach (raw and multi-body actions, declared links, discriminated and undiscriminated unions, sort families, deprecations, closed objects, scoped error codes). |
 
-## Regenerating
+- **Hand-built documents** describe what no server exports, so they stay here:
 
-Both files come from the music-catalog example in `json-api-symfony`
-(`examples/music-catalog-symfony`), exported from its `default` server. Install the example
-against the released core and bundle you want the document to describe, with
-`symfony/expression-language` present (without it the bundle leaves the security declarations out
-of the document), then boot the example's kernel and run both export commands through Symfony's
-console application:
+  | File | What it is |
+  | --- | --- |
+  | `paginators.openapi.json` | Hand-built, with an offset floor of 0 as core projects it. One collection per pagination strategy, each with renamed keys under `x-paginator`, a `MultiPaginator` menu on `posts` (and on its related `comments` read), an unstamped canonical `tags`, and a strategy no codegen knows on `logs`. Shaped after core's projection; not exported from a server. |
 
-```php
-use haddowg\JsonApiBundle\Examples\MusicCatalog\MusicCatalogKernel;
-use Symfony\Bundle\FrameworkBundle\Console\Application;
-use Symfony\Component\Console\Input\ArrayInput;
+## Installing the pinned documents
 
-$app = new Application(new MusicCatalogKernel('dev', false));
-$app->setAutoExit(false);
-$app->run(new ArrayInput(['command' => 'json-api:openapi:export', '--server' => 'default', '--output' => 'music-catalog.openapi.json']));
-$app->run(new ArrayInput(['command' => 'json-api:json-schema:export', '--server' => 'default', '--output' => 'schemas']));
+GitHub Packages needs a token even to read, so map the scope (the committed `.npmrc` does) and
+give npm a token with `read:packages`, then install:
+
+```bash
+export NODE_AUTH_TOKEN="$(gh auth token)"   # after `gh auth refresh -s read:packages`, once
+export NPM_CONFIG_USERCONFIG="$(.github/scripts/npm-auth)"
+npm install
 ```
 
-The JSON Schema export writes one `<type>.json` per type into `schemas/`. Merge them into one
-object keyed by type, sorted, and pretty-printed with unescaped slashes and unicode, to get
-`music-catalog.schemas.json`.
+Without registry access, export the documents from sibling checkouts into the same place instead:
 
-The same demo in `json-api-laravel`'s workbench exports the same document; the adapters'
-byte-compat check keeps the two identical.
+```bash
+php ../json-api/bin/export-contract-witness.php node_modules/@haddowg/json-api-witness
+php ../json-api-symfony/bin/export-specs.php node_modules/@haddowg/json-api-symfony-specs
+```
+
+## Moving a pin
+
+Pin a release (`X.Y.Z`). To test against a server change before it is released, pin the
+`0.0.0-pr.<number>.<sha>` its pull request's `prerelease` job comments; `.github/scripts/check-pins`
+warns about it on a pull request and fails it on `main` and on a release pull request, so pin
+the release before merging. The generated-output report shows what a pin change does to the
+output, beside any emitter change in the same pull request.
+
+## The generated output
+
+Nothing commits it. `composer generate-output` writes every suite of
+`Tests\Support\GeneratedOutput` to `build/generated-output` (and the behaviour tests write the
+suite they run), from these documents. See ADR 0015 for how a change to it is reviewed.
 
 ## Both pagination wire forms are handled on purpose
 
@@ -59,9 +63,9 @@ Every page schema in this document carries `x-paginator` and states its members'
 is generated from a real server's document.
 The name-based fallback for unstamped documents is pinned by `PaginatorDetectionTest`'s
 hand-built documents. `paginators.openapi.json` covers renamed keys and strategies a server can
-configure but this API doesn't use. Its generated output is
-committed under `tests/golden/paginators`, analysed by `composer phpstan-generated` together with
-the page-type assertions in `tests/GeneratedTypes`, and run by `PaginationBehaviourTest`.
+configure but this API doesn't use. Its generated output, the `paginators` suite, is analysed by
+`composer phpstan-generated` together with the page-type assertions in `tests/GeneratedTypes`,
+and run by `PaginationBehaviourTest`.
 
 ## The reference artefact
 
@@ -70,7 +74,7 @@ output for the `albums` type that every emitter targets, together with the gener
 its client hands to the runtime. Copied from json-api-client in the change that generates every
 error code.
 
-`ArtefactParity` compares a declaration generated from `music-catalog.openapi.json` against it on
+`ArtefactParity` compares a declaration generated from the music catalog against it on
 code tokens and type-bearing PHPDoc only, because the artefact's prose explains the design to a
 reader and is not derivable from the document.
 

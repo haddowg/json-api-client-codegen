@@ -6,46 +6,70 @@ namespace haddowg\JsonApiCodegen\Tests\Emit;
 
 use haddowg\JsonApiCodegen\Emit\Assembler;
 use haddowg\JsonApiCodegen\Emit\Generator;
-use haddowg\JsonApiCodegen\Tests\Support\Fixtures;
-use haddowg\JsonApiCodegen\Tests\Support\Generated;
-use haddowg\JsonApiCodegen\Tests\Support\GoldenFile;
+use haddowg\JsonApiCodegen\Tests\Support\GeneratedOutput;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 /**
- * The whole generated output for the music-catalog fixture, pinned file by file.
+ * The whole generated output of every suite, which nothing commits.
  *
- * `tests/golden/generated` is also what `composer phpstan-generated` analyses at level 9, so a
- * golden file is both the reviewable diff of a change and the proof that its output type-checks.
+ * What a change does to the output is reviewed as the diff CI posts on the pull request (ADR
+ * 0015), and `composer phpstan-generated` analyses each suite at level 9. What is left to prove
+ * here is what makes that diff worth reading: the same document always generates the same bytes,
+ * so a diff is a change in what the codegen understood and never noise.
  */
 #[CoversClass(Generator::class)]
 #[CoversClass(Assembler::class)]
 final class GeneratedOutputTest extends TestCase
 {
-    use GoldenFile;
-
-    public function testEveryGeneratedFileMatchesItsGoldenFile(): void
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function suites(): iterable
     {
-        foreach (Generated::musicCatalog() as $path => $contents) {
-            $this->assertMatchesGolden('generated/' . $path, $contents);
+        foreach (GeneratedOutput::SUITES as $suite) {
+            yield $suite => [$suite];
         }
     }
 
-    public function testTheGoldenDirectoryHoldsNothingTheCodegenNoLongerGenerates(): void
+    #[DataProvider('suites')]
+    public function testGeneratingASuiteTwiceWritesIdenticalBytes(string $suite): void
     {
-        $golden = \array_map('basename', \glob(self::goldenPath('generated') . '/*.php') ?: []);
-        \sort($golden, \SORT_STRING);
-        $generated = \array_keys(Generated::musicCatalog());
-        \sort($generated, \SORT_STRING);
+        [$first, $firstWarnings] = GeneratedOutput::generate($suite);
+        [$again, $againWarnings] = GeneratedOutput::generate($suite);
 
-        self::assertSame($generated, $golden, 'Delete golden files for output the codegen no longer generates.');
+        self::assertNotSame([], $first);
+        self::assertSame($first, $again);
+        self::assertSame($firstWarnings, $againWarnings);
     }
 
-    public function testGenerationIsStable(): void
+    #[DataProvider('suites')]
+    public function testASuiteIsOneFilePerTypeBesideTheSharedFiles(string $suite): void
     {
-        $first = Generator::default()->generate(Fixtures::musicCatalogDescriptor(), Generated::config(), 'x');
-        $again = Generator::default()->generate(Fixtures::musicCatalogDescriptor(), Generated::config(), 'x');
+        $paths = \array_keys(GeneratedOutput::files($suite));
 
-        self::assertSame($first, $again);
+        foreach (['autoload.php', 'client.php'] as $shared) {
+            self::assertContains($shared, $paths);
+        }
+        foreach ($paths as $path) {
+            self::assertMatchesRegularExpression('/^(autoload|client|enums|errors|resource-[a-z0-9-]+)\.php$/', $path);
+        }
+    }
+
+    #[DataProvider('suites')]
+    public function testEveryGeneratedFileParses(string $suite): void
+    {
+        if (GeneratedOutput::config($suite)->target->hasPropertyHooks() && \PHP_VERSION_ID < 80400) {
+            self::markTestSkipped('The ' . $suite . ' output targets PHP 8.4.');
+        }
+
+        foreach (GeneratedOutput::files($suite) as $path => $contents) {
+            try {
+                self::assertNotSame([], \token_get_all($contents, \TOKEN_PARSE));
+            } catch (\ParseError $e) {
+                self::fail(\sprintf('%s/%s does not parse: %s on line %d', $suite, $path, $e->getMessage(), $e->getLine()));
+            }
+        }
     }
 }

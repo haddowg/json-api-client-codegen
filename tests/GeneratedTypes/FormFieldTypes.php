@@ -8,7 +8,7 @@ use haddowg\JsonApiClient\Http\FilePart;
 use haddowg\JsonApiCodegen\Tests\Golden\FormFields\FormFieldsClient;
 
 /**
- * The fields a form body of the `form-fields` golden output takes once its schema lists them,
+ * The fields a form body of the `form-fields` generated output takes once its schema lists them,
  * checked at level 9.
  *
  * Analysed by `composer phpstan-generated` and never executed. Each ignored line is a body

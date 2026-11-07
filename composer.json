@@ -60,15 +60,25 @@
         "phpstan": "phpstan analyse --memory-limit=1G",
         "cs-check": "php-cs-fixer fix --dry-run --diff",
         "cs-fix": "php-cs-fixer fix",
-        "phpstan-generated": "phpstan analyse --memory-limit=1G -c phpstan.generated.neon",
-        "cs-check-generated": "php-cs-fixer fix --dry-run --diff --config=.php-cs-fixer.generated.php"
+        "generate-output": "php bin/export-generated-output.php",
+        "phpstan-generated": [
+            "@generate-output",
+            "phpstan analyse --memory-limit=1G -c phpstan.generated.neon"
+        ],
+        "cs-check-generated": [
+            "@generate-output",
+            "php-cs-fixer fix --dry-run --diff --config=.php-cs-fixer.generated.php"
+        ]
     },
     "scripts-descriptions": {
         "test": "Run the PHPUnit test suite",
         "test-coverage": "Run the test suite and emit a Clover coverage report",
         "phpstan": "Run PHPStan static analysis",
         "cs-check": "Check code style without modifying files",
-        "cs-fix": "Apply code style fixes"
+        "cs-fix": "Apply code style fixes",
+        "generate-output": "Write the test suite's generated output to build/generated-output",
+        "phpstan-generated": "Generate the test suite's output and analyse it at level 9",
+        "cs-check-generated": "Generate the test suite's output and check its code style"
     },
     "minimum-stability": "stable",
     "prefer-stable": true

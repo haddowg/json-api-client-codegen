@@ -8,14 +8,11 @@ use haddowg\JsonApiClient\Exceptions\MalformedDocument;
 use haddowg\JsonApiClient\Resources\ResourceContext;
 use haddowg\JsonApiCodegen\Descriptor\DescriptorBuilder;
 use haddowg\JsonApiCodegen\Emit\Generator;
-use haddowg\JsonApiCodegen\Emit\GeneratorConfig;
-use haddowg\JsonApiCodegen\Emit\PhpTarget;
 use haddowg\JsonApiCodegen\Emit\ReadModel\ReadModelEmitter;
 use haddowg\JsonApiCodegen\Emit\ReadModel\Shape;
 use haddowg\JsonApiCodegen\Spec\SpecDocument;
 use haddowg\JsonApiCodegen\Tests\Golden\Unions\Article;
-use haddowg\JsonApiCodegen\Tests\Support\Fixtures;
-use haddowg\JsonApiCodegen\Tests\Support\GoldenFile;
+use haddowg\JsonApiCodegen\Tests\Support\GeneratedOutput;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
@@ -26,7 +23,8 @@ use PHPUnit\Framework\TestCase;
  * each branch by its `title`; the witness's `articles` carries one, a `shape` that is a circle
  * or a rectangle.
  *
- * `tests/golden/unions` is the witness's whole generated output on the 8.3 target, so its reads
+ * The `unions` suite of `GeneratedOutput` is the witness's whole generated output on the 8.3
+ * target, so its reads
  * run here on any supported PHP, and is analysed at level 9 by `composer phpstan-generated`
  * beside `tests/GeneratedTypes/UndiscriminatedUnionTypes.php`.
  */
@@ -34,26 +32,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(ReadModelEmitter::class)]
 final class UndiscriminatedUnionTest extends TestCase
 {
-    use GoldenFile;
-
     public const string NAMESPACE = 'haddowg\\JsonApiCodegen\\Tests\\Golden\\Unions';
-
-    public function testEveryGeneratedFileMatchesItsGoldenFile(): void
-    {
-        foreach (self::generate() as $path => $contents) {
-            $this->assertMatchesGolden('unions/' . $path, $contents);
-        }
-    }
-
-    public function testTheGoldenDirectoryHoldsNothingTheCodegenNoLongerGenerates(): void
-    {
-        $golden = \array_map('basename', \glob(self::goldenPath('unions') . '/*.php') ?: []);
-        \sort($golden, \SORT_STRING);
-        $generated = \array_keys(self::generate());
-        \sort($generated, \SORT_STRING);
-
-        self::assertSame($generated, $golden, 'Delete golden files for output the codegen no longer generates.');
-    }
 
     public function testEachBranchIsAClassNamedByItsTitleAndTheWriteIsAShapeUnion(): void
     {
@@ -119,7 +98,7 @@ final class UndiscriminatedUnionTest extends TestCase
      */
     private static function shape(?array $value): mixed
     {
-        require_once \dirname(__DIR__) . '/golden/unions/autoload.php';
+        GeneratedOutput::load('unions');
 
         $raw = ['type' => 'articles', 'id' => '1', 'attributes' => ['shape' => $value]];
 
@@ -139,11 +118,13 @@ final class UndiscriminatedUnionTest extends TestCase
      */
     private static function generate(?string $json = null): array
     {
-        $json ??= self::json();
+        if ($json === null) {
+            return GeneratedOutput::files('unions');
+        }
 
         return Generator::default()->generate(
             DescriptorBuilder::build(SpecDocument::fromJson($json, 'the witness with an undiscriminated union')),
-            new GeneratorConfig(self::NAMESPACE, 'Unions', PhpTarget::Php83),
+            GeneratedOutput::config('unions'),
             \hash('sha256', $json),
         );
     }
@@ -151,10 +132,6 @@ final class UndiscriminatedUnionTest extends TestCase
     /** The witness, whose `articles` carries a `shape` that is a circle or a rectangle, re-encoded compactly. */
     private static function json(): string
     {
-        $json = \file_get_contents(Fixtures::path('contract-witness.openapi.json'));
-        self::assertIsString($json);
-        $document = \json_decode($json, true, flags: \JSON_THROW_ON_ERROR);
-
-        return \json_encode($document, \JSON_THROW_ON_ERROR | \JSON_UNESCAPED_SLASHES);
+        return GeneratedOutput::unionsJson();
     }
 }

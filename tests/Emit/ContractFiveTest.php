@@ -20,7 +20,7 @@ use PHPUnit\Framework\TestCase;
  * What generator contract 5 changes in the generated client, against variations of the
  * music-catalog document: constraints read per schema, and write-only relations.
  *
- * The unmodified document's output is pinned by the golden files; these cases change one thing
+ * The unmodified document's output is reviewed as the generated-output diff; these cases change one thing
  * in it, so each assertion is about that change and nothing else.
  */
 #[CoversClass(DescriptorBuilder::class)]
@@ -191,7 +191,7 @@ final class ContractFiveTest extends TestCase
      */
     private static function descriptor(\Closure $change): ApiDescriptor
     {
-        $json = \file_get_contents(Fixtures::path('music-catalog.openapi.json'));
+        $json = \file_get_contents(Fixtures::musicCatalogPath());
         self::assertIsString($json);
         $document = \json_decode($json, true, flags: \JSON_THROW_ON_ERROR);
         self::assertIsArray($document);

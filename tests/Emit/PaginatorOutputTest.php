@@ -4,13 +4,8 @@ declare(strict_types=1);
 
 namespace haddowg\JsonApiCodegen\Tests\Emit;
 
-use haddowg\JsonApiCodegen\Descriptor\DescriptorBuilder;
 use haddowg\JsonApiCodegen\Emit\Generator;
-use haddowg\JsonApiCodegen\Emit\GeneratorConfig;
-use haddowg\JsonApiCodegen\Emit\PhpTarget;
-use haddowg\JsonApiCodegen\Spec\SpecDocument;
-use haddowg\JsonApiCodegen\Tests\Support\Fixtures;
-use haddowg\JsonApiCodegen\Tests\Support\GoldenFile;
+use haddowg\JsonApiCodegen\Tests\Support\GeneratedOutput;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
@@ -19,32 +14,13 @@ use PHPUnit\Framework\TestCase;
  * collection per pagination strategy: renamed keys, a strategy menu, an unstamped fallback and a
  * strategy this codegen does not know.
  *
- * `tests/golden/paginators` is analysed at level 9 by `composer phpstan-generated`, beside
+ * Its output, the `paginators` suite of `GeneratedOutput`, is analysed at level 9 by `composer phpstan-generated`, beside
  * `tests/GeneratedTypes`, which asserts the page type each picker leaves a menu query reading.
  */
 #[CoversClass(Generator::class)]
 final class PaginatorOutputTest extends TestCase
 {
-    use GoldenFile;
-
     public const string NAMESPACE = 'haddowg\\JsonApiCodegen\\Tests\\Golden\\Paginators';
-
-    public function testEveryGeneratedFileMatchesItsGoldenFile(): void
-    {
-        foreach (self::generate()[0] as $path => $contents) {
-            $this->assertMatchesGolden('paginators/' . $path, $contents);
-        }
-    }
-
-    public function testTheGoldenDirectoryHoldsNothingTheCodegenNoLongerGenerates(): void
-    {
-        $golden = \array_map('basename', \glob(self::goldenPath('paginators') . '/*.php') ?: []);
-        \sort($golden, \SORT_STRING);
-        $generated = \array_keys(self::generate()[0]);
-        \sort($generated, \SORT_STRING);
-
-        self::assertSame($generated, $golden, 'Delete golden files for output the codegen no longer generates.');
-    }
 
     public function testOnlyTheUnknownStrategyIsWorthAWarning(): void
     {
@@ -75,13 +51,6 @@ final class PaginatorOutputTest extends TestCase
      */
     private static function generate(): array
     {
-        $generator = Generator::default();
-        $files = $generator->generate(
-            DescriptorBuilder::build(SpecDocument::fromFile(Fixtures::path('paginators.openapi.json'))),
-            new GeneratorConfig(self::NAMESPACE, 'Paginators', PhpTarget::Php84),
-            \hash_file('sha256', Fixtures::path('paginators.openapi.json')) ?: '',
-        );
-
-        return [$files, $generator->warnings()];
+        return [GeneratedOutput::files('paginators'), GeneratedOutput::warnings('paginators')];
     }
 }

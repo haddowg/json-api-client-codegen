@@ -10,7 +10,7 @@ use haddowg\JsonApiCodegen\Tests\Golden\Witness\WitnessClient;
 use function PHPStan\Testing\assertType;
 
 /**
- * The type each action of the `witness` golden output that answers with a URL returns, asserted at
+ * The type each action of the `witness` generated output that answers with a URL returns, asserted at
  * level 9.
  *
  * Analysed by `composer phpstan-generated` and never executed.

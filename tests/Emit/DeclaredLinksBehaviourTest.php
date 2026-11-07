@@ -8,6 +8,7 @@ use haddowg\JsonApiClient\Exceptions\MalformedDocument;
 use haddowg\JsonApiClient\Resources\ResourceContext;
 use haddowg\JsonApiClient\Resources\ResourceObject;
 use haddowg\JsonApiCodegen\Emit\ReadModel\ReadModelEmitter;
+use haddowg\JsonApiCodegen\Tests\Support\GeneratedOutput;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\RequiresPhp;
 use PHPUnit\Framework\TestCase;
@@ -16,7 +17,7 @@ use PHPUnit\Framework\TestCase;
  * Runs the generated declared links, from the committed witness output, against an image response.
  *
  * The classes are reached by name because the generated namespace is not on this package's
- * autoloader. The golden output targets PHP 8.4, hence the requirement.
+ * autoloader. The generated output targets PHP 8.4, hence the requirement.
  */
 #[CoversClass(ReadModelEmitter::class)]
 #[RequiresPhp('>= 8.4.0')]
@@ -31,7 +32,7 @@ final class DeclaredLinksBehaviourTest extends TestCase
 
     public static function setUpBeforeClass(): void
     {
-        require_once \dirname(__DIR__) . '/golden/witness/autoload.php';
+        GeneratedOutput::load('witness');
     }
 
     public function testALinkObjectReadsItsHrefStaticMembersAndCoercedMeta(): void
@@ -109,7 +110,7 @@ final class DeclaredLinksBehaviourTest extends TestCase
         return $declared;
     }
 
-    /** A chain of generated accessors, called by name since analysis cannot see the golden output. */
+    /** A chain of generated accessors, called by name since analysis cannot see the generated output. */
     private static function call(object $object, string ...$methods): mixed
     {
         $value = $object;

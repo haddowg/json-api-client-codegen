@@ -9,7 +9,7 @@ use haddowg\JsonApiCodegen\Tests\Golden\Paginators\PaginatorsClient;
 use function PHPStan\Testing\assertType;
 
 /**
- * The page type each read of the `paginators` golden output returns, asserted at level 9.
+ * The page type each read of the `paginators` generated output returns, asserted at level 9.
  *
  * Analysed by `composer phpstan-generated` and never executed: `assertType()` does not exist at
  * runtime. A mismatch is a non-ignorable `phpstan.type` error.

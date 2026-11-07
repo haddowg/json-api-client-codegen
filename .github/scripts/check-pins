@@ -1,0 +1,76 @@
+#!/usr/bin/env bash
+# Checks the documents package.json pins: package.json is private and devDependency-only, and
+# every devDependency is an exact version published in the registry. A prerelease (a server
+# pull request's 0.0.0-pr.<number>.<sha>) is allowed with a warning on a pull request, so a
+# change can be tested against a server change before it is released, and fails on main and on
+# a release-please pull request, so nothing is released against documents that get deleted.
+#
+# Usage: check-pins [--release] [<package.json>]
+#   --release  fail on a prerelease wherever this runs (CI decides from GITHUB_REF and
+#              GITHUB_HEAD_REF on its own).
+# Needs npm configured to read the @haddowg scope (.github/scripts/npm-auth in CI).
+set -uo pipefail
+
+release=false
+if [ "${1:-}" = "--release" ]; then
+  release=true
+  shift
+fi
+manifest="${1:-package.json}"
+
+if [ "${GITHUB_EVENT_NAME:-}" != "pull_request" ] && [ "${GITHUB_REF:-}" = "refs/heads/main" ]; then
+  release=true
+fi
+case "${GITHUB_HEAD_REF:-}" in
+  release-please--*) release=true ;;
+esac
+
+failed=0
+fail() {
+  echo "::error file=${manifest}::$1"
+  failed=1
+}
+
+if [ "$(jq -r '.private' "${manifest}")" != "true" ]; then
+  fail "${manifest} must be \"private\": true; it only pins the documents the tests read."
+fi
+for section in dependencies optionalDependencies peerDependencies bundleDependencies; do
+  if [ "$(jq --arg s "${section}" '.[$s] // {} | length' "${manifest}")" != "0" ]; then
+    fail "${manifest} declares ${section}; pin the documents under devDependencies only."
+  fi
+done
+
+pins="$(jq -r '.devDependencies // {} | to_entries[] | "\(.key) \(.value)"' "${manifest}")"
+if [ -z "${pins}" ]; then
+  fail "${manifest} pins nothing under devDependencies."
+fi
+
+exact='^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$'
+while read -r name version; do
+  [ -n "${name}" ] || continue
+  if [[ ! "${version}" =~ ${exact} ]]; then
+    fail "${name} is pinned to \"${version}\", which is not an exact version. Pin X.Y.Z, or a pull request's 0.0.0-pr.<number>.<sha>."
+    continue
+  fi
+
+  if ! published="$(npm view "${name}@${version}" version 2>&1)"; then
+    fail "${name}@${version} could not be read from the registry: $(echo "${published}" | grep -m 1 'npm error' || echo "${published}" | head -n 1)"
+    continue
+  fi
+  if [ "${published}" != "${version}" ]; then
+    fail "${name}@${version} is not published (the registry answered \"${published}\")."
+    continue
+  fi
+
+  if [[ "${version}" == *-* ]]; then
+    if [ "${release}" = "true" ]; then
+      fail "${name} is pinned to the prerelease ${version}, which is deleted when its pull request closes. Pin a release before this merges or releases."
+    else
+      echo "::warning file=${manifest}::${name} is pinned to the prerelease ${version}. Pin a release before this pull request merges."
+    fi
+  else
+    echo "${name}@${version} is a published release."
+  fi
+done <<< "${pins}"
+
+exit "${failed}"

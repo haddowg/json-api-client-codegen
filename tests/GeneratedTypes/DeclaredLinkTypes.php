@@ -10,7 +10,7 @@ use haddowg\JsonApiCodegen\Tests\Golden\Witness\Image;
 use function PHPStan\Testing\assertType;
 
 /**
- * The types the declared links of the `witness` golden output read as, asserted at level 9.
+ * The types the declared links of the `witness` generated output read as, asserted at level 9.
  *
  * Analysed by `composer phpstan-generated` and never executed. Each ignored line is a read
  * PHPStan must reject: an ignore that matches no error fails the analysis.

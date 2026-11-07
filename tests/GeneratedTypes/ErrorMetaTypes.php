@@ -12,7 +12,7 @@ use haddowg\JsonApiCodegen\Tests\Golden\Witness\RequestBodyInvalidJsonError;
 use function PHPStan\Testing\assertType;
 
 /**
- * The types the error code classes of the `witness` golden output read their `meta` as, asserted
+ * The types the error code classes of the `witness` generated output read their `meta` as, asserted
  * at level 9.
  *
  * Analysed by `composer phpstan-generated` and never executed. Each ignored line is a read

@@ -14,7 +14,7 @@ use haddowg\JsonApiClient\Tests\Generated\MusicCatalog\TrackCreate;
 use function PHPStan\Testing\assertType;
 
 /**
- * The types the music-catalog golden output narrows from its document's constraints, asserted at
+ * The types the music-catalog generated output narrows from its document's constraints, asserted at
  * level 9.
  *
  * Analysed by `composer phpstan-generated` and never executed. Each read is typed from the read

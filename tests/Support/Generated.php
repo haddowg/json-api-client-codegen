@@ -12,8 +12,8 @@ use haddowg\JsonApiCodegen\Emit\PhpTarget;
  * The music-catalog fixture's generated output, built once per process.
  *
  * It is generated into the artefact's own namespace on the 8.4 target, so a generated
- * declaration lines up with its hand-written counterpart in `tests/fixtures/artefact` and the
- * golden output in `tests/golden/generated` can be analysed beside it.
+ * declaration lines up with its hand-written counterpart in `tests/fixtures/artefact`. Written
+ * out, it is the `generated` suite of {@see GeneratedOutput}.
  */
 final class Generated
 {
@@ -35,7 +35,7 @@ final class Generated
         return self::$files ??= Generator::default()->generate(
             Fixtures::musicCatalogDescriptor(),
             self::config(),
-            \hash_file('sha256', Fixtures::path('music-catalog.openapi.json')) ?: '',
+            \hash_file('sha256', Fixtures::musicCatalogPath()) ?: '',
         );
     }
 

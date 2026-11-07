@@ -14,12 +14,13 @@ use haddowg\JsonApiClient\Query\ReadQuery;
 use haddowg\JsonApiClient\Resources\Fetcher;
 use haddowg\JsonApiClient\Resources\ResourceContext;
 use haddowg\JsonApiCodegen\Emit\Reads\ReadsEmitter;
+use haddowg\JsonApiCodegen\Tests\Support\GeneratedOutput;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\RequiresPhp;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Runs the generated pagination methods from the committed `paginators` golden output, and checks
+ * Runs the generated pagination methods from the `paginators` generated output, and checks
  * what they put on the wire.
  *
  * PHPStan proves the page types (`tests/GeneratedTypes`); this proves the keys. A renamed key is
@@ -27,7 +28,7 @@ use PHPUnit\Framework\TestCase;
  * its kind and drop whatever an earlier picker set.
  *
  * The classes are reached by name because the generated namespace is not on this package's
- * autoloader. The golden output targets PHP 8.4, hence the requirement.
+ * autoloader. The generated output targets PHP 8.4, hence the requirement.
  */
 #[CoversClass(ReadsEmitter::class)]
 #[RequiresPhp('>= 8.4.0')]
@@ -35,7 +36,7 @@ final class PaginationBehaviourTest extends TestCase
 {
     public static function setUpBeforeClass(): void
     {
-        require_once \dirname(__DIR__) . '/golden/paginators/autoload.php';
+        GeneratedOutput::load('paginators');
     }
 
     public function testAMenuQueryThatPicksNothingSendsNoPageParameters(): void

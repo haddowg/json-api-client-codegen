@@ -237,7 +237,7 @@ final class DocumentStringsTest extends TestCase
     /** The music-catalog document after `$edit`, which takes and returns it decoded. */
     private static function fixture(\Closure $edit): SpecDocument
     {
-        $json = \file_get_contents(Fixtures::path('music-catalog.openapi.json'));
+        $json = \file_get_contents(Fixtures::musicCatalogPath());
         self::assertIsString($json);
         $document = \json_decode($json, true, flags: \JSON_THROW_ON_ERROR);
         self::assertIsArray($document);

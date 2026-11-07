@@ -4,12 +4,17 @@ declare(strict_types=1);
 
 namespace haddowg\JsonApiCodegen\Emit\Surface;
 
+use haddowg\JsonApiCodegen\Descriptor\ActionDescriptor;
+use haddowg\JsonApiCodegen\Descriptor\ErrorCodeDescriptor;
+use haddowg\JsonApiCodegen\Descriptor\OperationDescriptor;
+
 /**
  * The `@throws` list of one generated method, built from the error statuses its operation
  * declares.
  *
  * Each status maps to the runtime class `JsonApiErrorResponse::for()` throws for it, so the list
- * names exactly what a caller can catch. Every method that reaches the wire can also fail with no
+ * names exactly what a caller can catch. A code scoped to the operation adds its generated class,
+ * which the runtime throws for that code. Every method that reaches the wire can also fail with no
  * response at all, and one that needs a primary resource back can find none, so those two follow
  * the statuses.
  */
@@ -46,18 +51,37 @@ final class Throws
     ];
 
     /**
-     * The aligned tag lines, recording every class named in `$imports`.
+     * {@see tags()} for one operation: its declared statuses and the codes scoped to it.
      *
-     * @param list<int>             $statuses sorted ascending
-     * @param array<string, string> $reasons  exception class => reason, over the defaults
+     * @param array<string, string> $reasons exception class => reason, over the defaults
      *
      * @return list<string>
      */
-    public static function tags(array $statuses, Imports $imports, array $reasons = [], bool $malformed = false): array
+    public static function forOperation(OperationDescriptor|ActionDescriptor $operation, Imports $imports, array $reasons = [], bool $malformed = false): array
+    {
+        return self::tags($operation->errorStatuses, $imports, $reasons, $malformed, $operation->scopedErrorCodes);
+    }
+
+    /**
+     * The aligned tag lines, recording every class named in `$imports`.
+     *
+     * @param list<int>             $statuses    sorted ascending
+     * @param array<string, string> $reasons     exception class => reason, over the defaults
+     * @param list<string>          $scopedCodes the error codes scoped to the operation, whose generated classes it can throw
+     *
+     * @return list<string>
+     */
+    public static function tags(array $statuses, Imports $imports, array $reasons = [], bool $malformed = false, array $scopedCodes = []): array
     {
         $classes = [];
         foreach ($statuses as $status) {
             $classes[] = self::CLASSES[$status] ?? ($status >= 500 ? 'ServerError' : 'UnexpectedResponse');
+        }
+        $generated = [];
+        foreach ($scopedCodes as $code) {
+            $class = ErrorCodeDescriptor::className($code);
+            $generated[$class] = 'when the server answers `' . $code . '`';
+            $classes[] = $class;
         }
         $classes[] = 'TransportException';
         if ($malformed) {
@@ -68,6 +92,11 @@ final class Throws
         $width = \max(\array_map(\strlen(...), $classes));
         $lines = [];
         foreach ($classes as $class) {
+            if (isset($generated[$class])) {
+                $lines[] = '@throws ' . \str_pad($class, $width) . ' ' . $generated[$class];
+
+                continue;
+            }
             $imports->runtime('Exceptions\\' . $class);
             $lines[] = '@throws ' . \str_pad($class, $width) . ' ' . ($reasons[$class] ?? self::REASONS[$class]);
         }

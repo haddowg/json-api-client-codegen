@@ -178,7 +178,7 @@ final class RelationSource
         return Php::docblock(ScopeNote::insert([
             ...Php::wrap('The linkage alone: the identifier of the related resource, or null, without fetching it.', 4),
             '',
-            ...Throws::tags($read->errorStatuses, $imports, [...self::READ_REASONS, ...$notFound]),
+            ...Throws::forOperation($read, $imports, [...self::READ_REASONS, ...$notFound]),
             ...ExampleTag::lines($read->examples),
         ], $read->scopes, deprecated: $read->deprecated), 4, false)
             . '    public function get(): ?' . $identifier . "\n    {\n"
@@ -201,7 +201,7 @@ final class RelationSource
             '',
             '@return ' . self::collectionType($imports, 'Identifier', $page),
             '',
-            ...Throws::tags($read->errorStatuses, $imports, [...self::READ_REASONS, ...$notFound]),
+            ...Throws::forOperation($read, $imports, [...self::READ_REASONS, ...$notFound]),
             ...ExampleTag::lines($read->examples),
         ], $read->scopes, deprecated: $read->deprecated), 4, false)
             . '    public function get(): ' . self::collectionClass($imports, $page) . "\n    {\n"
@@ -223,7 +223,7 @@ final class RelationSource
         return Php::docblock(ScopeNote::insert([
             ...Php::wrap('The related resource itself, or null when the relationship is empty.', 4),
             '',
-            ...Throws::tags($read->errorStatuses, $imports, [...self::READ_REASONS, ...$notFound]),
+            ...Throws::forOperation($read, $imports, [...self::READ_REASONS, ...$notFound]),
             ...ExampleTag::lines($read->examples),
         ], $read->scopes, deprecated: $read->deprecated), 4, false)
             . '    public function related(): ' . (\count($classes) === 1 ? '?' . $classes[0] : self::union($classes) . '|null') . "\n    {\n"
@@ -244,7 +244,7 @@ final class RelationSource
         $tags = [
             '@return ' . self::collectionType($imports, self::union($classes), $page),
             '',
-            ...Throws::tags($read->errorStatuses, $imports, [...self::READ_REASONS, ...$notFound]),
+            ...Throws::forOperation($read, $imports, [...self::READ_REASONS, ...$notFound]),
             ...ExampleTag::lines($read->examples),
         ];
 
@@ -305,7 +305,7 @@ final class RelationSource
             ...Php::wrap($summary, 4),
             '',
             ...($param === null ? [] : [$param, '']),
-            ...Throws::tags($operation->errorStatuses, $imports, [...self::WRITE_REASONS, ...$notFound]),
+            ...Throws::forOperation($operation, $imports, [...self::WRITE_REASONS, ...$notFound]),
             ...ExampleTag::lines($operation->examples),
         ], $operation->scopes, deprecated: $operation->deprecated), 4, false)
             . '    public function ' . $verb->value . '(' . $signature . "): void\n    {\n"

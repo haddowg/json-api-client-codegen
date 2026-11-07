@@ -3887,6 +3887,7 @@ final class ArticleHandle
      * @throws UnsupportedMediaType when the `Content-Type` is refused
      * @throws ValidationFailed     when the document fails validation
      * @throws ServerError          when the server fails
+     * @throws ArticleLockedError   when the server answers `ARTICLE_LOCKED`
      * @throws TransportException   when no response is received at all
      * @throws MalformedDocument    when the response carries no primary resource
      */
@@ -3927,6 +3928,7 @@ final class ArticleHandle
      * @throws NotAcceptable      when the negotiated media type cannot be satisfied
      * @throws Conflict           when the document conflicts with the endpoint
      * @throws ServerError        when the server fails
+     * @throws ArticleLockedError when the server answers `ARTICLE_LOCKED`
      * @throws TransportException when no response is received at all
      *
      * @example 200 response:

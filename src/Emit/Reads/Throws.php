@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace haddowg\JsonApiCodegen\Emit\Reads;
 
+use haddowg\JsonApiCodegen\Descriptor\ErrorCodeDescriptor;
+
 /**
  * The `@throws` lines of a read, from the error statuses its operation declares.
  *
@@ -29,11 +31,12 @@ final class Throws
     ];
 
     /**
-     * @param list<int> $statuses
+     * @param list<int>    $statuses
+     * @param list<string> $scopedCodes the error codes scoped to the read, whose generated classes it can throw
      *
-     * @return list<array{string, string}> short class name and description, in status order
+     * @return list<array{string, string}> short class name and description, in status order, then the scoped codes
      */
-    public static function for(array $statuses): array
+    public static function for(array $statuses, array $scopedCodes = []): array
     {
         $out = [];
         foreach ($statuses as $status) {
@@ -41,6 +44,10 @@ final class Throws
                 ? ['ServerError', 'when the server fails']
                 : ['UnexpectedResponse', 'when the server answers ' . $status]);
             $out[$entry[0]] = $entry;
+        }
+        foreach ($scopedCodes as $code) {
+            $class = ErrorCodeDescriptor::className($code);
+            $out[$class] = [$class, 'when the server answers `' . $code . '`'];
         }
         $out['TransportException'] = ['TransportException', 'when no response is received at all'];
 
@@ -67,10 +74,18 @@ final class Throws
     /**
      * @param list<array{string, string}> $throws
      *
-     * @return list<string> fully-qualified class names
+     * @return list<string> fully-qualified class names of the runtime classes; a generated code class shares the generated namespace and needs none
      */
     public static function imports(array $throws): array
     {
-        return \array_map(static fn(array $entry): string => self::NS . $entry[0], $throws);
+        $out = [];
+        foreach ($throws as [$class]) {
+            // A generated code class is named `<Code>Error`; the one runtime class so named is ServerError.
+            if ($class === 'ServerError' || !\str_ends_with($class, 'Error')) {
+                $out[] = self::NS . $class;
+            }
+        }
+
+        return $out;
     }
 }

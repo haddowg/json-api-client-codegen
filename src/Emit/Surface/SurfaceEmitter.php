@@ -218,7 +218,7 @@ final class SurfaceEmitter implements Emitter
         if ($projected) {
             $doc = [...$doc, '@return ($projection is null ? ' . $base . ' : ' . $base . '&TProj)', ''];
         }
-        $doc = [...$doc, ...Throws::tags($create->errorStatuses, $imports, [
+        $doc = [...$doc, ...Throws::forOperation($create, $imports, [
             'Forbidden' => 'when the create is not permitted',
         ], $resource), ...ExampleTag::lines($create->examples)];
 
@@ -287,7 +287,7 @@ final class SurfaceEmitter implements Emitter
             $members[] = Php::docblock(ScopeNote::insert([
                 ...Php::wrap('Delete the ' . $type->label() . '.', 4),
                 '',
-                ...Throws::tags($delete->errorStatuses, $imports, [
+                ...Throws::forOperation($delete, $imports, [
                     'Forbidden' => 'when the delete is not permitted',
                     'NotFound' => 'when no ' . $type->label() . ' has this id',
                 ]),
@@ -349,7 +349,7 @@ final class SurfaceEmitter implements Emitter
         $request = $imports->runtime('Http\\Request');
         $imports->runtime('Exceptions\\MalformedDocument');
         $path = TypeSurface::path($fetchOne->path);
-        $throws = Throws::tags($fetchOne->errorStatuses, $imports, [
+        $throws = Throws::forOperation($fetchOne, $imports, [
             'BadRequest' => 'when a query parameter is rejected',
             'Forbidden' => 'when the read is not permitted',
             'NotFound' => 'when no ' . $type->label() . ' has this id',
@@ -443,7 +443,7 @@ final class SurfaceEmitter implements Emitter
         if ($projected) {
             $doc = [...$doc, '@return ($projection is null ? ' . $base . ' : ' . $base . '&TProj)', ''];
         }
-        $doc = [...$doc, ...Throws::tags($update->errorStatuses, $imports, [
+        $doc = [...$doc, ...Throws::forOperation($update, $imports, [
             'Forbidden' => 'when the update is not permitted',
             'NotFound' => 'when no ' . $type->label() . ' has this id',
             'Conflict' => "when the document's type or id disagrees with the endpoint",

@@ -181,6 +181,7 @@ final class DescriptorSerializer
             'outputType' => $action->outputType,
             'outputCardinality' => $action->outputCardinality?->value,
             'errorStatuses' => $action->errorStatuses,
+            ...($action->scopedErrorCodes === [] ? [] : ['scopedErrorCodes' => $action->scopedErrorCodes]),
             'projection' => self::projection($action->projection),
         ], ...$raw];
     }
@@ -244,6 +245,7 @@ final class DescriptorSerializer
             'projection' => self::projection($operation->projection),
             ...($operation->examples === null ? [] : ['examples' => self::examples($operation->examples)]),
             ...($operation->scopes === null ? [] : ['scopes' => $operation->scopes]),
+            ...($operation->scopedErrorCodes === [] ? [] : ['scopedErrorCodes' => $operation->scopedErrorCodes]),
         ];
     }
 

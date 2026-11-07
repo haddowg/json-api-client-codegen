@@ -333,7 +333,7 @@ final class ReadSources
         }
         \array_push($members, ...$this->paging(), ...$this->pageRaw());
 
-        $throws = Throws::for($collection->errorStatuses);
+        $throws = Throws::for($collection->errorStatuses, $collection->scopedErrorCodes);
         \array_push($imports, ...Throws::imports($throws));
         $members[] = $this->terminals($throws, ExampleTag::lines($collection->examples), $collection->scopes, $collection->deprecated);
 

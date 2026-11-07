@@ -20,6 +20,7 @@ final class OperationDescriptor
     /**
      * @param list<int>         $errorStatuses sorted ascending
      * @param list<string>|null $scopes
+     * @param list<string>      $scopedErrorCodes the error codes scoped to this operation, which it raises beside the ones every operation does, sorted
      */
     public function __construct(
         public readonly string $path,
@@ -29,5 +30,6 @@ final class OperationDescriptor
         public readonly ?OperationExamples $examples = null,
         public readonly ?array $scopes = null,
         public readonly bool $deprecated = false,
+        public readonly array $scopedErrorCodes = [],
     ) {}
 }

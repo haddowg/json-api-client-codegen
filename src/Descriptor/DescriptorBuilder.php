@@ -53,6 +53,16 @@ final class DescriptorBuilder
 
     private const string RESPONSE_REF_PREFIX = '#/components/responses/';
 
+    /**
+     * Every catalogued code with its shape, and the codes each error document offers.
+     *
+     * @var array{array<string, array{string, Node, Node, ?ValueSchema, bool}>, array<string, list<string>>}|null
+     */
+    private ?array $offeredErrorCodes = null;
+
+    /** @var array<string, list<string>>|null `METHOD /path` => the codes scoped to it */
+    private ?array $scopedByOperation = null;
+
     /** @var array<string, Node> resource schema name => schema */
     private array $resourceSchemas = [];
 
@@ -1474,20 +1484,17 @@ final class DescriptorBuilder
     }
 
     /**
-     * The error catalogue, read off the error documents: `ErrorDocument`, each
-     * `ErrorDocument<NNN>` and each `ErrorDocument<NNN>With<Suffix>` offer shapes as
-     * `errors.items.anyOf` references after the generic `Error`. A shape narrows `Error` in an
-     * `allOf`, pinning `status` and offering each code as a `const` branch of an `anyOf` `code`;
-     * a shape that does not is a malformed catalogue and fails on its own pointer rather than
-     * being skipped.
+     * Every catalogued code with its shape, and the codes each error document offers, read
+     * once.
      *
-     * A narrowed document's codes that its status's shared document does not offer are scoped,
-     * and each operation whose response carries it is recorded on them.
-     *
-     * @return array<string, ErrorCodeDescriptor> keyed and sorted by code
+     * @return array{array<string, array{string, Node, Node, ?ValueSchema, bool}>, array<string, list<string>>}
      */
-    private function errorCodes(): array
+    private function offeredErrorCodes(): array
     {
+        if ($this->offeredErrorCodes !== null) {
+            return $this->offeredErrorCodes;
+        }
+
         /** @var array<string, array{string, Node, Node, ?ValueSchema, bool}> $found code => shape name, narrowing, branch, meta, meta required */
         $found = [];
         /** @var array<string, list<string>> $offered document name => codes */
@@ -1515,6 +1522,48 @@ final class DescriptorBuilder
             }
             $offered[$name] = $codes;
         }
+
+        return $this->offeredErrorCodes = [$found, $offered];
+    }
+
+    /**
+     * The error codes scoped to the operation at `$method` `$path`, which it raises beside
+     * the ones every operation does, sorted.
+     *
+     * @return list<string>
+     */
+    private function scopedErrorCodes(string $method, string $path): array
+    {
+        if ($this->scopedByOperation === null) {
+            $this->scopedByOperation = [];
+            foreach ($this->scopedErrorOperations($this->offeredErrorCodes()[1]) as $code => $labels) {
+                foreach ($labels as $label) {
+                    $this->scopedByOperation[$label][] = (string) $code;
+                }
+            }
+        }
+        $codes = $this->scopedByOperation[\strtoupper($method) . ' ' . $path] ?? [];
+        \sort($codes, \SORT_STRING);
+
+        return $codes;
+    }
+
+    /**
+     * The error catalogue, read off the error documents: `ErrorDocument`, each
+     * `ErrorDocument<NNN>` and each `ErrorDocument<NNN>With<Suffix>` offer shapes as
+     * `errors.items.anyOf` references after the generic `Error`. A shape narrows `Error` in an
+     * `allOf`, pinning `status` and offering each code as a `const` branch of an `anyOf` `code`;
+     * a shape that does not is a malformed catalogue and fails on its own pointer rather than
+     * being skipped.
+     *
+     * A narrowed document's codes that its status's shared document does not offer are scoped,
+     * and each operation whose response carries it is recorded on them.
+     *
+     * @return array<string, ErrorCodeDescriptor> keyed and sorted by code
+     */
+    private function errorCodes(): array
+    {
+        [$found, $offered] = $this->offeredErrorCodes();
 
         $operations = $this->scopedErrorOperations($offered);
 
@@ -1801,7 +1850,7 @@ final class DescriptorBuilder
 
         return $operation === null
             ? null
-            : new OperationDescriptor($path, \strtoupper($method), $this->errorStatuses($operation), $this->projection($operation), $this->examples($operation), $this->scopes($operation), self::deprecated($operation));
+            : new OperationDescriptor($path, \strtoupper($method), $this->errorStatuses($operation), $this->projection($operation), $this->examples($operation), $this->scopes($operation), self::deprecated($operation), $this->scopedErrorCodes($method, $path));
     }
 
     /**
@@ -2130,6 +2179,7 @@ final class DescriptorBuilder
             $this->scopes($operation),
             $locationType,
             self::deprecated($operation),
+            $this->scopedErrorCodes($method, $path),
         );
     }
 

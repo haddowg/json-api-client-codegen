@@ -31,6 +31,7 @@ final class UnionsClient
     public readonly Articles $articles;
     public readonly Images $images;
     public readonly PeopleAccessor $people;
+    /** @deprecated The server marks every `tags` endpoint deprecated. */
     public readonly Tags $tags;
     public readonly Videos $videos;
 

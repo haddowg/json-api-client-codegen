@@ -7,7 +7,7 @@ declare(strict_types=1);
  * so this map is how each one is found. Register it once through composer.json's
  * `autoload.files`; regenerating rewrites it, so a new type never needs a `dump-autoload`.
  *
- * @generated from an OpenAPI document with sha256 d9a521a1736f6cfbbf3e610bf90756718c051dbf7f970b96bc936d45137d5fd4
+ * @generated from an OpenAPI document with sha256 8cb0c6eeb15858c0e8b8f118297b28ce3a7c1ded8507b6808fdbec35a2d1672e
  */
 
 \spl_autoload_register(static function (string $class): void {
@@ -24,6 +24,7 @@ declare(strict_types=1);
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\FormFields\\ArticleCreate' => 'resource-articles.php',
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\FormFields\\ArticleCreateBuilder' => 'resource-articles.php',
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\FormFields\\ArticleEditorRelation' => 'resource-articles.php',
+        'haddowg\\JsonApiCodegen\\Tests\\Golden\\FormFields\\ArticleFormerAuthorRelation' => 'resource-articles.php',
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\FormFields\\ArticleGalleryRelation' => 'resource-articles.php',
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\FormFields\\ArticleHandle' => 'resource-articles.php',
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\FormFields\\ArticleHasAuthor' => 'resource-articles.php',
@@ -35,7 +36,11 @@ declare(strict_types=1);
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\FormFields\\ArticlePublisherRelation' => 'resource-articles.php',
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\FormFields\\ArticleQuery' => 'resource-articles.php',
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\FormFields\\ArticleReadProjection' => 'resource-articles.php',
+        'haddowg\\JsonApiCodegen\\Tests\\Golden\\FormFields\\ArticleShapeCircle' => 'resource-articles.php',
+        'haddowg\\JsonApiCodegen\\Tests\\Golden\\FormFields\\ArticleShapeRectangle' => 'resource-articles.php',
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\FormFields\\ArticleSponsorsRelation' => 'resource-articles.php',
+        'haddowg\\JsonApiCodegen\\Tests\\Golden\\FormFields\\ArticleStepsFindReplace' => 'resource-articles.php',
+        'haddowg\\JsonApiCodegen\\Tests\\Golden\\FormFields\\ArticleStepsTrim' => 'resource-articles.php',
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\FormFields\\ArticleSubjectRelation' => 'resource-articles.php',
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\FormFields\\ArticleSummary' => 'resource-articles.php',
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\FormFields\\ArticleTagsEdge' => 'resource-articles.php',
@@ -44,6 +49,7 @@ declare(strict_types=1);
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\FormFields\\ArticleTagsRelation' => 'resource-articles.php',
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\FormFields\\ArticleUpdate' => 'resource-articles.php',
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\FormFields\\Articles' => 'resource-articles.php',
+        'haddowg\\JsonApiCodegen\\Tests\\Golden\\FormFields\\AttributeMemberUnrecognizedError' => 'errors.php',
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\FormFields\\FormFieldsClient' => 'client.php',
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\FormFields\\FormFieldsErrorCodes' => 'errors.php',
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\FormFields\\Healthcheck' => 'resource-healthcheck.php',

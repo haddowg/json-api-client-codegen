@@ -1,0 +1,3 @@
+# A sort family is a method taking the key's suffix
+
+A `sort` that accepts a family of keys by prefix (`meta.<field>`) cannot be typed on `sort()` in PHP: PHPStan has no template literal types, and widening the token union with `non-empty-string` would swallow every literal token and lose the static check on fixed keys. Each family is a `sortBy<Prefix>(string $suffix, bool $descending = false)` instead, checking the key against the family's pattern at run time, while `sort()` keeps its literal union and `sortRaw()` accepts a key of any family. The TypeScript client types the same keys as template literals on `sort()`, a divergence the runtime records.

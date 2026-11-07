@@ -169,7 +169,10 @@ trait ArticleProjecting
  *
  * @phpstan-import-type ArticleAddressShape from Article
  * @phpstan-import-type ArticleBlockShape from Article
+ * @phpstan-import-type ArticleShapeShape from Article
  * @phpstan-import-type ArticleContactShape from Article
+ * @phpstan-import-type ArticleSourcesShape from Article
+ * @phpstan-import-type ArticleStepsShape from Article
  *
  * @generated from `components.schemas.ArticlesResource`
  */
@@ -234,6 +237,8 @@ abstract class ArticleBase extends ResourceObject
 
     public ArticleBlockHeading|ArticleBlockImage|null $block { get => $this->block(); }
 
+    public ArticleShapeCircle|ArticleShapeRectangle|null $shape { get => $this->shape(); }
+
     /** @var ArticleContactShape|null */
     public ?array $contact { get => $this->contact(); }
 
@@ -246,6 +251,14 @@ abstract class ArticleBase extends ResourceObject
     public ?string $authorName { get => $this->authorName(); }
 
     public ?int $score { get => $this->score(); }
+
+    /** @var ArticleSourcesShape|null */
+    public ?array $sources { get => $this->sources(); }
+
+    /** @var list<ArticleStepsTrim|ArticleStepsFindReplace>|null */
+    public ?array $steps { get => $this->steps(); }
+
+    public ?string $subtitle { get => $this->subtitle(); }
 
     public function id(): string
     {
@@ -530,6 +543,27 @@ abstract class ArticleBase extends ResourceObject
     }
 
     /**
+     * A union, one class per branch, selected by the member only that branch carries. Narrow it
+     * with `instanceof` or `match`.
+     *
+     * @throws FieldNotSelectedException when a sparse fieldset excluded `shape`
+     */
+    public function shape(): ArticleShapeCircle|ArticleShapeRectangle|null
+    {
+        $raw = $this->_nullableMap('shape');
+
+        if ($raw === null) {
+            return null;
+        }
+
+        return match (true) {
+            \array_key_exists('radius', $raw) && !\array_key_exists('width', $raw) => ArticleShapeCircle::_from($raw),
+            !\array_key_exists('radius', $raw) && \array_key_exists('width', $raw) => ArticleShapeRectangle::_from($raw),
+            default => throw new MalformedDocument('The "shape" attribute of an "articles" resource matches none of its branches: expected exactly one of the members "radius", "width".'),
+        };
+    }
+
+    /**
      * A nested object attribute, narrowed member by member: an optional member of the wrong type is
      * dropped rather than trusted, and a required one throws.
      *
@@ -645,6 +679,105 @@ abstract class ArticleBase extends ResourceObject
     public function score(): ?int
     {
         return $this->_nullableInt('score');
+    }
+
+    /**
+     * A list of objects, each narrowed member by member: an optional member of the wrong type is
+     * dropped rather than trusted, and an element that is not an object, or lacks a required
+     * member, throws.
+     *
+     * At most 5 items.
+     *
+     * @return ArticleSourcesShape|null
+     *
+     * @throws FieldNotSelectedException when a sparse fieldset excluded `sources`
+     */
+    public function sources(): ?array
+    {
+        $raw = $this->_nullableList('sources');
+
+        if ($raw === null) {
+            return null;
+        }
+
+        $list = [];
+        foreach ($raw as $element) {
+            if (!\is_array($element)) {
+                throw MalformedDocument::unexpectedMember('An element of the "sources" attribute of an "articles" resource', 'sources', 'an object');
+            }
+
+            $elementShape = [];
+            $elementHref = $element['href'] ?? null;
+            $elementRetrievedAt = $element['retrievedAt'] ?? null;
+
+            if (!\is_string($elementHref)) {
+                throw MalformedDocument::unexpectedMember('An element of the "sources" attribute of an "articles" resource', 'href', 'a string');
+            }
+
+            /** @var non-empty-string $elementHref */
+            $elementShape['href'] = $elementHref;
+
+            if ($elementRetrievedAt === null) {
+                $elementShape['retrievedAt'] = null;
+            } else {
+                if (!\is_string($elementRetrievedAt)) {
+                    throw MalformedDocument::unexpectedMember('An element of the "sources" attribute of an "articles" resource', 'retrievedAt', 'a string');
+                }
+
+                $elementShape['retrievedAt'] = $elementRetrievedAt;
+            }
+
+            $list[] = $elementShape;
+        }
+
+        return $list;
+    }
+
+    /**
+     * A list of a union, each element read into one class per branch, selected by `operation`.
+     * Narrow each with `instanceof` or `match`.
+     *
+     * At most 50 items.
+     *
+     * @return list<ArticleStepsTrim|ArticleStepsFindReplace>|null
+     *
+     * @throws FieldNotSelectedException when a sparse fieldset excluded `steps`
+     */
+    public function steps(): ?array
+    {
+        $raw = $this->_nullableList('steps');
+
+        if ($raw === null) {
+            return null;
+        }
+
+        $list = [];
+        foreach ($raw as $element) {
+            if (!\is_array($element) || ($element !== [] && \array_is_list($element))) {
+                throw MalformedDocument::unexpectedMember('The "steps" attribute of an "articles" resource', 'steps', 'a list of objects');
+            }
+            $object = [];
+            foreach ($element as $key => $value) {
+                $object[(string) $key] = $value;
+            }
+            $list[] = match ($object['operation'] ?? null) {
+                ArticleStepsTrim::OPERATION => ArticleStepsTrim::_from($object),
+                ArticleStepsFindReplace::OPERATION => ArticleStepsFindReplace::_from($object),
+                default => throw MalformedDocument::unexpectedMember('The "steps" attribute of an "articles" resource', 'operation', 'one of "trim", "find_replace"'),
+            };
+        }
+
+        return $list;
+    }
+
+    /**
+     * @throws FieldNotSelectedException when a sparse fieldset excluded `subtitle`
+     *
+     * @deprecated
+     */
+    public function subtitle(): ?string
+    {
+        return $this->_nullableString('subtitle');
     }
 
     /**
@@ -835,14 +968,34 @@ abstract class ArticleBase extends ResourceObject
     }
 
     /**
+     * The `formerAuthor` linkage, without hydrating anything. Never throws.
+     *
+     * @deprecated
+     */
+    public function formerAuthorRef(): ?Identifier
+    {
+        return $this->_relationship('formerAuthor', true)->identifier();
+    }
+
+    /**
+     * Whether the `formerAuthor` linkage points at anything. Never throws.
+     *
+     * @deprecated
+     */
+    public function hasFormerAuthor(): bool
+    {
+        return !$this->_relationship('formerAuthor', true)->isEmpty();
+    }
+
+    /**
      * A relationship object: linkage, links, and the `meta.total` a `withCount` read leaves behind.
      * This is the door to a relation that carries no value.
      *
-     * @param 'author'|'tags'|'publisher'|'cover'|'locked'|'attachments'|'editor'|'sponsors'|'subject'|'gallery' $name
+     * @param 'author'|'tags'|'publisher'|'cover'|'locked'|'attachments'|'editor'|'sponsors'|'subject'|'gallery'|'formerAuthor' $name
      */
     public function _rel(string $name): Relationship
     {
-        return $this->_relationship($name, \in_array($name, ['author', 'publisher', 'cover', 'editor', 'subject'], true));
+        return $this->_relationship($name, \in_array($name, ['author', 'publisher', 'cover', 'editor', 'subject', 'formerAuthor'], true));
     }
 
     /**
@@ -870,7 +1023,10 @@ abstract class ArticleBase extends ResourceObject
  *
  * @phpstan-type ArticleAddressShape array{street: non-empty-string, city: string|null}
  * @phpstan-type ArticleBlockShape array{text: non-empty-string, kind: 'heading'}|array{src: string|null, kind: 'image'}
+ * @phpstan-type ArticleShapeShape array{radius: int}|array{width: int, height: int}
  * @phpstan-type ArticleContactShape array{firstName: string, nickname: string|null, phone?: string|null, geo: array{lat: int|null}|null}
+ * @phpstan-type ArticleSourcesShape list<array{href: non-empty-string, retrievedAt: string|null}>
+ * @phpstan-type ArticleStepsShape list<array{operation: 'trim'}|array{params: array{find: string, replace: string}|null, operation: 'find_replace'}>
  * @phpstan-type ArticleStatusInput Status|'archived'|'draft'|'published'
  * @phpstan-type ArticlePriorityInput Priority|1|2
  * @phpstan-type ArticleDateInput \DateTimeImmutable|string
@@ -886,14 +1042,15 @@ abstract class ArticleBase extends ResourceObject
  * @phpstan-type ArticleSponsorsInput list<Created<ImageBase>|Created<PeopleBase>|Identifier|Image|People>
  * @phpstan-type ArticleSubjectInput Created<PeopleBase>|Identifier|People|null
  * @phpstan-type ArticleGalleryInput list<Created<ImageBase>|Identifier|Image>
- * @phpstan-type ArticleCreateShape array{title: non-empty-string, slug?: string, status?: ArticleStatusInput, priority?: ArticlePriorityInput, wordCount?: int<0, max>|null, rating?: float, featured?: bool, releasedOn?: ArticleDateInput, publishedAt?: ArticleDateInput|null, syncedAt?: ArticleDateInput, archivedAt?: string, embargoLifts?: string, editorEmail?: string, canonicalUrl?: string, excerpt?: string, revision?: positive-int, reviewNote?: string|null, originIp?: string, keywords?: non-empty-list<string>, analytics?: array<string, mixed>|null, address?: array{street: non-empty-string, city?: string}, block?: array{text: non-empty-string, kind: string}|array{src?: string, kind: string}, contact?: array{firstName?: string, nickname?: string, pin?: string, phone?: string, geo?: array{lat?: int}}|null, authorName?: string, score?: int, author?: ArticleAuthorInput, tags?: ArticleTagsInput, publisher?: ArticlePublisherInput, cover?: ArticleCoverInput, locked?: ArticleLockedInput, attachments?: ArticleAttachmentsInput, editor?: ArticleEditorInput, sponsors?: ArticleSponsorsInput, subject?: ArticleSubjectInput, gallery?: ArticleGalleryInput, reviewer?: ArticleReviewerInput, watchers?: ArticleWatchersInput}
- * @phpstan-type ArticleUpdateShape array{title?: non-empty-string, slug?: string, status?: ArticleStatusInput, priority?: ArticlePriorityInput, wordCount?: int<0, max>|null, rating?: float, featured?: bool, releasedOn?: ArticleDateInput, publishedAt?: ArticleDateInput|null, syncedAt?: ArticleDateInput, archivedAt?: string, embargoLifts?: string, editorEmail?: string, canonicalUrl?: string, excerpt?: string, reviewNote?: string|null, originIp?: string, keywords?: non-empty-list<string>, analytics?: array<string, mixed>|null, address?: array{street?: non-empty-string, city?: string}, block?: array{text?: non-empty-string, kind?: string}|array{src?: string, kind?: string}, contact?: array{firstName?: string, nickname?: string, pin?: string, phone?: string, geo?: array{lat?: int}}|null, authorName?: string, score?: int, author?: ArticleAuthorInput, tags?: ArticleTagsInput, publisher?: ArticlePublisherInput, cover?: ArticleCoverInput, attachments?: ArticleAttachmentsInput, editor?: ArticleEditorInput, sponsors?: ArticleSponsorsInput, subject?: ArticleSubjectInput, gallery?: ArticleGalleryInput, reviewer?: ArticleReviewerInput, watchers?: ArticleWatchersInput}
+ * @phpstan-type ArticleFormerAuthorInput Created<PeopleBase>|Identifier|People|null
+ * @phpstan-type ArticleCreateShape array{title: non-empty-string, slug?: string, status?: ArticleStatusInput, priority?: ArticlePriorityInput, wordCount?: int<0, max>|null, rating?: float, featured?: bool, releasedOn?: ArticleDateInput, publishedAt?: ArticleDateInput|null, syncedAt?: ArticleDateInput, archivedAt?: string, embargoLifts?: string, editorEmail?: string, canonicalUrl?: string, excerpt?: string, revision?: positive-int, reviewNote?: string|null, originIp?: string, keywords?: non-empty-list<string>, analytics?: array<string, mixed>|null, address?: array{street: non-empty-string, city?: string}, block?: array{text: non-empty-string, kind: string}|array{src?: string, kind: string}, shape?: array{radius: int}|array{width: int, height: int}|null, contact?: array{firstName?: string, nickname?: string, pin?: string, phone?: string, geo?: array{lat?: int}}|null, authorName?: string, score?: int, sources?: list<array{href: non-empty-string, retrievedAt?: string}>, steps?: list<array{operation: string}|array{params?: array{find?: string, replace?: string}, operation: string}>, subtitle?: string, author?: ArticleAuthorInput, tags?: ArticleTagsInput, publisher?: ArticlePublisherInput, cover?: ArticleCoverInput, locked?: ArticleLockedInput, attachments?: ArticleAttachmentsInput, editor?: ArticleEditorInput, sponsors?: ArticleSponsorsInput, subject?: ArticleSubjectInput, gallery?: ArticleGalleryInput, formerAuthor?: ArticleFormerAuthorInput, reviewer?: ArticleReviewerInput, watchers?: ArticleWatchersInput}
+ * @phpstan-type ArticleUpdateShape array{title?: non-empty-string, slug?: string, status?: ArticleStatusInput, priority?: ArticlePriorityInput, wordCount?: int<0, max>|null, rating?: float, featured?: bool, releasedOn?: ArticleDateInput, publishedAt?: ArticleDateInput|null, syncedAt?: ArticleDateInput, archivedAt?: string, embargoLifts?: string, editorEmail?: string, canonicalUrl?: string, excerpt?: string, reviewNote?: string|null, originIp?: string, keywords?: non-empty-list<string>, analytics?: array<string, mixed>|null, address?: array{street?: non-empty-string, city?: string}, block?: array{text?: non-empty-string, kind?: string}|array{src?: string, kind?: string}, shape?: array{radius: int}|array{width: int, height: int}|null, contact?: array{firstName?: string, nickname?: string, pin?: string, phone?: string, geo?: array{lat?: int}}|null, authorName?: string, score?: int, sources?: list<array{href: non-empty-string, retrievedAt?: string}>, steps?: list<array{operation: string}|array{params?: array{find?: string, replace?: string}, operation: string}>, subtitle?: string, author?: ArticleAuthorInput, tags?: ArticleTagsInput, publisher?: ArticlePublisherInput, cover?: ArticleCoverInput, attachments?: ArticleAttachmentsInput, editor?: ArticleEditorInput, sponsors?: ArticleSponsorsInput, subject?: ArticleSubjectInput, gallery?: ArticleGalleryInput, formerAuthor?: ArticleFormerAuthorInput, reviewer?: ArticleReviewerInput, watchers?: ArticleWatchersInput}
  * @phpstan-type ArticleRangeShape array{min?: float, max?: float}
  * @phpstan-type ArticleDateRangeShape array{min?: ArticleDateInput, max?: ArticleDateInput}
- * @phpstan-type ArticleFilterShape array{status?: string, wordCount?: int, archived?: string, rating?: ArticleRangeShape, publishedAt?: ArticleDateRangeShape, labels?: list<string>, search?: string, urgent?: string, featured?: bool, releasedOn?: string, keywords?: list<string>, 'author.name'?: string, unpublished?: string}
- * @phpstan-type ArticleSortToken '-title'|'-wordCount'|'title'|'wordCount'
+ * @phpstan-type ArticleFilterShape array{status?: string, wordCount?: int, archived?: string, rating?: ArticleRangeShape, publishedAt?: ArticleDateRangeShape, labels?: list<string>, search?: string, urgent?: string, featured?: bool, releasedOn?: string, keywords?: list<string>, 'author.name'?: string, unpublished?: string, state?: string}
+ * @phpstan-type ArticleSortToken '-length'|'-title'|'-wordCount'|'length'|'title'|'wordCount'
  * @phpstan-type ArticleIncludePath 'author'|'author.company'|'tags'
- * @phpstan-type ArticleFieldToken 'address'|'analytics'|'archivedAt'|'attachments'|'author'|'authorName'|'block'|'canonicalUrl'|'commentCount'|'contact'|'cover'|'createdAt'|'editor'|'editorEmail'|'embargoLifts'|'excerpt'|'featured'|'gallery'|'keywords'|'legacyRef'|'locked'|'originIp'|'priority'|'publishedAt'|'publisher'|'rating'|'releasedOn'|'reviewNote'|'revision'|'score'|'slug'|'sponsors'|'status'|'subject'|'syncedAt'|'tags'|'title'|'wordCount'
+ * @phpstan-type ArticleFieldToken 'address'|'analytics'|'archivedAt'|'attachments'|'author'|'authorName'|'block'|'canonicalUrl'|'commentCount'|'contact'|'cover'|'createdAt'|'editor'|'editorEmail'|'embargoLifts'|'excerpt'|'featured'|'formerAuthor'|'gallery'|'keywords'|'legacyRef'|'locked'|'originIp'|'priority'|'publishedAt'|'publisher'|'rating'|'releasedOn'|'reviewNote'|'revision'|'score'|'shape'|'slug'|'sources'|'sponsors'|'status'|'steps'|'subject'|'subtitle'|'syncedAt'|'tags'|'title'|'wordCount'
  * @phpstan-type ArticleCountToken '_self_'|'sponsors'|'tags'
  *
  * @generated from `components.schemas.ArticlesResource`
@@ -929,9 +1086,13 @@ final class Article extends ArticleBase implements ArticleHasAuthor, ArticleHasT
         'analytics',
         'address',
         'block',
+        'shape',
         'contact',
         'authorName',
         'score',
+        'sources',
+        'steps',
+        'subtitle',
         'author',
         'tags',
         'publisher',
@@ -942,6 +1103,7 @@ final class Article extends ArticleBase implements ArticleHasAuthor, ArticleHasT
         'sponsors',
         'subject',
         'gallery',
+        'formerAuthor',
         'reviewer',
         'watchers',
     ];
@@ -973,9 +1135,13 @@ final class Article extends ArticleBase implements ArticleHasAuthor, ArticleHasT
         'analytics',
         'address',
         'block',
+        'shape',
         'contact',
         'authorName',
         'score',
+        'sources',
+        'steps',
+        'subtitle',
         'author',
         'tags',
         'publisher',
@@ -985,6 +1151,7 @@ final class Article extends ArticleBase implements ArticleHasAuthor, ArticleHasT
         'sponsors',
         'subject',
         'gallery',
+        'formerAuthor',
         'reviewer',
         'watchers',
     ];
@@ -1017,6 +1184,7 @@ final class Article extends ArticleBase implements ArticleHasAuthor, ArticleHasT
         'keywords',
         'author.name',
         'unpublished',
+        'state',
     ];
 
     /**
@@ -1035,7 +1203,26 @@ final class Article extends ArticleBase implements ArticleHasAuthor, ArticleHasT
      *
      * @var list<string>
      */
-    public const array SORT_TOKENS = ['title', '-title', 'wordCount', '-wordCount'];
+    public const array SORT_TOKENS = [
+        'title',
+        '-title',
+        'wordCount',
+        '-wordCount',
+        'length',
+        '-length',
+    ];
+
+    /**
+     * The families of sort keys `GET /articles` matches by prefix, each with the pattern a signed
+     * key of it matches.
+     *
+     * @var array<string, non-empty-string>
+     */
+    public const array SORT_FAMILIES = [
+        'legacy' => '~^-?legacy\\.(?:[^,]+)$~',
+        'meta' => '~^-?meta\\.(?:[a-z][a-z_]*)$~',
+        'custom.fields' => '~^-?custom\\.fields\\.(?:[^,]+)$~',
+    ];
 
     /**
      * The members `fields[articles]` may name.
@@ -1065,12 +1252,16 @@ final class Article extends ArticleBase implements ArticleHasAuthor, ArticleHasT
         'analytics',
         'address',
         'block',
+        'shape',
         'contact',
         'createdAt',
         'legacyRef',
         'commentCount',
         'authorName',
         'score',
+        'sources',
+        'steps',
+        'subtitle',
         'author',
         'tags',
         'publisher',
@@ -1081,6 +1272,7 @@ final class Article extends ArticleBase implements ArticleHasAuthor, ArticleHasT
         'sponsors',
         'subject',
         'gallery',
+        'formerAuthor',
     ];
 
     /**
@@ -1213,7 +1405,7 @@ final class Article extends ArticleBase implements ArticleHasAuthor, ArticleHasT
  *
  * @phpstan-import-type ArticleCreateShape from Article
  *
- * @generated from `GET /articles/{id}/-actions/cover` and `GET /articles/{id}/-actions/download` and `POST /articles/{id}/-actions/draft` and `GET /articles/{id}/-actions/preview` and `POST /articles/{id}/-actions/publish` and `POST /articles/{id}/-actions/purge` and `GET /articles/{id}/-actions/revision`
+ * @generated from `GET /articles/{id}/-actions/cover` and `GET /articles/{id}/-actions/download` and `POST /articles/{id}/-actions/draft` and `GET /articles/{id}/-actions/preview` and `POST /articles/{id}/-actions/publish` and `POST /articles/{id}/-actions/purge` and `POST /articles/{id}/-actions/retract` and `GET /articles/{id}/-actions/revision`
  */
 final class ArticleActions
 {
@@ -1415,6 +1607,27 @@ final class ArticleActions
     public function purge(): void
     {
         $this->fetcher->send(Request::post('/articles/' . $this->id . '/-actions/purge'));
+    }
+
+    /**
+     * Retract: `POST /articles/{id}/-actions/retract`. It declares no request body, so it takes no
+     * input.
+     *
+     * @throws BadRequest           when the request is malformed
+     * @throws Unauthorized         when credentials are missing or invalid
+     * @throws Forbidden            when the action is not permitted
+     * @throws NotFound             when no article has this id
+     * @throws NotAcceptable        when the negotiated media type cannot be satisfied
+     * @throws UnsupportedMediaType when the `Content-Type` is refused
+     * @throws ValidationFailed     when the payload fails validation
+     * @throws ServerError          when the server fails
+     * @throws TransportException   when no response is received at all
+     *
+     * @deprecated
+     */
+    public function retract(): void
+    {
+        $this->fetcher->send(Request::post('/articles/' . $this->id . '/-actions/retract'));
     }
 
     /**
@@ -1769,6 +1982,8 @@ final class ArticleAuthorRelation
      * @throws NotAcceptable      when the negotiated media type cannot be satisfied
      * @throws ServerError        when the server fails
      * @throws TransportException when no response is received at all
+     *
+     * @deprecated
      */
     public function related(): ?People
     {
@@ -2178,7 +2393,10 @@ final class ArticleCreate implements CreateInput
      * @param array<string, mixed>|Missing|null $analytics
      * @param array{street: non-empty-string, city?: string}|Missing $address
      * @param array{text: non-empty-string, kind: string}|array{src?: string, kind: string}|Missing $block
+     * @param array{radius: int}|array{width: int, height: int}|Missing|null $shape
      * @param array{firstName?: string, nickname?: string, pin?: string, phone?: string, geo?: array{lat?: int}}|Missing|null $contact
+     * @param list<array{href: non-empty-string, retrievedAt?: string}>|Missing $sources
+     * @param list<array{operation: string}|array{params?: array{find?: string, replace?: string}, operation: string}>|Missing $steps
      * @param Created<PeopleBase>|Identifier|People|Missing|null $author
      * @param list<Created<TagBase>|Identifier|Tag>|Missing $tags
      * @param Created<PeopleBase>|Identifier|People|Missing|null $publisher
@@ -2191,6 +2409,7 @@ final class ArticleCreate implements CreateInput
      * @param list<Created<ImageBase>|Created<PeopleBase>|Identifier|Image|People>|Missing $sponsors
      * @param Created<PeopleBase>|Identifier|People|Missing|null $subject
      * @param list<Created<ImageBase>|Identifier|Image>|Missing $gallery
+     * @param Created<PeopleBase>|Identifier|People|Missing|null $formerAuthor
      */
     public function __construct(
         public readonly string $title,
@@ -2215,9 +2434,13 @@ final class ArticleCreate implements CreateInput
         public readonly array|Missing|null $analytics = Missing::Value,
         public readonly array|Missing $address = Missing::Value,
         public readonly array|Missing $block = Missing::Value,
+        public readonly array|Missing|null $shape = Missing::Value,
         public readonly array|Missing|null $contact = Missing::Value,
         public readonly string|Missing $authorName = Missing::Value,
         public readonly int|Missing $score = Missing::Value,
+        public readonly array|Missing $sources = Missing::Value,
+        public readonly array|Missing $steps = Missing::Value,
+        public readonly string|Missing $subtitle = Missing::Value,
         public readonly Created|Identifier|People|Missing|null $author = Missing::Value,
         public readonly array|Missing $tags = Missing::Value,
         public readonly Created|Identifier|People|Missing|null $publisher = Missing::Value,
@@ -2230,6 +2453,7 @@ final class ArticleCreate implements CreateInput
         public readonly array|Missing $sponsors = Missing::Value,
         public readonly Created|Identifier|People|Missing|null $subject = Missing::Value,
         public readonly array|Missing $gallery = Missing::Value,
+        public readonly Created|Identifier|People|Missing|null $formerAuthor = Missing::Value,
     ) {}
 
     /**
@@ -2271,9 +2495,13 @@ final class ArticleCreate implements CreateInput
             analytics: \array_key_exists('analytics', $input) ? $input['analytics'] : Missing::Value,
             address: \array_key_exists('address', $input) ? $input['address'] : Missing::Value,
             block: \array_key_exists('block', $input) ? $input['block'] : Missing::Value,
+            shape: \array_key_exists('shape', $input) ? $input['shape'] : Missing::Value,
             contact: \array_key_exists('contact', $input) ? $input['contact'] : Missing::Value,
             authorName: \array_key_exists('authorName', $input) ? $input['authorName'] : Missing::Value,
             score: \array_key_exists('score', $input) ? $input['score'] : Missing::Value,
+            sources: \array_key_exists('sources', $input) ? $input['sources'] : Missing::Value,
+            steps: \array_key_exists('steps', $input) ? $input['steps'] : Missing::Value,
+            subtitle: \array_key_exists('subtitle', $input) ? $input['subtitle'] : Missing::Value,
             author: \array_key_exists('author', $input) ? $input['author'] : Missing::Value,
             tags: \array_key_exists('tags', $input) ? $input['tags'] : Missing::Value,
             publisher: \array_key_exists('publisher', $input) ? $input['publisher'] : Missing::Value,
@@ -2286,6 +2514,7 @@ final class ArticleCreate implements CreateInput
             sponsors: \array_key_exists('sponsors', $input) ? $input['sponsors'] : Missing::Value,
             subject: \array_key_exists('subject', $input) ? $input['subject'] : Missing::Value,
             gallery: \array_key_exists('gallery', $input) ? $input['gallery'] : Missing::Value,
+            formerAuthor: \array_key_exists('formerAuthor', $input) ? $input['formerAuthor'] : Missing::Value,
         );
     }
 
@@ -2384,6 +2613,10 @@ final class ArticleCreate implements CreateInput
             $attributes['block'] = $this->block;
         }
 
+        if (!$this->shape instanceof Missing) {
+            $attributes['shape'] = $this->shape;
+        }
+
         if (!$this->contact instanceof Missing) {
             $attributes['contact'] = $this->contact;
         }
@@ -2394,6 +2627,18 @@ final class ArticleCreate implements CreateInput
 
         if (!$this->score instanceof Missing) {
             $attributes['score'] = $this->score;
+        }
+
+        if (!$this->sources instanceof Missing) {
+            $attributes['sources'] = $this->sources;
+        }
+
+        if (!$this->steps instanceof Missing) {
+            $attributes['steps'] = $this->steps;
+        }
+
+        if (!$this->subtitle instanceof Missing) {
+            $attributes['subtitle'] = $this->subtitle;
         }
 
         $data['attributes'] = $attributes;
@@ -2446,6 +2691,10 @@ final class ArticleCreate implements CreateInput
 
         if (!$this->gallery instanceof Missing) {
             $relationships['gallery'] = ['data' => Coerce::linkageList($this->gallery)];
+        }
+
+        if (!$this->formerAuthor instanceof Missing) {
+            $relationships['formerAuthor'] = ['data' => Coerce::linkage($this->formerAuthor)];
         }
 
         if ($relationships !== []) {
@@ -2544,6 +2793,11 @@ final class ArticleCreateBuilder implements CreateInput
     private array|Missing $block = Missing::Value;
 
     /**
+     * @var array{radius: int}|array{width: int, height: int}|Missing|null
+     */
+    private array|Missing|null $shape = Missing::Value;
+
+    /**
      * @var array{firstName?: string, nickname?: string, pin?: string, phone?: string, geo?: array{lat?: int}}|Missing|null
      */
     private array|Missing|null $contact = Missing::Value;
@@ -2551,6 +2805,18 @@ final class ArticleCreateBuilder implements CreateInput
     private string|Missing $authorName = Missing::Value;
 
     private int|Missing $score = Missing::Value;
+
+    /**
+     * @var list<array{href: non-empty-string, retrievedAt?: string}>|Missing
+     */
+    private array|Missing $sources = Missing::Value;
+
+    /**
+     * @var list<array{operation: string}|array{params?: array{find?: string, replace?: string}, operation: string}>|Missing
+     */
+    private array|Missing $steps = Missing::Value;
+
+    private string|Missing $subtitle = Missing::Value;
 
     /**
      * @var Created<PeopleBase>|Identifier|People|Missing|null
@@ -2611,6 +2877,11 @@ final class ArticleCreateBuilder implements CreateInput
      * @var list<Created<ImageBase>|Identifier|Image>|Missing
      */
     private array|Missing $gallery = Missing::Value;
+
+    /**
+     * @var Created<PeopleBase>|Identifier|People|Missing|null
+     */
+    private Created|Identifier|People|Missing|null $formerAuthor = Missing::Value;
 
     /**
      * Between 3 and 120 characters.
@@ -2809,6 +3080,16 @@ final class ArticleCreateBuilder implements CreateInput
     }
 
     /**
+     * @param array{radius: int}|array{width: int, height: int}|null $shape
+     */
+    public function shape(?array $shape): self
+    {
+        $this->shape = $shape;
+
+        return $this;
+    }
+
+    /**
      * @param array{firstName?: string, nickname?: string, pin?: string, phone?: string, geo?: array{lat?: int}}|null $contact
      */
     public function contact(?array $contact): self
@@ -2828,6 +3109,40 @@ final class ArticleCreateBuilder implements CreateInput
     public function score(int $score): self
     {
         $this->score = $score;
+
+        return $this;
+    }
+
+    /**
+     * At most 5 items.
+     *
+     * @param list<array{href: non-empty-string, retrievedAt?: string}> $sources
+     */
+    public function sources(array $sources): self
+    {
+        $this->sources = $sources;
+
+        return $this;
+    }
+
+    /**
+     * At most 50 items.
+     *
+     * @param list<array{operation: string}|array{params?: array{find?: string, replace?: string}, operation: string}> $steps
+     */
+    public function steps(array $steps): self
+    {
+        $this->steps = $steps;
+
+        return $this;
+    }
+
+    /**
+     * @deprecated
+     */
+    public function subtitle(string $subtitle): self
+    {
+        $this->subtitle = $subtitle;
 
         return $this;
     }
@@ -2953,6 +3268,18 @@ final class ArticleCreateBuilder implements CreateInput
     }
 
     /**
+     * @param Created<PeopleBase>|Identifier|People|null $formerAuthor
+     *
+     * @deprecated
+     */
+    public function formerAuthor(Created|Identifier|People|null $formerAuthor): self
+    {
+        $this->formerAuthor = $formerAuthor;
+
+        return $this;
+    }
+
+    /**
      * Produce the DTO, which is the only form that ever reaches the serialiser.
      *
      * @throws MissingRequiredMemberException when a member the create document requires was never set
@@ -2986,9 +3313,13 @@ final class ArticleCreateBuilder implements CreateInput
             analytics: $this->analytics,
             address: $this->address,
             block: $this->block,
+            shape: $this->shape,
             contact: $this->contact,
             authorName: $this->authorName,
             score: $this->score,
+            sources: $this->sources,
+            steps: $this->steps,
+            subtitle: $this->subtitle,
             author: $this->author,
             tags: $this->tags,
             publisher: $this->publisher,
@@ -3001,6 +3332,7 @@ final class ArticleCreateBuilder implements CreateInput
             sponsors: $this->sponsors,
             subject: $this->subject,
             gallery: $this->gallery,
+            formerAuthor: $this->formerAuthor,
         );
     }
 
@@ -3136,6 +3468,95 @@ final class ArticleEditorRelation
     {
         $this->fetcher->send(Request::patch(
             '/articles/' . $this->id . '/relationships/editor',
+            \json_encode(['data' => Coerce::linkage($target)], \JSON_THROW_ON_ERROR),
+        ));
+    }
+}
+
+/**
+ * The `formerAuthor` relationship of one article. `get()` reads the linkage; any read the server
+ * switched off is absent. The writes are `set()`, the methods the relationship endpoint declares,
+ * and no others.
+ *
+ * @generated from `/articles/{id}/relationships/formerAuthor`
+ */
+final class ArticleFormerAuthorRelation
+{
+    public function __construct(
+        private readonly Fetcher $fetcher,
+        private readonly string $id,
+    ) {}
+
+    /**
+     * The linkage alone: the identifier of the related resource, or null, without fetching it.
+     *
+     * Needs an access token granting the `articles:read` and `people:read` scopes.
+     *
+     * @throws BadRequest         when a query parameter is rejected
+     * @throws Unauthorized       when credentials are missing or invalid
+     * @throws Forbidden          when the read is not permitted
+     * @throws NotFound           when no article has this id
+     * @throws NotAcceptable      when the negotiated media type cannot be satisfied
+     * @throws ServerError        when the server fails
+     * @throws TransportException when no response is received at all
+     *
+     * @example 200 response:
+     *     {
+     *         "data": {
+     *             "type": "people",
+     *             "id": "per-1"
+     *         },
+     *         "links": {
+     *             "self": {
+     *                 "href": "https://api.example.com/articles/art-1/relationships/formerAuthor",
+     *                 "describedby": "/docs/openapi.json#/paths/~1articles~1%7Bid%7D~1relationships~1formerAuthor/get"
+     *             },
+     *             "describedby": {
+     *                 "href": "/docs/openapi.json#/paths/~1articles~1%7Bid%7D~1relationships~1formerAuthor/get"
+     *             }
+     *         },
+     *         "jsonapi": {
+     *             "version": "1.1"
+     *         }
+     *     }
+     */
+    public function get(): ?Identifier
+    {
+        $raw = $this->fetcher
+            ->read(Request::get('/articles/' . $this->id . '/relationships/formerAuthor'))
+            ->primary();
+
+        return $raw === null ? null : Identifier::fromArray($raw, 'the "formerAuthor" linkage');
+    }
+
+    /**
+     * Point the relationship at another resource, or at nothing.
+     *
+     * Needs an access token granting the `articles:write` scope.
+     *
+     * @throws BadRequest           when the document is malformed
+     * @throws Unauthorized         when credentials are missing or invalid
+     * @throws Forbidden            when the write is not permitted
+     * @throws NotFound             when no article has this id
+     * @throws NotAcceptable        when the negotiated media type cannot be satisfied
+     * @throws Conflict             when the linkage conflicts with the relationship
+     * @throws UnsupportedMediaType when the `Content-Type` is refused
+     * @throws ValidationFailed     when the linkage fails validation
+     * @throws ServerError          when the server fails
+     * @throws TransportException   when no response is received at all
+     *
+     * @example Request body:
+     *     {
+     *         "data": {
+     *             "type": "people",
+     *             "id": "per-1"
+     *         }
+     *     }
+     */
+    public function set(Identifier|People|null $target): void
+    {
+        $this->fetcher->send(Request::patch(
+            '/articles/' . $this->id . '/relationships/formerAuthor',
             \json_encode(['data' => Coerce::linkage($target)], \JSON_THROW_ON_ERROR),
         ));
     }
@@ -3548,6 +3969,14 @@ final class ArticleHandle
     public function editor(): ArticleEditorRelation
     {
         return new ArticleEditorRelation($this->fetcher, $this->id);
+    }
+
+    /**
+     * The `formerAuthor` relationship, a to-one whose endpoint advertises `set()`.
+     */
+    public function formerAuthor(): ArticleFormerAuthorRelation
+    {
+        return new ArticleFormerAuthorRelation($this->fetcher, $this->id);
     }
 
     /**
@@ -4164,6 +4593,18 @@ final class ArticleQuery extends Query
     }
 
     /**
+     * Filter by `state`.
+     *
+     * @return static
+     *
+     * @deprecated
+     */
+    public function whereState(string $value): static
+    {
+        return $this->filtering(['state' => $value]);
+    }
+
+    /**
      * The typed array door: values are checked statically, nested ones included, and names at
      * runtime.
      *
@@ -4195,7 +4636,8 @@ final class ArticleQuery extends Query
 
     /**
      * Sort by the endpoint's own tokens, in precedence order. Argument order is precedence, so
-     * nothing is translated between the call and the wire.
+     * nothing is translated between the call and the wire. The server marks the `length` sort
+     * deprecated.
      *
      * @param ArticleSortToken ...$tokens
      *
@@ -4207,7 +4649,62 @@ final class ArticleQuery extends Query
     }
 
     /**
+     * Sort by a key of the `legacy` family: `legacy.` then a suffix matching `[^,]+`. The server
+     * marks this family deprecated.
+     *
+     * @return static
+     *
+     * @throws UnknownSortException when the key does not match the family's pattern
+     *
+     * @deprecated
+     */
+    public function sortByLegacy(string $suffix, bool $descending = false): static
+    {
+        $token = ($descending ? '-' : '') . 'legacy.' . $suffix;
+        if (\preg_match(Article::SORT_FAMILIES['legacy'], $token) !== 1) {
+            throw UnknownSortException::for($token, Article::SORT_TOKENS);
+        }
+
+        return $this->sorting([$token]);
+    }
+
+    /**
+     * Sort by a key of the `meta` family: `meta.` then a suffix matching `[a-z][a-z_]*`.
+     *
+     * @return static
+     *
+     * @throws UnknownSortException when the key does not match the family's pattern
+     */
+    public function sortByMeta(string $suffix, bool $descending = false): static
+    {
+        $token = ($descending ? '-' : '') . 'meta.' . $suffix;
+        if (\preg_match(Article::SORT_FAMILIES['meta'], $token) !== 1) {
+            throw UnknownSortException::for($token, Article::SORT_TOKENS);
+        }
+
+        return $this->sorting([$token]);
+    }
+
+    /**
+     * Sort by a key of the `custom.fields` family: `custom.fields.` then a suffix matching `[^,]+`.
+     *
+     * @return static
+     *
+     * @throws UnknownSortException when the key does not match the family's pattern
+     */
+    public function sortByCustomFields(string $suffix, bool $descending = false): static
+    {
+        $token = ($descending ? '-' : '') . 'custom.fields.' . $suffix;
+        if (\preg_match(Article::SORT_FAMILIES['custom.fields'], $token) !== 1) {
+            throw UnknownSortException::for($token, Article::SORT_TOKENS);
+        }
+
+        return $this->sorting([$token]);
+    }
+
+    /**
      * The loose sort door, for tokens assembled at runtime, which a literal union can never accept.
+     * A key of one of the endpoint's sort families is accepted too.
      *
      * @param list<string> $tokens
      *
@@ -4218,9 +4715,16 @@ final class ArticleQuery extends Query
     public function sortRaw(array $tokens): static
     {
         foreach ($tokens as $token) {
-            if (!\in_array($token, Article::SORT_TOKENS, true)) {
-                throw UnknownSortException::for($token, Article::SORT_TOKENS);
+            if (\in_array($token, Article::SORT_TOKENS, true)) {
+                continue;
             }
+            foreach (Article::SORT_FAMILIES as $pattern) {
+                if (\preg_match($pattern, $token) === 1) {
+                    continue 2;
+                }
+            }
+
+            throw UnknownSortException::for($token, Article::SORT_TOKENS);
         }
 
         return $this->sorting($tokens);
@@ -4453,6 +4957,75 @@ final class ArticleReadProjection extends Projection
         }
 
         return ($projection instanceof Projection ? $projection : $projection(self::make()))->toReadQuery();
+    }
+}
+
+/**
+ * The `circle` branch of the `shape` attribute of an `articles` resource, selected by the `radius`
+ * member only it declares.
+ *
+ * @generated from `components.schemas.ArticlesResource`, the `circle` branch of `shape`
+ */
+final class ArticleShapeCircle
+{
+    public function __construct(
+        public readonly int $radius,
+    ) {}
+
+    /**
+     * @param array<string, mixed> $raw
+     */
+    public static function _from(array $raw): self
+    {
+        $radius = $raw['radius'] ?? null;
+
+        $radiusValue = null;
+        if (!\is_int($radius)) {
+            throw MalformedDocument::unexpectedMember('The "shape" attribute of an "articles" resource', 'radius', 'an integer');
+        }
+
+        $radiusValue = $radius;
+
+        return new self($radiusValue);
+    }
+}
+
+/**
+ * The `rectangle` branch of the `shape` attribute of an `articles` resource, selected by the
+ * `width` and `height` members only it declares.
+ *
+ * @generated from `components.schemas.ArticlesResource`, the `rectangle` branch of `shape`
+ */
+final class ArticleShapeRectangle
+{
+    public function __construct(
+        public readonly int $width,
+        public readonly int $height,
+    ) {}
+
+    /**
+     * @param array<string, mixed> $raw
+     */
+    public static function _from(array $raw): self
+    {
+        $width = $raw['width'] ?? null;
+        $height = $raw['height'] ?? null;
+
+        $widthValue = null;
+        if (!\is_int($width)) {
+            throw MalformedDocument::unexpectedMember('The "shape" attribute of an "articles" resource', 'width', 'an integer');
+        }
+
+        $widthValue = $width;
+
+        $heightValue = null;
+        if (!\is_int($height)) {
+            throw MalformedDocument::unexpectedMember('The "shape" attribute of an "articles" resource', 'height', 'an integer');
+        }
+
+        $heightValue = $height;
+
+        return new self($widthValue, $heightValue);
     }
 }
 
@@ -4732,6 +5305,87 @@ final class ArticleSponsorsRelation
             'images' => Image::_hydrate($raw, $context),
             default => throw MalformedDocument::unexpectedMember('The related resource', 'type', 'one of "people", "images"'),
         };
+    }
+}
+
+/**
+ * The `find_replace` branch of the `steps` attribute of an `articles` resource, selected by
+ * `operation`.
+ *
+ * @generated from `components.schemas.ArticlesResource`, the `find_replace` branch of `steps`
+ */
+final class ArticleStepsFindReplace
+{
+    /**
+     * The `operation` value that selects this branch.
+     */
+    public const string OPERATION = 'find_replace';
+
+    /**
+     * @param array{find: string, replace: string}|null $params
+     */
+    public function __construct(
+        public readonly ?array $params,
+    ) {}
+
+    /**
+     * @param array<string, mixed> $raw
+     */
+    public static function _from(array $raw): self
+    {
+        $params = $raw['params'] ?? null;
+
+        $paramsValue = null;
+        if ($params === null) {
+            $paramsValue = null;
+        } else {
+            if (!\is_array($params)) {
+                throw MalformedDocument::unexpectedMember('The "steps" attribute of an "articles" resource', 'params', 'an object');
+            }
+
+            $paramsShape = [];
+            $paramsFind = $params['find'] ?? null;
+            $paramsReplace = $params['replace'] ?? null;
+
+            if (!\is_string($paramsFind)) {
+                throw MalformedDocument::unexpectedMember('The "steps" attribute of an "articles" resource', 'find', 'a string');
+            }
+
+            $paramsShape['find'] = $paramsFind;
+
+            if (!\is_string($paramsReplace)) {
+                throw MalformedDocument::unexpectedMember('The "steps" attribute of an "articles" resource', 'replace', 'a string');
+            }
+
+            $paramsShape['replace'] = $paramsReplace;
+
+            $paramsValue = $paramsShape;
+        }
+
+        return new self($paramsValue);
+    }
+}
+
+/**
+ * The `trim` branch of the `steps` attribute of an `articles` resource, selected by `operation`.
+ *
+ * @generated from `components.schemas.ArticlesResource`, the `trim` branch of `steps`
+ */
+final class ArticleStepsTrim
+{
+    /**
+     * The `operation` value that selects this branch.
+     */
+    public const string OPERATION = 'trim';
+
+    public function __construct() {}
+
+    /**
+     * @param array<string, mixed> $raw
+     */
+    public static function _from(array $raw): self
+    {
+        return new self();
     }
 }
 
@@ -5342,7 +5996,10 @@ final class ArticleUpdate implements UpdateInput
      * @param array<string, mixed>|Missing|null $analytics
      * @param array{street?: non-empty-string, city?: string}|Missing $address
      * @param array{text?: non-empty-string, kind?: string}|array{src?: string, kind?: string}|Missing $block
+     * @param array{radius: int}|array{width: int, height: int}|Missing|null $shape
      * @param array{firstName?: string, nickname?: string, pin?: string, phone?: string, geo?: array{lat?: int}}|Missing|null $contact
+     * @param list<array{href: non-empty-string, retrievedAt?: string}>|Missing $sources
+     * @param list<array{operation: string}|array{params?: array{find?: string, replace?: string}, operation: string}>|Missing $steps
      * @param Created<PeopleBase>|Identifier|People|Missing|null $author
      * @param list<Created<TagBase>|Identifier|Tag>|Missing $tags
      * @param Created<PeopleBase>|Identifier|People|Missing|null $publisher
@@ -5354,6 +6011,7 @@ final class ArticleUpdate implements UpdateInput
      * @param list<Created<ImageBase>|Created<PeopleBase>|Identifier|Image|People>|Missing $sponsors
      * @param Created<PeopleBase>|Identifier|People|Missing|null $subject
      * @param list<Created<ImageBase>|Identifier|Image>|Missing $gallery
+     * @param Created<PeopleBase>|Identifier|People|Missing|null $formerAuthor
      *
      * @phpstan-pure
      */
@@ -5379,9 +6037,13 @@ final class ArticleUpdate implements UpdateInput
         public readonly array|Missing|null $analytics = Missing::Value,
         public readonly array|Missing $address = Missing::Value,
         public readonly array|Missing $block = Missing::Value,
+        public readonly array|Missing|null $shape = Missing::Value,
         public readonly array|Missing|null $contact = Missing::Value,
         public readonly string|Missing $authorName = Missing::Value,
         public readonly int|Missing $score = Missing::Value,
+        public readonly array|Missing $sources = Missing::Value,
+        public readonly array|Missing $steps = Missing::Value,
+        public readonly string|Missing $subtitle = Missing::Value,
         public readonly Created|Identifier|People|Missing|null $author = Missing::Value,
         public readonly array|Missing $tags = Missing::Value,
         public readonly Created|Identifier|People|Missing|null $publisher = Missing::Value,
@@ -5393,6 +6055,7 @@ final class ArticleUpdate implements UpdateInput
         public readonly array|Missing $sponsors = Missing::Value,
         public readonly Created|Identifier|People|Missing|null $subject = Missing::Value,
         public readonly array|Missing $gallery = Missing::Value,
+        public readonly Created|Identifier|People|Missing|null $formerAuthor = Missing::Value,
     ) {}
 
     /**
@@ -5426,9 +6089,13 @@ final class ArticleUpdate implements UpdateInput
             analytics: $this->analytics,
             address: $this->address,
             block: $this->block,
+            shape: $this->shape,
             contact: $this->contact,
             authorName: $this->authorName,
             score: $this->score,
+            sources: $this->sources,
+            steps: $this->steps,
+            subtitle: $this->subtitle,
             author: $this->author,
             tags: $this->tags,
             publisher: $this->publisher,
@@ -5440,6 +6107,7 @@ final class ArticleUpdate implements UpdateInput
             sponsors: $this->sponsors,
             subject: $this->subject,
             gallery: $this->gallery,
+            formerAuthor: $this->formerAuthor,
         );
     }
 
@@ -5472,9 +6140,13 @@ final class ArticleUpdate implements UpdateInput
             analytics: $this->analytics,
             address: $this->address,
             block: $this->block,
+            shape: $this->shape,
             contact: $this->contact,
             authorName: $this->authorName,
             score: $this->score,
+            sources: $this->sources,
+            steps: $this->steps,
+            subtitle: $this->subtitle,
             author: $this->author,
             tags: $this->tags,
             publisher: $this->publisher,
@@ -5486,6 +6158,7 @@ final class ArticleUpdate implements UpdateInput
             sponsors: $this->sponsors,
             subject: $this->subject,
             gallery: $this->gallery,
+            formerAuthor: $this->formerAuthor,
         );
     }
 
@@ -5516,9 +6189,13 @@ final class ArticleUpdate implements UpdateInput
             analytics: $this->analytics,
             address: $this->address,
             block: $this->block,
+            shape: $this->shape,
             contact: $this->contact,
             authorName: $this->authorName,
             score: $this->score,
+            sources: $this->sources,
+            steps: $this->steps,
+            subtitle: $this->subtitle,
             author: $this->author,
             tags: $this->tags,
             publisher: $this->publisher,
@@ -5530,6 +6207,7 @@ final class ArticleUpdate implements UpdateInput
             sponsors: $this->sponsors,
             subject: $this->subject,
             gallery: $this->gallery,
+            formerAuthor: $this->formerAuthor,
         );
     }
 
@@ -5560,9 +6238,13 @@ final class ArticleUpdate implements UpdateInput
             analytics: $this->analytics,
             address: $this->address,
             block: $this->block,
+            shape: $this->shape,
             contact: $this->contact,
             authorName: $this->authorName,
             score: $this->score,
+            sources: $this->sources,
+            steps: $this->steps,
+            subtitle: $this->subtitle,
             author: $this->author,
             tags: $this->tags,
             publisher: $this->publisher,
@@ -5574,6 +6256,7 @@ final class ArticleUpdate implements UpdateInput
             sponsors: $this->sponsors,
             subject: $this->subject,
             gallery: $this->gallery,
+            formerAuthor: $this->formerAuthor,
         );
     }
 
@@ -5608,9 +6291,13 @@ final class ArticleUpdate implements UpdateInput
             analytics: $this->analytics,
             address: $this->address,
             block: $this->block,
+            shape: $this->shape,
             contact: $this->contact,
             authorName: $this->authorName,
             score: $this->score,
+            sources: $this->sources,
+            steps: $this->steps,
+            subtitle: $this->subtitle,
             author: $this->author,
             tags: $this->tags,
             publisher: $this->publisher,
@@ -5622,6 +6309,7 @@ final class ArticleUpdate implements UpdateInput
             sponsors: $this->sponsors,
             subject: $this->subject,
             gallery: $this->gallery,
+            formerAuthor: $this->formerAuthor,
         );
     }
 
@@ -5654,9 +6342,13 @@ final class ArticleUpdate implements UpdateInput
             analytics: $this->analytics,
             address: $this->address,
             block: $this->block,
+            shape: $this->shape,
             contact: $this->contact,
             authorName: $this->authorName,
             score: $this->score,
+            sources: $this->sources,
+            steps: $this->steps,
+            subtitle: $this->subtitle,
             author: $this->author,
             tags: $this->tags,
             publisher: $this->publisher,
@@ -5668,6 +6360,7 @@ final class ArticleUpdate implements UpdateInput
             sponsors: $this->sponsors,
             subject: $this->subject,
             gallery: $this->gallery,
+            formerAuthor: $this->formerAuthor,
         );
     }
 
@@ -5698,9 +6391,13 @@ final class ArticleUpdate implements UpdateInput
             analytics: $this->analytics,
             address: $this->address,
             block: $this->block,
+            shape: $this->shape,
             contact: $this->contact,
             authorName: $this->authorName,
             score: $this->score,
+            sources: $this->sources,
+            steps: $this->steps,
+            subtitle: $this->subtitle,
             author: $this->author,
             tags: $this->tags,
             publisher: $this->publisher,
@@ -5712,6 +6409,7 @@ final class ArticleUpdate implements UpdateInput
             sponsors: $this->sponsors,
             subject: $this->subject,
             gallery: $this->gallery,
+            formerAuthor: $this->formerAuthor,
         );
     }
 
@@ -5742,9 +6440,13 @@ final class ArticleUpdate implements UpdateInput
             analytics: $this->analytics,
             address: $this->address,
             block: $this->block,
+            shape: $this->shape,
             contact: $this->contact,
             authorName: $this->authorName,
             score: $this->score,
+            sources: $this->sources,
+            steps: $this->steps,
+            subtitle: $this->subtitle,
             author: $this->author,
             tags: $this->tags,
             publisher: $this->publisher,
@@ -5756,6 +6458,7 @@ final class ArticleUpdate implements UpdateInput
             sponsors: $this->sponsors,
             subject: $this->subject,
             gallery: $this->gallery,
+            formerAuthor: $this->formerAuthor,
         );
     }
 
@@ -5786,9 +6489,13 @@ final class ArticleUpdate implements UpdateInput
             analytics: $this->analytics,
             address: $this->address,
             block: $this->block,
+            shape: $this->shape,
             contact: $this->contact,
             authorName: $this->authorName,
             score: $this->score,
+            sources: $this->sources,
+            steps: $this->steps,
+            subtitle: $this->subtitle,
             author: $this->author,
             tags: $this->tags,
             publisher: $this->publisher,
@@ -5800,6 +6507,7 @@ final class ArticleUpdate implements UpdateInput
             sponsors: $this->sponsors,
             subject: $this->subject,
             gallery: $this->gallery,
+            formerAuthor: $this->formerAuthor,
         );
     }
 
@@ -5830,9 +6538,13 @@ final class ArticleUpdate implements UpdateInput
             analytics: $this->analytics,
             address: $this->address,
             block: $this->block,
+            shape: $this->shape,
             contact: $this->contact,
             authorName: $this->authorName,
             score: $this->score,
+            sources: $this->sources,
+            steps: $this->steps,
+            subtitle: $this->subtitle,
             author: $this->author,
             tags: $this->tags,
             publisher: $this->publisher,
@@ -5844,6 +6556,7 @@ final class ArticleUpdate implements UpdateInput
             sponsors: $this->sponsors,
             subject: $this->subject,
             gallery: $this->gallery,
+            formerAuthor: $this->formerAuthor,
         );
     }
 
@@ -5874,9 +6587,13 @@ final class ArticleUpdate implements UpdateInput
             analytics: $this->analytics,
             address: $this->address,
             block: $this->block,
+            shape: $this->shape,
             contact: $this->contact,
             authorName: $this->authorName,
             score: $this->score,
+            sources: $this->sources,
+            steps: $this->steps,
+            subtitle: $this->subtitle,
             author: $this->author,
             tags: $this->tags,
             publisher: $this->publisher,
@@ -5888,6 +6605,7 @@ final class ArticleUpdate implements UpdateInput
             sponsors: $this->sponsors,
             subject: $this->subject,
             gallery: $this->gallery,
+            formerAuthor: $this->formerAuthor,
         );
     }
 
@@ -5918,9 +6636,13 @@ final class ArticleUpdate implements UpdateInput
             analytics: $this->analytics,
             address: $this->address,
             block: $this->block,
+            shape: $this->shape,
             contact: $this->contact,
             authorName: $this->authorName,
             score: $this->score,
+            sources: $this->sources,
+            steps: $this->steps,
+            subtitle: $this->subtitle,
             author: $this->author,
             tags: $this->tags,
             publisher: $this->publisher,
@@ -5932,6 +6654,7 @@ final class ArticleUpdate implements UpdateInput
             sponsors: $this->sponsors,
             subject: $this->subject,
             gallery: $this->gallery,
+            formerAuthor: $this->formerAuthor,
         );
     }
 
@@ -5964,9 +6687,13 @@ final class ArticleUpdate implements UpdateInput
             analytics: $this->analytics,
             address: $this->address,
             block: $this->block,
+            shape: $this->shape,
             contact: $this->contact,
             authorName: $this->authorName,
             score: $this->score,
+            sources: $this->sources,
+            steps: $this->steps,
+            subtitle: $this->subtitle,
             author: $this->author,
             tags: $this->tags,
             publisher: $this->publisher,
@@ -5978,6 +6705,7 @@ final class ArticleUpdate implements UpdateInput
             sponsors: $this->sponsors,
             subject: $this->subject,
             gallery: $this->gallery,
+            formerAuthor: $this->formerAuthor,
         );
     }
 
@@ -6010,9 +6738,13 @@ final class ArticleUpdate implements UpdateInput
             analytics: $this->analytics,
             address: $this->address,
             block: $this->block,
+            shape: $this->shape,
             contact: $this->contact,
             authorName: $this->authorName,
             score: $this->score,
+            sources: $this->sources,
+            steps: $this->steps,
+            subtitle: $this->subtitle,
             author: $this->author,
             tags: $this->tags,
             publisher: $this->publisher,
@@ -6024,6 +6756,7 @@ final class ArticleUpdate implements UpdateInput
             sponsors: $this->sponsors,
             subject: $this->subject,
             gallery: $this->gallery,
+            formerAuthor: $this->formerAuthor,
         );
     }
 
@@ -6054,9 +6787,13 @@ final class ArticleUpdate implements UpdateInput
             analytics: $this->analytics,
             address: $this->address,
             block: $this->block,
+            shape: $this->shape,
             contact: $this->contact,
             authorName: $this->authorName,
             score: $this->score,
+            sources: $this->sources,
+            steps: $this->steps,
+            subtitle: $this->subtitle,
             author: $this->author,
             tags: $this->tags,
             publisher: $this->publisher,
@@ -6068,6 +6805,7 @@ final class ArticleUpdate implements UpdateInput
             sponsors: $this->sponsors,
             subject: $this->subject,
             gallery: $this->gallery,
+            formerAuthor: $this->formerAuthor,
         );
     }
 
@@ -6098,9 +6836,13 @@ final class ArticleUpdate implements UpdateInput
             analytics: $this->analytics,
             address: $this->address,
             block: $this->block,
+            shape: $this->shape,
             contact: $this->contact,
             authorName: $this->authorName,
             score: $this->score,
+            sources: $this->sources,
+            steps: $this->steps,
+            subtitle: $this->subtitle,
             author: $this->author,
             tags: $this->tags,
             publisher: $this->publisher,
@@ -6112,6 +6854,7 @@ final class ArticleUpdate implements UpdateInput
             sponsors: $this->sponsors,
             subject: $this->subject,
             gallery: $this->gallery,
+            formerAuthor: $this->formerAuthor,
         );
     }
 
@@ -6142,9 +6885,13 @@ final class ArticleUpdate implements UpdateInput
             analytics: $this->analytics,
             address: $this->address,
             block: $this->block,
+            shape: $this->shape,
             contact: $this->contact,
             authorName: $this->authorName,
             score: $this->score,
+            sources: $this->sources,
+            steps: $this->steps,
+            subtitle: $this->subtitle,
             author: $this->author,
             tags: $this->tags,
             publisher: $this->publisher,
@@ -6156,6 +6903,7 @@ final class ArticleUpdate implements UpdateInput
             sponsors: $this->sponsors,
             subject: $this->subject,
             gallery: $this->gallery,
+            formerAuthor: $this->formerAuthor,
         );
     }
 
@@ -6190,9 +6938,13 @@ final class ArticleUpdate implements UpdateInput
             analytics: $this->analytics,
             address: $this->address,
             block: $this->block,
+            shape: $this->shape,
             contact: $this->contact,
             authorName: $this->authorName,
             score: $this->score,
+            sources: $this->sources,
+            steps: $this->steps,
+            subtitle: $this->subtitle,
             author: $this->author,
             tags: $this->tags,
             publisher: $this->publisher,
@@ -6204,6 +6956,7 @@ final class ArticleUpdate implements UpdateInput
             sponsors: $this->sponsors,
             subject: $this->subject,
             gallery: $this->gallery,
+            formerAuthor: $this->formerAuthor,
         );
     }
 
@@ -6236,9 +6989,13 @@ final class ArticleUpdate implements UpdateInput
             analytics: $analytics,
             address: $this->address,
             block: $this->block,
+            shape: $this->shape,
             contact: $this->contact,
             authorName: $this->authorName,
             score: $this->score,
+            sources: $this->sources,
+            steps: $this->steps,
+            subtitle: $this->subtitle,
             author: $this->author,
             tags: $this->tags,
             publisher: $this->publisher,
@@ -6250,6 +7007,7 @@ final class ArticleUpdate implements UpdateInput
             sponsors: $this->sponsors,
             subject: $this->subject,
             gallery: $this->gallery,
+            formerAuthor: $this->formerAuthor,
         );
     }
 
@@ -6282,9 +7040,13 @@ final class ArticleUpdate implements UpdateInput
             analytics: $this->analytics,
             address: $address,
             block: $this->block,
+            shape: $this->shape,
             contact: $this->contact,
             authorName: $this->authorName,
             score: $this->score,
+            sources: $this->sources,
+            steps: $this->steps,
+            subtitle: $this->subtitle,
             author: $this->author,
             tags: $this->tags,
             publisher: $this->publisher,
@@ -6296,6 +7058,7 @@ final class ArticleUpdate implements UpdateInput
             sponsors: $this->sponsors,
             subject: $this->subject,
             gallery: $this->gallery,
+            formerAuthor: $this->formerAuthor,
         );
     }
 
@@ -6328,9 +7091,13 @@ final class ArticleUpdate implements UpdateInput
             analytics: $this->analytics,
             address: $this->address,
             block: $block,
+            shape: $this->shape,
             contact: $this->contact,
             authorName: $this->authorName,
             score: $this->score,
+            sources: $this->sources,
+            steps: $this->steps,
+            subtitle: $this->subtitle,
             author: $this->author,
             tags: $this->tags,
             publisher: $this->publisher,
@@ -6342,6 +7109,58 @@ final class ArticleUpdate implements UpdateInput
             sponsors: $this->sponsors,
             subject: $this->subject,
             gallery: $this->gallery,
+            formerAuthor: $this->formerAuthor,
+        );
+    }
+
+    /**
+     * @param array{radius: int}|array{width: int, height: int}|null $shape
+     *
+     * @phpstan-pure
+     */
+    public function shape(?array $shape): self
+    {
+        return new self(
+            title: $this->title,
+            slug: $this->slug,
+            status: $this->status,
+            priority: $this->priority,
+            wordCount: $this->wordCount,
+            rating: $this->rating,
+            featured: $this->featured,
+            releasedOn: $this->releasedOn,
+            publishedAt: $this->publishedAt,
+            syncedAt: $this->syncedAt,
+            archivedAt: $this->archivedAt,
+            embargoLifts: $this->embargoLifts,
+            editorEmail: $this->editorEmail,
+            canonicalUrl: $this->canonicalUrl,
+            excerpt: $this->excerpt,
+            reviewNote: $this->reviewNote,
+            originIp: $this->originIp,
+            keywords: $this->keywords,
+            analytics: $this->analytics,
+            address: $this->address,
+            block: $this->block,
+            shape: $shape,
+            contact: $this->contact,
+            authorName: $this->authorName,
+            score: $this->score,
+            sources: $this->sources,
+            steps: $this->steps,
+            subtitle: $this->subtitle,
+            author: $this->author,
+            tags: $this->tags,
+            publisher: $this->publisher,
+            cover: $this->cover,
+            attachments: $this->attachments,
+            reviewer: $this->reviewer,
+            watchers: $this->watchers,
+            editor: $this->editor,
+            sponsors: $this->sponsors,
+            subject: $this->subject,
+            gallery: $this->gallery,
+            formerAuthor: $this->formerAuthor,
         );
     }
 
@@ -6374,9 +7193,13 @@ final class ArticleUpdate implements UpdateInput
             analytics: $this->analytics,
             address: $this->address,
             block: $this->block,
+            shape: $this->shape,
             contact: $contact,
             authorName: $this->authorName,
             score: $this->score,
+            sources: $this->sources,
+            steps: $this->steps,
+            subtitle: $this->subtitle,
             author: $this->author,
             tags: $this->tags,
             publisher: $this->publisher,
@@ -6388,6 +7211,7 @@ final class ArticleUpdate implements UpdateInput
             sponsors: $this->sponsors,
             subject: $this->subject,
             gallery: $this->gallery,
+            formerAuthor: $this->formerAuthor,
         );
     }
 
@@ -6418,9 +7242,13 @@ final class ArticleUpdate implements UpdateInput
             analytics: $this->analytics,
             address: $this->address,
             block: $this->block,
+            shape: $this->shape,
             contact: $this->contact,
             authorName: $authorName,
             score: $this->score,
+            sources: $this->sources,
+            steps: $this->steps,
+            subtitle: $this->subtitle,
             author: $this->author,
             tags: $this->tags,
             publisher: $this->publisher,
@@ -6432,6 +7260,7 @@ final class ArticleUpdate implements UpdateInput
             sponsors: $this->sponsors,
             subject: $this->subject,
             gallery: $this->gallery,
+            formerAuthor: $this->formerAuthor,
         );
     }
 
@@ -6462,9 +7291,13 @@ final class ArticleUpdate implements UpdateInput
             analytics: $this->analytics,
             address: $this->address,
             block: $this->block,
+            shape: $this->shape,
             contact: $this->contact,
             authorName: $this->authorName,
             score: $score,
+            sources: $this->sources,
+            steps: $this->steps,
+            subtitle: $this->subtitle,
             author: $this->author,
             tags: $this->tags,
             publisher: $this->publisher,
@@ -6476,6 +7309,164 @@ final class ArticleUpdate implements UpdateInput
             sponsors: $this->sponsors,
             subject: $this->subject,
             gallery: $this->gallery,
+            formerAuthor: $this->formerAuthor,
+        );
+    }
+
+    /**
+     * At most 5 items.
+     *
+     * @param list<array{href: non-empty-string, retrievedAt?: string}> $sources
+     *
+     * @phpstan-pure
+     */
+    public function sources(array $sources): self
+    {
+        return new self(
+            title: $this->title,
+            slug: $this->slug,
+            status: $this->status,
+            priority: $this->priority,
+            wordCount: $this->wordCount,
+            rating: $this->rating,
+            featured: $this->featured,
+            releasedOn: $this->releasedOn,
+            publishedAt: $this->publishedAt,
+            syncedAt: $this->syncedAt,
+            archivedAt: $this->archivedAt,
+            embargoLifts: $this->embargoLifts,
+            editorEmail: $this->editorEmail,
+            canonicalUrl: $this->canonicalUrl,
+            excerpt: $this->excerpt,
+            reviewNote: $this->reviewNote,
+            originIp: $this->originIp,
+            keywords: $this->keywords,
+            analytics: $this->analytics,
+            address: $this->address,
+            block: $this->block,
+            shape: $this->shape,
+            contact: $this->contact,
+            authorName: $this->authorName,
+            score: $this->score,
+            sources: $sources,
+            steps: $this->steps,
+            subtitle: $this->subtitle,
+            author: $this->author,
+            tags: $this->tags,
+            publisher: $this->publisher,
+            cover: $this->cover,
+            attachments: $this->attachments,
+            reviewer: $this->reviewer,
+            watchers: $this->watchers,
+            editor: $this->editor,
+            sponsors: $this->sponsors,
+            subject: $this->subject,
+            gallery: $this->gallery,
+            formerAuthor: $this->formerAuthor,
+        );
+    }
+
+    /**
+     * At most 50 items.
+     *
+     * @param list<array{operation: string}|array{params?: array{find?: string, replace?: string}, operation: string}> $steps
+     *
+     * @phpstan-pure
+     */
+    public function steps(array $steps): self
+    {
+        return new self(
+            title: $this->title,
+            slug: $this->slug,
+            status: $this->status,
+            priority: $this->priority,
+            wordCount: $this->wordCount,
+            rating: $this->rating,
+            featured: $this->featured,
+            releasedOn: $this->releasedOn,
+            publishedAt: $this->publishedAt,
+            syncedAt: $this->syncedAt,
+            archivedAt: $this->archivedAt,
+            embargoLifts: $this->embargoLifts,
+            editorEmail: $this->editorEmail,
+            canonicalUrl: $this->canonicalUrl,
+            excerpt: $this->excerpt,
+            reviewNote: $this->reviewNote,
+            originIp: $this->originIp,
+            keywords: $this->keywords,
+            analytics: $this->analytics,
+            address: $this->address,
+            block: $this->block,
+            shape: $this->shape,
+            contact: $this->contact,
+            authorName: $this->authorName,
+            score: $this->score,
+            sources: $this->sources,
+            steps: $steps,
+            subtitle: $this->subtitle,
+            author: $this->author,
+            tags: $this->tags,
+            publisher: $this->publisher,
+            cover: $this->cover,
+            attachments: $this->attachments,
+            reviewer: $this->reviewer,
+            watchers: $this->watchers,
+            editor: $this->editor,
+            sponsors: $this->sponsors,
+            subject: $this->subject,
+            gallery: $this->gallery,
+            formerAuthor: $this->formerAuthor,
+        );
+    }
+
+    /**
+     * @phpstan-pure
+     *
+     * @deprecated
+     */
+    public function subtitle(string $subtitle): self
+    {
+        return new self(
+            title: $this->title,
+            slug: $this->slug,
+            status: $this->status,
+            priority: $this->priority,
+            wordCount: $this->wordCount,
+            rating: $this->rating,
+            featured: $this->featured,
+            releasedOn: $this->releasedOn,
+            publishedAt: $this->publishedAt,
+            syncedAt: $this->syncedAt,
+            archivedAt: $this->archivedAt,
+            embargoLifts: $this->embargoLifts,
+            editorEmail: $this->editorEmail,
+            canonicalUrl: $this->canonicalUrl,
+            excerpt: $this->excerpt,
+            reviewNote: $this->reviewNote,
+            originIp: $this->originIp,
+            keywords: $this->keywords,
+            analytics: $this->analytics,
+            address: $this->address,
+            block: $this->block,
+            shape: $this->shape,
+            contact: $this->contact,
+            authorName: $this->authorName,
+            score: $this->score,
+            sources: $this->sources,
+            steps: $this->steps,
+            subtitle: $subtitle,
+            author: $this->author,
+            tags: $this->tags,
+            publisher: $this->publisher,
+            cover: $this->cover,
+            attachments: $this->attachments,
+            reviewer: $this->reviewer,
+            watchers: $this->watchers,
+            editor: $this->editor,
+            sponsors: $this->sponsors,
+            subject: $this->subject,
+            gallery: $this->gallery,
+            formerAuthor: $this->formerAuthor,
         );
     }
 
@@ -6508,9 +7499,13 @@ final class ArticleUpdate implements UpdateInput
             analytics: $this->analytics,
             address: $this->address,
             block: $this->block,
+            shape: $this->shape,
             contact: $this->contact,
             authorName: $this->authorName,
             score: $this->score,
+            sources: $this->sources,
+            steps: $this->steps,
+            subtitle: $this->subtitle,
             author: $author,
             tags: $this->tags,
             publisher: $this->publisher,
@@ -6522,6 +7517,7 @@ final class ArticleUpdate implements UpdateInput
             sponsors: $this->sponsors,
             subject: $this->subject,
             gallery: $this->gallery,
+            formerAuthor: $this->formerAuthor,
         );
     }
 
@@ -6554,9 +7550,13 @@ final class ArticleUpdate implements UpdateInput
             analytics: $this->analytics,
             address: $this->address,
             block: $this->block,
+            shape: $this->shape,
             contact: $this->contact,
             authorName: $this->authorName,
             score: $this->score,
+            sources: $this->sources,
+            steps: $this->steps,
+            subtitle: $this->subtitle,
             author: $this->author,
             tags: $tags,
             publisher: $this->publisher,
@@ -6568,6 +7568,7 @@ final class ArticleUpdate implements UpdateInput
             sponsors: $this->sponsors,
             subject: $this->subject,
             gallery: $this->gallery,
+            formerAuthor: $this->formerAuthor,
         );
     }
 
@@ -6600,9 +7601,13 @@ final class ArticleUpdate implements UpdateInput
             analytics: $this->analytics,
             address: $this->address,
             block: $this->block,
+            shape: $this->shape,
             contact: $this->contact,
             authorName: $this->authorName,
             score: $this->score,
+            sources: $this->sources,
+            steps: $this->steps,
+            subtitle: $this->subtitle,
             author: $this->author,
             tags: $this->tags,
             publisher: $publisher,
@@ -6614,6 +7619,7 @@ final class ArticleUpdate implements UpdateInput
             sponsors: $this->sponsors,
             subject: $this->subject,
             gallery: $this->gallery,
+            formerAuthor: $this->formerAuthor,
         );
     }
 
@@ -6646,9 +7652,13 @@ final class ArticleUpdate implements UpdateInput
             analytics: $this->analytics,
             address: $this->address,
             block: $this->block,
+            shape: $this->shape,
             contact: $this->contact,
             authorName: $this->authorName,
             score: $this->score,
+            sources: $this->sources,
+            steps: $this->steps,
+            subtitle: $this->subtitle,
             author: $this->author,
             tags: $this->tags,
             publisher: $this->publisher,
@@ -6660,6 +7670,7 @@ final class ArticleUpdate implements UpdateInput
             sponsors: $this->sponsors,
             subject: $this->subject,
             gallery: $this->gallery,
+            formerAuthor: $this->formerAuthor,
         );
     }
 
@@ -6692,9 +7703,13 @@ final class ArticleUpdate implements UpdateInput
             analytics: $this->analytics,
             address: $this->address,
             block: $this->block,
+            shape: $this->shape,
             contact: $this->contact,
             authorName: $this->authorName,
             score: $this->score,
+            sources: $this->sources,
+            steps: $this->steps,
+            subtitle: $this->subtitle,
             author: $this->author,
             tags: $this->tags,
             publisher: $this->publisher,
@@ -6706,6 +7721,7 @@ final class ArticleUpdate implements UpdateInput
             sponsors: $this->sponsors,
             subject: $this->subject,
             gallery: $this->gallery,
+            formerAuthor: $this->formerAuthor,
         );
     }
 
@@ -6738,9 +7754,13 @@ final class ArticleUpdate implements UpdateInput
             analytics: $this->analytics,
             address: $this->address,
             block: $this->block,
+            shape: $this->shape,
             contact: $this->contact,
             authorName: $this->authorName,
             score: $this->score,
+            sources: $this->sources,
+            steps: $this->steps,
+            subtitle: $this->subtitle,
             author: $this->author,
             tags: $this->tags,
             publisher: $this->publisher,
@@ -6752,6 +7772,7 @@ final class ArticleUpdate implements UpdateInput
             sponsors: $this->sponsors,
             subject: $this->subject,
             gallery: $this->gallery,
+            formerAuthor: $this->formerAuthor,
         );
     }
 
@@ -6784,9 +7805,13 @@ final class ArticleUpdate implements UpdateInput
             analytics: $this->analytics,
             address: $this->address,
             block: $this->block,
+            shape: $this->shape,
             contact: $this->contact,
             authorName: $this->authorName,
             score: $this->score,
+            sources: $this->sources,
+            steps: $this->steps,
+            subtitle: $this->subtitle,
             author: $this->author,
             tags: $this->tags,
             publisher: $this->publisher,
@@ -6798,6 +7823,7 @@ final class ArticleUpdate implements UpdateInput
             sponsors: $this->sponsors,
             subject: $this->subject,
             gallery: $this->gallery,
+            formerAuthor: $this->formerAuthor,
         );
     }
 
@@ -6830,9 +7856,13 @@ final class ArticleUpdate implements UpdateInput
             analytics: $this->analytics,
             address: $this->address,
             block: $this->block,
+            shape: $this->shape,
             contact: $this->contact,
             authorName: $this->authorName,
             score: $this->score,
+            sources: $this->sources,
+            steps: $this->steps,
+            subtitle: $this->subtitle,
             author: $this->author,
             tags: $this->tags,
             publisher: $this->publisher,
@@ -6844,6 +7874,7 @@ final class ArticleUpdate implements UpdateInput
             sponsors: $this->sponsors,
             subject: $this->subject,
             gallery: $this->gallery,
+            formerAuthor: $this->formerAuthor,
         );
     }
 
@@ -6876,9 +7907,13 @@ final class ArticleUpdate implements UpdateInput
             analytics: $this->analytics,
             address: $this->address,
             block: $this->block,
+            shape: $this->shape,
             contact: $this->contact,
             authorName: $this->authorName,
             score: $this->score,
+            sources: $this->sources,
+            steps: $this->steps,
+            subtitle: $this->subtitle,
             author: $this->author,
             tags: $this->tags,
             publisher: $this->publisher,
@@ -6890,6 +7925,7 @@ final class ArticleUpdate implements UpdateInput
             sponsors: $sponsors,
             subject: $this->subject,
             gallery: $this->gallery,
+            formerAuthor: $this->formerAuthor,
         );
     }
 
@@ -6922,9 +7958,13 @@ final class ArticleUpdate implements UpdateInput
             analytics: $this->analytics,
             address: $this->address,
             block: $this->block,
+            shape: $this->shape,
             contact: $this->contact,
             authorName: $this->authorName,
             score: $this->score,
+            sources: $this->sources,
+            steps: $this->steps,
+            subtitle: $this->subtitle,
             author: $this->author,
             tags: $this->tags,
             publisher: $this->publisher,
@@ -6936,6 +7976,7 @@ final class ArticleUpdate implements UpdateInput
             sponsors: $this->sponsors,
             subject: $subject,
             gallery: $this->gallery,
+            formerAuthor: $this->formerAuthor,
         );
     }
 
@@ -6968,9 +8009,13 @@ final class ArticleUpdate implements UpdateInput
             analytics: $this->analytics,
             address: $this->address,
             block: $this->block,
+            shape: $this->shape,
             contact: $this->contact,
             authorName: $this->authorName,
             score: $this->score,
+            sources: $this->sources,
+            steps: $this->steps,
+            subtitle: $this->subtitle,
             author: $this->author,
             tags: $this->tags,
             publisher: $this->publisher,
@@ -6982,6 +8027,60 @@ final class ArticleUpdate implements UpdateInput
             sponsors: $this->sponsors,
             subject: $this->subject,
             gallery: $gallery,
+            formerAuthor: $this->formerAuthor,
+        );
+    }
+
+    /**
+     * @param Created<PeopleBase>|Identifier|People|null $formerAuthor
+     *
+     * @phpstan-pure
+     *
+     * @deprecated
+     */
+    public function formerAuthor(Created|Identifier|People|null $formerAuthor): self
+    {
+        return new self(
+            title: $this->title,
+            slug: $this->slug,
+            status: $this->status,
+            priority: $this->priority,
+            wordCount: $this->wordCount,
+            rating: $this->rating,
+            featured: $this->featured,
+            releasedOn: $this->releasedOn,
+            publishedAt: $this->publishedAt,
+            syncedAt: $this->syncedAt,
+            archivedAt: $this->archivedAt,
+            embargoLifts: $this->embargoLifts,
+            editorEmail: $this->editorEmail,
+            canonicalUrl: $this->canonicalUrl,
+            excerpt: $this->excerpt,
+            reviewNote: $this->reviewNote,
+            originIp: $this->originIp,
+            keywords: $this->keywords,
+            analytics: $this->analytics,
+            address: $this->address,
+            block: $this->block,
+            shape: $this->shape,
+            contact: $this->contact,
+            authorName: $this->authorName,
+            score: $this->score,
+            sources: $this->sources,
+            steps: $this->steps,
+            subtitle: $this->subtitle,
+            author: $this->author,
+            tags: $this->tags,
+            publisher: $this->publisher,
+            cover: $this->cover,
+            attachments: $this->attachments,
+            reviewer: $this->reviewer,
+            watchers: $this->watchers,
+            editor: $this->editor,
+            sponsors: $this->sponsors,
+            subject: $this->subject,
+            gallery: $this->gallery,
+            formerAuthor: $formerAuthor,
         );
     }
 
@@ -7033,9 +8132,13 @@ final class ArticleUpdate implements UpdateInput
             analytics: \array_key_exists('analytics', $input) ? $input['analytics'] : Missing::Value,
             address: \array_key_exists('address', $input) ? $input['address'] : Missing::Value,
             block: \array_key_exists('block', $input) ? $input['block'] : Missing::Value,
+            shape: \array_key_exists('shape', $input) ? $input['shape'] : Missing::Value,
             contact: \array_key_exists('contact', $input) ? $input['contact'] : Missing::Value,
             authorName: \array_key_exists('authorName', $input) ? $input['authorName'] : Missing::Value,
             score: \array_key_exists('score', $input) ? $input['score'] : Missing::Value,
+            sources: \array_key_exists('sources', $input) ? $input['sources'] : Missing::Value,
+            steps: \array_key_exists('steps', $input) ? $input['steps'] : Missing::Value,
+            subtitle: \array_key_exists('subtitle', $input) ? $input['subtitle'] : Missing::Value,
             author: \array_key_exists('author', $input) ? $input['author'] : Missing::Value,
             tags: \array_key_exists('tags', $input) ? $input['tags'] : Missing::Value,
             publisher: \array_key_exists('publisher', $input) ? $input['publisher'] : Missing::Value,
@@ -7047,6 +8150,7 @@ final class ArticleUpdate implements UpdateInput
             sponsors: \array_key_exists('sponsors', $input) ? $input['sponsors'] : Missing::Value,
             subject: \array_key_exists('subject', $input) ? $input['subject'] : Missing::Value,
             gallery: \array_key_exists('gallery', $input) ? $input['gallery'] : Missing::Value,
+            formerAuthor: \array_key_exists('formerAuthor', $input) ? $input['formerAuthor'] : Missing::Value,
         );
     }
 
@@ -7146,6 +8250,10 @@ final class ArticleUpdate implements UpdateInput
             $attributes['block'] = $this->block;
         }
 
+        if (!$this->shape instanceof Missing) {
+            $attributes['shape'] = $this->shape;
+        }
+
         if (!$this->contact instanceof Missing) {
             $attributes['contact'] = $this->contact;
         }
@@ -7156,6 +8264,18 @@ final class ArticleUpdate implements UpdateInput
 
         if (!$this->score instanceof Missing) {
             $attributes['score'] = $this->score;
+        }
+
+        if (!$this->sources instanceof Missing) {
+            $attributes['sources'] = $this->sources;
+        }
+
+        if (!$this->steps instanceof Missing) {
+            $attributes['steps'] = $this->steps;
+        }
+
+        if (!$this->subtitle instanceof Missing) {
+            $attributes['subtitle'] = $this->subtitle;
         }
 
         if ($attributes !== []) {
@@ -7206,6 +8326,10 @@ final class ArticleUpdate implements UpdateInput
 
         if (!$this->gallery instanceof Missing) {
             $relationships['gallery'] = ['data' => Coerce::linkageList($this->gallery)];
+        }
+
+        if (!$this->formerAuthor instanceof Missing) {
+            $relationships['formerAuthor'] = ['data' => Coerce::linkage($this->formerAuthor)];
         }
 
         if ($relationships !== []) {

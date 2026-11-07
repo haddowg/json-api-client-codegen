@@ -41,6 +41,8 @@ final class RelationDescriptor
      * @param array<string, PivotFieldDescriptor> $writePivotFields the `meta.pivot` a write may send, keyed and sorted by field name
      * @param array<string, FilterDescriptor>     $filterable       a to-many's `filter[…]` keys, from its related read, in document order
      * @param list<string>                        $sortable         a to-many's sort tokens, from its related read
+     * @param list<SortFamilyDescriptor>          $sortFamilies     a to-many's families of sort keys, from its related read
+     * @param list<string>                        $deprecatedSorts  the sort keys a to-many's related read marks deprecated, unsigned
      */
     public function __construct(
         public readonly string $name,
@@ -57,6 +59,9 @@ final class RelationDescriptor
         public readonly bool $polymorphic = false,
         public readonly array $filterable = [],
         public readonly array $sortable = [],
+        public readonly array $sortFamilies = [],
+        public readonly bool $deprecated = false,
+        public readonly array $deprecatedSorts = [],
     ) {}
 
     /** False when the related-resources read is suppressed (`withoutRelatedEndpoint()`). */

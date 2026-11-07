@@ -14,7 +14,7 @@
         },
         "version": "3.4.1",
         "x-generator": {
-            "contract": 19
+            "contract": 23
         }
     },
     "servers": [
@@ -183,20 +183,65 @@
                         }
                     },
                     {
+                        "name": "filter[state]",
+                        "in": "query",
+                        "description": "Filter the collection by `state`.",
+                        "deprecated": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
                         "name": "sort",
                         "in": "query",
                         "description": "A comma-separated list of sort fields. Prefix a field with `-` for descending order.",
                         "schema": {
                             "type": "array",
                             "items": {
-                                "type": "string",
-                                "enum": [
-                                    "title",
-                                    "-title",
-                                    "wordCount",
-                                    "-wordCount"
+                                "anyOf": [
+                                    {
+                                        "type": "string",
+                                        "enum": [
+                                            "title",
+                                            "-title",
+                                            "wordCount",
+                                            "-wordCount",
+                                            "length",
+                                            "-length"
+                                        ]
+                                    },
+                                    {
+                                        "type": "string",
+                                        "pattern": "^-?legacy\\.(?:[^,]+)$"
+                                    },
+                                    {
+                                        "type": "string",
+                                        "pattern": "^-?meta\\.(?:[a-z][a-z_]*)$"
+                                    },
+                                    {
+                                        "type": "string",
+                                        "pattern": "^-?custom\\.fields\\.(?:[^,]+)$"
+                                    }
                                 ]
-                            }
+                            },
+                            "x-sort-families": [
+                                {
+                                    "prefix": "legacy",
+                                    "suffixPattern": "[^,]+",
+                                    "deprecated": true
+                                },
+                                {
+                                    "prefix": "meta",
+                                    "suffixPattern": "[a-z][a-z_]*"
+                                },
+                                {
+                                    "prefix": "custom.fields",
+                                    "suffixPattern": "[^,]+"
+                                }
+                            ],
+                            "x-deprecated-sorts": [
+                                "length"
+                            ]
                         },
                         "style": "form",
                         "explode": false
@@ -250,12 +295,16 @@
                                     "analytics",
                                     "address",
                                     "block",
+                                    "shape",
                                     "contact",
                                     "createdAt",
                                     "legacyRef",
                                     "commentCount",
                                     "authorName",
                                     "score",
+                                    "sources",
+                                    "steps",
+                                    "subtitle",
                                     "author",
                                     "tags",
                                     "publisher",
@@ -265,7 +314,8 @@
                                     "editor",
                                     "sponsors",
                                     "subject",
-                                    "gallery"
+                                    "gallery",
+                                    "formerAuthor"
                                 ]
                             }
                         },
@@ -454,12 +504,16 @@
                                     "analytics",
                                     "address",
                                     "block",
+                                    "shape",
                                     "contact",
                                     "createdAt",
                                     "legacyRef",
                                     "commentCount",
                                     "authorName",
                                     "score",
+                                    "sources",
+                                    "steps",
+                                    "subtitle",
                                     "author",
                                     "tags",
                                     "publisher",
@@ -469,7 +523,8 @@
                                     "editor",
                                     "sponsors",
                                     "subject",
-                                    "gallery"
+                                    "gallery",
+                                    "formerAuthor"
                                 ]
                             }
                         },
@@ -649,12 +704,16 @@
                                     "analytics",
                                     "address",
                                     "block",
+                                    "shape",
                                     "contact",
                                     "createdAt",
                                     "legacyRef",
                                     "commentCount",
                                     "authorName",
                                     "score",
+                                    "sources",
+                                    "steps",
+                                    "subtitle",
                                     "author",
                                     "tags",
                                     "publisher",
@@ -664,7 +723,8 @@
                                     "editor",
                                     "sponsors",
                                     "subject",
-                                    "gallery"
+                                    "gallery",
+                                    "formerAuthor"
                                 ]
                             }
                         },
@@ -876,12 +936,16 @@
                                     "analytics",
                                     "address",
                                     "block",
+                                    "shape",
                                     "contact",
                                     "createdAt",
                                     "legacyRef",
                                     "commentCount",
                                     "authorName",
                                     "score",
+                                    "sources",
+                                    "steps",
+                                    "subtitle",
                                     "author",
                                     "tags",
                                     "publisher",
@@ -891,7 +955,8 @@
                                     "editor",
                                     "sponsors",
                                     "subject",
-                                    "gallery"
+                                    "gallery",
+                                    "formerAuthor"
                                 ]
                             }
                         },
@@ -1128,6 +1193,7 @@
                         "$ref": "#/components/responses/Unauthorized"
                     }
                 },
+                "deprecated": true,
                 "security": [
                     {
                         "oauth2": [
@@ -1450,12 +1516,16 @@
                                     "analytics",
                                     "address",
                                     "block",
+                                    "shape",
                                     "contact",
                                     "createdAt",
                                     "legacyRef",
                                     "commentCount",
                                     "authorName",
                                     "score",
+                                    "sources",
+                                    "steps",
+                                    "subtitle",
                                     "author",
                                     "tags",
                                     "publisher",
@@ -1465,7 +1535,8 @@
                                     "editor",
                                     "sponsors",
                                     "subject",
-                                    "gallery"
+                                    "gallery",
+                                    "formerAuthor"
                                 ]
                             }
                         },
@@ -5038,6 +5109,234 @@
                 ]
             }
         },
+        "/articles/{id}/relationships/formerAuthor": {
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "description": "The `id` of the article.",
+                    "required": true,
+                    "schema": {
+                        "type": "string",
+                        "pattern": "^(?:art-[0-9]+)$"
+                    }
+                }
+            ],
+            "get": {
+                "tags": [
+                    "Articles"
+                ],
+                "summary": "Fetch the formerAuthor relationship of an article",
+                "description": "Returns the `formerAuthor` relationship linkage of an article.",
+                "operationId": "fetchRelationship.articles.formerAuthor",
+                "parameters": [
+                    {
+                        "name": "filter[name]",
+                        "in": "query",
+                        "description": "Filter the collection by `name`.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The formerAuthor relationship linkage.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ArticlesFormerAuthorRelationshipDocument"
+                                },
+                                "example": {
+                                    "data": {
+                                        "type": "people",
+                                        "id": "per-1"
+                                    },
+                                    "links": {
+                                        "self": {
+                                            "href": "https://api.example.com/articles/art-1/relationships/formerAuthor",
+                                            "describedby": "/docs/openapi.json#/paths/~1articles~1%7Bid%7D~1relationships~1formerAuthor/get"
+                                        },
+                                        "describedby": {
+                                            "href": "/docs/openapi.json#/paths/~1articles~1%7Bid%7D~1relationships~1formerAuthor/get"
+                                        }
+                                    },
+                                    "jsonapi": {
+                                        "version": "1.1"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/BadRequest"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/Forbidden"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFound"
+                    },
+                    "406": {
+                        "$ref": "#/components/responses/NotAcceptable"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/InternalServerError"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    }
+                },
+                "security": [
+                    {
+                        "oauth2": [
+                            "articles:read",
+                            "people:read"
+                        ]
+                    }
+                ]
+            },
+            "patch": {
+                "tags": [
+                    "Articles"
+                ],
+                "summary": "Replace the formerAuthor relationship of an article",
+                "description": "Fully replaces the `formerAuthor` relationship of an article with the supplied linkage.",
+                "operationId": "updateRelationship.articles.formerAuthor",
+                "requestBody": {
+                    "content": {
+                        "application/vnd.api+json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ArticlesFormerAuthorRelationshipDocument"
+                            },
+                            "example": {
+                                "data": {
+                                    "type": "people",
+                                    "id": "per-1"
+                                }
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "The updated formerAuthor relationship linkage.",
+                        "content": {
+                            "application/vnd.api+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ArticlesFormerAuthorRelationshipDocument"
+                                },
+                                "example": {
+                                    "data": {
+                                        "type": "people",
+                                        "id": "per-1"
+                                    },
+                                    "links": {
+                                        "self": {
+                                            "href": "https://api.example.com/articles/art-1/relationships/formerAuthor",
+                                            "describedby": "/docs/openapi.json#/paths/~1articles~1%7Bid%7D~1relationships~1formerAuthor/get"
+                                        },
+                                        "describedby": {
+                                            "href": "/docs/openapi.json#/paths/~1articles~1%7Bid%7D~1relationships~1formerAuthor/get"
+                                        }
+                                    },
+                                    "jsonapi": {
+                                        "version": "1.1"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/BadRequest"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/Forbidden"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFound"
+                    },
+                    "406": {
+                        "$ref": "#/components/responses/NotAcceptable"
+                    },
+                    "409": {
+                        "$ref": "#/components/responses/Conflict"
+                    },
+                    "415": {
+                        "$ref": "#/components/responses/UnsupportedMediaType"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/UnprocessableEntity"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/InternalServerError"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    }
+                },
+                "security": [
+                    {
+                        "oauth2": [
+                            "articles:write"
+                        ]
+                    }
+                ]
+            }
+        },
+        "/articles/{id}/-actions/retract": {
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "description": "The `id` of the article.",
+                    "required": true,
+                    "schema": {
+                        "type": "string",
+                        "pattern": "^(?:art-[0-9]+)$"
+                    }
+                }
+            ],
+            "post": {
+                "tags": [
+                    "Articles"
+                ],
+                "summary": "Invoke the `retract` action",
+                "description": "Invokes the `retract` custom action on an article.",
+                "operationId": "action.articles.retract",
+                "responses": {
+                    "204": {
+                        "description": "The action completed with no content."
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/BadRequest"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/Forbidden"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFound"
+                    },
+                    "406": {
+                        "$ref": "#/components/responses/NotAcceptable"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/UnprocessableEntity"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/InternalServerError"
+                    },
+                    "415": {
+                        "$ref": "#/components/responses/UnsupportedMediaType"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    }
+                },
+                "deprecated": true
+            }
+        },
         "/articles/{id}/-actions/publish": {
             "parameters": [
                 {
@@ -5108,12 +5407,16 @@
                                     "analytics",
                                     "address",
                                     "block",
+                                    "shape",
                                     "contact",
                                     "createdAt",
                                     "legacyRef",
                                     "commentCount",
                                     "authorName",
                                     "score",
+                                    "sources",
+                                    "steps",
+                                    "subtitle",
                                     "author",
                                     "tags",
                                     "publisher",
@@ -5123,7 +5426,8 @@
                                     "editor",
                                     "sponsors",
                                     "subject",
-                                    "gallery"
+                                    "gallery",
+                                    "formerAuthor"
                                 ]
                             }
                         },
@@ -5736,12 +6040,16 @@
                                     "analytics",
                                     "address",
                                     "block",
+                                    "shape",
                                     "contact",
                                     "createdAt",
                                     "legacyRef",
                                     "commentCount",
                                     "authorName",
                                     "score",
+                                    "sources",
+                                    "steps",
+                                    "subtitle",
                                     "author",
                                     "tags",
                                     "publisher",
@@ -5751,7 +6059,8 @@
                                     "editor",
                                     "sponsors",
                                     "subject",
-                                    "gallery"
+                                    "gallery",
+                                    "formerAuthor"
                                 ]
                             }
                         },
@@ -6148,12 +6457,16 @@
                                     "analytics",
                                     "address",
                                     "block",
+                                    "shape",
                                     "contact",
                                     "createdAt",
                                     "legacyRef",
                                     "commentCount",
                                     "authorName",
                                     "score",
+                                    "sources",
+                                    "steps",
+                                    "subtitle",
                                     "author",
                                     "tags",
                                     "publisher",
@@ -6163,7 +6476,8 @@
                                     "editor",
                                     "sponsors",
                                     "subject",
-                                    "gallery"
+                                    "gallery",
+                                    "formerAuthor"
                                 ]
                             }
                         },
@@ -6846,7 +7160,7 @@
                     "Tags"
                 ],
                 "summary": "List tags",
-                "description": "Returns a paginated collection of tags.",
+                "description": "Returns a paginated collection of tags.\n\nThis operation may stop responding on or after 2027-06-30, its sunset date.",
                 "operationId": "fetchCollection.tags",
                 "parameters": [
                     {
@@ -7046,14 +7360,15 @@
                     "401": {
                         "$ref": "#/components/responses/Unauthorized"
                     }
-                }
+                },
+                "deprecated": true
             },
             "post": {
                 "tags": [
                     "Tags"
                 ],
                 "summary": "Create a tag",
-                "description": "Creates a new tag from the supplied attributes and relationships.",
+                "description": "Creates a new tag from the supplied attributes and relationships.\n\nThis operation may stop responding on or after 2027-06-30, its sunset date.",
                 "operationId": "create.tags",
                 "requestBody": {
                     "content": {
@@ -7115,7 +7430,8 @@
                     "401": {
                         "$ref": "#/components/responses/Unauthorized"
                     }
-                }
+                },
+                "deprecated": true
             }
         },
         "/tags/{id}": {
@@ -7135,7 +7451,7 @@
                     "Tags"
                 ],
                 "summary": "Fetch a tag",
-                "description": "Returns a single tag by its `id`.",
+                "description": "Returns a single tag by its `id`.\n\nThis operation may stop responding on or after 2027-06-30, its sunset date.",
                 "operationId": "fetchOne.tags",
                 "parameters": [
                     {
@@ -7235,14 +7551,15 @@
                     "401": {
                         "$ref": "#/components/responses/Unauthorized"
                     }
-                }
+                },
+                "deprecated": true
             },
             "delete": {
                 "tags": [
                     "Tags"
                 ],
                 "summary": "Delete a tag",
-                "description": "Deletes the tag identified by its `id`.",
+                "description": "Deletes the tag identified by its `id`.\n\nThis operation may stop responding on or after 2027-06-30, its sunset date.",
                 "operationId": "delete.tags",
                 "responses": {
                     "204": {
@@ -7266,14 +7583,15 @@
                     "401": {
                         "$ref": "#/components/responses/Unauthorized"
                     }
-                }
+                },
+                "deprecated": true
             },
             "patch": {
                 "tags": [
                     "Tags"
                 ],
                 "summary": "Update a tag",
-                "description": "Updates an existing tag, applying the supplied attributes and relationships.",
+                "description": "Updates an existing tag, applying the supplied attributes and relationships.\n\nThis operation may stop responding on or after 2027-06-30, its sunset date.",
                 "operationId": "update.tags",
                 "parameters": [
                     {
@@ -7408,7 +7726,8 @@
                     "401": {
                         "$ref": "#/components/responses/Unauthorized"
                     }
-                }
+                },
+                "deprecated": true
             }
         },
         "/tags/{id}/articles": {
@@ -7428,7 +7747,7 @@
                     "Tags"
                 ],
                 "summary": "Fetch the related articles of a tag",
-                "description": "Returns the related `articles` resources of a tag.",
+                "description": "Returns the related `articles` resources of a tag.\n\nThis operation may stop responding on or after 2027-06-30, its sunset date.",
                 "operationId": "fetchRelated.tags.articles",
                 "parameters": [
                     {
@@ -7577,20 +7896,65 @@
                         }
                     },
                     {
+                        "name": "filter[state]",
+                        "in": "query",
+                        "description": "Filter the collection by `state`.",
+                        "deprecated": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
                         "name": "sort",
                         "in": "query",
                         "description": "A comma-separated list of sort fields. Prefix a field with `-` for descending order.",
                         "schema": {
                             "type": "array",
                             "items": {
-                                "type": "string",
-                                "enum": [
-                                    "title",
-                                    "-title",
-                                    "wordCount",
-                                    "-wordCount"
+                                "anyOf": [
+                                    {
+                                        "type": "string",
+                                        "enum": [
+                                            "title",
+                                            "-title",
+                                            "wordCount",
+                                            "-wordCount",
+                                            "length",
+                                            "-length"
+                                        ]
+                                    },
+                                    {
+                                        "type": "string",
+                                        "pattern": "^-?legacy\\.(?:[^,]+)$"
+                                    },
+                                    {
+                                        "type": "string",
+                                        "pattern": "^-?meta\\.(?:[a-z][a-z_]*)$"
+                                    },
+                                    {
+                                        "type": "string",
+                                        "pattern": "^-?custom\\.fields\\.(?:[^,]+)$"
+                                    }
                                 ]
-                            }
+                            },
+                            "x-sort-families": [
+                                {
+                                    "prefix": "legacy",
+                                    "suffixPattern": "[^,]+",
+                                    "deprecated": true
+                                },
+                                {
+                                    "prefix": "meta",
+                                    "suffixPattern": "[a-z][a-z_]*"
+                                },
+                                {
+                                    "prefix": "custom.fields",
+                                    "suffixPattern": "[^,]+"
+                                }
+                            ],
+                            "x-deprecated-sorts": [
+                                "length"
+                            ]
                         },
                         "style": "form",
                         "explode": false
@@ -7626,12 +7990,16 @@
                                     "analytics",
                                     "address",
                                     "block",
+                                    "shape",
                                     "contact",
                                     "createdAt",
                                     "legacyRef",
                                     "commentCount",
                                     "authorName",
                                     "score",
+                                    "sources",
+                                    "steps",
+                                    "subtitle",
                                     "author",
                                     "tags",
                                     "publisher",
@@ -7641,7 +8009,8 @@
                                     "editor",
                                     "sponsors",
                                     "subject",
-                                    "gallery"
+                                    "gallery",
+                                    "formerAuthor"
                                 ]
                             }
                         },
@@ -7697,6 +8066,7 @@
                         "$ref": "#/components/responses/Unauthorized"
                     }
                 },
+                "deprecated": true,
                 "security": [
                     {
                         "oauth2": [
@@ -7723,7 +8093,7 @@
                     "Tags"
                 ],
                 "summary": "Fetch the articles relationship of a tag",
-                "description": "Returns the `articles` relationship linkage of a tag.",
+                "description": "Returns the `articles` relationship linkage of a tag.\n\nThis operation may stop responding on or after 2027-06-30, its sunset date.",
                 "operationId": "fetchRelationship.tags.articles",
                 "parameters": [
                     {
@@ -7872,20 +8242,65 @@
                         }
                     },
                     {
+                        "name": "filter[state]",
+                        "in": "query",
+                        "description": "Filter the collection by `state`.",
+                        "deprecated": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
                         "name": "sort",
                         "in": "query",
                         "description": "A comma-separated list of sort fields. Prefix a field with `-` for descending order.",
                         "schema": {
                             "type": "array",
                             "items": {
-                                "type": "string",
-                                "enum": [
-                                    "title",
-                                    "-title",
-                                    "wordCount",
-                                    "-wordCount"
+                                "anyOf": [
+                                    {
+                                        "type": "string",
+                                        "enum": [
+                                            "title",
+                                            "-title",
+                                            "wordCount",
+                                            "-wordCount",
+                                            "length",
+                                            "-length"
+                                        ]
+                                    },
+                                    {
+                                        "type": "string",
+                                        "pattern": "^-?legacy\\.(?:[^,]+)$"
+                                    },
+                                    {
+                                        "type": "string",
+                                        "pattern": "^-?meta\\.(?:[a-z][a-z_]*)$"
+                                    },
+                                    {
+                                        "type": "string",
+                                        "pattern": "^-?custom\\.fields\\.(?:[^,]+)$"
+                                    }
                                 ]
-                            }
+                            },
+                            "x-sort-families": [
+                                {
+                                    "prefix": "legacy",
+                                    "suffixPattern": "[^,]+",
+                                    "deprecated": true
+                                },
+                                {
+                                    "prefix": "meta",
+                                    "suffixPattern": "[a-z][a-z_]*"
+                                },
+                                {
+                                    "prefix": "custom.fields",
+                                    "suffixPattern": "[^,]+"
+                                }
+                            ],
+                            "x-deprecated-sorts": [
+                                "length"
+                            ]
                         },
                         "style": "form",
                         "explode": false
@@ -7945,6 +8360,7 @@
                         "$ref": "#/components/responses/Unauthorized"
                     }
                 },
+                "deprecated": true,
                 "security": [
                     {
                         "oauth2": [
@@ -7958,7 +8374,7 @@
                     "Tags"
                 ],
                 "summary": "Add to the articles relationship of a tag",
-                "description": "Adds the supplied members to the `articles` relationship of a tag.",
+                "description": "Adds the supplied members to the `articles` relationship of a tag.\n\nThis operation may stop responding on or after 2027-06-30, its sunset date.",
                 "operationId": "addRelationship.tags.articles",
                 "requestBody": {
                     "content": {
@@ -8040,14 +8456,15 @@
                     "401": {
                         "$ref": "#/components/responses/Unauthorized"
                     }
-                }
+                },
+                "deprecated": true
             },
             "delete": {
                 "tags": [
                     "Tags"
                 ],
                 "summary": "Remove from the articles relationship of a tag",
-                "description": "Removes the supplied members from the `articles` relationship of a tag.",
+                "description": "Removes the supplied members from the `articles` relationship of a tag.\n\nThis operation may stop responding on or after 2027-06-30, its sunset date.",
                 "operationId": "removeRelationship.tags.articles",
                 "requestBody": {
                     "content": {
@@ -8129,14 +8546,15 @@
                     "401": {
                         "$ref": "#/components/responses/Unauthorized"
                     }
-                }
+                },
+                "deprecated": true
             },
             "patch": {
                 "tags": [
                     "Tags"
                 ],
                 "summary": "Replace the articles relationship of a tag",
-                "description": "Fully replaces the `articles` relationship of a tag with the supplied linkage.",
+                "description": "Fully replaces the `articles` relationship of a tag with the supplied linkage.\n\nThis operation may stop responding on or after 2027-06-30, its sunset date.",
                 "operationId": "updateRelationship.tags.articles",
                 "requestBody": {
                     "content": {
@@ -8218,7 +8636,8 @@
                     "401": {
                         "$ref": "#/components/responses/Unauthorized"
                     }
-                }
+                },
+                "deprecated": true
             }
         },
         "/images": {
@@ -9757,6 +10176,28 @@
                                 "required": [
                                     "data"
                                 ]
+                            },
+                            "formerAuthor": {
+                                "type": "object",
+                                "deprecated": true,
+                                "properties": {
+                                    "data": {
+                                        "anyOf": [
+                                            {
+                                                "$ref": "#/components/schemas/PeopleAtomicIdentifier"
+                                            },
+                                            {
+                                                "type": "null"
+                                            }
+                                        ]
+                                    },
+                                    "meta": {
+                                        "$ref": "#/components/schemas/Meta"
+                                    }
+                                },
+                                "required": [
+                                    "data"
+                                ]
                             }
                         }
                     },
@@ -10101,6 +10542,28 @@
                                 "required": [
                                     "data"
                                 ]
+                            },
+                            "formerAuthor": {
+                                "type": "object",
+                                "deprecated": true,
+                                "properties": {
+                                    "data": {
+                                        "anyOf": [
+                                            {
+                                                "$ref": "#/components/schemas/PeopleAtomicIdentifier"
+                                            },
+                                            {
+                                                "type": "null"
+                                            }
+                                        ]
+                                    },
+                                    "meta": {
+                                        "$ref": "#/components/schemas/Meta"
+                                    }
+                                },
+                                "required": [
+                                    "data"
+                                ]
                             }
                         }
                     }
@@ -10412,7 +10875,8 @@
                         "required": [
                             "street",
                             "city"
-                        ]
+                        ],
+                        "additionalProperties": false
                     },
                     "block": {
                         "oneOf": [
@@ -10431,7 +10895,8 @@
                                 "required": [
                                     "text",
                                     "kind"
-                                ]
+                                ],
+                                "additionalProperties": false
                             },
                             {
                                 "type": "object",
@@ -10451,7 +10916,8 @@
                                 "required": [
                                     "src",
                                     "kind"
-                                ]
+                                ],
+                                "additionalProperties": false
                             },
                             {
                                 "type": "null"
@@ -10460,6 +10926,43 @@
                         "discriminator": {
                             "propertyName": "kind"
                         }
+                    },
+                    "shape": {
+                        "oneOf": [
+                            {
+                                "type": "object",
+                                "title": "circle",
+                                "properties": {
+                                    "radius": {
+                                        "type": "integer"
+                                    }
+                                },
+                                "required": [
+                                    "radius"
+                                ],
+                                "additionalProperties": false
+                            },
+                            {
+                                "type": "object",
+                                "title": "rectangle",
+                                "properties": {
+                                    "width": {
+                                        "type": "integer"
+                                    },
+                                    "height": {
+                                        "type": "integer"
+                                    }
+                                },
+                                "required": [
+                                    "width",
+                                    "height"
+                                ],
+                                "additionalProperties": false
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
                     },
                     "contact": {
                         "type": [
@@ -10497,14 +11000,16 @@
                                 },
                                 "required": [
                                     "lat"
-                                ]
+                                ],
+                                "additionalProperties": false
                             }
                         },
                         "required": [
                             "firstName",
                             "nickname",
                             "geo"
-                        ]
+                        ],
+                        "additionalProperties": false
                     },
                     "createdAt": {
                         "type": "string",
@@ -10530,6 +11035,102 @@
                             "integer",
                             "null"
                         ]
+                    },
+                    "sources": {
+                        "type": [
+                            "array",
+                            "null"
+                        ],
+                        "maxItems": 5,
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "href": {
+                                    "type": "string",
+                                    "format": "uri",
+                                    "minLength": 1
+                                },
+                                "retrievedAt": {
+                                    "type": [
+                                        "string",
+                                        "null"
+                                    ],
+                                    "format": "date-time"
+                                }
+                            },
+                            "required": [
+                                "href",
+                                "retrievedAt"
+                            ],
+                            "additionalProperties": false
+                        }
+                    },
+                    "steps": {
+                        "type": [
+                            "array",
+                            "null"
+                        ],
+                        "maxItems": 50,
+                        "items": {
+                            "oneOf": [
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "operation": {
+                                            "type": "string",
+                                            "const": "trim"
+                                        }
+                                    },
+                                    "required": [
+                                        "operation"
+                                    ],
+                                    "additionalProperties": false
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "params": {
+                                            "type": [
+                                                "object",
+                                                "null"
+                                            ],
+                                            "properties": {
+                                                "find": {
+                                                    "type": "string"
+                                                },
+                                                "replace": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "required": [
+                                                "find",
+                                                "replace"
+                                            ],
+                                            "additionalProperties": false
+                                        },
+                                        "operation": {
+                                            "type": "string",
+                                            "const": "find_replace"
+                                        }
+                                    },
+                                    "required": [
+                                        "params",
+                                        "operation"
+                                    ],
+                                    "additionalProperties": false
+                                }
+                            ],
+                            "discriminator": {
+                                "propertyName": "operation"
+                            }
+                        }
+                    },
+                    "subtitle": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "deprecated": true
                     }
                 },
                 "required": [
@@ -10555,12 +11156,17 @@
                     "analytics",
                     "address",
                     "block",
+                    "shape",
                     "contact",
                     "createdAt",
                     "legacyRef",
                     "commentCount",
-                    "authorName"
-                ]
+                    "authorName",
+                    "sources",
+                    "steps",
+                    "subtitle"
+                ],
+                "additionalProperties": false
             },
             "ArticlesAuthorRelatedDocument": {
                 "type": "object",
@@ -10850,7 +11456,8 @@
                         },
                         "required": [
                             "street"
-                        ]
+                        ],
+                        "additionalProperties": false
                     },
                     "block": {
                         "oneOf": [
@@ -10869,7 +11476,8 @@
                                 "required": [
                                     "text",
                                     "kind"
-                                ]
+                                ],
+                                "additionalProperties": false
                             },
                             {
                                 "type": "object",
@@ -10885,12 +11493,50 @@
                                 },
                                 "required": [
                                     "kind"
-                                ]
+                                ],
+                                "additionalProperties": false
                             }
                         ],
                         "discriminator": {
                             "propertyName": "kind"
                         }
+                    },
+                    "shape": {
+                        "oneOf": [
+                            {
+                                "type": "object",
+                                "title": "circle",
+                                "properties": {
+                                    "radius": {
+                                        "type": "integer"
+                                    }
+                                },
+                                "required": [
+                                    "radius"
+                                ],
+                                "additionalProperties": false
+                            },
+                            {
+                                "type": "object",
+                                "title": "rectangle",
+                                "properties": {
+                                    "width": {
+                                        "type": "integer"
+                                    },
+                                    "height": {
+                                        "type": "integer"
+                                    }
+                                },
+                                "required": [
+                                    "width",
+                                    "height"
+                                ],
+                                "additionalProperties": false
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
                     },
                     "contact": {
                         "type": [
@@ -10916,20 +11562,98 @@
                                     "lat": {
                                         "type": "integer"
                                     }
-                                }
+                                },
+                                "additionalProperties": false
                             }
-                        }
+                        },
+                        "additionalProperties": false
                     },
                     "authorName": {
                         "type": "string"
                     },
                     "score": {
                         "type": "integer"
+                    },
+                    "sources": {
+                        "type": "array",
+                        "maxItems": 5,
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "href": {
+                                    "type": "string",
+                                    "format": "uri",
+                                    "minLength": 1
+                                },
+                                "retrievedAt": {
+                                    "type": "string",
+                                    "format": "date-time"
+                                }
+                            },
+                            "required": [
+                                "href"
+                            ],
+                            "additionalProperties": false
+                        }
+                    },
+                    "steps": {
+                        "type": "array",
+                        "maxItems": 50,
+                        "items": {
+                            "oneOf": [
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "operation": {
+                                            "type": "string",
+                                            "const": "trim"
+                                        }
+                                    },
+                                    "required": [
+                                        "operation"
+                                    ],
+                                    "additionalProperties": false
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "params": {
+                                            "type": "object",
+                                            "properties": {
+                                                "find": {
+                                                    "type": "string"
+                                                },
+                                                "replace": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "additionalProperties": false
+                                        },
+                                        "operation": {
+                                            "type": "string",
+                                            "const": "find_replace"
+                                        }
+                                    },
+                                    "required": [
+                                        "operation"
+                                    ],
+                                    "additionalProperties": false
+                                }
+                            ],
+                            "discriminator": {
+                                "propertyName": "operation"
+                            }
+                        }
+                    },
+                    "subtitle": {
+                        "type": "string",
+                        "deprecated": true
                     }
                 },
                 "required": [
                     "title"
-                ]
+                ],
+                "additionalProperties": false
             },
             "ArticlesCreateRequest": {
                 "type": "object",
@@ -10985,6 +11709,10 @@
                                     },
                                     "gallery": {
                                         "$ref": "#/components/schemas/ArticlesGalleryRelationship"
+                                    },
+                                    "formerAuthor": {
+                                        "$ref": "#/components/schemas/ArticlesFormerAuthorRelationship",
+                                        "deprecated": true
                                     }
                                 }
                             }
@@ -11087,6 +11815,54 @@
                 }
             },
             "ArticlesEditorRelationshipDocument": {
+                "type": "object",
+                "properties": {
+                    "data": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/PeopleResourceIdentifier"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "links": {
+                        "$ref": "#/components/schemas/RelationshipDocumentLinks"
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/Meta"
+                    },
+                    "jsonapi": {
+                        "$ref": "#/components/schemas/JsonApi"
+                    }
+                },
+                "required": [
+                    "data"
+                ]
+            },
+            "ArticlesFormerAuthorRelationship": {
+                "type": "object",
+                "properties": {
+                    "links": {
+                        "$ref": "#/components/schemas/RelationshipLinks"
+                    },
+                    "data": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/PeopleResourceIdentifier"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/Meta"
+                    }
+                }
+            },
+            "ArticlesFormerAuthorRelationshipDocument": {
                 "type": "object",
                 "properties": {
                     "data": {
@@ -11391,6 +12167,10 @@
                             },
                             "gallery": {
                                 "$ref": "#/components/schemas/ArticlesGalleryRelationship"
+                            },
+                            "formerAuthor": {
+                                "$ref": "#/components/schemas/ArticlesFormerAuthorRelationship",
+                                "deprecated": true
                             }
                         }
                     },
@@ -12048,7 +12828,8 @@
                             "city": {
                                 "type": "string"
                             }
-                        }
+                        },
+                        "additionalProperties": false
                     },
                     "block": {
                         "oneOf": [
@@ -12063,7 +12844,8 @@
                                         "type": "string",
                                         "const": "heading"
                                     }
-                                }
+                                },
+                                "additionalProperties": false
                             },
                             {
                                 "type": "object",
@@ -12076,12 +12858,50 @@
                                         "type": "string",
                                         "const": "image"
                                     }
-                                }
+                                },
+                                "additionalProperties": false
                             }
                         ],
                         "discriminator": {
                             "propertyName": "kind"
                         }
+                    },
+                    "shape": {
+                        "oneOf": [
+                            {
+                                "type": "object",
+                                "title": "circle",
+                                "properties": {
+                                    "radius": {
+                                        "type": "integer"
+                                    }
+                                },
+                                "required": [
+                                    "radius"
+                                ],
+                                "additionalProperties": false
+                            },
+                            {
+                                "type": "object",
+                                "title": "rectangle",
+                                "properties": {
+                                    "width": {
+                                        "type": "integer"
+                                    },
+                                    "height": {
+                                        "type": "integer"
+                                    }
+                                },
+                                "required": [
+                                    "width",
+                                    "height"
+                                ],
+                                "additionalProperties": false
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
                     },
                     "contact": {
                         "type": [
@@ -12107,17 +12927,95 @@
                                     "lat": {
                                         "type": "integer"
                                     }
-                                }
+                                },
+                                "additionalProperties": false
                             }
-                        }
+                        },
+                        "additionalProperties": false
                     },
                     "authorName": {
                         "type": "string"
                     },
                     "score": {
                         "type": "integer"
+                    },
+                    "sources": {
+                        "type": "array",
+                        "maxItems": 5,
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "href": {
+                                    "type": "string",
+                                    "format": "uri",
+                                    "minLength": 1
+                                },
+                                "retrievedAt": {
+                                    "type": "string",
+                                    "format": "date-time"
+                                }
+                            },
+                            "required": [
+                                "href"
+                            ],
+                            "additionalProperties": false
+                        }
+                    },
+                    "steps": {
+                        "type": "array",
+                        "maxItems": 50,
+                        "items": {
+                            "oneOf": [
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "operation": {
+                                            "type": "string",
+                                            "const": "trim"
+                                        }
+                                    },
+                                    "required": [
+                                        "operation"
+                                    ],
+                                    "additionalProperties": false
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "params": {
+                                            "type": "object",
+                                            "properties": {
+                                                "find": {
+                                                    "type": "string"
+                                                },
+                                                "replace": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "additionalProperties": false
+                                        },
+                                        "operation": {
+                                            "type": "string",
+                                            "const": "find_replace"
+                                        }
+                                    },
+                                    "required": [
+                                        "operation"
+                                    ],
+                                    "additionalProperties": false
+                                }
+                            ],
+                            "discriminator": {
+                                "propertyName": "operation"
+                            }
+                        }
+                    },
+                    "subtitle": {
+                        "type": "string",
+                        "deprecated": true
                     }
-                }
+                },
+                "additionalProperties": false
             },
             "ArticlesUpdateRequest": {
                 "type": "object",
@@ -12172,6 +13070,10 @@
                                     },
                                     "gallery": {
                                         "$ref": "#/components/schemas/ArticlesGalleryRelationship"
+                                    },
+                                    "formerAuthor": {
+                                        "$ref": "#/components/schemas/ArticlesFormerAuthorRelationship",
+                                        "deprecated": true
                                     }
                                 }
                             }
@@ -12950,6 +13852,46 @@
                     "data"
                 ]
             },
+            "AttributeMemberUnrecognizedError": {
+                "title": "Attribute member is not recognized",
+                "description": "The request body sent an attribute, or a key inside an object attribute, that the resource type does not declare. Remove it, or correct its name, and send the request again.",
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/Error"
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "code": {
+                                "type": "string",
+                                "const": "ATTRIBUTE_MEMBER_UNRECOGNIZED"
+                            },
+                            "status": {
+                                "type": "string",
+                                "const": "400"
+                            },
+                            "source": {
+                                "type": "object",
+                                "required": [
+                                    "pointer"
+                                ],
+                                "example": {
+                                    "pointer": "/data/attributes/colour"
+                                }
+                            },
+                            "detail": {
+                                "type": "string",
+                                "example": "The resource does not declare the member 'colour'!"
+                            }
+                        },
+                        "required": [
+                            "code",
+                            "status",
+                            "source"
+                        ]
+                    }
+                ]
+            },
             "AttributeValueInvalidError": {
                 "title": "Attribute value is invalid",
                 "description": "The server could not accept the value of the attribute at `source.pointer`, for example a date-time it cannot parse. Correct the value and send the request again.",
@@ -13409,6 +14351,9 @@
                                     "$ref": "#/components/schemas/AtomicOperationsInvalidError"
                                 },
                                 {
+                                    "$ref": "#/components/schemas/AttributeMemberUnrecognizedError"
+                                },
+                                {
                                     "$ref": "#/components/schemas/AttributeValueInvalidError"
                                 },
                                 {
@@ -13598,6 +14543,9 @@
                                 },
                                 {
                                     "$ref": "#/components/schemas/AtomicOperationsInvalidError"
+                                },
+                                {
+                                    "$ref": "#/components/schemas/AttributeMemberUnrecognizedError"
                                 },
                                 {
                                     "$ref": "#/components/schemas/CursorMalformedError"
@@ -14325,7 +15273,8 @@
                 },
                 "required": [
                     "url"
-                ]
+                ],
+                "additionalProperties": false
             },
             "ImagesClipsRelatedCollection": {
                 "type": "object",
@@ -15432,7 +16381,8 @@
                 "required": [
                     "name",
                     "role"
-                ]
+                ],
+                "additionalProperties": false
             },
             "PeopleCollection": {
                 "type": "object",
@@ -15519,7 +16469,8 @@
                 },
                 "required": [
                     "name"
-                ]
+                ],
+                "additionalProperties": false
             },
             "PeopleCreateRequest": {
                 "type": "object",
@@ -15640,7 +16591,8 @@
                     "role": {
                         "$ref": "#/components/schemas/Status"
                     }
-                }
+                },
+                "additionalProperties": false
             },
             "PeopleUpdateRequest": {
                 "type": "object",
@@ -17034,7 +17986,8 @@
                 },
                 "required": [
                     "label"
-                ]
+                ],
+                "additionalProperties": false
             },
             "TagsCollection": {
                 "type": "object",
@@ -17070,7 +18023,8 @@
                 },
                 "required": [
                     "label"
-                ]
+                ],
+                "additionalProperties": false
             },
             "TagsCreateRequest": {
                 "type": "object",
@@ -17189,7 +18143,8 @@
                         "minLength": 1,
                         "example": "php"
                     }
-                }
+                },
+                "additionalProperties": false
             },
             "TagsUpdateRequest": {
                 "type": "object",
@@ -17416,7 +18371,8 @@
                 "required": [
                     "url",
                     "seconds"
-                ]
+                ],
+                "additionalProperties": false
             },
             "VideosCollection": {
                 "type": "object",
@@ -17453,7 +18409,8 @@
                         "type": "integer",
                         "example": 90
                     }
-                }
+                },
+                "additionalProperties": false
             },
             "VideosCreateRequest": {
                 "type": "object",
@@ -17560,7 +18517,8 @@
                         "type": "integer",
                         "example": 90
                     }
-                }
+                },
+                "additionalProperties": false
             },
             "VideosUpdateRequest": {
                 "type": "object",

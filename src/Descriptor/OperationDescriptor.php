@@ -28,5 +28,6 @@ final class OperationDescriptor
         public readonly ?ProjectionDescriptor $projection,
         public readonly ?OperationExamples $examples = null,
         public readonly ?array $scopes = null,
+        public readonly bool $deprecated = false,
     ) {}
 }

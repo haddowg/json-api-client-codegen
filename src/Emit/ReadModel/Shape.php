@@ -121,7 +121,7 @@ final class Shape
             ShapeKind::Scalar => \in_array($this->scalar, ['integer', 'string'], true)
                 ? Narrowing::scalar((string) $this->scalar, $this->constraints)
                 : self::scalarType((string) $this->scalar),
-            ShapeKind::List => Narrowing::list(($this->items ?? self::unknown())->merged()->wireType(), $this->constraints),
+            ShapeKind::List => Narrowing::list(($this->items ?? self::unknown())->wireType(), $this->constraints),
             ShapeKind::Object => $this->members === [] ? 'array<string, mixed>' : self::objectType($this->members, []),
             ShapeKind::Tagged => \implode('|', \array_map(
                 fn(array $branch): string => self::objectType($branch['shape']->members, $this->discriminator === null ? [] : [$this->discriminator => Php::docString($branch['value'])]),

@@ -7,7 +7,7 @@ declare(strict_types=1);
  * so this map is how each one is found. Register it once through composer.json's
  * `autoload.files`; regenerating rewrites it, so a new type never needs a `dump-autoload`.
  *
- * @generated from an OpenAPI document with sha256 a3d955b08a413ff35e630fb32ac6dc65e8cd4c3ee2443c95d9a47c04c4788070
+ * @generated from an OpenAPI document with sha256 523309a7100761444320c16fee113309ecf50f35dd6891501b7e26a8c723f4fe
  */
 
 \spl_autoload_register(static function (string $class): void {
@@ -24,6 +24,7 @@ declare(strict_types=1);
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\Unions\\ArticleCreate' => 'resource-articles.php',
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\Unions\\ArticleCreateBuilder' => 'resource-articles.php',
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\Unions\\ArticleEditorRelation' => 'resource-articles.php',
+        'haddowg\\JsonApiCodegen\\Tests\\Golden\\Unions\\ArticleFormerAuthorRelation' => 'resource-articles.php',
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\Unions\\ArticleGalleryRelation' => 'resource-articles.php',
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\Unions\\ArticleHandle' => 'resource-articles.php',
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\Unions\\ArticleHasAuthor' => 'resource-articles.php',
@@ -38,6 +39,8 @@ declare(strict_types=1);
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\Unions\\ArticleShapeCircle' => 'resource-articles.php',
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\Unions\\ArticleShapeRectangle' => 'resource-articles.php',
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\Unions\\ArticleSponsorsRelation' => 'resource-articles.php',
+        'haddowg\\JsonApiCodegen\\Tests\\Golden\\Unions\\ArticleStepsFindReplace' => 'resource-articles.php',
+        'haddowg\\JsonApiCodegen\\Tests\\Golden\\Unions\\ArticleStepsTrim' => 'resource-articles.php',
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\Unions\\ArticleSubjectRelation' => 'resource-articles.php',
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\Unions\\ArticleSummary' => 'resource-articles.php',
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\Unions\\ArticleTagsEdge' => 'resource-articles.php',
@@ -46,6 +49,7 @@ declare(strict_types=1);
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\Unions\\ArticleTagsRelation' => 'resource-articles.php',
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\Unions\\ArticleUpdate' => 'resource-articles.php',
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\Unions\\Articles' => 'resource-articles.php',
+        'haddowg\\JsonApiCodegen\\Tests\\Golden\\Unions\\AttributeMemberUnrecognizedError' => 'errors.php',
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\Unions\\Healthcheck' => 'resource-healthcheck.php',
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\Unions\\HealthcheckBase' => 'resource-healthcheck.php',
         'haddowg\\JsonApiCodegen\\Tests\\Golden\\Unions\\Image' => 'resource-images.php',

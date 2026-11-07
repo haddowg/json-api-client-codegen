@@ -32,7 +32,7 @@ final class RelatedQuerySource
     {
         return $relation->cardinality === Cardinality::Many
             && $relation->relatedRead !== null
-            && ($relation->filterable !== [] || $relation->sortable !== []);
+            && ($relation->filterable !== [] || $relation->sortable !== [] || $relation->sortFamilies !== []);
     }
 
     public static function name(string $type, string $relation): string
@@ -115,13 +115,16 @@ final class RelatedQuerySource
                 );
             }
         }
-        if ($relation->sortable !== []) {
+        if ($relation->sortable !== [] || $relation->sortFamilies !== []) {
             $members[] = ReadSources::constant(
                 ['The signed sort tokens the relation accepts.', '', '@var list<string>'],
                 'array',
                 'SORT_TOKENS',
                 ReadSources::list($relation->sortable, 'SORT_TOKENS'),
             );
+        }
+        if ($relation->sortFamilies !== []) {
+            $members[] = ReadSources::sortFamiliesConstant('the relation', $relation->sortFamilies);
         }
         foreach ($filters as $filter) {
             if ($filter->method !== null) {
@@ -132,9 +135,9 @@ final class RelatedQuerySource
             $imports[] = self::RUNTIME . 'Exceptions\\UnknownFilterException';
             $members[] = ReadSources::filterDoors($filterShape);
         }
-        if ($relation->sortable !== []) {
+        if ($relation->sortable !== [] || $relation->sortFamilies !== []) {
             $imports[] = self::RUNTIME . 'Exceptions\\UnknownSortException';
-            $members[] = ReadSources::sortDoors($sortToken, 'self');
+            $members[] = ReadSources::sortDoors($relation->sortable === [] ? null : $sortToken, 'self', $relation->sortFamilies, $relation->deprecatedSorts);
         }
         if ($filters !== []) {
             $members[] = ReadSources::guardFilters($filterShape, 'self', $structured);

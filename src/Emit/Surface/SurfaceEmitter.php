@@ -245,7 +245,7 @@ final class SurfaceEmitter implements Emitter
                 . TypeSurface::hydratePrimary($type->concrete(), $base, 'create', false);
         }
 
-        return Php::docblock(ScopeNote::insert($doc, $create->scopes), 4, false)
+        return Php::docblock(ScopeNote::insert($doc, $create->scopes, deprecated: $create->deprecated), 4, false)
             . self::signature('create', $signature, $return)
             . $body
             . "    }\n";
@@ -292,7 +292,7 @@ final class SurfaceEmitter implements Emitter
                     'NotFound' => 'when no ' . $type->label() . ' has this id',
                 ]),
                 ...ExampleTag::lines($delete->examples),
-            ], $delete->scopes), 4, false)
+            ], $delete->scopes, deprecated: $delete->deprecated), 4, false)
                 . "    public function delete(): void\n    {\n"
                 . '        $this->fetcher->send(' . TypeSurface::request($delete->method, TypeSurface::path($delete->path)) . ");\n"
                 . "    }\n";
@@ -357,7 +357,7 @@ final class SurfaceEmitter implements Emitter
         $throws = [...$throws, ...ExampleTag::lines($fetchOne->examples)];
 
         if ($fetchOne->projection === null) {
-            return Php::docblock(ScopeNote::insert([...Php::wrap('Fetch the ' . $type->label() . '. The endpoint advertises no `include` or `fields`, so there is nothing to project.', 4), '', ...$throws], $fetchOne->scopes), 4, false)
+            return Php::docblock(ScopeNote::insert([...Php::wrap('Fetch the ' . $type->label() . '. The endpoint advertises no `include` or `fields`, so there is nothing to project.', 4), '', ...$throws], $fetchOne->scopes, deprecated: $fetchOne->deprecated), 4, false)
                 . '    public function get(): ' . $base . "\n    {\n"
                 . '        $context = $this->fetcher->read(' . $request . '::get(' . $path . "));\n"
                 . TypeSurface::hydratePrimary($type->concrete(), $base, $type->type(), false)
@@ -379,7 +379,7 @@ final class SurfaceEmitter implements Emitter
                 '@return ($projection is null ? ' . $base . ' : ' . $base . '&TProj)',
                 '',
                 ...$throws,
-            ], $fetchOne->scopes), 4, false)
+            ], $fetchOne->scopes, deprecated: $fetchOne->deprecated), 4, false)
                 . '    public function get(callable|' . ($read->projection ? $projection . '|' : '') . $readProjection . '|null $projection = null): ' . $base . "\n    {\n"
                 . '        $query = ' . $readProjection . "::resolve(\$projection);\n"
                 . '        $request = ' . $request . '::get($query->appendTo(' . $path . "));\n"
@@ -398,7 +398,7 @@ final class SurfaceEmitter implements Emitter
             '@return ($projection is null ? ' . $base . ' : ' . $base . '&TProj)',
             '',
             ...$throws,
-        ], $fetchOne->scopes), 4, false)
+        ], $fetchOne->scopes, deprecated: $fetchOne->deprecated), 4, false)
             . '    public function get(callable|' . $projection . '|null $projection = null): ' . $base . "\n    {\n"
             . '        $query = ' . $projection . "::resolve(\$projection);\n"
             . '        $context = $this->fetcher->read(' . $request . '::get($query->appendTo(' . $path . ")), \$query);\n"
@@ -469,7 +469,7 @@ final class SurfaceEmitter implements Emitter
                 . TypeSurface::hydratePrimary($type->concrete(), $base, 'update', false);
         }
 
-        return Php::docblock(ScopeNote::insert($doc, $update->scopes), 4, false)
+        return Php::docblock(ScopeNote::insert($doc, $update->scopes, deprecated: $update->deprecated), 4, false)
             . self::signature('update', $signature, $return)
             . $body
             . "    }\n";

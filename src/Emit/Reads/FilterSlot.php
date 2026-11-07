@@ -20,5 +20,6 @@ final class FilterSlot
         public readonly ?string $method,
         public readonly ValueType $type,
         public readonly ?ShapeAlias $shape,
+        public readonly bool $deprecated = false,
     ) {}
 }

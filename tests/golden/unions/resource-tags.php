@@ -303,8 +303,8 @@ final class Tag extends TagBase
  *
  * @phpstan-type TagArticlesRangeShape array{min?: float, max?: float}
  * @phpstan-type TagArticlesDateRangeShape array{min?: \DateTimeImmutable|string, max?: \DateTimeImmutable|string}
- * @phpstan-type TagArticlesFilterShape array{status?: string, wordCount?: int, archived?: string, rating?: TagArticlesRangeShape, publishedAt?: TagArticlesDateRangeShape, labels?: list<string>, search?: string, urgent?: string, featured?: bool, releasedOn?: string, keywords?: list<string>, 'author.name'?: string, unpublished?: string}
- * @phpstan-type TagArticlesSortToken '-title'|'-wordCount'|'title'|'wordCount'
+ * @phpstan-type TagArticlesFilterShape array{status?: string, wordCount?: int, archived?: string, rating?: TagArticlesRangeShape, publishedAt?: TagArticlesDateRangeShape, labels?: list<string>, search?: string, urgent?: string, featured?: bool, releasedOn?: string, keywords?: list<string>, 'author.name'?: string, unpublished?: string, state?: string}
+ * @phpstan-type TagArticlesSortToken '-length'|'-title'|'-wordCount'|'length'|'title'|'wordCount'
  *
  * @generated from the `filter` and `sort` parameters of `GET /tags/{id}/articles`
  */
@@ -330,6 +330,7 @@ final class TagArticlesRelatedQuery extends RelatedQuery
         'keywords',
         'author.name',
         'unpublished',
+        'state',
     ];
 
     /**
@@ -347,7 +348,26 @@ final class TagArticlesRelatedQuery extends RelatedQuery
      *
      * @var list<string>
      */
-    public const array SORT_TOKENS = ['title', '-title', 'wordCount', '-wordCount'];
+    public const array SORT_TOKENS = [
+        'title',
+        '-title',
+        'wordCount',
+        '-wordCount',
+        'length',
+        '-length',
+    ];
+
+    /**
+     * The families of sort keys the relation matches by prefix, each with the pattern a signed key
+     * of it matches.
+     *
+     * @var array<string, non-empty-string>
+     */
+    public const array SORT_FAMILIES = [
+        'legacy' => '~^-?legacy\\.(?:[^,]+)$~',
+        'meta' => '~^-?meta\\.(?:[a-z][a-z_]*)$~',
+        'custom.fields' => '~^-?custom\\.fields\\.(?:[^,]+)$~',
+    ];
 
     /**
      * Filter by `status`.
@@ -488,6 +508,18 @@ final class TagArticlesRelatedQuery extends RelatedQuery
     }
 
     /**
+     * Filter by `state`.
+     *
+     * @return static
+     *
+     * @deprecated
+     */
+    public function whereState(string $value): static
+    {
+        return $this->filtering(['state' => $value]);
+    }
+
+    /**
      * The typed array door: values are checked statically, nested ones included, and names at
      * runtime.
      *
@@ -519,7 +551,8 @@ final class TagArticlesRelatedQuery extends RelatedQuery
 
     /**
      * Sort by the endpoint's own tokens, in precedence order. Argument order is precedence, so
-     * nothing is translated between the call and the wire.
+     * nothing is translated between the call and the wire. The server marks the `length` sort
+     * deprecated.
      *
      * @param TagArticlesSortToken ...$tokens
      *
@@ -531,7 +564,62 @@ final class TagArticlesRelatedQuery extends RelatedQuery
     }
 
     /**
+     * Sort by a key of the `legacy` family: `legacy.` then a suffix matching `[^,]+`. The server
+     * marks this family deprecated.
+     *
+     * @return static
+     *
+     * @throws UnknownSortException when the key does not match the family's pattern
+     *
+     * @deprecated
+     */
+    public function sortByLegacy(string $suffix, bool $descending = false): static
+    {
+        $token = ($descending ? '-' : '') . 'legacy.' . $suffix;
+        if (\preg_match(self::SORT_FAMILIES['legacy'], $token) !== 1) {
+            throw UnknownSortException::for($token, self::SORT_TOKENS);
+        }
+
+        return $this->sorting([$token]);
+    }
+
+    /**
+     * Sort by a key of the `meta` family: `meta.` then a suffix matching `[a-z][a-z_]*`.
+     *
+     * @return static
+     *
+     * @throws UnknownSortException when the key does not match the family's pattern
+     */
+    public function sortByMeta(string $suffix, bool $descending = false): static
+    {
+        $token = ($descending ? '-' : '') . 'meta.' . $suffix;
+        if (\preg_match(self::SORT_FAMILIES['meta'], $token) !== 1) {
+            throw UnknownSortException::for($token, self::SORT_TOKENS);
+        }
+
+        return $this->sorting([$token]);
+    }
+
+    /**
+     * Sort by a key of the `custom.fields` family: `custom.fields.` then a suffix matching `[^,]+`.
+     *
+     * @return static
+     *
+     * @throws UnknownSortException when the key does not match the family's pattern
+     */
+    public function sortByCustomFields(string $suffix, bool $descending = false): static
+    {
+        $token = ($descending ? '-' : '') . 'custom.fields.' . $suffix;
+        if (\preg_match(self::SORT_FAMILIES['custom.fields'], $token) !== 1) {
+            throw UnknownSortException::for($token, self::SORT_TOKENS);
+        }
+
+        return $this->sorting([$token]);
+    }
+
+    /**
      * The loose sort door, for tokens assembled at runtime, which a literal union can never accept.
+     * A key of one of the endpoint's sort families is accepted too.
      *
      * @param list<string> $tokens
      *
@@ -542,9 +630,16 @@ final class TagArticlesRelatedQuery extends RelatedQuery
     public function sortRaw(array $tokens): static
     {
         foreach ($tokens as $token) {
-            if (!\in_array($token, self::SORT_TOKENS, true)) {
-                throw UnknownSortException::for($token, self::SORT_TOKENS);
+            if (\in_array($token, self::SORT_TOKENS, true)) {
+                continue;
             }
+            foreach (self::SORT_FAMILIES as $pattern) {
+                if (\preg_match($pattern, $token) === 1) {
+                    continue 2;
+                }
+            }
+
+            throw UnknownSortException::for($token, self::SORT_TOKENS);
         }
 
         return $this->sorting($tokens);
@@ -639,6 +734,8 @@ final class TagArticlesRelation
      *             "version": "1.1"
      *         }
      *     }
+     *
+     * @deprecated
      */
     public function get(): PaginatedCollection
     {
@@ -664,6 +761,8 @@ final class TagArticlesRelation
      * @throws NotAcceptable      when the negotiated media type cannot be satisfied
      * @throws ServerError        when the server fails
      * @throws TransportException when no response is received at all
+     *
+     * @deprecated
      */
     public function related(?callable $query = null): PaginatedCollection
     {
@@ -697,6 +796,8 @@ final class TagArticlesRelation
      *             }
      *         ]
      *     }
+     *
+     * @deprecated
      */
     public function add(array $articles): void
     {
@@ -731,6 +832,8 @@ final class TagArticlesRelation
      *             }
      *         ]
      *     }
+     *
+     * @deprecated
      */
     public function remove(array $articles): void
     {
@@ -765,6 +868,8 @@ final class TagArticlesRelation
      *             }
      *         ]
      *     }
+     *
+     * @deprecated
      */
     public function replace(array $articles): void
     {
@@ -1086,6 +1191,8 @@ final class TagHandle
      *             "version": "1.1"
      *         }
      *     }
+     *
+     * @deprecated
      */
     public function get(callable|TagProjection|null $projection = null): TagBase
     {
@@ -1142,6 +1249,8 @@ final class TagHandle
      *             }
      *         }
      *     }
+     *
+     * @deprecated
      */
     public function update(
         TagUpdate|array $input,
@@ -1178,6 +1287,8 @@ final class TagHandle
      * @throws NotAcceptable      when the negotiated media type cannot be satisfied
      * @throws ServerError        when the server fails
      * @throws TransportException when no response is received at all
+     *
+     * @deprecated
      */
     public function delete(): void
     {
@@ -1417,6 +1528,8 @@ final class TagQuery extends Query
      * @throws NotAcceptable      when the negotiated media type cannot be satisfied
      * @throws ServerError        when the server fails
      * @throws TransportException when no response is received at all
+     *
+     * @deprecated
      */
     public function get(): PaginatedCollection
     {
@@ -1436,6 +1549,8 @@ final class TagQuery extends Query
      * @throws NotAcceptable      when the negotiated media type cannot be satisfied
      * @throws ServerError        when the server fails
      * @throws TransportException when no response is received at all
+     *
+     * @deprecated
      */
     public function first(): ?object
     {
@@ -1702,6 +1817,8 @@ final class Tags
      *             }
      *         }
      *     }
+     *
+     * @deprecated
      */
     public function create(TagCreate|TagCreateBuilder|array $input): Response
     {

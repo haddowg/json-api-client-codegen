@@ -145,6 +145,7 @@ final class WriteModel
                 null,
                 null,
                 $toMany,
+                deprecated: $relation->deprecated,
             );
         }
 
@@ -220,6 +221,7 @@ final class WriteModel
             false,
             $enum === null && $dateFormat === null ? self::prose($attribute) : null,
             $enum !== null && ($api->enum($enum)?->intBacked() ?? false),
+            $attribute->deprecated,
         );
     }
 

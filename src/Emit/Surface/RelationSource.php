@@ -180,7 +180,7 @@ final class RelationSource
             '',
             ...Throws::tags($read->errorStatuses, $imports, [...self::READ_REASONS, ...$notFound]),
             ...ExampleTag::lines($read->examples),
-        ], $read->scopes), 4, false)
+        ], $read->scopes, deprecated: $read->deprecated), 4, false)
             . '    public function get(): ?' . $identifier . "\n    {\n"
             . "        \$raw = \$this->fetcher\n"
             . '            ->read(' . $request . '::get(' . TypeSurface::path($read->path) . "))\n"
@@ -203,7 +203,7 @@ final class RelationSource
             '',
             ...Throws::tags($read->errorStatuses, $imports, [...self::READ_REASONS, ...$notFound]),
             ...ExampleTag::lines($read->examples),
-        ], $read->scopes), 4, false)
+        ], $read->scopes, deprecated: $read->deprecated), 4, false)
             . '    public function get(): ' . self::collectionClass($imports, $page) . "\n    {\n"
             . "        return \$this->linkage(\n"
             . '            $this->fetcher->read(' . TypeSurface::request('GET', TypeSurface::path($read->path)) . "),\n"
@@ -225,7 +225,7 @@ final class RelationSource
             '',
             ...Throws::tags($read->errorStatuses, $imports, [...self::READ_REASONS, ...$notFound]),
             ...ExampleTag::lines($read->examples),
-        ], $read->scopes), 4, false)
+        ], $read->scopes, deprecated: $read->deprecated), 4, false)
             . '    public function related(): ' . (\count($classes) === 1 ? '?' . $classes[0] : self::union($classes) . '|null') . "\n    {\n"
             . '        $context = $this->fetcher->read(' . TypeSurface::request('GET', TypeSurface::path($read->path)) . ");\n"
             . "        \$raw = \$context->primary();\n\n"
@@ -249,7 +249,7 @@ final class RelationSource
         ];
 
         if (!RelatedQuerySource::applies($relation)) {
-            return Php::docblock(ScopeNote::insert([...Php::wrap($summary, 4), '', ...$tags], $read->scopes), 4, false)
+            return Php::docblock(ScopeNote::insert([...Php::wrap($summary, 4), '', ...$tags], $read->scopes, deprecated: $read->deprecated), 4, false)
                 . '    public function related(): ' . self::collectionClass($imports, $page) . "\n    {\n"
                 . '        return $this->resources($this->fetcher->read(' . TypeSurface::request('GET', TypeSurface::path($read->path)) . "));\n"
                 . "    }\n";
@@ -264,7 +264,7 @@ final class RelationSource
             '@param (callable(' . $query . '): ' . $query . ')|null $query',
             '',
             ...$tags,
-        ], $read->scopes), 4, false)
+        ], $read->scopes, deprecated: $read->deprecated), 4, false)
             . '    public function related(?callable $query = null): ' . self::collectionClass($imports, $page) . "\n    {\n"
             . '        $read = $query === null ? new ' . $readQuery . '() : $query(new ' . $query . "())->toReadQuery();\n"
             . "\n"
@@ -307,7 +307,7 @@ final class RelationSource
             ...($param === null ? [] : [$param, '']),
             ...Throws::tags($operation->errorStatuses, $imports, [...self::WRITE_REASONS, ...$notFound]),
             ...ExampleTag::lines($operation->examples),
-        ], $operation->scopes), 4, false)
+        ], $operation->scopes, deprecated: $operation->deprecated), 4, false)
             . '    public function ' . $verb->value . '(' . $signature . "): void\n    {\n"
             . '        $this->fetcher->send(' . TypeSurface::request(
                 $operation->method,

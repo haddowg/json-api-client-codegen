@@ -308,6 +308,9 @@ final class ReadModelEmitter implements Emitter, Warns
                 $lines[] = '';
             }
             $lines[] = '@throws FieldNotSelectedException when a sparse fieldset excluded `' . $read->name . '`';
+            if ($resource->attributes[$read->name]->deprecated ?? false) {
+                \array_push($lines, '', '@deprecated');
+            }
             $members[] = Php::docblock($lines, 4, false)
                 . '    public function ' . $read->method . '(): ' . $read->nativeType . "\n    {\n"
                 . \implode("\n", Guard::indent($read->body, 8)) . "\n    }\n";
@@ -320,15 +323,15 @@ final class ReadModelEmitter implements Emitter, Warns
             $call = '$this->_relationship(' . Php::string($relation->name) . ', ' . $toOne . ')';
             $imports[] = self::IDENTIFIER;
             if ($relation->cardinality === Cardinality::One) {
-                $members[] = Php::docblock(['The `' . $relation->name . '` linkage, without hydrating anything. Never throws.'], 4, false)
-                    . '    public function ' . $member . "Ref(): ?Identifier\n    {\n        return " . $call . "->identifier();\n    }\n";
-                $members[] = Php::docblock(['Whether the `' . $relation->name . '` linkage points at anything. Never throws.'], 4, false)
-                    . '    public function has' . Naming::pascal($relation->name) . "(): bool\n    {\n        return !" . $call . "->isEmpty();\n    }\n";
+                $members[] = Php::deprecate(Php::docblock(['The `' . $relation->name . '` linkage, without hydrating anything. Never throws.'], 4, false)
+                    . '    public function ' . $member . "Ref(): ?Identifier\n    {\n        return " . $call . "->identifier();\n    }\n", $relation->deprecated);
+                $members[] = Php::deprecate(Php::docblock(['Whether the `' . $relation->name . '` linkage points at anything. Never throws.'], 4, false)
+                    . '    public function has' . Naming::pascal($relation->name) . "(): bool\n    {\n        return !" . $call . "->isEmpty();\n    }\n", $relation->deprecated);
             } else {
-                $members[] = Php::docblock(['The `' . $relation->name . '` linkage, without hydrating anything. Never throws.', '', '@return list<Identifier>'], 4, false)
-                    . '    public function ' . $member . "Ref(): array\n    {\n        return " . $call . "->identifiers();\n    }\n";
-                $members[] = Php::docblock(['Whether the `' . $relation->name . '` linkage points at anything. Never throws.'], 4, false)
-                    . '    public function has' . Naming::pascal($relation->name) . "(): bool\n    {\n        return !" . $call . "->isEmpty();\n    }\n";
+                $members[] = Php::deprecate(Php::docblock(['The `' . $relation->name . '` linkage, without hydrating anything. Never throws.', '', '@return list<Identifier>'], 4, false)
+                    . '    public function ' . $member . "Ref(): array\n    {\n        return " . $call . "->identifiers();\n    }\n", $relation->deprecated);
+                $members[] = Php::deprecate(Php::docblock(['Whether the `' . $relation->name . '` linkage points at anything. Never throws.'], 4, false)
+                    . '    public function has' . Naming::pascal($relation->name) . "(): bool\n    {\n        return !" . $call . "->isEmpty();\n    }\n", $relation->deprecated);
             }
             if (self::readsPivot($relation)) {
                 $members[] = self::pivotsAccessor($relation, $call, $type);
@@ -477,7 +480,7 @@ final class ReadModelEmitter implements Emitter, Warns
         }
 
         foreach ($hydrated as $relation) {
-            $members[] = self::relationAccessor($relation);
+            $members[] = Php::deprecate(self::relationAccessor($relation), $relation->deprecated);
             $imports[] = self::NOT_INCLUDED;
             if ($relation->cardinality === Cardinality::Many) {
                 $imports[] = self::COLLECTION;
@@ -626,6 +629,12 @@ final class ReadModelEmitter implements Emitter, Warns
     private function list(ResourceDescriptor $resource, AttributeDescriptor $attribute, Shape $shape, string $method): AttributeRead
     {
         $items = $shape->items;
+        if ($items !== null && $items->kind === ShapeKind::Tagged && !$items->nullable) {
+            return $this->unionList($resource, $attribute, $shape, $items, $method);
+        }
+        if ($items !== null && $items->kind === ShapeKind::Object && $items->members !== [] && !$items->nullable) {
+            return $this->objectList($resource, $attribute, $shape, $items, $method);
+        }
         if ($items === null || $items->kind !== ShapeKind::Scalar) {
             throw self::unreadable($resource, $attribute, 'a list of ' . ($items === null ? 'unknown members' : $items->wireType() . ' values'));
         }
@@ -682,6 +691,88 @@ final class ReadModelEmitter implements Emitter, Warns
         );
     }
 
+    /**
+     * A list whose elements are objects, each narrowed member by member as an object attribute
+     * is: an element that is not an object, or lacks a required member, throws.
+     */
+    private function objectList(ResourceDescriptor $resource, AttributeDescriptor $attribute, Shape $shape, Shape $items, string $method): AttributeRead
+    {
+        $nullable = $shape->nullable;
+        $field = Php::string($attribute->name);
+        $alias = self::alias($resource, $method);
+        $guard = new Guard('An element of the "' . $attribute->name . '" attribute of ' . self::article($resource->type) . ' "' . $resource->type . '" resource', ['raw', 'list', 'element']);
+        $body = [
+            '$raw = $this->' . ($nullable ? '_nullableList' : '_list') . '(' . $field . ');',
+            '',
+            ...($nullable ? ['if ($raw === null) {', '    return null;', '}', ''] : []),
+            '$list = [];',
+            'foreach ($raw as $element) {',
+            ...Guard::indent($guard->value($items, 'element', '$list[]', true, null, $attribute->name)),
+            '}',
+            '',
+            ...($shape->narrowed() ? [Php::comment('@var ' . $alias . ' $list')] : []),
+            'return $list;',
+        ];
+
+        return new AttributeRead(
+            $attribute->name,
+            $method,
+            $nullable ? '?array' : 'array',
+            $alias . ($nullable ? '|null' : ''),
+            $body,
+            Php::wrap('A list of objects, each narrowed member by member: an optional member of the wrong type is dropped rather than trusted, and an element that is not an object, or lacks a required member, throws.', 4),
+            $alias,
+            $shape->nullable(false)->wireType(),
+            [self::MALFORMED],
+        );
+    }
+
+    /**
+     * A list whose elements are a union: each element is read into its branch's class, as a
+     * union attribute is, and an element selecting no branch throws.
+     */
+    private function unionList(ResourceDescriptor $resource, AttributeDescriptor $attribute, Shape $shape, Shape $items, string $method): AttributeRead
+    {
+        $nullable = $shape->nullable;
+        $field = Php::string($attribute->name);
+        [$classes, $match] = $this->union($resource, $attribute, $items, $method, 'object');
+        $element = \implode('|', \array_map(static fn(ClassUnit $unit): string => $unit->name, $classes));
+        $subject = 'The "' . $attribute->name . '" attribute of ' . self::article($resource->type) . ' "' . $resource->type . '" resource';
+        $body = [
+            '$raw = $this->' . ($nullable ? '_nullableList' : '_list') . '(' . $field . ');',
+            '',
+            ...($nullable ? ['if ($raw === null) {', '    return null;', '}', ''] : []),
+            '$list = [];',
+            'foreach ($raw as $element) {',
+            '    if (!\\is_array($element) || ($element !== [] && \\array_is_list($element))) {',
+            '        throw MalformedDocument::unexpectedMember(' . Php::string($subject) . ', ' . $field . ', ' . Php::string('a list of objects') . ');',
+            '    }',
+            '    $object = [];',
+            '    foreach ($element as $key => $value) {',
+            '        $object[(string) $key] = $value;',
+            '    }',
+            '    $list[] = ' . $match[0],
+            ...Guard::indent(\array_slice($match, 1)),
+            '}',
+            '',
+            ...($shape->narrowed() ? [Php::comment('@var ' . Narrowing::list($element, $shape->constraints) . ' $list')] : []),
+            'return $list;',
+        ];
+
+        return new AttributeRead(
+            $attribute->name,
+            $method,
+            $nullable ? '?array' : 'array',
+            Narrowing::list($element, $shape->constraints) . ($nullable ? '|null' : ''),
+            $body,
+            Php::wrap('A list of a union, each element read into one class per branch, selected by ' . ($items->discriminator === null ? 'the member only that branch carries' : '`' . $items->discriminator . '`') . '. Narrow each with `instanceof` or `match`.', 4),
+            self::alias($resource, $method),
+            $shape->nullable(false)->wireType(),
+            [self::MALFORMED],
+            $classes,
+        );
+    }
+
     private function object(ResourceDescriptor $resource, AttributeDescriptor $attribute, Shape $shape, string $method): AttributeRead
     {
         $nullable = $shape->nullable;
@@ -721,38 +812,16 @@ final class ReadModelEmitter implements Emitter, Warns
 
     private function tagged(ResourceDescriptor $resource, AttributeDescriptor $attribute, Shape $shape, string $method): AttributeRead
     {
-        if ($shape->discriminator === null) {
-            return $this->signed($resource, $attribute, $shape, $method);
-        }
-
         $nullable = $shape->nullable;
-        $discriminator = $shape->discriminator;
-        $constant = \strtoupper((string) \preg_replace('/(?<=[a-z0-9])(?=[A-Z])/', '_', Naming::pascal($discriminator)));
-        if (!Identifier::isConstantName($constant)) {
-            $this->warnings[] = \sprintf('The discriminator %s of %s.%s cannot name a PHP constant; each branch class carries its value as DISCRIMINATOR instead.', \json_encode($discriminator, \JSON_UNESCAPED_SLASHES | \JSON_UNESCAPED_UNICODE | \JSON_INVALID_UTF8_SUBSTITUTE), $resource->type, $attribute->name);
-            $constant = 'DISCRIMINATOR';
-        }
-        $file = FileKey::resource($resource->type);
-
-        $classes = [];
-        $arms = [];
-        $values = [];
-        foreach ($shape->branches as $branch) {
-            $class = Naming::resource($resource->type) . Naming::pascal($method) . Naming::pascal($branch['value']);
-            $classes[] = $this->branch($resource, $attribute, $class, $constant, $discriminator, $branch['value'], $branch['shape'], $file);
-            $arms[] = '    ' . $class . '::' . $constant . ' => ' . $class . '::_from($raw),';
-            $values[] = '"' . $branch['value'] . '"';
-        }
+        [$classes, $match, $prose] = $this->union($resource, $attribute, $shape, $method, 'raw');
         $names = \array_map(static fn(ClassUnit $unit): string => $unit->name, $classes);
 
         $body = [
             '$raw = $this->' . ($nullable ? '_nullableMap' : '_map') . '(' . Php::string($attribute->name) . ');',
             '',
             ...($nullable ? ['if ($raw === null) {', '    return null;', '}', ''] : []),
-            'return match ($raw[' . Php::string($discriminator) . '] ?? null) {',
-            ...$arms,
-            '    default => throw MalformedDocument::unexpectedMember(' . Php::string('The "' . $attribute->name . '" attribute of ' . self::article($resource->type) . ' "' . $resource->type . '" resource') . ', ' . Php::string($discriminator) . ', ' . Php::string('one of ' . \implode(', ', $values)) . '),',
-            '};',
+            'return ' . $match[0],
+            ...\array_slice($match, 1),
         ];
 
         return new AttributeRead(
@@ -761,7 +830,7 @@ final class ReadModelEmitter implements Emitter, Warns
             \implode('|', $names) . ($nullable ? '|null' : ''),
             null,
             $body,
-            Php::wrap('A tagged union, one class per branch, selected by `' . $discriminator . '`. Narrow it with `instanceof` or `match`.', 4),
+            Php::wrap($prose, 4),
             self::alias($resource, $method),
             $shape->nullable(false)->wireType(),
             [self::MALFORMED],
@@ -770,52 +839,62 @@ final class ReadModelEmitter implements Emitter, Warns
     }
 
     /**
-     * An undiscriminated union: one class per branch, chosen by the signature member only that
-     * branch declares. A value carrying no branch's signature, or more than one, matches no branch.
+     * A union's branch classes and the `match` that builds one from the decoded object in `$var`:
+     * on its discriminator's value, or, with none, on the signature member only one branch
+     * carries. A value selecting no branch throws.
+     *
+     * @return array{list<ClassUnit>, list<string>, string} the classes, the match lines (the
+     *                                                      first opening it, the last `};`), and
+     *                                                      a sentence describing the selection
      */
-    private function signed(ResourceDescriptor $resource, AttributeDescriptor $attribute, Shape $shape, string $method): AttributeRead
+    private function union(ResourceDescriptor $resource, AttributeDescriptor $attribute, Shape $shape, string $method, string $var): array
     {
-        $nullable = $shape->nullable;
         $file = FileKey::resource($resource->type);
         $subject = 'The "' . $attribute->name . '" attribute of ' . self::article($resource->type) . ' "' . $resource->type . '" resource';
-
-        $markers = \array_map(static fn(array $branch): string => $branch['signature'][0], $shape->branches);
         $classes = [];
         $arms = [];
-        foreach ($shape->branches as $index => $branch) {
-            $class = Naming::resource($resource->type) . Naming::pascal($method) . Naming::pascal($branch['value']);
-            $classes[] = $this->signedBranch($resource, $attribute, $class, $branch['value'], $branch['signature'], $branch['shape'], $file);
-            $conditions = [];
-            foreach ($markers as $other => $marker) {
-                $conditions[] = ($other === $index ? '' : '!') . '\\array_key_exists(' . Php::string($marker) . ', $raw)';
+
+        $discriminator = $shape->discriminator;
+        if ($discriminator === null) {
+            $markers = \array_map(static fn(array $branch): string => $branch['signature'][0], $shape->branches);
+            foreach ($shape->branches as $index => $branch) {
+                $class = Naming::resource($resource->type) . Naming::pascal($method) . Naming::pascal($branch['value']);
+                $classes[] = $this->signedBranch($resource, $attribute, $class, $branch['value'], $branch['signature'], $branch['shape'], $file);
+                $conditions = [];
+                foreach ($markers as $other => $marker) {
+                    $conditions[] = ($other === $index ? '' : '!') . '\\array_key_exists(' . Php::string($marker) . ', $' . $var . ')';
+                }
+                $arms[] = '    ' . \implode(' && ', $conditions) . ' => ' . $class . '::_from($' . $var . '),';
             }
-            $arms[] = '    ' . \implode(' && ', $conditions) . ' => ' . $class . '::_from($raw),';
+            $expected = \implode(', ', \array_map(static fn(string $marker): string => '"' . $marker . '"', $markers));
+
+            return [$classes, [
+                'match (true) {',
+                ...$arms,
+                '    default => throw new MalformedDocument(' . Php::string($subject . ' matches none of its branches: expected exactly one of the members ' . $expected . '.') . '),',
+                '};',
+            ], 'A union, one class per branch, selected by the member only that branch carries. Narrow it with `instanceof` or `match`.'];
         }
-        $names = \array_map(static fn(ClassUnit $unit): string => $unit->name, $classes);
-        $expected = \implode(', ', \array_map(static fn(string $marker): string => '"' . $marker . '"', $markers));
 
-        $body = [
-            '$raw = $this->' . ($nullable ? '_nullableMap' : '_map') . '(' . Php::string($attribute->name) . ');',
-            '',
-            ...($nullable ? ['if ($raw === null) {', '    return null;', '}', ''] : []),
-            'return match (true) {',
+        $constant = \strtoupper((string) \preg_replace('/(?<=[a-z0-9])(?=[A-Z])/', '_', Naming::pascal($discriminator)));
+        if (!Identifier::isConstantName($constant)) {
+            $this->warnings[] = \sprintf('The discriminator %s of %s.%s cannot name a PHP constant; each branch class carries its value as DISCRIMINATOR instead.', \json_encode($discriminator, \JSON_UNESCAPED_SLASHES | \JSON_UNESCAPED_UNICODE | \JSON_INVALID_UTF8_SUBSTITUTE), $resource->type, $attribute->name);
+            $constant = 'DISCRIMINATOR';
+        }
+        $values = [];
+        foreach ($shape->branches as $branch) {
+            $class = Naming::resource($resource->type) . Naming::pascal($method) . Naming::pascal($branch['value']);
+            $classes[] = $this->branch($resource, $attribute, $class, $constant, $discriminator, $branch['value'], $branch['shape'], $file);
+            $arms[] = '    ' . $class . '::' . $constant . ' => ' . $class . '::_from($' . $var . '),';
+            $values[] = '"' . $branch['value'] . '"';
+        }
+
+        return [$classes, [
+            'match ($' . $var . '[' . Php::string($discriminator) . '] ?? null) {',
             ...$arms,
-            '    default => throw new MalformedDocument(' . Php::string($subject . ' matches none of its branches: expected exactly one of the members ' . $expected . '.') . '),',
+            '    default => throw MalformedDocument::unexpectedMember(' . Php::string($subject) . ', ' . Php::string($discriminator) . ', ' . Php::string('one of ' . \implode(', ', $values)) . '),',
             '};',
-        ];
-
-        return new AttributeRead(
-            $attribute->name,
-            $method,
-            \implode('|', $names) . ($nullable ? '|null' : ''),
-            null,
-            $body,
-            Php::wrap('A union, one class per branch, selected by the member only that branch carries. Narrow it with `instanceof` or `match`.', 4),
-            self::alias($resource, $method),
-            $shape->nullable(false)->wireType(),
-            [self::MALFORMED],
-            $classes,
-        );
+        ], 'A tagged union, one class per branch, selected by `' . $discriminator . '`. Narrow it with `instanceof` or `match`.'];
     }
 
     /**

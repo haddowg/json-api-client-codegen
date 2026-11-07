@@ -33,5 +33,6 @@ final class AttributeDescriptor
         public readonly bool $nullable,
         public readonly ?ValueSchema $schema,
         public readonly Constraints $constraints = new Constraints(),
+        public readonly bool $deprecated = false,
     ) {}
 }

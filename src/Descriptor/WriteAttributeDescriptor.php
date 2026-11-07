@@ -29,5 +29,6 @@ final class WriteAttributeDescriptor
         public readonly ?ValueSchema $schema,
         public readonly bool $required,
         public readonly Constraints $constraints = new Constraints(),
+        public readonly bool $deprecated = false,
     ) {}
 }

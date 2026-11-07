@@ -28,6 +28,8 @@ final class ResourceDescriptor
      * @param list<string>                       $memberOrder     every attribute then every relation, in the order the resource schema declares them
      * @param array<string, RelationDescriptor>  $writeOnlyRelations relations a write accepts that no read shows, keyed and sorted by name
      * @param array<string, DeclaredLinkDescriptor> $links       the links the type declares, in document order
+     * @param list<SortFamilyDescriptor>         $sortFamilies the families of sort keys the collection matches by prefix
+     * @param list<string>                       $deprecatedSorts the sort keys the collection marks deprecated, unsigned
      */
     public function __construct(
         public readonly string $type,
@@ -48,6 +50,8 @@ final class ResourceDescriptor
         public readonly array $memberOrder = [],
         public readonly array $writeOnlyRelations = [],
         public readonly array $links = [],
+        public readonly array $sortFamilies = [],
+        public readonly array $deprecatedSorts = [],
     ) {}
 
     /**

@@ -13,6 +13,25 @@ any other unstamped member set, or an unstamped menu generates that endpoint unp
 warning. In a menu, an unreadable default arm unpaginates the collection; any other unreadable arm
 is just not offered. A malformed stamp, such as a `strategy` that is not a string, is an error.
 
+## Sort families and structured lists
+
+A `sort` parameter's fixed keys come from its `enum`, or from the `enum` branch of an `anyOf` when
+it also accepts families of keys by prefix. Each family in `x-sort-families` becomes a
+`sortBy<Prefix>(string $suffix, bool $descending = false)` that checks the key against the family's
+pattern, and `sortRaw()` accepts a key of any family.
+
+A list attribute whose `items` is an object reads as a list of array shapes, each element narrowed
+member by member, and one whose `items` is a `oneOf` as a list of the union's branch classes (see
+below). An element of the wrong shape throws `MalformedDocument`.
+
+## Deprecation
+
+Anything the document marks `deprecated` gets `@deprecated` on every generated member that reads,
+writes or calls it: an attribute's accessor and setters, a relation's accessors and setters, an
+operation's or action's method, a filter's `where…()` and a sort family's `sortBy…()`. Sort keys
+in `x-deprecated-sorts` are named in a sentence on `sort()`, since a literal token carries no tag.
+A type whose every endpoint is deprecated gets the tag on its client property.
+
 ## Attribute unions
 
 A `oneOf` attribute whose branches are objects reads as one generated class per branch, and its

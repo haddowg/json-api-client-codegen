@@ -208,6 +208,8 @@ final class DescriptorBuilder
             \array_values(\array_diff($this->memberOrder($schema), $writeOnly)),
             $this->writeOnlyRelations($type, $relations, $collection, $create, $update),
             $this->declaredLinks($schema, \array_values(\array_unique(\array_map(static fn(ActionDescriptor $action): string => $action->name, \array_values($actions))))),
+            $this->sortFamilies($list),
+            $this->deprecatedSorts($list),
         );
     }
 
@@ -469,6 +471,7 @@ final class DescriptorBuilder
                 $hint['nullable'],
                 $this->compositeSchema($attribute, $hint['format'], $this->readsHoldConstraints()),
                 $this->readsHoldConstraints() ? $this->attributeConstraints($attribute) : Constraints::none(),
+                self::deprecated($attribute),
             );
         }
         \ksort($out, \SORT_STRING);
@@ -517,6 +520,7 @@ final class DescriptorBuilder
                 $this->compositeSchema($attribute, $hint['format']),
                 \in_array($name, $required, true),
                 $this->attributeConstraints($attribute),
+                self::deprecated($attribute),
             );
         }
         \ksort($out, \SORT_STRING);
@@ -722,7 +726,7 @@ final class DescriptorBuilder
                 continue;
             }
             $written = $this->writeRelationships($update)?->find($name) ?? $this->writeRelationships($create)?->find($name);
-            $out[$name] = $this->relation($type, $name, $this->document->dereference($property), $collection, $written);
+            $out[$name] = $this->relation($type, $name, $this->document->dereference($property), $collection, $written, self::deprecated($property));
         }
         \ksort($out, \SORT_STRING);
 
@@ -733,7 +737,7 @@ final class DescriptorBuilder
      * @param Node|null $written the relation's member in a create or update body, which carries the
      *                           pivot a write sends when no relationship endpoint does
      */
-    private function relation(string $type, string $name, Node $component, ?string $collection, ?Node $written): RelationDescriptor
+    private function relation(string $type, string $name, Node $component, ?string $collection, ?Node $written, bool $deprecated = false): RelationDescriptor
     {
         $data = $component->get('properties')->get('data');
         $cardinality = $data->find('type')?->string() === 'array' ? Cardinality::Many : Cardinality::One;
@@ -770,6 +774,9 @@ final class DescriptorBuilder
             $polymorphic,
             $cardinality === Cardinality::Many ? $this->filterable($relatedGet) : [],
             $cardinality === Cardinality::Many ? $this->tokenEnum($relatedGet, 'sort') : [],
+            $cardinality === Cardinality::Many ? $this->sortFamilies($relatedGet) : [],
+            $deprecated,
+            $cardinality === Cardinality::Many ? $this->deprecatedSorts($relatedGet) : [],
         );
     }
 
@@ -1361,8 +1368,68 @@ final class DescriptorBuilder
 
         foreach ($operation->find('parameters')?->items() ?? [] as $parameter) {
             if ($parameter->find('name')?->string() === $parameterName) {
-                return $parameter->path('schema', 'items', 'enum')?->strings() ?? [];
+                $items = $parameter->path('schema', 'items');
+                $tokens = $items?->find('enum')?->strings() ?? [];
+                // A sort accepting families of keys lists its fixed keys as the enum branch of an
+                // `anyOf`, beside one `pattern` branch per family.
+                foreach ($items?->find('anyOf')?->items() ?? [] as $branch) {
+                    \array_push($tokens, ...($branch->find('enum')?->strings() ?? []));
+                }
+
+                return $tokens;
             }
+        }
+
+        return [];
+    }
+
+    /** Whether a schema, parameter or operation is marked `deprecated`. */
+    private static function deprecated(?Node $node): bool
+    {
+        $flag = $node?->find('deprecated');
+
+        return $flag !== null && $flag->bool();
+    }
+
+    /**
+     * The sort keys a read marks deprecated, unsigned, from its sort parameter's
+     * `x-deprecated-sorts`.
+     *
+     * @return list<string>
+     */
+    private function deprecatedSorts(?Node $operation): array
+    {
+        foreach ($operation?->find('parameters')?->items() ?? [] as $parameter) {
+            if ($parameter->find('name')?->string() === 'sort') {
+                return $parameter->path('schema', 'x-deprecated-sorts')?->strings() ?? [];
+            }
+        }
+
+        return [];
+    }
+
+    /**
+     * The families of sort keys a read matches by prefix, from its sort parameter's
+     * `x-sort-families`, in document order.
+     *
+     * @return list<SortFamilyDescriptor>
+     */
+    private function sortFamilies(?Node $operation): array
+    {
+        foreach ($operation?->find('parameters')?->items() ?? [] as $parameter) {
+            if ($parameter->find('name')?->string() !== 'sort') {
+                continue;
+            }
+            $families = [];
+            foreach ($parameter->path('schema', 'x-sort-families')?->items() ?? [] as $family) {
+                $families[] = new SortFamilyDescriptor(
+                    $family->get('prefix')->string(),
+                    $family->get('suffixPattern')->string(),
+                    $family->find('deprecated')?->bool() ?? false,
+                );
+            }
+
+            return $families;
         }
 
         return [];
@@ -1473,6 +1540,7 @@ final class DescriptorBuilder
             $out[$key] = new FilterDescriptor(
                 $key,
                 $schema === null || $schema->members() === [] ? null : $this->valueSchema($schema),
+                self::deprecated($parameter),
             );
         }
 
@@ -1580,11 +1648,11 @@ final class DescriptorBuilder
 
         $related = $this->relationReadStatuses($collection, false);
         if ($related !== null) {
-            $out[OperationKind::FetchRelated->value] = new OperationDescriptor($collection . '/{id}/{rel}', 'GET', $related, null);
+            $out[OperationKind::FetchRelated->value] = new OperationDescriptor($collection . '/{id}/{rel}', 'GET', $related, null, deprecated: $this->relationReadsDeprecated($collection, false));
         }
         $relationship = $this->relationReadStatuses($collection, true);
         if ($relationship !== null) {
-            $out[OperationKind::FetchRelationship->value] = new OperationDescriptor($collection . '/{id}/relationships/{rel}', 'GET', $relationship, null);
+            $out[OperationKind::FetchRelationship->value] = new OperationDescriptor($collection . '/{id}/relationships/{rel}', 'GET', $relationship, null, deprecated: $this->relationReadsDeprecated($collection, true));
         }
         \ksort($out, \SORT_STRING);
 
@@ -1609,7 +1677,7 @@ final class DescriptorBuilder
 
         return $operation === null
             ? null
-            : new OperationDescriptor($path, \strtoupper($method), $this->errorStatuses($operation), $this->projection($operation), $this->examples($operation), $this->scopes($operation));
+            : new OperationDescriptor($path, \strtoupper($method), $this->errorStatuses($operation), $this->projection($operation), $this->examples($operation), $this->scopes($operation), self::deprecated($operation));
     }
 
     /**
@@ -1719,23 +1787,10 @@ final class DescriptorBuilder
      */
     private function relationReadStatuses(string $collection, bool $linkage): ?array
     {
-        $prefix = $collection . '/{id}/' . ($linkage ? 'relationships/' : '');
         $found = false;
         $statuses = [];
 
-        foreach ($this->document->paths() as $key => $item) {
-            $path = (string) $key;
-            if (!\str_starts_with($path, $prefix)) {
-                continue;
-            }
-            $rest = \substr($path, \strlen($prefix));
-            if ($rest === '' || \str_contains($rest, '/') || \str_starts_with($rest, '-')) {
-                continue;
-            }
-            $get = $item->find('get');
-            if ($get === null) {
-                continue;
-            }
+        foreach ($this->relationReads($collection, $linkage) as $get) {
             $found = true;
             $statuses = [...$statuses, ...$this->errorStatuses($get)];
         }
@@ -1748,6 +1803,44 @@ final class DescriptorBuilder
         \sort($statuses);
 
         return $statuses;
+    }
+
+    /**
+     * Whether a type's related or relationship reads are all marked deprecated, which is when
+     * the by-name door standing for them is.
+     */
+    private function relationReadsDeprecated(string $collection, bool $linkage): bool
+    {
+        $reads = $this->relationReads($collection, $linkage);
+
+        return $reads !== [] && \array_filter($reads, static fn(Node $get): bool => !self::deprecated($get)) === [];
+    }
+
+    /**
+     * The `GET` of every concrete related or relationship path of a type.
+     *
+     * @return list<Node>
+     */
+    private function relationReads(string $collection, bool $linkage): array
+    {
+        $prefix = $collection . '/{id}/' . ($linkage ? 'relationships/' : '');
+        $out = [];
+        foreach ($this->document->paths() as $key => $item) {
+            $path = (string) $key;
+            if (!\str_starts_with($path, $prefix)) {
+                continue;
+            }
+            $rest = \substr($path, \strlen($prefix));
+            if ($rest === '' || \str_contains($rest, '/') || \str_starts_with($rest, '-')) {
+                continue;
+            }
+            $get = $item->find('get');
+            if ($get !== null) {
+                $out[] = $get;
+            }
+        }
+
+        return $out;
     }
 
     /**
@@ -1912,6 +2005,7 @@ final class DescriptorBuilder
             $this->safety($operation),
             $this->scopes($operation),
             $locationType,
+            self::deprecated($operation),
         );
     }
 

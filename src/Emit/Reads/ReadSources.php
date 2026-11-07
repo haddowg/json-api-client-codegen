@@ -7,6 +7,7 @@ namespace haddowg\JsonApiCodegen\Emit\Reads;
 use haddowg\JsonApiCodegen\Descriptor\Constraints;
 use haddowg\JsonApiCodegen\Descriptor\PaginatorDescriptor;
 use haddowg\JsonApiCodegen\Descriptor\PaginatorKind;
+use haddowg\JsonApiCodegen\Descriptor\SortFamilyDescriptor;
 use haddowg\JsonApiCodegen\Emit\ClassUnit;
 use haddowg\JsonApiCodegen\Emit\Contribution;
 use haddowg\JsonApiCodegen\Emit\ExampleTag;
@@ -316,10 +317,12 @@ final class ReadSources
             $aliases[] = $s->alias('FilterShape');
             $members[] = self::filterDoors($s->alias('FilterShape'));
         }
-        if ($s->sortable !== []) {
+        if ($s->sortable !== [] || $s->sortFamilies !== []) {
             $imports[] = self::RUNTIME . 'Exceptions\\UnknownSortException';
-            $aliases[] = $s->alias('SortToken');
-            $members[] = self::sortDoors($s->alias('SortToken'), $s->resource);
+            if ($s->sortable !== []) {
+                $aliases[] = $s->alias('SortToken');
+            }
+            $members[] = self::sortDoors($s->sortable === [] ? null : $s->alias('SortToken'), $s->resource, $s->sortFamilies, $s->deprecatedSorts);
         }
         if ($s->countable !== null) {
             $aliases[] = $s->alias('CountToken');
@@ -332,7 +335,7 @@ final class ReadSources
 
         $throws = Throws::for($collection->errorStatuses);
         \array_push($imports, ...Throws::imports($throws));
-        $members[] = $this->terminals($throws, ExampleTag::lines($collection->examples), $collection->scopes);
+        $members[] = $this->terminals($throws, ExampleTag::lines($collection->examples), $collection->scopes, $collection->deprecated);
 
         if ($s->filters !== []) {
             $members[] = self::guardFilters($s->alias('FilterShape'), $s->resource, $s->structuredFilters());
@@ -425,12 +428,17 @@ final class ReadSources
         }
         if ($s->sortable !== []) {
             $tags[] = '@phpstan-type ' . $s->alias('SortToken') . ' ' . self::union($s->sortable);
+        }
+        if ($s->sortable !== [] || $s->sortFamilies !== []) {
             $constants[] = self::constant(
                 ['The signed sort tokens `' . $this->collectionLabel() . '` accepts, both directions of each.', '', '@var list<string>'],
                 'array',
                 'SORT_TOKENS',
                 self::list($s->sortable, 'SORT_TOKENS'),
             );
+        }
+        if ($s->sortFamilies !== []) {
+            $constants[] = self::sortFamiliesConstant('`' . $this->collectionLabel() . '`', $s->sortFamilies);
         }
         if ($s->includable !== []) {
             $tags[] = '@phpstan-type ' . $s->alias('IncludePath') . ' ' . self::union($s->includable);
@@ -485,6 +493,9 @@ final class ReadSources
             $doc[] = '';
         }
         $doc[] = '@return static';
+        if ($filter->deprecated) {
+            \array_push($doc, '', '@deprecated');
+        }
 
         return Php::docblock($doc, 4)
             . '    public function ' . $filter->method . '(' . $filter->type->native . ' ' . $param . "): static\n"
@@ -525,24 +536,115 @@ final class ReadSources
     }
 
     /**
-     * @param string $owner the class whose `SORT_TOKENS` the loose door checks against
+     * A sentence naming the sort keys the server marks deprecated, or nothing when there are none.
+     * A literal token cannot carry a tag of its own, so the sentence goes on `sort()`.
+     *
+     * @param list<string> $keys
      */
-    public static function sortDoors(string $tokenAlias, string $owner): string
+    private static function deprecatedSorts(array $keys): string
     {
-        return Php::docblock([
-            ...Php::wrap('Sort by the endpoint\'s own tokens, in precedence order. Argument order is precedence, so nothing is translated between the call and the wire.', 4),
-            '',
-            '@param ' . $tokenAlias . ' ...$tokens',
-            '',
-            '@return static',
-        ], 4)
-            . "    public function sort(string ...\$tokens): static\n"
-            . "    {\n"
-            . "        return \$this->sorting(\\array_values(\$tokens));\n"
-            . "    }\n"
-            . "\n"
+        if ($keys === []) {
+            return '';
+        }
+        $quoted = \array_map(static fn(string $key): string => '`' . $key . '`', $keys);
+        $last = \array_pop($quoted);
+
+        return ' The server marks the ' . ($quoted === [] ? $last : \implode(', ', $quoted) . ' and ' . $last) . ' ' . (\count($keys) === 1 ? 'sort' : 'sorts') . ' deprecated.';
+    }
+
+    /**
+     * The constant mapping each family of sort keys to the pattern a signed key of it matches.
+     *
+     * @param list<SortFamilyDescriptor> $families
+     */
+    public static function sortFamiliesConstant(string $label, array $families): string
+    {
+        $entries = '';
+        foreach ($families as $family) {
+            $entries .= '        ' . Php::string($family->prefix) . ' => ' . Php::string($family->pattern()) . ",\n";
+        }
+
+        return self::constant(
+            ['The families of sort keys ' . $label . ' matches by prefix, each with the pattern a signed key of it matches.', '', '@var array<string, non-empty-string>'],
+            'array',
+            'SORT_FAMILIES',
+            "[\n" . $entries . '    ]',
+        );
+    }
+
+    /**
+     * The sort doors: the typed `sort()` over the endpoint's own tokens when it lists any, a
+     * `sortBy<Family>()` per family of keys it matches by prefix, and the loose `sortRaw()`.
+     *
+     * @param string|null                $tokenAlias the alias of the literal token union, or null when the endpoint lists no fixed tokens
+     * @param string                     $owner      the class whose `SORT_TOKENS` and `SORT_FAMILIES` the doors check against
+     * @param list<SortFamilyDescriptor> $families
+     * @param list<string>               $deprecated the sort keys the server marks deprecated, unsigned
+     */
+    public static function sortDoors(?string $tokenAlias, string $owner, array $families = [], array $deprecated = []): string
+    {
+        $out = '';
+        if ($tokenAlias !== null) {
+            $out .= Php::docblock([
+                ...Php::wrap('Sort by the endpoint\'s own tokens, in precedence order. Argument order is precedence, so nothing is translated between the call and the wire.' . self::deprecatedSorts($deprecated), 4),
+                '',
+                '@param ' . $tokenAlias . ' ...$tokens',
+                '',
+                '@return static',
+            ], 4)
+                . "    public function sort(string ...\$tokens): static\n"
+                . "    {\n"
+                . "        return \$this->sorting(\\array_values(\$tokens));\n"
+                . "    }\n"
+                . "\n";
+        }
+
+        $taken = [];
+        foreach ($families as $family) {
+            $method = 'sortBy' . Naming::pascal($family->prefix);
+            for ($i = 2; isset($taken[\strtolower($method)]); $i++) {
+                $method = 'sortBy' . Naming::pascal($family->prefix) . $i;
+            }
+            $taken[\strtolower($method)] = true;
+
+            $out .= Php::docblock([
+                ...Php::wrap('Sort by a key of the `' . $family->prefix . '` family: `' . $family->prefix . '.` then a suffix matching `' . $family->suffixPattern . '`.' . ($family->deprecated ? ' The server marks this family deprecated.' : ''), 4),
+                '',
+                '@return static',
+                '',
+                '@throws UnknownSortException when the key does not match the family\'s pattern',
+                ...($family->deprecated ? ['', '@deprecated'] : []),
+            ], 4)
+                . '    public function ' . $method . "(string \$suffix, bool \$descending = false): static\n"
+                . "    {\n"
+                . "        \$token = (\$descending ? '-' : '') . " . Php::string($family->prefix . '.') . " . \$suffix;\n"
+                . '        if (\\preg_match(' . $owner . '::SORT_FAMILIES[' . Php::string($family->prefix) . "], \$token) !== 1) {\n"
+                . '            throw UnknownSortException::for($token, ' . $owner . "::SORT_TOKENS);\n"
+                . "        }\n"
+                . "\n"
+                . "        return \$this->sorting([\$token]);\n"
+                . "    }\n"
+                . "\n";
+        }
+
+        $check = $families === []
+            ? '            if (!\\in_array($token, ' . $owner . "::SORT_TOKENS, true)) {\n"
+                . '                throw UnknownSortException::for($token, ' . $owner . "::SORT_TOKENS);\n"
+                . "            }\n"
+            : '            if (\\in_array($token, ' . $owner . "::SORT_TOKENS, true)) {\n"
+                . "                continue;\n"
+                . "            }\n"
+                . '            foreach (' . $owner . "::SORT_FAMILIES as \$pattern) {\n"
+                . "                if (\\preg_match(\$pattern, \$token) === 1) {\n"
+                . "                    continue 2;\n"
+                . "                }\n"
+                . "            }\n"
+                . "\n"
+                . '            throw UnknownSortException::for($token, ' . $owner . "::SORT_TOKENS);\n";
+
+        return $out
             . Php::docblock([
-                ...Php::wrap('The loose sort door, for tokens assembled at runtime, which a literal union can never accept.', 4),
+                ...Php::wrap('The loose sort door, for tokens assembled at runtime, which a literal union can never accept.' . ($families === [] ? '' : ' A key of one of the endpoint\'s sort families is accepted too.'), 4),
                 '',
                 '@param list<string> $tokens',
                 '',
@@ -553,9 +655,7 @@ final class ReadSources
             . "    public function sortRaw(array \$tokens): static\n"
             . "    {\n"
             . "        foreach (\$tokens as \$token) {\n"
-            . '            if (!\in_array($token, ' . $owner . "::SORT_TOKENS, true)) {\n"
-            . '                throw UnknownSortException::for($token, ' . $owner . "::SORT_TOKENS);\n"
-            . "            }\n"
+            . $check
             . "        }\n"
             . "\n"
             . "        return \$this->sorting(\$tokens);\n"
@@ -824,8 +924,9 @@ final class ReadSources
      * @param list<array{string, string}> $throws
      * @param list<string>                $example the `@example` lines for `get()`
      * @param list<string>|null           $scopes  the OAuth scopes the read needs
+     * @param bool                        $deprecated whether the server marks the read deprecated
      */
-    private function terminals(array $throws, array $example, ?array $scopes): string
+    private function terminals(array $throws, array $example, ?array $scopes, bool $deprecated = false): string
     {
         $s = $this->surface;
         $paginated = $s->paginator->paginated();
@@ -843,7 +944,7 @@ final class ReadSources
 
         $singular = Naming::singular($this->type);
 
-        return Php::docblock(ScopeNote::insert(['Run the read.', '', '@return ' . $collection, '', ...Throws::lines($throws), ...$example], $scopes), 4)
+        return Php::docblock(ScopeNote::insert(['Run the read.', '', '@return ' . $collection, '', ...Throws::lines($throws), ...$example], $scopes, deprecated: $deprecated), 4)
             . '    public function get(): ' . ($paginated ? 'PaginatedCollection' : 'ResourceCollection') . "\n"
             . "    {\n"
             . "        \$query = \$this->toReadQuery();\n"
@@ -857,7 +958,7 @@ final class ReadSources
                 '@return TProj|null',
                 '',
                 ...Throws::lines($throws),
-            ], $scopes), 4)
+            ], $scopes, deprecated: $deprecated), 4)
             . "    public function first(): ?object\n"
             . "    {\n"
             . '        return ' . $first . ";\n"

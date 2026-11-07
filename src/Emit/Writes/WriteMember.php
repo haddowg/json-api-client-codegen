@@ -35,6 +35,7 @@ final class WriteMember
         public readonly bool $toMany,
         public readonly ?string $prose = null,
         public readonly bool $intEnum = false,
+        public readonly bool $deprecated = false,
     ) {}
 
     /**
@@ -46,6 +47,9 @@ final class WriteMember
      */
     public function setterDoc(array $tags): array
     {
+        if ($this->deprecated) {
+            $tags = [...$tags, ...($tags === [] ? [] : ['']), '@deprecated'];
+        }
         if ($this->prose === null) {
             return $tags;
         }

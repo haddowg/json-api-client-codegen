@@ -23,10 +23,10 @@ use PHPUnit\Framework\TestCase;
  * A `oneOf` with no discriminator whose branches each require a member no other branch
  * declares reads as one class per branch, chosen by that member, and writes as a union of
  * array shapes. Core projects such a union from a `OneOf` field with no discriminator, naming
- * each branch by its `title`; this generates from a copy of the witness whose `articles` carries
- * one, a `shape` that is a circle or a rectangle, exactly as core projects it.
+ * each branch by its `title`; the witness's `articles` carries one, a `shape` that is a circle
+ * or a rectangle.
  *
- * `tests/golden/unions` is that copy's whole generated output on the 8.3 target, so its reads
+ * `tests/golden/unions` is the witness's whole generated output on the 8.3 target, so its reads
  * run here on any supported PHP, and is analysed at level 9 by `composer phpstan-generated`
  * beside `tests/GeneratedTypes/UndiscriminatedUnionTypes.php`.
  */
@@ -148,36 +148,12 @@ final class UndiscriminatedUnionTest extends TestCase
         );
     }
 
-    /** The witness with `articles` carrying a `shape` that is a circle or a rectangle, as core projects it. */
+    /** The witness, whose `articles` carries a `shape` that is a circle or a rectangle, re-encoded compactly. */
     private static function json(): string
     {
         $json = \file_get_contents(Fixtures::path('contract-witness.openapi.json'));
         self::assertIsString($json);
         $document = \json_decode($json, true, flags: \JSON_THROW_ON_ERROR);
-        self::assertIsArray($document);
-
-        $shape = ['oneOf' => [
-            ['type' => 'object', 'title' => 'circle', 'properties' => ['radius' => ['type' => 'integer']], 'required' => ['radius'], 'additionalProperties' => false],
-            ['type' => 'object', 'title' => 'rectangle', 'properties' => ['width' => ['type' => 'integer'], 'height' => ['type' => 'integer']], 'required' => ['width', 'height'], 'additionalProperties' => false],
-            ['type' => 'null'],
-        ]];
-
-        foreach (['ArticlesAttributes' => true, 'ArticlesCreateAttributes' => false, 'ArticlesUpdateAttributes' => false] as $name => $required) {
-            $schema = &$document;
-            foreach (['components', 'schemas', $name] as $key) {
-                self::assertIsArray($schema);
-                self::assertArrayHasKey($key, $schema);
-                $schema = &$schema[$key];
-            }
-            self::assertIsArray($schema);
-            self::assertIsArray($schema['properties'] ?? null);
-            $schema['properties']['shape'] = $shape;
-            if ($required) {
-                self::assertIsArray($schema['required'] ?? null);
-                $schema['required'][] = 'shape';
-            }
-            unset($schema);
-        }
 
         return \json_encode($document, \JSON_THROW_ON_ERROR | \JSON_UNESCAPED_SLASHES);
     }

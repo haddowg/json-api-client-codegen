@@ -39,7 +39,7 @@ final class MusicCatalogClient
 
     public function __construct(ClientOptions $options)
     {
-        $this->fetcher = new Fetcher(new Transport($options));
+        $this->fetcher = new Fetcher(new Transport($options->withErrorCodes(MusicCatalogErrorCodes::MAP)));
 
         $this->albums = new Albums($this->fetcher);
     }

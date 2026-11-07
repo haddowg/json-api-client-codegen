@@ -73,9 +73,14 @@ The generated `autoload.php` the consumer registers through `autoload.files`.
 The PHP version generated code is written for, 8.3 or 8.4; an 8.4 target adds property hooks that
 delegate to the method accessors.
 
-**Runtime catalogue**:
-The error codes the installed `haddowg/json-api-client` already ships a class for, so the codegen
-emits none for them.
+**Error shape**:
+A catalogue component (`Error403InsufficientScope`) grouping the codes at one status that fill the
+same `source` member and declare the same `meta`, each code a `const` branch of its `code`. The
+codegen emits a class per code, and a value class for a declared `meta`.
+
+**Scoped code**:
+A code only some operations raise, offered through an error document narrowed to those operations
+(`ErrorDocument409WithArticleLocked`); its class names the operations.
 
 ### Testing
 

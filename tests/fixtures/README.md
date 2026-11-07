@@ -3,14 +3,14 @@
 The music-catalog pair started as copies of `json-api-ts/packages/codegen/test/fixtures/`, the
 TypeScript codegen's reference input, so a PHP and a TypeScript client generated from one
 document could be diffed against each other. They have since been re-exported from the
-bundle's example, most recently from the bundle's `main` on `haddowg/json-api` 1.13.1, which gives every error
-code an example detail.
+bundle's example, most recently from the bundle's `main` against core's `main`, which groups the
+error catalogue into shapes with a typed `meta`.
 
 | File | What it is |
 | --- | --- |
-| `music-catalog.openapi.json` | The OpenAPI 3.1 document for the music-catalog API. 65 paths, 354 component schemas, 15 resource types, generator contract 13 (`haddowg/json-api` 1.13.1), with a worked example on 105 of its 123 operations and an example detail on every core error code. |
+| `music-catalog.openapi.json` | The OpenAPI 3.1 document for the music-catalog API. 66 paths, 250 component schemas, 15 resource types, with a worked example on 106 of its 124 operations and the error catalogue grouped into shapes, each code's example in `components.examples`. |
 | `music-catalog.schemas.json` | The sidecar JSON Schema map, one draft-2020-12 schema per resource type, keyed by type. |
-| `contract-witness.openapi.json` | Core's contract witness, copied verbatim from `tests/OpenApi/Fixture/contract-witness.json` on `haddowg/json-api`, ahead of the release that closes declared objects. One server projecting every branch the projector can reach: raw and multi-body actions, operation examples and scopes, declared links, discriminated resource unions and a typed `included`, a `sort` with three families of keys beside its fixed ones, lists of objects and of a discriminated union, deprecation markers on an attribute, a relation, a filter, sort keys, a family, an action and every `tags` endpoint, closed objects, and an undiscriminated `shape` union. Refresh it by copying the file from a newer core release. |
+| `contract-witness.openapi.json` | Core's contract witness, exported verbatim by `bin/export-contract-witness.php` on `haddowg/json-api`. One server projecting every branch the projector can reach: raw and multi-body actions, operation examples and scopes, declared links, discriminated resource unions and a typed `included`, a `sort` with three families of keys beside its fixed ones, lists of objects and of a discriminated union, deprecation markers on an attribute, a relation, a filter, sort keys, a family, an action and every `tags` endpoint, closed objects, an undiscriminated `shape` union, and error codes scoped to some operations (`ARTICLE_LOCKED`, `PAYMENT_REQUIRED`). Refresh it by exporting it from a newer core. |
 | `paginators.openapi.json` | Hand-built, generator contract 3, with an offset floor of 0 as core projects it. One collection per pagination strategy, each with renamed keys under `x-paginator`, a `MultiPaginator` menu on `posts` (and on its related `comments` read), an unstamped canonical `tags`, and a strategy no codegen knows on `logs`. Shaped after core's projection; not exported from a server. |
 
 `music-catalog.openapi.json` is the canonical codegen input. Golden-file tests generate from it and diff the committed
@@ -54,7 +54,7 @@ The reader normalises both, and `tests/Descriptor/PaginatorDetectionTest.php` pi
 strategy against hand-built documents in both forms. Do not "simplify" it to the current form
 alone.
 
-This document is contract 13, so every page schema carries `x-paginator` and states its members'
+Every page schema in this document carries `x-paginator` and states its members'
 `default` and the size cap, and its `tracks` collection is a page/cursor/offset menu: the picker
 is generated from a real server's document.
 The name-based fallback for unstamped documents is pinned by `PaginatorDetectionTest`'s
@@ -66,8 +66,9 @@ the page-type assertions in `tests/GeneratedTypes`, and run by `PaginationBehavi
 ## The reference artefact
 
 `artefact/` is a snapshot of `json-api-client/tests/Generated/MusicCatalog`, the hand-written
-output for the `albums` type that every emitter targets. Copied at json-api-client `443fe13`, where
-it was refreshed against generator contract 11.
+output for the `albums` type that every emitter targets, together with the generated `errors.php`
+its client hands to the runtime. Copied from json-api-client in the change that generates every
+error code.
 
 `ArtefactParity` compares a declaration generated from `music-catalog.openapi.json` against it on
 code tokens and type-bearing PHPDoc only, because the artefact's prose explains the design to a

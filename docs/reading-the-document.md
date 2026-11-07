@@ -13,6 +13,20 @@ any other unstamped member set, or an unstamped menu generates that endpoint unp
 warning. In a menu, an unreadable default arm unpaginates the collection; any other unreadable arm
 is just not offered. A malformed stamp, such as a `strategy` that is not a string, is an error.
 
+## The error catalogue
+
+Error codes are read off the error documents. `ErrorDocument`, each `ErrorDocument<NNN>` and each
+narrowed `ErrorDocument<NNN>With<Suffix>` offer shapes as `errors.items.anyOf` references after the
+generic `Error`; a shape narrows `Error` in an `allOf`, pinning `status`, requiring at most one
+`source` member (`pointer`, `parameter` or `header`) and optionally declaring a closed `meta`.
+Each `const` branch of its `code` is a code, carrying its title and description. A code's example
+`detail` is the `detail` of the error in its `components.examples` entry. A code the narrowed
+documents offer and its status's shared document does not is scoped, and the operations whose
+responses point at those documents are recorded on it.
+
+A shape that does not narrow `code` to `const` branches, as a document cataloguing one component
+per code does, is refused with the pointer it was reading.
+
 ## Sort families and structured lists
 
 A `sort` parameter's fixed keys come from its `enum`, or from the `enum` branch of an `anyOf` when

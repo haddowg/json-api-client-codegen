@@ -3836,6 +3836,7 @@ final class ArticleHandle
      * @throws Forbidden          when the delete is not permitted
      * @throws NotFound           when no article has this id
      * @throws NotAcceptable      when the negotiated media type cannot be satisfied
+     * @throws Conflict           when the document conflicts with the endpoint
      * @throws ServerError        when the server fails
      * @throws TransportException when no response is received at all
      *

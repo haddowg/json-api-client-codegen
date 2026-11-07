@@ -8,11 +8,9 @@ use haddowg\JsonApiCodegen\Descriptor\ApiDescriptor;
 use haddowg\JsonApiCodegen\Descriptor\DescriptorBuilder;
 use haddowg\JsonApiCodegen\Descriptor\DescriptorSerializer;
 use haddowg\JsonApiCodegen\Descriptor\OperationKind;
-use haddowg\JsonApiCodegen\Emit\Generator;
 use haddowg\JsonApiCodegen\Spec\SpecDocument;
 use haddowg\JsonApiCodegen\Spec\SpecException;
 use haddowg\JsonApiCodegen\Tests\Support\Fixtures;
-use haddowg\JsonApiCodegen\Tests\Support\Generated;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
@@ -21,24 +19,18 @@ use PHPUnit\Framework\TestCase;
  * `type` discriminator mapping each type to its member, and types each document's `included` as
  * such a `oneOf` over the resources its include paths reach.
  *
- * The music-catalog document predates it, so these tests rewrite its polymorphic unions the way
- * contract 19 writes them and check the client is the one generated from the original.
+ * The music-catalog document writes its polymorphic unions that way already, which these tests
+ * check by rewriting any union still written as an `anyOf` and finding none.
  */
 #[CoversClass(DescriptorBuilder::class)]
 #[CoversClass(DescriptorSerializer::class)]
 final class ContractNineteenTest extends TestCase
 {
-    public function testADiscriminatedUnionGeneratesWhatAnAnyOfDoes(): void
+    public function testTheMusicCatalogWritesEveryPolymorphicUnionDiscriminated(): void
     {
         $original = self::musicCatalog();
-        $discriminated = self::discriminated($original);
-        self::assertNotSame($original, $discriminated, 'the music catalog has polymorphic relations to rewrite');
 
-        self::assertSame(
-            DescriptorSerializer::toJson(self::descriptor($original)),
-            DescriptorSerializer::toJson(self::descriptor($discriminated)),
-        );
-        self::assertSame(self::generate($original), self::generate($discriminated));
+        self::assertSame($original, self::discriminated($original), 'no polymorphic union is left as an anyOf of resources');
     }
 
     public function testTheWitnessReadsItsPolymorphicRelationsFromTheirOneOf(): void
@@ -70,17 +62,6 @@ final class ContractNineteenTest extends TestCase
         // The operation and result unions are split by kind and discriminated by type, which
         // nothing here reads: a batch is built from each type's write inputs.
         self::assertSame('/operations', self::witness()->atomic?->path);
-    }
-
-    public function testAnOlderDocumentRecordsNoIncludedTypes(): void
-    {
-        $albums = Fixtures::musicCatalogDescriptor()->resource('albums');
-        self::assertNotNull($albums);
-
-        $projection = $albums->operation(OperationKind::FetchOne)?->projection;
-        self::assertNotNull($projection);
-        self::assertNotSame([], $projection->includable);
-        self::assertNull($projection->included);
     }
 
     public function testAMappingThatDisagreesWithItsMembersIsAnError(): void
@@ -205,15 +186,5 @@ final class ContractNineteenTest extends TestCase
     private static function descriptor(array $document): ApiDescriptor
     {
         return DescriptorBuilder::build(SpecDocument::fromDecoded($document));
-    }
-
-    /**
-     * @param array<array-key, mixed> $document
-     *
-     * @return array<string, string>
-     */
-    private static function generate(array $document): array
-    {
-        return Generator::default()->generate(self::descriptor($document), Generated::config(), '');
     }
 }

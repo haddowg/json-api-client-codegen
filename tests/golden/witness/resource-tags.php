@@ -17,6 +17,7 @@ use haddowg\JsonApiClient\Exceptions\NotFound;
 use haddowg\JsonApiClient\Exceptions\ServerError;
 use haddowg\JsonApiClient\Exceptions\TransportException;
 use haddowg\JsonApiClient\Exceptions\Unauthorized;
+use haddowg\JsonApiClient\Exceptions\UnexpectedResponse;
 use haddowg\JsonApiClient\Exceptions\UnknownAttributeException;
 use haddowg\JsonApiClient\Exceptions\UnknownFieldException;
 use haddowg\JsonApiClient\Exceptions\UnknownFilterException;
@@ -1795,6 +1796,7 @@ final class Tags
      *
      * @throws BadRequest           when the request is malformed
      * @throws Unauthorized         when credentials are missing or invalid
+     * @throws UnexpectedResponse   when the server answers with a status no other class covers
      * @throws Forbidden            when the create is not permitted
      * @throws NotFound             when the endpoint does not exist
      * @throws NotAcceptable        when the negotiated media type cannot be satisfied

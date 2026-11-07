@@ -13,7 +13,6 @@ use haddowg\JsonApiCodegen\Emit\GeneratorConfig;
 use haddowg\JsonApiCodegen\Emit\Naming;
 use haddowg\JsonApiCodegen\Emit\PhpTarget;
 use haddowg\JsonApiCodegen\Emit\Root\ClientEmitter;
-use haddowg\JsonApiCodegen\Emit\Root\ErrorCodeEmitter;
 use haddowg\JsonApiCodegen\Tests\Support\ArtefactParity;
 use haddowg\JsonApiCodegen\Tests\Support\Fixtures;
 use haddowg\JsonApiCodegen\Tests\Support\Generated;
@@ -87,25 +86,21 @@ final class ClientEmitterTest extends TestCase
         );
     }
 
-    public function testApplicationCodesAreHandedToTheTransport(): void
+    public function testTheCodeMapIsHandedToTheTransport(): void
     {
-        $api = new ApiDescriptor([], [], null, 2, [
-            'TRACK_LOCKED' => new ErrorCodeDescriptor('TRACK_LOCKED', 409, 'TrackLockedError', 'Track is locked', null),
+        $api = new ApiDescriptor([], [], null, 24, [
+            'TRACK_LOCKED' => new ErrorCodeDescriptor('TRACK_LOCKED', 409, 'Error409', 'TrackLockedError', 'Track is locked', null),
         ]);
 
-        $unit = [...(new ClientEmitter(new ErrorCodeEmitter([])))->emit($api, Generated::config())][0];
+        $unit = [...(new ClientEmitter())->emit($api, Generated::config())][0];
         self::assertInstanceOf(ClassUnit::class, $unit);
 
         self::assertStringContainsString('$fetcher = new Fetcher(new Transport($options->withErrorCodes(MusicCatalogErrorCodes::MAP)));', $unit->source);
     }
 
-    public function testCoreCodesLeaveTheTransportOptionsAlone(): void
+    public function testADocumentCataloguingNoCodeLeavesTheTransportOptionsAlone(): void
     {
-        $api = new ApiDescriptor([], [], null, 2, [
-            'APPLICATION_ERROR' => new ErrorCodeDescriptor('APPLICATION_ERROR', 500, 'ApplicationError', 'Application error', null),
-        ]);
-
-        $unit = [...(new ClientEmitter(new ErrorCodeEmitter(['APPLICATION_ERROR'])))->emit($api, Generated::config())][0];
+        $unit = [...(new ClientEmitter())->emit(new ApiDescriptor([], [], null, 24, []), Generated::config())][0];
         self::assertInstanceOf(ClassUnit::class, $unit);
 
         self::assertStringContainsString('new Transport($options)', $unit->source);

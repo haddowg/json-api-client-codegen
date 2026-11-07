@@ -282,10 +282,14 @@ final class DescriptorSerializer
         return [
             'status' => $error->status,
             'schema' => $error->schema,
+            'class' => $error->class,
             'title' => $error->title,
             'source' => $error->source?->value,
             'description' => $error->description,
             'exampleDetail' => $error->exampleDetail,
+            'meta' => self::valueSchema($error->meta),
+            'metaRequired' => $error->metaRequired,
+            'operations' => $error->operations,
         ];
     }
 

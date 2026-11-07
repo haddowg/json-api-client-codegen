@@ -44,7 +44,7 @@ final class ContractSixteenTest extends TestCase
     {
         $document = SpecDocument::fromJson(self::json(), 'the witness');
 
-        self::assertSame(23, $document->contract());
+        self::assertSame(24, $document->contract());
         self::assertNull(ContractCompatibility::check($document->contract()));
     }
 
@@ -115,13 +115,6 @@ final class ContractSixteenTest extends TestCase
         self::assertArrayNotHasKey('scopes', $resources['articles']['actions']['import']);
         self::assertIsArray($serialised['atomic']);
         self::assertSame(['batch'], $serialised['atomic']['scopes']);
-    }
-
-    public function testAnOlderDocumentCarriesNoScopes(): void
-    {
-        $json = \json_encode(DescriptorSerializer::toArray(Fixtures::musicCatalogDescriptor()), \JSON_THROW_ON_ERROR);
-
-        self::assertStringNotContainsString('"scopes"', $json);
     }
 
     public function testEachGeneratedMethodStatesTheScopesItNeeds(): void

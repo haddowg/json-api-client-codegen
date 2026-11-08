@@ -246,7 +246,7 @@ final class ReadSurface
      * member in either write shape. A date filter bound names it where it exists and spells out
      * the union it stands for where it does not.
      */
-    private static function declaresDateInput(ResourceDescriptor $descriptor): bool
+    public static function declaresDateInput(ResourceDescriptor $descriptor): bool
     {
         foreach ([...$descriptor->createAttributes, ...$descriptor->updateAttributes] as $attribute) {
             if (\in_array($attribute->format, ['date', 'date-time', 'time'], true)) {

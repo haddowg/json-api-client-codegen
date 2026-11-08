@@ -116,6 +116,16 @@ of GET, PUT, PATCH and DELETE); each other method is named from the action and t
 An action that answers with a URL returns the runtime's `ActionLocation`, or a union with its
 `200` result when it declares one too. The URL is never fetched.
 
+An action's result is its first 2xx JSON:API document, so one answering `201 Created` with the
+resource it created reads that resource as one answering `200` does. An action declaring both a
+`200` and a `201` document that name different types is typed by the `200`, with a warning.
+
+A collection action's `filter[…]` parameters become a trailing `array $filter = []`, typed by an
+array shape of exactly those filters, each value typed as the collection read types it. The shape
+is spelled out on the action rather than borrowing the read's alias, so it stands even where the
+read is not exposed. The names, and a structured filter's members, are checked at run time through
+the runtime's `FilterGuard`, and the filters are sent as a read sends them.
+
 ## Relations, pivots and links
 
 A relation whose linkage is a union is polymorphic even with one member type, and rejects a related

@@ -157,7 +157,7 @@ final class DescriptorSerializer
     /** @return array<string, mixed> */
     private static function action(ActionDescriptor $action): array
     {
-        // Contract-10, -12, -15, -16 and -17 members appear only when present, so an older document serialises as it did.
+        // Contract-10, -12, -15, -16, -17 and -25 members appear only when present, so an older document serialises as it did.
         $raw = \array_filter([
             'summary' => $action->summary,
             'description' => $action->description,
@@ -167,6 +167,9 @@ final class DescriptorSerializer
             'safety' => $action->safety?->declared(),
             'scopes' => $action->scopes,
             'locationType' => $action->locationType,
+            'filterable' => \array_map(static fn(FilterDescriptor $filter): array => [
+                'schema' => self::valueSchema($filter->schema),
+            ], $action->filterable),
         ], static fn(mixed $value): bool => $value !== null && $value !== []);
 
         return [...[

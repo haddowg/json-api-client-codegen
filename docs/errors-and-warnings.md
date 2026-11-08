@@ -9,7 +9,8 @@ takes it and reports a warning through `Generator::warnings()` instead:
 - a paginator it cannot read generates the endpoint unpaginated (see [pagination](reading-the-document.md#pagination));
 - an alias of a multi-method action that collides with another action's name leaves that method
   out;
-- a JSON:API request body offered beside raw ones generates the document input alone.
+- a JSON:API request body offered beside raw ones generates the document input alone;
+- an action whose `200` and `201` documents name different types is typed by the `200`.
 
 An enum component whose name is not a usable PHP class name, an error code whose class name is not
 usable or is taken by another code, and a type or member whose PHP name is not usable, are refused.

@@ -2119,6 +2119,14 @@ final class DescriptorBuilder
                 \sprintf('to be a document of a type the document describes, as the response of the "%s" action', $name),
             );
         }
+        if ($returned !== null) {
+            // A `200` and a `201` naming different types can't share one return type; the first wins.
+            foreach ($this->actionDocumentTypes($operation) as $other) {
+                if ($other !== $returned['type']) {
+                    $this->warn(\sprintf('The "%s" action at %s answers with both a "%s" and a "%s" document; its result is typed as "%s".', $name, $path, $returned['type'], $other, $returned['type']));
+                }
+            }
+        }
         $contentType = $input === ActionInput::Raw
             ? (\array_values(\array_filter($mediaTypes, static fn(string $media): bool => $media !== self::JSON_API_MEDIA_TYPE))[0] ?? null)
             : null;
@@ -2180,7 +2188,33 @@ final class DescriptorBuilder
             $locationType,
             self::deprecated($operation),
             $this->scopedErrorCodes($method, $path),
+            $this->filterable($operation),
         );
+    }
+
+    /**
+     * The resource type each 2xx JSON:API document of an action names, the `201` of the resource
+     * it created among them, leaving out a location document and a meta-only one.
+     *
+     * @return list<string>
+     */
+    private function actionDocumentTypes(Node $operation): array
+    {
+        $types = [];
+        foreach ($operation->find('responses')?->members() ?? [] as $code => $response) {
+            $schema = \str_starts_with((string) $code, '2') ? $response->path('content', self::JSON_API_MEDIA_TYPE, 'schema') : null;
+            foreach ($schema === null ? [] : $schema->find('oneOf')?->items() ?? [$schema] as $branch) {
+                if ($this->locationType($branch) !== null || $this->document->refName($branch) === self::META_DOCUMENT) {
+                    continue;
+                }
+                $type = $this->documentPrimary($branch)['type'] ?? null;
+                if ($type !== null) {
+                    $types[] = $type;
+                }
+            }
+        }
+
+        return $types;
     }
 
     /**

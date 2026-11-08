@@ -20,6 +20,8 @@ use haddowg\JsonApiCodegen\Emit\Naming;
 use haddowg\JsonApiCodegen\Emit\Php;
 use haddowg\JsonApiCodegen\Emit\ReadModel\ReadModelEmitter;
 use haddowg\JsonApiCodegen\Emit\ReadModel\Shape;
+use haddowg\JsonApiCodegen\Emit\Reads\FilterTypes;
+use haddowg\JsonApiCodegen\Emit\Reads\ReadSurface;
 use haddowg\JsonApiCodegen\Emit\ScopeNote;
 use haddowg\JsonApiCodegen\Emit\UnitKind;
 
@@ -62,6 +64,9 @@ final class ActionSource
             $methods[\strtolower($method)] = true;
             if ($action->input === ActionInput::Document) {
                 $aliases[] = TypeSurface::importAlias(self::inputType($type, $action), 'CreateShape');
+            }
+            foreach (self::filters($type, $action)['aliases'] as $alias) {
+                $aliases[] = '@phpstan-import-type ' . $alias . ' from ' . $type->concrete();
             }
             $members[] = self::method($type, $action, $method, $imports);
         }
@@ -182,6 +187,22 @@ final class ActionSource
         }
 
         $uri = $projection === null ? $path : '$query->appendTo(' . $path . ')';
+        if ($action->filterable !== []) {
+            $filters = self::filters($type, $action);
+            $guard = $imports->runtime('Query\\FilterGuard');
+            $readQuery = $imports->runtime('Query\\ReadQuery');
+            $names = \array_keys($action->filterable);
+            $prose[] = 'It takes the ' . (\count($names) === 1 ? 'filter' : 'filters') . ' ' . self::list(\array_map(static fn(string $name): string => '`' . $name . '`', $names)) . ' of the ' . $type->label() . ' collection, sent as a collection read sends them.';
+            $params[] = [$filters['doc'], '$filter'];
+            $signature[] = 'array $filter = []';
+            $members = $filters['members'] === [] ? '' : ', [' . \implode(', ', \array_map(
+                static fn(string $name, array $accepted): string => Php::string($name) . ' => [' . \implode(', ', \array_map(Php::string(...), $accepted)) . ']',
+                \array_keys($filters['members']),
+                $filters['members'],
+            )) . ']';
+            $body .= '        $filter = ' . $guard . '::check($filter, [' . \implode(', ', \array_map(Php::string(...), $names)) . ']' . $members . ");\n\n";
+            $uri = '(new ' . $readQuery . '(filter: $filter))->appendTo(' . $uri . ')';
+        }
         $rawBody = $multi ? ($encodes ? '$payload' : '$body') . ', $contentType' : '$body, ' . Php::string($action->contentType ?? 'application/octet-stream');
         $build = match (true) {
             $action->input === ActionInput::Raw && !$action->bodyRequired => '$request',
@@ -607,6 +628,36 @@ final class ActionSource
         $shape = Shape::of($media->schema)->merged();
 
         return [$shape->wireType(), ReadModelEmitter::native($shape)];
+    }
+
+    /**
+     * The array shape a collection action's `$filter` takes, the aliases it names, and the members
+     * each structured filter accepts.
+     *
+     * Each value is typed as the collection read types it, but its shape is spelled out rather than
+     * named by the read's alias, since the type may expose the action without the read.
+     *
+     * @return array{doc: string, aliases: list<string>, members: array<string, list<string>>}
+     */
+    private static function filters(TypeSurface $type, ActionDescriptor $action): array
+    {
+        if ($action->filterable === []) {
+            return ['doc' => '', 'aliases' => [], 'members' => []];
+        }
+
+        [$slots] = ReadSurface::filterSlots($type->type(), 'Action', $action->filterable, ReadSurface::declaresDateInput($type->resource), $action->path);
+        $parts = [];
+        $aliases = [];
+        $members = [];
+        foreach ($slots as $slot) {
+            $parts[] = FilterTypes::key($slot->name) . '?: ' . ($slot->shape === null ? $slot->type->doc : $slot->shape->shape);
+            \array_push($aliases, ...($slot->shape === null ? $slot->type->aliases : $slot->shape->aliases));
+            if ($slot->shape !== null) {
+                $members[$slot->name] = $slot->shape->members;
+            }
+        }
+
+        return ['doc' => 'array{' . \implode(', ', $parts) . '}', 'aliases' => \array_values(\array_unique($aliases)), 'members' => $members];
     }
 
     /**

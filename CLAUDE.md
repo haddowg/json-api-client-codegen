@@ -76,7 +76,7 @@ the projector whenever the emitted structure changes. This codegen declares a su
 this is the only thing that catches it. A feature-token list was rejected: it names what
 changed, at the cost of two hand-maintained lists that must agree.
 
-The supported range is `ContractCompatibility::MINIMUM` to `MAXIMUM`, currently `[24, 24]`.
+The supported range is `ContractCompatibility::MINIMUM` to `MAXIMUM`, currently `[24, 26]`.
 Raise `MAXIMUM` only in the change that teaches the descriptor to read whatever the next contract
 adds, and record a hard-to-reverse reading decision as an ADR. **Don't record contract history**
 here, in the README, in docs or in a docblock ("contract 12 added…", "from contract 14…"):

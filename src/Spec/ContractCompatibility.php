@@ -26,7 +26,7 @@ final class ContractCompatibility
     public const int MINIMUM = 24;
 
     /** Above this the document carries structures this codegen does not read. */
-    public const int MAXIMUM = 24;
+    public const int MAXIMUM = 26;
 
     /**
      * Check a document's declared contract against the supported range.

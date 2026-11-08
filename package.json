@@ -5,6 +5,6 @@
   "license": "MIT",
   "devDependencies": {
     "@haddowg/json-api-symfony-specs": "2.1.1",
-    "@haddowg/json-api-witness": "2.1.0"
+    "@haddowg/json-api-witness": "2.4.0"
   }
 }

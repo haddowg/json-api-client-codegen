@@ -41,7 +41,7 @@ final class ContractCompatibilityTest extends TestCase
             ContractCompatibility::check(23);
         } finally {
             self::assertNull(ContractCompatibility::check(24));
-            self::assertSame('the document declares contract 25 and this codegen reads up to 24. It describes capabilities that were not generated; upgrade the codegen to pick them up.', ContractCompatibility::check(25));
+            self::assertSame('the document declares contract 27 and this codegen reads up to 26. It describes capabilities that were not generated; upgrade the codegen to pick them up.', ContractCompatibility::check(27));
         }
     }
 

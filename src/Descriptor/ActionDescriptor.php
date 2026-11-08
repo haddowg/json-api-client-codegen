@@ -28,6 +28,9 @@ namespace haddowg\JsonApiCodegen\Descriptor;
  *
  * `$scopes` are the OAuth scopes a contract-16 document says the action needs, null when none.
  *
+ * `$filterable` holds the `filter[…]` parameters a collection action takes from its type's
+ * collection read, all of them or a named few, in the order the document declares them.
+ *
  * `$locationType` marks an action that answers with a URL: from contract 17 one declaring
  * `SeeOther` with a media type answers a JSON:API request with a location document, and this is
  * the media type it declares the URL serves. `$output` is then whatever else the action may answer
@@ -42,6 +45,7 @@ final class ActionDescriptor
      * @param list<RawMediaDescriptor> $requests      in document order
      * @param list<string>|null        $scopes
      * @param list<string>             $scopedErrorCodes the error codes scoped to this action, which it raises beside the ones every operation does, sorted
+     * @param array<string, FilterDescriptor> $filterable the filters it takes, in document order
      */
     public function __construct(
         public readonly string $name,
@@ -68,6 +72,7 @@ final class ActionDescriptor
         public readonly ?string $locationType = null,
         public readonly bool $deprecated = false,
         public readonly array $scopedErrorCodes = [],
+        public readonly array $filterable = [],
     ) {}
 
     /** The name the action is keyed and generated under: its alias when it has one, else its own. */

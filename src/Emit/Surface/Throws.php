@@ -14,7 +14,8 @@ use haddowg\JsonApiCodegen\Descriptor\OperationDescriptor;
  *
  * Each status maps to the runtime class `JsonApiErrorResponse::for()` throws for it, so the list
  * names exactly what a caller can catch. A code scoped to the operation adds its generated class,
- * which the runtime throws for that code. Every method that reaches the wire can also fail with no
+ * which the runtime throws for that code. A collection action taking filters checks their names
+ * before it sends anything. Every method that reaches the wire can also fail with no
  * response at all, and one that needs a primary resource back can find none, so those two follow
  * the statuses.
  */
@@ -48,6 +49,7 @@ final class Throws
         'UnexpectedResponse' => 'when the server answers with a status no other class covers',
         'TransportException' => 'when no response is received at all',
         'MalformedDocument' => 'when the response carries no primary resource',
+        'UnknownFilterException' => 'when a filter name is not one the action takes',
     ];
 
     /**
@@ -59,7 +61,7 @@ final class Throws
      */
     public static function forOperation(OperationDescriptor|ActionDescriptor $operation, Imports $imports, array $reasons = [], bool $malformed = false): array
     {
-        return self::tags($operation->errorStatuses, $imports, $reasons, $malformed, $operation->scopedErrorCodes);
+        return self::tags($operation->errorStatuses, $imports, $reasons, $malformed, $operation->scopedErrorCodes, $operation instanceof ActionDescriptor && $operation->filterable !== []);
     }
 
     /**
@@ -68,12 +70,13 @@ final class Throws
      * @param list<int>             $statuses    sorted ascending
      * @param array<string, string> $reasons     exception class => reason, over the defaults
      * @param list<string>          $scopedCodes the error codes scoped to the operation, whose generated classes it can throw
+     * @param bool                  $filters     whether the method checks filter names before it sends
      *
      * @return list<string>
      */
-    public static function tags(array $statuses, Imports $imports, array $reasons = [], bool $malformed = false, array $scopedCodes = []): array
+    public static function tags(array $statuses, Imports $imports, array $reasons = [], bool $malformed = false, array $scopedCodes = [], bool $filters = false): array
     {
-        $classes = [];
+        $classes = $filters ? ['UnknownFilterException'] : [];
         foreach ($statuses as $status) {
             $classes[] = self::CLASSES[$status] ?? ($status >= 500 ? 'ServerError' : 'UnexpectedResponse');
         }

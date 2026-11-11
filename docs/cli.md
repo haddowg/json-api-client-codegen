@@ -24,6 +24,10 @@ json-api-client-codegen <openapi-document> <output-directory> --namespace=<Names
 
 ## Writing
 
+Every file opens with a docblock saying it is generated and not to be edited by hand, with the
+sha256 of the document it came from on its `@generated` line. Change the document and regenerate
+instead of editing the output; `--check` catches an edit.
+
 Every file is rewritten, and any file the codegen wrote before but no longer generates is deleted.
 A file it did not write, one without `@generated` in it, is left alone, so the directory can hold
 your own files beside the client.

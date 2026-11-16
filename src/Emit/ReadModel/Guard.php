@@ -27,9 +27,11 @@ final class Guard
     private array $taken;
 
     /**
+     * @param string       $where    what a failure message names as holding the member
      * @param list<string> $reserved local variable names already in use
+     * @param bool         $code     whether `$where` is a PHP expression rather than the words themselves
      */
-    public function __construct(private readonly string $where, array $reserved = [])
+    public function __construct(private readonly string $where, array $reserved = [], private readonly bool $code = false)
     {
         $this->taken = \array_fill_keys(['this', ...$reserved], true);
     }
@@ -113,25 +115,17 @@ final class Guard
             return ['if (' . $null . ') {', '    ' . $out . ' = null;', '}', '', ...$inner];
         }
 
-        [$condition, $expected] = match ($shape->kind) {
-            ShapeKind::Scalar => self::scalarCondition((string) $shape->scalar, $var),
-            ShapeKind::List => ['\is_array(' . $var . ') && \array_is_list(' . $var . ')', 'a list'],
-            default => ['\is_array(' . $var . ')', 'an object'],
-        };
+        if ($shape->kind === ShapeKind::Choice) {
+            return $this->choice($shape, $in, $out, $required, $member);
+        }
 
-        $body = match ($shape->kind) {
-            ShapeKind::Scalar => [
-                ...($shape->narrowed() ? [Php::comment('@var ' . $shape->wireType() . ' ' . $var)] : []),
-                $out . ' = ' . ($shape->scalar === 'number' ? '(float) ' . $var : $var) . ';',
-            ],
-            ShapeKind::List => $this->list($shape, $in, $out),
-            default => $this->nested($shape, $in, $out),
-        };
+        [$condition, $expected] = self::condition($shape, $var);
+        $body = $this->body($shape, $in, $out);
 
         if ($required) {
             return [
                 'if (' . self::negate($condition) . ') {',
-                '    throw MalformedDocument::unexpectedMember(' . Php::string($this->where) . ', ' . Php::string($member) . ', ' . Php::string($expected) . ');',
+                '    ' . $this->malformed($member, self::either($expected)),
                 '}',
                 '',
                 ...$body,
@@ -139,6 +133,59 @@ final class Guard
         }
 
         return ['if (' . $condition . ') {', ...self::indent($body), '}'];
+    }
+
+    /**
+     * A value whose JSON type picks its shape: one arm per alternative, and a value of no
+     * listed type throws when the member is required and is dropped otherwise.
+     *
+     * @return list<string>
+     */
+    private function choice(Shape $shape, string $in, string $out, bool $required, string $member): array
+    {
+        $lines = [];
+        $expected = [];
+        foreach ($shape->alternatives as $index => $alternative) {
+            [$condition, $what] = self::condition($alternative, '$' . $in);
+            \array_push($expected, ...$what);
+            $lines[] = ($index === 0 ? 'if (' : '} elseif (') . $condition . ') {';
+            \array_push($lines, ...self::indent($this->body($alternative, $in, $out)));
+        }
+        if ($required) {
+            $lines[] = '} else {';
+            $lines[] = '    ' . $this->malformed($member, self::either($expected));
+        }
+        $lines[] = '}';
+
+        return $lines;
+    }
+
+    /**
+     * The statements assigning a value already known to be of the shape's JSON type.
+     *
+     * @return list<string>
+     */
+    private function body(Shape $shape, string $in, string $out): array
+    {
+        $var = '$' . $in;
+
+        return match ($shape->kind) {
+            ShapeKind::Scalar => [
+                ...($shape->narrowed() ? [Php::comment('@var ' . $shape->rawType() . ' ' . $var)] : []),
+                $out . ' = ' . match (true) {
+                    !$shape->readsIntAsFloat() => $var,
+                    \count($shape->scalars) === 1 => '(float) ' . $var,
+                    default => '\is_int(' . $var . ') ? (float) ' . $var . ' : ' . $var,
+                } . ';',
+            ],
+            ShapeKind::List => $this->list($shape, $in, $out),
+            default => $this->nested($shape, $in, $out),
+        };
+    }
+
+    private function malformed(string $member, string $expected): string
+    {
+        return 'throw MalformedDocument::unexpectedMember(' . ($this->code ? $this->where : Php::string($this->where)) . ', ' . Php::string($member) . ', ' . Php::string($expected) . ');';
     }
 
     /** @return list<string> */
@@ -186,15 +233,43 @@ final class Guard
         return $shape->wireType() !== $shape->constrained(Constraints::none())->wireType();
     }
 
-    /** @return array{string, string} the condition, and the expected kind for a failure message */
-    private static function scalarCondition(string $json, string $var): array
+    /**
+     * The condition a value of the shape's JSON types meets, and each of those types in words for
+     * a failure message.
+     *
+     * @return array{string, list<string>}
+     */
+    private static function condition(Shape $shape, string $var): array
     {
-        return match ($json) {
-            'integer' => ['\is_int(' . $var . ')', 'an integer'],
-            'number' => ['\is_int(' . $var . ') || \is_float(' . $var . ')', 'a number'],
-            'boolean' => ['\is_bool(' . $var . ')', 'a boolean'],
-            default => ['\is_string(' . $var . ')', 'a string'],
-        };
+        if ($shape->kind === ShapeKind::List) {
+            return ['\is_array(' . $var . ') && \array_is_list(' . $var . ')', ['a list']];
+        }
+        if ($shape->kind !== ShapeKind::Scalar) {
+            return ['\is_array(' . $var . ')', ['an object']];
+        }
+
+        $checks = [];
+        $expected = [];
+        foreach ($shape->scalars as $json) {
+            [$check, $what] = match ($json) {
+                'integer' => [['\is_int(' . $var . ')'], 'an integer'],
+                'number' => [['\is_int(' . $var . ')', '\is_float(' . $var . ')'], 'a number'],
+                'boolean' => [['\is_bool(' . $var . ')'], 'a boolean'],
+                default => [['\is_string(' . $var . ')'], 'a string'],
+            };
+            \array_push($checks, ...$check);
+            $expected[] = $what;
+        }
+
+        return [\implode(' || ', \array_values(\array_unique($checks))), $expected];
+    }
+
+    /** @param list<string> $choices */
+    private static function either(array $choices): string
+    {
+        $last = \array_pop($choices);
+
+        return $choices === [] ? (string) $last : \implode(', ', $choices) . ' or ' . $last;
     }
 
     private static function negate(string $condition): string

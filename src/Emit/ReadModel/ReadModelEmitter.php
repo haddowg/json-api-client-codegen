@@ -14,6 +14,7 @@ use haddowg\JsonApiCodegen\Descriptor\OperationDescriptor;
 use haddowg\JsonApiCodegen\Descriptor\OperationKind;
 use haddowg\JsonApiCodegen\Descriptor\RelationDescriptor;
 use haddowg\JsonApiCodegen\Descriptor\ResourceDescriptor;
+use haddowg\JsonApiCodegen\Descriptor\ValueSchema;
 use haddowg\JsonApiCodegen\Emit\ClassUnit;
 use haddowg\JsonApiCodegen\Emit\Contribution;
 use haddowg\JsonApiCodegen\Emit\Emitter;
@@ -583,19 +584,63 @@ final class ReadModelEmitter implements Emitter, Warns
         $shape = $shape->nullable($nullable);
 
         $read = match ($shape->kind) {
-            ShapeKind::Scalar => $this->scalar($resource, $attribute, (string) $shape->scalar, $method, $nullable, $shape->constraints),
+            ShapeKind::Scalar => \count($shape->scalars) === 1
+                ? $this->scalar($resource, $attribute, $shape->scalars[0], $method, $nullable, $shape->constraints)
+                : $this->guarded($resource, $attribute, $shape, $method),
             ShapeKind::Mixed => new AttributeRead($name, $method, 'mixed', null, ['return $this->_attribute(' . $field . ');']),
             ShapeKind::List => $this->list($resource, $attribute, $shape, $method),
             ShapeKind::Object => $this->object($resource, $attribute, $shape, $method),
             ShapeKind::Tagged => $this->tagged($resource, $attribute, $shape, $method),
+            ShapeKind::Choice => $this->guarded($resource, $attribute, $shape, $method),
         };
 
-        return $read->withProse(match ($shape->kind) {
-            ShapeKind::Scalar => Narrowing::prose((string) $shape->scalar, $shape->constraints, $attribute->schema->format),
+        return $read->withProse(self::prose($shape, $attribute->schema));
+    }
+
+    /** The constraints a shape's narrowed type cannot state, as a sentence. */
+    private static function prose(Shape $shape, ValueSchema $schema): ?string
+    {
+        return match ($shape->kind) {
+            ShapeKind::Scalar => Narrowing::proseOf($shape->scalars, $shape->constraints, $schema->format),
             ShapeKind::List => Narrowing::prose('array', $shape->constraints),
-            ShapeKind::Object => Narrowing::prose('object', $attribute->schema->constraints),
+            ShapeKind::Object => Narrowing::prose('object', $schema->constraints),
+            ShapeKind::Choice => Narrowing::proseOf(
+                $shape->jsonTypes() ?? [],
+                \array_reduce($shape->alternatives, static fn(Constraints $all, Shape $alternative): Constraints => $all->orElse($alternative->constraints), Constraints::none()),
+                $schema->format,
+            ),
             default => null,
-        });
+        };
+    }
+
+    /**
+     * An attribute of several JSON types, read through the guard a nested member gets: a value
+     * of none of them throws, and a number reads as a float.
+     */
+    private function guarded(ResourceDescriptor $resource, AttributeDescriptor $attribute, Shape $shape, string $method): AttributeRead
+    {
+        $guard = new Guard('$this->_subject()', ['raw', 'value'], true);
+        $alias = $shape->hasShape() ? self::alias($resource, $method) : null;
+        $native = self::native($shape);
+        $doc = $alias === null ? $shape->wireType() : $alias . ($shape->nullable ? '|null' : '');
+
+        return new AttributeRead(
+            $attribute->name,
+            $method,
+            $native,
+            $doc === $native ? null : $doc,
+            [
+                '$raw = $this->_attribute(' . Php::string($attribute->name) . ');',
+                '',
+                ...$guard->value($shape, 'raw', '$value', true, null, $attribute->name),
+                '',
+                'return $value;',
+            ],
+            [],
+            $alias,
+            $alias === null ? null : $shape->nullable(false)->wireType(),
+            [self::MALFORMED],
+        );
     }
 
     private function scalar(ResourceDescriptor $resource, AttributeDescriptor $attribute, string $json, string $method, ?bool $nullable = null, ?Constraints $constraints = null): AttributeRead
@@ -635,12 +680,15 @@ final class ReadModelEmitter implements Emitter, Warns
         if ($items !== null && $items->kind === ShapeKind::Object && $items->members !== [] && !$items->nullable) {
             return $this->objectList($resource, $attribute, $shape, $items, $method);
         }
+        if ($items !== null && (\in_array($items->kind, [ShapeKind::Choice, ShapeKind::List], true) || ($items->kind === ShapeKind::Scalar && \count($items->scalars) > 1))) {
+            return $this->guardedList($resource, $attribute, $shape, $items, $method);
+        }
         if ($items === null || $items->kind !== ShapeKind::Scalar) {
             throw self::unreadable($resource, $attribute, 'a list of ' . ($items === null ? 'unknown members' : $items->wireType() . ' values'));
         }
         $field = Php::string($attribute->name);
 
-        if (!$shape->nullable && $items->scalar === 'string' && !$items->nullable) {
+        if (!$shape->nullable && $items->scalars === ['string'] && !$items->nullable) {
             if (!$shape->narrowed()) {
                 return new AttributeRead($attribute->name, $method, 'array', 'list<string>', ['return $this->_stringList(' . $field . ');']);
             }
@@ -648,7 +696,7 @@ final class ReadModelEmitter implements Emitter, Warns
             return new AttributeRead($attribute->name, $method, 'array', $shape->wireType(), [Php::comment('@var ' . $shape->wireType() . ' $value'), '$value = $this->_stringList(' . $field . ');', '', 'return $value;']);
         }
 
-        $json = (string) $items->scalar;
+        $json = $items->scalars[0];
         $type = Shape::scalarType($json);
         $check = match ($json) {
             'integer' => '\\is_int($member)',
@@ -723,6 +771,41 @@ final class ReadModelEmitter implements Emitter, Warns
             Php::wrap('A list of objects, each narrowed member by member: an optional member of the wrong type is dropped rather than trusted, and an element that is not an object, or lacks a required member, throws.', 4),
             $alias,
             $shape->nullable(false)->wireType(),
+            [self::MALFORMED],
+        );
+    }
+
+    /**
+     * A list whose elements take several JSON types, or are lists themselves: each element is
+     * checked as a nested member is, and an element of none of its types throws.
+     */
+    private function guardedList(ResourceDescriptor $resource, AttributeDescriptor $attribute, Shape $shape, Shape $items, string $method): AttributeRead
+    {
+        $nullable = $shape->nullable;
+        $guard = new Guard('An element of the "' . $attribute->name . '" attribute of ' . self::article($resource->type) . ' "' . $resource->type . '" resource', ['raw', 'list', 'element']);
+        $alias = $shape->hasShape() ? self::alias($resource, $method) : null;
+        $type = $alias ?? $shape->nullable(false)->wireType();
+
+        return new AttributeRead(
+            $attribute->name,
+            $method,
+            $nullable ? '?array' : 'array',
+            $type . ($nullable ? '|null' : ''),
+            [
+                '$raw = $this->' . ($nullable ? '_nullableList' : '_list') . '(' . Php::string($attribute->name) . ');',
+                '',
+                ...($nullable ? ['if ($raw === null) {', '    return null;', '}', ''] : []),
+                '$list = [];',
+                'foreach ($raw as $element) {',
+                ...Guard::indent($guard->value($items, 'element', '$list[]', true, null, $attribute->name)),
+                '}',
+                '',
+                ...($shape->narrowed() ? [Php::comment('@var ' . $type . ' $list')] : []),
+                'return $list;',
+            ],
+            [],
+            $alias,
+            $alias === null ? null : $shape->nullable(false)->wireType(),
             [self::MALFORMED],
         );
     }
@@ -969,7 +1052,7 @@ final class ReadModelEmitter implements Emitter, Warns
             $typed = $optional ? $memberShape->nullable(true) : $memberShape;
             $native = self::native($typed);
             $params[] = '        public readonly ' . $native . ' $' . $property . ($optional ? ' = null' : '') . ',';
-            if (\in_array($memberShape->kind, [ShapeKind::Object, ShapeKind::List], true) || $memberShape->narrowed()) {
+            if (\in_array($memberShape->kind, [ShapeKind::Object, ShapeKind::List, ShapeKind::Choice], true) || $memberShape->narrowed()) {
                 $paramDocs[] = '@param ' . $typed->wireType() . ' $' . $property;
             }
 
@@ -1308,7 +1391,11 @@ final class ReadModelEmitter implements Emitter, Warns
     {
         $type = match ($shape->kind) {
             ShapeKind::Mixed => 'mixed',
-            ShapeKind::Scalar => Shape::scalarType((string) $shape->scalar),
+            ShapeKind::Scalar => Shape::scalarNative($shape->scalars),
+            ShapeKind::Choice => \implode('|', \array_values(\array_unique(\array_map(
+                static fn(Shape $alternative): string => self::native($alternative->nullable(false)),
+                $shape->alternatives,
+            )))),
             default => 'array',
         };
 

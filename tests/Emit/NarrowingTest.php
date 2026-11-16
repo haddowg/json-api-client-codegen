@@ -74,4 +74,14 @@ final class NarrowingTest extends TestCase
         self::assertNull(Narrowing::prose('integer', $size));
         self::assertSame('Defaults to 15.', Narrowing::prose('integer', $size, null, true));
     }
+
+    public function testSeveralTypesQualifyEachSentenceWithItsType(): void
+    {
+        $union = new Constraints(minimum: 0, maxLength: 200);
+
+        self::assertSame('As a string, at most 200 characters; as a number, at least 0.', Narrowing::proseOf(['string', 'number', 'boolean'], $union));
+        self::assertSame('As a string, in `date-time` format.', Narrowing::proseOf(['string', 'number'], new Constraints(), 'date-time'), 'a date beside another type is not coerced');
+        self::assertNull(Narrowing::proseOf(['string', 'boolean'], new Constraints(minLength: 1)));
+        self::assertSame(Narrowing::prose('string', $union), Narrowing::proseOf(['string'], $union));
+    }
 }

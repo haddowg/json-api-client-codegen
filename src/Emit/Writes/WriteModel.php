@@ -228,21 +228,17 @@ final class WriteModel
     /** The constraints of a write attribute that its narrowed type cannot state. */
     private static function prose(WriteAttributeDescriptor $attribute): ?string
     {
-        $json = null;
-        foreach ($attribute->schema->types ?? [] as $type) {
-            if ($type !== 'null') {
-                $json = $type;
-                break;
-            }
+        $types = \array_values(\array_unique(\array_diff($attribute->schema->types ?? [], ['null'])));
+        if ($types === []) {
+            $types = [match ($attribute->format) {
+                'integer', 'int32', 'int64' => 'integer',
+                'number', 'float', 'double' => 'number',
+                'boolean', 'object', 'array', 'unknown' => $attribute->format,
+                default => 'string',
+            }];
         }
-        $json ??= match ($attribute->format) {
-            'integer', 'int32', 'int64' => 'integer',
-            'number', 'float', 'double' => 'number',
-            'boolean', 'object', 'array', 'unknown' => $attribute->format,
-            default => 'string',
-        };
 
-        return Narrowing::prose($json, $attribute->constraints, $attribute->format);
+        return Narrowing::proseOf($types, $attribute->constraints, $attribute->schema === null ? $attribute->format : $attribute->schema->format);
     }
 
     /**

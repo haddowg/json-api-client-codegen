@@ -591,16 +591,29 @@ final class ActionSource
 
     /**
      * The PHP type of one form field: its scalar type, a file for a binary multipart member, a
-     * list of either for an array, and any field value where the schema says nothing PHP can use.
+     * list of either for an array, a union of those for a field of several types, and any field
+     * value where the schema says nothing PHP can use.
      */
     private static function formValue(ValueSchema $schema, ?string $file, string $generic, bool $item = false): string
     {
-        $types = \array_values(\array_diff($schema->types, ['null']));
-        if ($schema->composed() || \count($types) !== 1) {
+        $types = \array_values(\array_unique(\array_diff($schema->types, ['null'])));
+        if ($schema->composed() || $types === []) {
             return $generic;
         }
 
-        return match ($types[0]) {
+        // A number already takes an integer.
+        if (\in_array('number', $types, true)) {
+            $types = \array_values(\array_diff($types, ['integer']));
+        }
+        $values = \array_map(static fn(string $type): string => self::formType($type, $schema, $file, $generic, $item), $types);
+
+        return \in_array($generic, $values, true) ? $generic : \implode('|', \array_values(\array_unique($values)));
+    }
+
+    /** The PHP type of a form field value of one JSON type. */
+    private static function formType(string $type, ValueSchema $schema, ?string $file, string $generic, bool $item): string
+    {
+        return match ($type) {
             'string' => match (true) {
                 $schema->format === 'binary' => $file ?? 'string',
                 $schema->enum !== [] => \implode('|', \array_map(Php::docString(...), $schema->enum)),

@@ -14,7 +14,8 @@ use haddowg\JsonApiCodegen\Emit\Php;
  * Composition follows the keyword's own meaning: `allOf` merges its branches, `anyOf` with one
  * non-null branch is that branch and with several is one shape whose members are all optional
  * (the branches are not exclusive), `oneOf` is a union of its branches, and a `{"type": "null"}`
- * branch is nullability rather than a branch.
+ * branch is nullability rather than a branch. A `type` array is a union of every type it lists,
+ * each keyword narrowing only the type it holds for.
  *
  * The doc type is narrowed by the schema's constraints (see {@see Narrowing}); the native type
  * never is, so a value outside a bound is a PHPStan error and not a runtime one.
@@ -28,25 +29,59 @@ final class Shape
 
     public static function of(ValueSchema $schema): self
     {
+        $types = self::jsonTypes($schema);
+        if (\count($types) > 1 && !$schema->composed()) {
+            return self::union(\array_map(static fn(string $type): self => self::single($type, $schema), $types));
+        }
+
         $fields = self::fields($schema);
         if ($fields !== null) {
             return new self(self::objectShape($fields), 'array');
         }
 
         if ($schema->oneOf !== [] || $schema->anyOf !== []) {
-            $branches = \array_map(self::of(...), self::nonNull([...$schema->oneOf, ...$schema->anyOf]));
-            if ($branches === []) {
-                return new self('mixed', 'mixed');
-            }
-            $natives = \array_unique(\array_map(static fn(self $branch): string => $branch->native, $branches));
-
-            return new self(
-                \implode('|', \array_unique(\array_map(static fn(self $branch): string => $branch->doc, $branches))),
-                \count($natives) === 1 ? $natives[0] : 'mixed',
-            );
+            return self::union(\array_map(self::of(...), self::nonNull([...$schema->oneOf, ...$schema->anyOf])));
         }
 
-        return match (self::jsonType($schema)) {
+        return self::single($types[0] ?? null, $schema);
+    }
+
+    /**
+     * One type for several: a union of their doc types, and of their native types, which is
+     * `mixed` when any of them is.
+     *
+     * @param list<self> $shapes
+     */
+    private static function union(array $shapes): self
+    {
+        if ($shapes === []) {
+            return new self('mixed', 'mixed');
+        }
+
+        $natives = [];
+        foreach ($shapes as $shape) {
+            foreach (\explode('|', $shape->native) as $native) {
+                $natives[$native] = true;
+            }
+        }
+
+        return new self(
+            \implode('|', \array_values(\array_unique(\array_map(static fn(self $shape): string => $shape->doc, $shapes)))),
+            isset($natives['mixed']) ? 'mixed' : \implode('|', \array_keys($natives)),
+        );
+    }
+
+    /** A value of one JSON type, as the schema's keywords for that type narrow it. */
+    private static function single(?string $type, ValueSchema $schema): self
+    {
+        if ($type === 'object') {
+            $fields = self::fields($schema, true);
+            if ($fields !== null) {
+                return new self(self::objectShape($fields), 'array');
+            }
+        }
+
+        return match ($type) {
             'array' => new self(Narrowing::list($schema->items === null ? 'mixed' : self::nullable($schema->items), $schema->constraints), 'array'),
             'object' => new self('array<string, mixed>', 'array'),
             'string' => new self(Narrowing::scalar('string', $schema->constraints), 'string'),
@@ -86,10 +121,10 @@ final class Shape
      *
      * @return array<string, array{schema: ValueSchema, required: bool}>|null
      */
-    private static function fields(ValueSchema $schema): ?array
+    private static function fields(ValueSchema $schema, bool $object = false): ?array
     {
         $own = null;
-        if ($schema->properties !== [] || (self::jsonType($schema) === 'object' && !$schema->composed())) {
+        if ($schema->properties !== [] || (($object || self::jsonTypes($schema) === ['object']) && !$schema->composed())) {
             if ($schema->properties === []) {
                 return null;
             }
@@ -169,14 +204,13 @@ final class Shape
         return \array_values(\array_filter($branches, static fn(ValueSchema $branch): bool => $branch->types !== ['null']));
     }
 
-    private static function jsonType(ValueSchema $schema): ?string
+    /**
+     * The declared JSON types with `null` dropped.
+     *
+     * @return list<string>
+     */
+    private static function jsonTypes(ValueSchema $schema): array
     {
-        foreach ($schema->types as $type) {
-            if ($type !== 'null') {
-                return $type;
-            }
-        }
-
-        return null;
+        return \array_values(\array_unique(\array_diff($schema->types, ['null'])));
     }
 }

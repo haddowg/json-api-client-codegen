@@ -81,6 +81,56 @@ final class Narrowing
      */
     public static function prose(string $json, Constraints $constraints, ?string $format = null, bool $withDefault = false): ?string
     {
+        $notes = self::notes($json, $constraints, $format, true);
+
+        if ($withDefault && $constraints->default !== null) {
+            $notes[] = 'defaults to ' . self::literal($constraints->default);
+        }
+
+        if ($notes === []) {
+            return null;
+        }
+
+        return \ucfirst(\implode('; ', $notes)) . '.';
+    }
+
+    /**
+     * The constraints no type states for a value of any of `$types`. One type reads as
+     * {@see prose()}; several qualify each type's sentence, since a keyword holds only for values
+     * of its own JSON type, and state a date format, which only a lone string type is coerced by.
+     *
+     * @param list<string> $types
+     */
+    public static function proseOf(array $types, Constraints $constraints, ?string $format = null, bool $withDefault = false): ?string
+    {
+        if (\count($types) <= 1) {
+            return $types === [] ? null : self::prose($types[0], $constraints, $format, $withDefault);
+        }
+
+        $notes = [];
+        foreach ($types as $json) {
+            $note = self::notes($json, $constraints, $format, false);
+            if ($note !== []) {
+                $notes[] = 'as ' . self::kind($json) . ', ' . \implode('; ', $note);
+            }
+        }
+        if ($withDefault && $constraints->default !== null) {
+            $notes[] = 'defaults to ' . self::literal($constraints->default);
+        }
+
+        return $notes === [] ? null : \ucfirst(\implode('; ', $notes)) . '.';
+    }
+
+    /**
+     * The constraints no type of a value of `$json` expresses, as sentence fragments.
+     *
+     * @param bool $datesCoerced whether a date format needs no words, because the value is
+     *                           coerced into a `\DateTimeImmutable`
+     *
+     * @return list<string>
+     */
+    private static function notes(string $json, Constraints $constraints, ?string $format, bool $datesCoerced): array
+    {
         $notes = [];
 
         if ($json === 'number') {
@@ -102,7 +152,7 @@ final class Narrowing
             if ($constraints->pattern !== null) {
                 $notes[] = 'matches `' . $constraints->pattern . '`';
             }
-            if ($format !== null && !\in_array($format, self::SILENT_FORMATS, true)) {
+            if ($format !== null && (!\in_array($format, self::SILENT_FORMATS, true) || (!$datesCoerced && \in_array($format, ['date', 'date-time', 'time'], true)))) {
                 $notes[] = 'in `' . $format . '` format';
             }
         }
@@ -122,16 +172,17 @@ final class Narrowing
             $notes[] = self::count($constraints->minProperties, $constraints->maxProperties, 'member');
         }
 
-        if ($withDefault && $constraints->default !== null) {
-            $notes[] = 'defaults to ' . self::literal($constraints->default);
-        }
+        return \array_values(\array_filter($notes, static fn(?string $note): bool => $note !== null));
+    }
 
-        $notes = \array_values(\array_filter($notes, static fn(?string $note): bool => $note !== null));
-        if ($notes === []) {
-            return null;
-        }
-
-        return \ucfirst(\implode('; ', $notes)) . '.';
+    private static function kind(string $json): string
+    {
+        return match ($json) {
+            'integer' => 'an integer',
+            'array' => 'a list',
+            'object' => 'an object',
+            default => 'a ' . $json,
+        };
     }
 
     private static function tighter(?int $a, ?int $b, bool $lower): ?int

@@ -552,6 +552,9 @@ final class DescriptorBuilder
      *
      * The format is an explicit `format` where one is declared, else the JSON type with `null`
      * dropped, else `string` for a bare enum. `unknown` only where the schema declares neither.
+     * A schema of several types, `null` aside, has them all joined by `|` (`string|number|boolean`)
+     * whatever its `format`, which then holds only for its strings; the whole schema is carried for
+     * it, since no single format reads it.
      * Nullability is tracked separately because it is what separates `?float` from `float`, and
      * dropping `null` to find the format would otherwise lose it.
      *
@@ -564,9 +567,10 @@ final class DescriptorBuilder
         $target = $reference === null ? $unwrapped : $this->document->schema($reference);
         $isEnum = $target->find('enum') !== null;
 
-        $format = $target->find('format')?->string()
-            ?? $this->jsonType($target)
-            ?? ($isEnum ? 'string' : 'unknown');
+        $types = $this->jsonTypes($target);
+        $format = \count($types) > 1
+            ? \implode('|', $types)
+            : $target->find('format')?->string() ?? $types[0] ?? ($isEnum ? 'string' : 'unknown');
 
         if ($isEnum && $reference !== null) {
             self::assertClassName($reference);
@@ -581,8 +585,9 @@ final class DescriptorBuilder
 
     /**
      * The whole value schema, for the values a format hint cannot describe on its own: an
-     * object's members, an array's item type, and any composed schema — a `oneOf` union has no
-     * format at all, and its branches are the only description of it there is.
+     * object's members, an array's item type, a value of several JSON types, and any composed
+     * schema — a `oneOf` union has no format at all, and its branches are the only description of
+     * it there is.
      */
     private function compositeSchema(Node $schema, string $format, bool $constrained = true): ?ValueSchema
     {
@@ -591,7 +596,7 @@ final class DescriptorBuilder
             || $target->find('anyOf') !== null
             || $target->find('allOf') !== null;
 
-        return $composed || \in_array($format, ['object', 'array'], true)
+        return $composed || \in_array($format, ['object', 'array'], true) || \str_contains($format, '|')
             ? $this->valueSchema($schema, $constrained)
             : null;
     }
@@ -713,16 +718,14 @@ final class DescriptorBuilder
         return false;
     }
 
-    /** The first declared JSON type with `null` dropped, or null when the schema declares none. */
-    private function jsonType(Node $schema): ?string
+    /**
+     * The declared JSON types with `null` dropped, in document order.
+     *
+     * @return list<string>
+     */
+    private function jsonTypes(Node $schema): array
     {
-        foreach ($this->declaredTypes($schema) as $candidate) {
-            if ($candidate !== 'null') {
-                return $candidate;
-            }
-        }
-
-        return null;
+        return \array_values(\array_unique(\array_diff($this->declaredTypes($schema), ['null'])));
     }
 
     /**
@@ -758,7 +761,7 @@ final class DescriptorBuilder
     private function relation(string $type, string $name, Node $component, ?string $collection, ?Node $written, bool $deprecated = false): RelationDescriptor
     {
         $data = $component->get('properties')->get('data');
-        $cardinality = $data->find('type')?->string() === 'array' ? Cardinality::Many : Cardinality::One;
+        $cardinality = \in_array('array', $this->declaredTypes($data), true) ? Cardinality::Many : Cardinality::One;
         $linkage = $this->linkage($cardinality === Cardinality::Many ? $data->get('items') : $data, $this->readsHoldConstraints());
 
         $relatedPath = $collection === null ? null : $this->relationPath($type, $name, $collection . '/{id}/' . $name, 'fetchRelated');
@@ -849,7 +852,7 @@ final class DescriptorBuilder
 
         $fields = $read;
         if ($data !== null) {
-            $fields = $this->linkage($data->find('type')?->string() === 'array' ? $data->get('items') : $data, true)['pivotFields'];
+            $fields = $this->linkage(\in_array('array', $this->declaredTypes($data), true) ? $data->get('items') : $data, true)['pivotFields'];
         }
 
         return \array_filter($fields, static fn(PivotFieldDescriptor $field): bool => !$field->readOnly);
@@ -906,7 +909,7 @@ final class DescriptorBuilder
             $nullable = false;
             $polymorphic = false;
             foreach ($anyOf->items() as $entry) {
-                if ($entry->find('type')?->string() === 'null') {
+                if ($this->declaredTypes($entry) === ['null']) {
                     $nullable = true;
 
                     continue;

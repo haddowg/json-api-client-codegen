@@ -64,6 +64,24 @@ shapes, such as `array{radius: int}|array{width: int, height: int}`. The shapes 
 because a union of sealed shapes collapses into one all-optional shape in PHPStan, so a value
 mixing two branches passes static analysis and is rejected by the server.
 
+## Values of several types
+
+A schema whose `type` lists several JSON types keeps every one of them. Core projects a primitive
+`Union` field this way, so `["string", "number", "boolean"]` reads as `string|float|bool`, and a
+list of them as `list<string|float|bool>`. A number reads as a float, as a `number` attribute's
+does, unless the schema also lists `integer`, which keeps an integer an int. Each keyword narrows
+only values of its own type, as JSON Schema defines it: a `minLength` of 1 makes the string
+`non-empty-string` and leaves the number alone, and a `maxLength` becomes a sentence about strings.
+A `format` holds only for the strings too, so a date format there is stated rather than coerced
+into a `\DateTimeImmutable`.
+
+Scalars beside an `array` or an `object` read as whichever the value is, by its JSON type, with the
+list or the object narrowed as one of its own would be. A `oneOf` or `anyOf` whose branches each
+take JSON types no other branch takes reads the same way, which is how core projects a union
+whose member carries an `enum`. A value of none of the listed types is a `MalformedDocument` where
+the member is required, and is dropped from a nested object or list where it is optional. Writes
+take a value of any of the types.
+
 ## Constraints, scopes and safety
 
 Constraints narrow PHPDoc types where PHPStan can state them exactly, and the native type never

@@ -10,7 +10,8 @@ namespace haddowg\JsonApiCodegen\Descriptor;
  * `$format` is the wire format hint that drives coercion: an explicit `format` (`date-time`,
  * `date`) when the schema declares one, else the JSON type (`string`, `integer`, `number`,
  * `boolean`, `object`, `array`). `$enum` names the enum component the value is drawn from, and
- * is what lets the emitter reach a generated PHP enum instead of a bare string.
+ * is what lets the emitter reach a generated PHP enum instead of a bare string. A value of several
+ * JSON types has them all, joined by `|` (`string|number|boolean`), and carries its `$schema`.
  *
  * `$nullable` is read from the schema admitting `"null"` among its types. It is separate from
  * the format because the emitted type depends on both — `["number", "null"]` is `?float` and
@@ -21,8 +22,9 @@ final class AttributeDescriptor
     /**
      * @param ValueSchema|null $schema the whole fragment, carried only where the format hint
      *                                 cannot express the value — an object's members, an array's
-     *                                 item type. Null for a scalar, where the format and
-     *                                 `$nullable` already say everything.
+     *                                 item type, a value of several JSON types. Null for a
+     *                                 scalar of one type, where the format and `$nullable`
+     *                                 already say everything.
      * @param Constraints      $constraints the keywords the read schema declares, which hold for
      *                                      every value a response carries
      */

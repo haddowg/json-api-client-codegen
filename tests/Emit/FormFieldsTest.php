@@ -28,7 +28,7 @@ final class FormFieldsTest extends TestCase
     {
         $articles = GeneratedOutput::files('form-fields')['resource-articles.php'];
 
-        self::assertStringContainsString("TContentType is 'multipart/form-data' ? array{title: string, cover?: FilePart, tags?: list<string>, rows?: int, status?: 'draft'|'published'}", $articles);
+        self::assertStringContainsString("TContentType is 'multipart/form-data' ? array{title: string, cover?: FilePart, tags?: list<string>, rows?: int, status?: 'draft'|'published', limit?: int|string}", $articles);
         self::assertStringContainsString("TContentType is 'application/x-www-form-urlencoded' ? array{title: string, ...<string, int>}", $articles);
     }
 

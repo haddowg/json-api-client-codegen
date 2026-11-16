@@ -9,6 +9,7 @@ use haddowg\JsonApiCodegen\Descriptor\OperationDescriptor;
 use haddowg\JsonApiCodegen\Descriptor\PivotFieldDescriptor;
 use haddowg\JsonApiCodegen\Descriptor\RelationDescriptor;
 use haddowg\JsonApiCodegen\Descriptor\RelationVerb;
+use haddowg\JsonApiCodegen\Descriptor\ValueSchema;
 use haddowg\JsonApiCodegen\Emit\ClassUnit;
 use haddowg\JsonApiCodegen\Emit\ExampleTag;
 use haddowg\JsonApiCodegen\Emit\Naming;
@@ -16,6 +17,7 @@ use haddowg\JsonApiCodegen\Emit\Php;
 use haddowg\JsonApiCodegen\Emit\Reads\RelatedQuerySource;
 use haddowg\JsonApiCodegen\Emit\ScopeNote;
 use haddowg\JsonApiCodegen\Emit\UnitKind;
+use haddowg\JsonApiCodegen\Emit\Writes\Shape;
 
 /**
  * One relationship handle per relation (`AlbumTracksRelation`), and the edge builder of a pivot
@@ -520,6 +522,7 @@ final class RelationSource
     {
         [$native, $doc] = match (true) {
             $field->enum !== null => [$field->enum, null],
+            $field->schema !== null && \str_contains($field->format, '|') => self::multiType($field->schema),
             \in_array($field->format, ['date-time', 'date'], true) => ['\\DateTimeImmutable', null],
             $field->format === 'integer' => ['int', null],
             $field->format === 'number' => ['float', null],
@@ -530,11 +533,24 @@ final class RelationSource
             default => ['string', null],
         };
         if ($field->nullable && $native !== 'mixed') {
-            $native = '?' . $native;
+            $native = \str_contains($native, '|') ? $native . '|null' : '?' . $native;
             $doc = $doc === null ? null : $doc . '|null';
         }
 
         return [$native, $doc];
+    }
+
+    /**
+     * A pivot field of several JSON types: their native union, and the doc type where the
+     * schema's keywords narrow it further.
+     *
+     * @return array{string, string|null}
+     */
+    private static function multiType(ValueSchema $schema): array
+    {
+        $shape = Shape::of($schema);
+
+        return [$shape->native, $shape->doc === $shape->native ? null : $shape->doc];
     }
 
     /** The wire form of a pivot field read from `$expression`. */

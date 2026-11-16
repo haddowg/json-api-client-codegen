@@ -24,6 +24,8 @@ use haddowg\JsonApiCodegen\Spec\SpecDocument;
  * - `witness`: core's contract witness on the 8.4 target.
  * - `form-fields`: the witness with `bulk-import`'s form bodies given fields.
  * - `unions`: the witness on the 8.3 target, so its reads run on any supported PHP.
+ * - `multi-types`: the witness with multi-type attributes and a multi-type pivot field, on the
+ *   8.3 target, so its reads run on any supported PHP.
  *
  * Written out, the suites sit beside the music catalog's serialised descriptor.
  */
@@ -31,7 +33,7 @@ final class GeneratedOutput
 {
     public const string DIRECTORY = __DIR__ . '/../../build/generated-output';
 
-    public const array SUITES = ['generated', 'paginators', 'witness', 'form-fields', 'unions'];
+    public const array SUITES = ['generated', 'paginators', 'witness', 'form-fields', 'unions', 'multi-types'];
 
     /** @var array<string, array{array<string, string>, list<string>}> */
     private static array $generated = [];
@@ -72,6 +74,7 @@ final class GeneratedOutput
             'witness' => [Fixtures::witnessJson(), self::config($suite), self::fileHash(Fixtures::witnessPath())],
             'form-fields' => [$formFields = self::formFieldsJson(), self::config($suite), \hash('sha256', $formFields)],
             'unions' => [$unions = self::unionsJson(), self::config($suite), \hash('sha256', $unions)],
+            'multi-types' => [$multiTypes = self::multiTypesJson(), self::config($suite), \hash('sha256', $multiTypes)],
             default => throw new \InvalidArgumentException('No generated-output suite named ' . $suite . '.'),
         };
 
@@ -89,6 +92,7 @@ final class GeneratedOutput
             'witness' => new GeneratorConfig('haddowg\\JsonApiCodegen\\Tests\\Golden\\Witness', 'Witness', PhpTarget::Php84),
             'form-fields' => new GeneratorConfig('haddowg\\JsonApiCodegen\\Tests\\Golden\\FormFields', 'FormFields', PhpTarget::Php84),
             'unions' => new GeneratorConfig('haddowg\\JsonApiCodegen\\Tests\\Golden\\Unions', 'Unions', PhpTarget::Php83),
+            'multi-types' => new GeneratorConfig('haddowg\\JsonApiCodegen\\Tests\\Golden\\MultiTypes', 'MultiTypes', PhpTarget::Php83),
             default => throw new \InvalidArgumentException('No generated-output suite named ' . $suite . '.'),
         };
     }
@@ -133,6 +137,71 @@ final class GeneratedOutput
     }
 
     /**
+     * The witness with multi-type values on `articles`, shaped as core projects a primitive
+     * `Union` field: a `type` array, with each keyword holding only for values of its own JSON
+     * type. `value` mixes scalars with a list of them, `defaultValue` and `fallbackValue` reach a
+     * shared `PlaceholderValue` component through an `allOf` and a nullable `anyOf`, `columns` is
+     * a list of objects with multi-type members, one of them scalars or a list, and `limit` narrows each of its types. `source`
+     * mixes a string with an object, `mode` is the `oneOf` of scalar branches core falls back to
+     * when a member carries an `enum`, the `shape` union's circle gains a `label` that is a string or
+     * a list, and the tags pivot gains a multi-type `weight`.
+     */
+    public static function multiTypesJson(): string
+    {
+        $document = \json_decode(Fixtures::witnessJson(), true, flags: \JSON_THROW_ON_ERROR);
+        if (!\is_array($document)) {
+            throw new \RuntimeException('The witness is not a JSON object.');
+        }
+
+        $scalars = ['string', 'number', 'boolean'];
+        $placeholder = ['$ref' => '#/components/schemas/PlaceholderValue'];
+        $attributes = [
+            'value' => ['type' => [...$scalars, 'array', 'null'], 'maxLength' => 200, 'items' => ['type' => $scalars]],
+            'defaultValue' => ['type' => $scalars, 'description' => 'The value a placeholder takes when nothing is bound.', 'minLength' => 1, 'allOf' => [$placeholder]],
+            'fallbackValue' => ['type' => [...$scalars, 'null'], 'anyOf' => [$placeholder, ['type' => 'null']]],
+            'columns' => ['type' => 'array', 'items' => [
+                'type' => 'object',
+                'properties' => [
+                    'name' => ['type' => 'string'],
+                    'from' => ['type' => $scalars],
+                    'to' => ['type' => [...$scalars, 'null']],
+                    'values' => ['type' => [...$scalars, 'array'], 'items' => ['type' => $scalars]],
+                ],
+                'required' => ['name', 'from'],
+            ]],
+            'limit' => ['type' => ['integer', 'string', 'null'], 'minimum' => 1, 'minLength' => 1],
+            'source' => ['type' => ['string', 'object'], 'properties' => ['url' => ['type' => 'string']], 'required' => ['url']],
+            'mode' => ['oneOf' => [['type' => 'string', 'enum' => ['auto', 'manual']], ['type' => 'integer', 'minimum' => 0]]],
+        ];
+        $weight = ['type' => ['integer', 'string']];
+
+        $schemas = &self::node($document, 'components', 'schemas');
+        $schemas['PlaceholderValue'] = ['type' => $scalars, 'maxLength' => 200];
+        unset($schemas);
+        foreach (['ArticlesAttributes', 'ArticlesCreateAttributes', 'ArticlesUpdateAttributes'] as $name) {
+            $properties = &self::node($document, 'components', 'schemas', $name, 'properties');
+            $properties += $attributes;
+            unset($properties);
+        }
+        $required = &self::node($document, 'components', 'schemas', 'ArticlesAttributes', 'required');
+        \array_push($required, ...\array_keys($attributes));
+        unset($required);
+        foreach (['ArticlesTagsPivot', 'ArticlesTagsWritePivot'] as $name) {
+            $properties = &self::node($document, 'components', 'schemas', $name, 'properties');
+            $properties['weight'] = $weight;
+            unset($properties);
+        }
+        $circle = &self::node($document, 'components', 'schemas', 'ArticlesAttributes', 'properties', 'shape', 'oneOf', '0', 'properties');
+        $circle['label'] = ['type' => ['string', 'array'], 'items' => ['type' => 'string']];
+        unset($circle);
+        $required = &self::node($document, 'components', 'schemas', 'ArticlesTagsPivot', 'required');
+        $required[] = 'weight';
+        unset($required);
+
+        return \json_encode($document, \JSON_THROW_ON_ERROR | \JSON_UNESCAPED_SLASHES);
+    }
+
+    /**
      * The witness with bulk-import's form bodies given fields: core describes its multipart body
      * as a bare object, and a form body is narrowed only once its schema lists `properties`.
      */
@@ -158,6 +227,7 @@ final class GeneratedOutput
                 'tags' => ['type' => 'array', 'items' => ['type' => 'string']],
                 'rows' => ['type' => 'integer'],
                 'status' => ['type' => 'string', 'enum' => ['draft', 'published']],
+                'limit' => ['type' => ['integer', 'string']],
             ],
             'required' => ['title'],
         ]];
@@ -170,6 +240,26 @@ final class GeneratedOutput
         unset($content);
 
         return \json_encode($document, \JSON_THROW_ON_ERROR | \JSON_UNESCAPED_SLASHES);
+    }
+
+    /**
+     * The object or list at `$keys` inside `$document`, by reference.
+     *
+     * @param array<mixed> $document
+     *
+     * @return array<mixed>
+     */
+    private static function &node(array &$document, string ...$keys): array
+    {
+        $node = &$document;
+        foreach ($keys as $key) {
+            if (!\is_array($node[$key] ?? null)) {
+                throw new \RuntimeException('The witness has no ' . \implode('.', $keys) . '.');
+            }
+            $node = &$node[$key];
+        }
+
+        return $node;
     }
 
     private static function writeSuite(string $suite, string $directory): void

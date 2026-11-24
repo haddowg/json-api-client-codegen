@@ -92,6 +92,16 @@ final class ContractSeventeenTest extends TestCase
         self::assertArrayNotHasKey('locationType', $actions['archive']);
     }
 
+    public function testAnOpenLocationTypeReadsTheDeclaredTypeFromItsExample(): void
+    {
+        $json = self::patched(
+            ['paths', '/articles/{id}/-actions/download', 'get', 'responses', '200', 'content', 'application/vnd.api+json', 'schema', 'allOf', '1', 'properties', 'links', 'properties', 'location', 'properties', 'type'],
+            ['type' => 'string', 'examples' => ['application/octet-stream']],
+        );
+
+        self::assertSame('application/octet-stream', self::resource($json)->actions['download']->locationType);
+    }
+
     public function testALocationDocumentWithoutItsTypeConstIsMalformed(): void
     {
         $json = self::patched(

@@ -2271,7 +2271,8 @@ final class DescriptorBuilder
 
     /**
      * The media type a location document declares its URL serves, or null when the schema is not
-     * a location document.
+     * a location document. A fixed type is the narrowing's `const`. A type that varies is any
+     * string, and its example is the `application/octet-stream` the action declares.
      */
     private function locationType(Node $schema): ?string
     {
@@ -2284,9 +2285,10 @@ final class DescriptorBuilder
 
                 continue;
             }
-            $const = $part->path('properties', 'links', 'properties', 'location', 'properties', 'type', 'const');
-            if ($const !== null) {
-                $type = $const->string();
+            $narrowed = $part->path('properties', 'links', 'properties', 'location', 'properties', 'type');
+            $declared = $narrowed?->find('const') ?? $narrowed?->find('examples')?->items()[0] ?? null;
+            if ($declared !== null) {
+                $type = $declared->string();
             }
         }
         if (!$location) {
